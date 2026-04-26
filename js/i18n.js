@@ -72,6 +72,10 @@ export const TRANSLATIONS = {
 
     "profile.hf_placeholder":  "e.g. meta-llama/Meta-Llama-3-8B or Qwen/Qwen2.5-7B",
     "compare.hf_placeholder":  "HF model id (e.g. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot1_placeholder": "HF model id (e.g. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot2_placeholder": "HF model id #2",
+    "compare.slot3_placeholder": "HF model id #3 (optional)",
+    "compare.preset_default": "— or preset —",
 
     // Form parameters
     "param.theta":         "θ (rope_theta)",
@@ -203,6 +207,10 @@ export const TRANSLATIONS = {
 
     "profile.hf_placeholder":  "ej. meta-llama/Meta-Llama-3-8B o Qwen/Qwen2.5-7B",
     "compare.hf_placeholder":  "ID modelo HF (ej. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot1_placeholder": "ID modelo HF (ej. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot2_placeholder": "ID modelo HF #2",
+    "compare.slot3_placeholder": "ID modelo HF #3 (opcional)",
+    "compare.preset_default": "— o preset —",
 
     // Parámetros del formulario
     "param.theta":         "θ (rope_theta)",
@@ -334,6 +342,10 @@ export const TRANSLATIONS = {
 
     "profile.hf_placeholder":  "ex. meta-llama/Meta-Llama-3-8B ou Qwen/Qwen2.5-7B",
     "compare.hf_placeholder":  "ID modèle HF (ex. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot1_placeholder": "ID modèle HF (ex. meta-llama/Meta-Llama-3-8B)",
+    "compare.slot2_placeholder": "ID modèle HF #2",
+    "compare.slot3_placeholder": "ID modèle HF #3 (optionnel)",
+    "compare.preset_default": "— ou préréglage —",
 
     // Paramètres du formulaire
     "param.theta":         "θ (rope_theta)",
@@ -465,6 +477,10 @@ export const TRANSLATIONS = {
 
     "profile.hf_placeholder":  "例如: meta-llama/Meta-Llama-3-8B 或 Qwen/Qwen2.5-7B",
     "compare.hf_placeholder":  "HF 模型 id (例如: meta-llama/Meta-Llama-3-8B)",
+    "compare.slot1_placeholder": "HF 模型 id (例如: meta-llama/Meta-Llama-3-8B)",
+    "compare.slot2_placeholder": "HF 模型 id #2",
+    "compare.slot3_placeholder": "HF 模型 id #3 (可选)",
+    "compare.preset_default": "— 或预设 —",
 
     // 表单参数
     "param.theta":         "θ (rope_theta)",

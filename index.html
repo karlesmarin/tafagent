@@ -286,21 +286,27 @@
       <div id="compare-models">
         <h3 style="margin-top:1rem;" data-i18n="compare.models_title">Models to compare (add up to 3)</h3>
         <div class="compare-slot" data-slot="1">
-          <input type="text" class="compare-hf-id" placeholder="HF model id (e.g. meta-llama/Meta-Llama-3-8B)" />
+          <input type="text" class="compare-hf-id"
+            data-i18n-placeholder="compare.slot1_placeholder"
+            placeholder="HF model id (e.g. meta-llama/Meta-Llama-3-8B)" />
           <select class="compare-preset">
-            <option value="">— or preset —</option>
+            <option value="" data-i18n="compare.preset_default">— or preset —</option>
           </select>
         </div>
         <div class="compare-slot" data-slot="2">
-          <input type="text" class="compare-hf-id" placeholder="HF model id #2" />
+          <input type="text" class="compare-hf-id"
+            data-i18n-placeholder="compare.slot2_placeholder"
+            placeholder="HF model id #2" />
           <select class="compare-preset">
-            <option value="">— or preset —</option>
+            <option value="" data-i18n="compare.preset_default">— or preset —</option>
           </select>
         </div>
         <div class="compare-slot" data-slot="3">
-          <input type="text" class="compare-hf-id" placeholder="HF model id #3 (optional)" />
+          <input type="text" class="compare-hf-id"
+            data-i18n-placeholder="compare.slot3_placeholder"
+            placeholder="HF model id #3 (optional)" />
           <select class="compare-preset">
-            <option value="">— or preset —</option>
+            <option value="" data-i18n="compare.preset_default">— or preset —</option>
           </select>
         </div>
       </div>
