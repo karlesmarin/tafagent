@@ -10,8 +10,16 @@
 </head>
 <body>
   <header>
-    <h1>🔬 TAF Agent</h1>
-    <p class="tagline">
+    <!-- Language switcher (top-right) -->
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en" title="English">🇬🇧</button>
+      <button class="lang-btn" data-lang="es" title="Español">🇪🇸</button>
+      <button class="lang-btn" data-lang="fr" title="Français">🇫🇷</button>
+      <button class="lang-btn" data-lang="zh" title="中文">🇨🇳</button>
+    </div>
+
+    <h1 data-i18n="hero.title">🔬 TAF Agent</h1>
+    <p class="tagline" data-i18n="hero.tagline">
       Test <strong>ANY</strong> transformer LLM before you spend GPU/$.
     </p>
     <div class="arch-badges">
@@ -23,11 +31,14 @@
       <span class="badge">✓ SSM (Mamba)</span>
       <span class="badge">✓ Any HuggingFace public model</span>
     </div>
-    <p class="subtle" style="margin-top:0.75rem;">
+    <p class="subtle" style="margin-top:0.75rem;" data-i18n="hero.subtitle">
       All computation runs locally in your browser. Free. Unlimited. Auditable.
     </p>
+    <p class="subtle" style="margin-top:0.25rem; font-size:0.85rem;" data-i18n="hero.about">
+      Built by an independent researcher. Open source. Not affiliated with any model vendor.
+    </p>
     <p style="margin-top:0.75rem;">
-      <button id="help-btn" type="button">📘 Help & examples</button>
+      <button id="help-btn" type="button" data-i18n="hero.help">📘 Help & examples</button>
     </p>
   </header>
 
@@ -155,7 +166,10 @@
 
     <!-- PROFILE mode -->
     <section id="profile-section">
-      <h2>📇 Profile a model
+      <div class="quickstart-banner" data-i18n="profile.quickstart">
+        💡 Quick start: pick any preset → click Generate. Or paste a model id from <a href='https://huggingface.co/models?library=transformers&sort=trending' target='_blank'>HF Hub trending</a> → 📥 Fetch → Generate.
+      </div>
+      <h2><span data-i18n="profile.title">📇 Profile a model</span>
         <span class="info"><span class="tooltip">
           <strong>One-click full diagnosis</strong>. Paste any HF model id (or pick preset).
           Tool runs all 5 recipes (long-context, KV-compression, custom-vs-API, budget,
@@ -232,7 +246,10 @@
 
     <!-- COMPARE mode -->
     <section id="compare-section" style="display:none;">
-      <h2>🆚 Compare models side-by-side
+      <div class="quickstart-banner" data-i18n="compare.example">
+        💡 Try: paste 3 popular 7-8B models (Meta-Llama-3-8B, Mistral-7B-v0.1, Qwen/Qwen2.5-7B), pick recipe X-2, T_eval=16000. See which best handles long context.
+      </div>
+      <h2><span data-i18n="compare.title">🆚 Compare models side-by-side</span>
         <span class="info"><span class="tooltip">
           <strong>Same recipe, multiple models</strong>. Pick 2-3 candidate models and
           one recipe. See verdicts in a single comparison table.<br><br>
@@ -364,12 +381,16 @@
   </main>
 
   <footer>
+    <p data-i18n="footer.text">
+      © 2026 Carles Marin · Apache-2.0 · independent research · the tool that closes the loop of the paper.
+    </p>
     <p>
-      © 2026 Carles Marin · Apache-2.0 ·
       <a href="https://github.com/karlesmarin/tafagent" target="_blank">Source on GitHub</a>
+      ·
+      <a href="https://github.com/karlesmarin/NeurIPS" target="_blank">Paper repo</a>
     </p>
     <p class="subtle">
-      Computation: Pyodide (Python in browser) · Synthesis: WebLLM (Llama-3.2-1B local) · Hosting: GitHub Pages
+      Computation: Pyodide · Synthesis: WebLLM (Qwen2.5-0.5B local) · Hosting: GitHub Pages · Cost: $0
     </p>
   </footer>
 

@@ -1,63 +1,92 @@
 # 🔬 TAF Agent
 
-> **Transformer LLM diagnostic in your browser.** Free. Unlimited. Auditable.
+> **Test ANY transformer LLM before you spend GPU/$.**
+> Free. Unlimited. Auditable. Runs entirely in your browser.
 
-Drop in a model config (or paste any HuggingFace model id), get a falsifiable answer to *"will it work?"* — backed by the Thermodynamic Attention Framework (TAF) formulas.
+**🌐 Live**: https://karlesmarin.github.io/tafagent
+**📦 Source**: https://github.com/karlesmarin/tafagent
+**📄 Paper**: [Transformer Thermodynamics — Marin 2026](https://github.com/karlesmarin/NeurIPS)
 
-**🌐 Live demo**: https://transformerkmarin.github.io/tafagent  *(once GitHub Pages is enabled)*
+---
+
+## A note before you read on
+
+This tool was built by **one independent researcher**, with no funding,
+no team, no GPUs beyond a single consumer card, and the full collaborative
+help of large language models as research instruments. It exists because the
+paper it complements (the *Transformer Thermodynamics* manuscript) needed a
+way for any reader to **check the framework's predictions on their own
+model in seconds**, without installing anything, without paying anyone, and
+without trusting a server they don't control.
+
+If it is useful to you — even once — that is enough. If it is wrong about
+your model, please tell us so we can fix the framework. The point is the
+common ground, not the artefact.
 
 ---
 
 ## What it does
 
-Answers practical viability questions for transformer LLMs, with **zero servers**:
+Drop in a model id (or paste any HuggingFace public model), get a
+falsifiable answer to "**will this work?**" — backed by the
+Thermodynamic Attention Framework (TAF) formulas:
 
-- *Will Llama-3-8B serve 32K context with NIAH retrieval?*  →  **X-2**
-- *Should I train a custom 7B model or use GPT-4 API?*  →  **X-1**
-- *I have $5K — what model can I afford to train?*  →  **X-3**
-- *Cheapest GPU to serve Llama-70B at 100M tokens/day?*  →  **X-5**
-- *Should I use soft KV decay or hard cutoff for compression?*  →  **X-19**
+- *Will Llama-3-8B serve 32K context with NIAH retrieval?* → **X-2**
+- *Should I train a custom 7B model or pay for API access?* → **X-1**
+- *I have $5,000 — what model can I afford to train?* → **X-3**
+- *Cheapest GPU to serve Llama-70B at 100M tokens/day?* → **X-5**
+- *Soft KV decay or hard cutoff for compression?* → **X-19**
 
-…each as a chain of TAF formulas (paper §17, §19, §20, §24, §26) rendered with full audit trail.
+Each as a chain of TAF formulas (paper §17, §19, §20, §24, §26) rendered
+with full audit trail. Every number is deterministic Python; nothing
+is hallucinated.
 
-## Two modes
+## Four ways to use it
 
-- **💬 Ask in plain English**  →  in-browser LLM picks the right recipe and runs it
-- **📋 Recipe + form**  →  manual selection, full control over every parameter
+- **📇 Profile a model** — paste id, get all 5 recipes scored as a unified
+  TAF Card (best starting point)
+- **🆚 Compare models** — 2-3 candidates side-by-side on the same recipe
+- **💬 Ask plain English** — free-form question, in-browser LLM picks
+  the right recipe
+- **📋 Pick recipe** — manual selection with full form control
 
-## How it's free + unlimited
+## How it stays free + unlimited
 
 - Static HTML/JS hosted on **GitHub Pages** (truly unlimited bandwidth)
-- Python TAF computation runs in your browser via **Pyodide** (no server)
-- Plain-English synthesis runs **Llama-3.2-1B-Instruct** in your browser via **WebLLM** (your GPU)
-- Model weights cached in IndexedDB after first load (~700MB, one-time)
+- Python TAF computation runs in your browser via **Pyodide**
+  (no server-side compute)
+- Plain-English synthesis runs **Qwen2.5-0.5B-Instruct** in your browser
+  via **WebLLM** (your GPU/CPU, your electricity, ~350MB cached after
+  first load)
+- Model `config.json` files fetched directly from **HuggingFace Hub**
+  (free, public, no auth for non-gated models)
 - **Your data never leaves your browser**
 
-## Architecture
+If 1 user or 1 million users hit it, our cost stays the same: $0.
 
-```
-GitHub Pages (HTML/JS)
-      ↓ (one-time download)
-Your browser:
-  ├─ Pyodide  → Python TAF formulas (CPU, instant)
-  └─ WebLLM   → Llama-3.2-1B (GPU/CPU, deterministic-ish)
-```
+## Architecture coverage
 
-## How to add new models
+Supports any model whose `config.json` is parseable:
 
-1. **Preset list** — 11 popular models curated, instant autofill
-2. **HF Hub fetch** — paste any model id (`Qwen/Qwen2.5-32B`, `meta-llama/Llama-3.3-70B-Instruct`, ...) → browser fetches `config.json` → autofill form
-3. **Manual** — fill the form fields directly
+| Family | Examples | Status |
+|--------|----------|--------|
+| RoPE-MHA | pythia, gpt-j, original LLaMA | ✓ supported |
+| RoPE-GQA | Llama-3, Mistral, Qwen2.5, gemma-2 | ✓ supported |
+| ALiBi | BLOOM, Falcon | ✓ supported |
+| AbsPE | gpt2 family | ✓ supported |
+| SWA (sliding window) | Mistral, gemma-2, phi-3 | ✓ supported |
+| SSM | Mamba, Mamba-2 | ✓ partial (γ doesn't apply, KV does) |
+| Any HF Hub public model | (any) | ✓ via 📥 Fetch button |
 
-Works for any public RoPE / GQA / MHA / SWA / ALiBi / AbsPE model. Gated models (Llama family) require accepting the licence on HF first.
+## Languages
 
-## Status
+Interface available in:
+- 🇬🇧 English
+- 🇪🇸 Español
+- 🇫🇷 Français
+- 🇨🇳 中文
 
-- ✅ **Phase 1**: Pyodide + TAF formulas
-- ✅ **Phase 2**: WebLLM synthesis (plain-English answer)
-- ✅ **Phase 3**: Free-form question router (NLU → recipe selection)
-- ✅ **5 recipes**: X-1, X-2, X-3, X-5, X-19
-- 🚧 Phase 4: 15 more recipes (X-4, X-6...X-20) + advanced UI
+Click flags top-right to switch.
 
 ## Local development
 
@@ -70,14 +99,28 @@ python -m http.server 8000
 
 ## Browser requirements
 
-- Chrome / Edge / Firefox 113+ for WebGPU acceleration (recommended)
+- **Chrome / Edge / Firefox 113+** for WebGPU acceleration (recommended)
 - Older browsers fall back to CPU inference (slower but works)
-- ~2 GB free RAM for Llama-3.2-1B
-- ~700 MB disk for model cache (one-time)
+- ~2 GB free RAM for the synthesis LLM
+- ~350 MB disk for model cache (one-time)
+
+## How you can help
+
+This tool is at v0.2. There's a long way to go.
+
+- **🐛 Report bugs**: https://github.com/karlesmarin/tafagent/issues
+- **🌐 Translate**: add a language to `js/i18n.js`, send a PR
+- **🧪 Falsify a prediction**: run the tool on a model where you have
+  ground-truth measurements; if our verdict disagrees with reality,
+  open an issue. We take refutations as seriously as confirmations.
+- **➕ New recipe**: implement an X-N recipe in `python/taf_browser.py`
+  following the pattern of X-1...X-19
+- **➕ New preset**: add a popular model to the `PRESETS` dict
+- **📝 Improve docs / examples**: anything that helps the next person
 
 ## Citation
 
-If you use this tool, please cite the underlying paper:
+If this tool helps you — paper or code:
 
 ```bibtex
 @article{marin2026transformer_thermodynamics,
@@ -85,17 +128,48 @@ If you use this tool, please cite the underlying paper:
   title   = {Transformer Thermodynamics: A Closed-Form Theory of Attention Decay,
              Phase Transitions, and Context-Length Limits in RoPE Language Models},
   year    = {2026},
+  url     = {https://github.com/karlesmarin/NeurIPS},
+}
+
+@misc{marin2026tafagent,
+  author = {Marin, Carles},
+  title  = {{TAF Agent}: Browser-Based Transformer Diagnostic Tool},
+  year   = {2026},
+  url    = {https://karlesmarin.github.io/tafagent},
 }
 ```
 
 ## License
 
-Apache-2.0 (this code). Llama-3.2-1B distributed under the [Meta Llama 3.2 license](https://www.llama.com/llama3_2/license/).
+Apache-2.0 (this code).
+
+Synthesis model: [Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct)
+distributed under [Apache-2.0](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/blob/main/LICENSE).
 
 ---
 
-**Acknowledgements**: this tool would not exist without the open-weights commons
-(Meta, Mistral, Qwen, EleutherAI, AI2 and many more), the Pyodide + WebLLM
-projects, GitHub Pages free hosting, and the wider ML community keeping all
-the tooling honest and accessible. Full list in the
-[paper Acknowledgements](https://github.com/karlesmarin/NeurIPS).
+## Acknowledgements
+
+This tool would not exist without:
+
+- **The model commons**: EleutherAI, Meta AI, Alibaba Qwen team, Mistral AI,
+  Google DeepMind, Microsoft Research, AI2, BigScience, TII, DeepSeek-AI,
+  HuggingFace SmolLM team, the Mamba authors, the RWKV community, and OpenAI
+  for releasing weights and configs publicly.
+- **The infrastructure commons**: Pyodide, WebLLM, HuggingFace Hub, GitHub
+  Pages, jsdelivr CDN.
+- **The maintainers** of `transformers`, `numpy`, `scipy`, `sympy`, `tokenizers`,
+  `accelerate`, and the dozens of small libraries that make modern ML possible.
+- **The wider ML community** — bloggers, reproducibility checkers, Discord
+  moderators, Stack Overflow answerers, blog post writers
+  (Lilian Weng, Andrej Karpathy, Sebastian Raschka, Jay Alammar, Sasha Rush,
+  Phil Wang, the EleutherAI team, and many more) whose explanations carried
+  the author through every concept this tool uses.
+- **Large language models as research instruments** — Claude (Anthropic),
+  GPT (OpenAI), Gemini (Google DeepMind), Mistral, Llama, DeepSeek, Grok,
+  Qwen-Chat, and Microsoft phi — for the symbolic derivations, sage
+  cross-checks, prose revision, audit work, and long-form co-writing that
+  underlie both this tool and the underlying paper.
+
+The author was the hand that typed; the work itself belongs to the commons
+that made it possible.

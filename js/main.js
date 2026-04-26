@@ -1,9 +1,13 @@
-// TAF Agent — main orchestration (Phases 1-3 complete)
+// TAF Agent — main orchestration (v0.2 — i18n + Profile + Compare)
 //
 // Phases:
 //  1. Pyodide loads + TAF formulas      → deterministic computation
 //  2. WebLLM loads on demand            → plain-English synthesis
 //  3. Router (LLM)                      → free-form question → recipe + params
+//  4. Modes: Profile (all recipes) + Compare (multi-model side-by-side)
+//  5. i18n: EN/ES/FR/ZH
+
+import { initI18n, setLang, t } from "./i18n.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -989,8 +993,16 @@ $("help-modal").addEventListener("click", (e) => {
 });
 
 // ════════════════════════════════════════════════════════════════════
+// Language switcher
+// ════════════════════════════════════════════════════════════════════
+document.querySelectorAll(".lang-btn").forEach(btn => {
+  btn.addEventListener("click", () => setLang(btn.dataset.lang));
+});
+
+// ════════════════════════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
+initI18n();
 loadPyodideAndTaf().catch(err => {
   setStatus(`❌ Failed to initialise: ${err.message || err}`);
   console.error(err);

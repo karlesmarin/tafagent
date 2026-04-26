@@ -29,8 +29,54 @@ header {
   text-align: center;
   padding: 2rem 1rem 1rem;
   border-bottom: 1px solid var(--border);
+  position: relative;
 }
 header h1 { margin: 0 0 0.5rem 0; font-size: 2rem; }
+
+/* Language switcher (top-right) */
+.lang-switcher {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  display: flex; gap: 0.25rem;
+  z-index: 50;
+}
+.lang-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s, background 0.15s;
+}
+.lang-btn:hover { border-color: var(--accent); }
+.lang-btn.lang-active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Quickstart banner */
+.quickstart-banner {
+  background: rgba(63, 185, 80, 0.08);
+  border-left: 3px solid var(--success);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.quickstart-banner a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.quickstart-banner a:hover { text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .lang-switcher { position: static; justify-content: center; margin-bottom: 0.5rem; }
+  header { padding: 1rem 0.5rem; }
+}
 .tagline { font-size: 1.1rem; margin: 0 0 0.5rem; }
 .subtle { color: var(--fg-dim); font-size: 0.9rem; }
 
