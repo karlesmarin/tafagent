@@ -131,15 +131,23 @@ function buildDynamicForm(recipe) {
   recipe.params.forEach(name => {
     const div = document.createElement("div");
     div.className = "form-field";
-    const label = document.createElement("label");
-    label.textContent = paramLabel(name);
-    label.htmlFor = `param_${name}`;
+
+    const labelWrap = document.createElement("label");
+    labelWrap.htmlFor = `param_${name}`;
+    labelWrap.innerHTML = paramLabel(name);
+    if (PARAM_TOOLTIPS[name]) {
+      const info = document.createElement("span");
+      info.className = "info";
+      info.innerHTML = `<span class="tooltip">${PARAM_TOOLTIPS[name]}</span>`;
+      labelWrap.appendChild(info);
+    }
+    div.appendChild(labelWrap);
+
     const input = document.createElement("input");
     input.type = "text";
     input.id = `param_${name}`;
     input.dataset.param = name;
     input.value = defaults[name] !== undefined ? String(defaults[name]) : "";
-    div.appendChild(label);
     div.appendChild(input);
     container.appendChild(div);
   });
@@ -160,6 +168,29 @@ function paramLabel(name) {
   };
   return labels[name] || name;
 }
+
+const PARAM_TOOLTIPS = {
+  theta: "<strong>RoPE base frequency</strong>. From <code>config.rope_theta</code>. Higher = more long-range capacity. Typical: <code>10000</code> early models, <code>500000</code> Llama-3, <code>1000000</code> Qwen2.5.",
+  T_train: "<strong>Max context the model was trained on</strong>. From <code>max_position_embeddings</code>. The model has never seen positions beyond this; extrapolating much further usually fails.",
+  T_eval: "<strong>Your target inference context length</strong>. The key knob. The whole question is: will the model behave well at <em>this</em> length?",
+  n_attention_heads: "Number of query heads. From <code>num_attention_heads</code>.",
+  n_kv_heads: "Number of K/V heads. If &lt; n_attention_heads → model uses GQA (Grouped Query Attention). Smaller = more memory-efficient KV cache but pushes γ toward Hagedorn boundary.",
+  d_head: "Per-head dimension. Typically <code>hidden_size / n_attention_heads</code>. Common: 64, 80, 128.",
+  n_layers: "Number of transformer layers. From <code>num_hidden_layers</code>.",
+  n_params: "<strong>Total parameter count</strong>. Use scientific notation: <code>8e9</code> for 8B. Threshold ~400M is the induction-head emergence boundary (sign-flip in Δγ).",
+  has_SWA: "Sliding Window Attention. <code>true</code> for Mistral, gemma-2, phi-3. SWA lowers γ_decomposition by ~0.21.",
+  N_params: "Same as n_params. Total parameter count, scientific notation (e.g. <code>8e9</code>).",
+  D_tokens: "Number of training tokens. Leave empty to use Chinchilla 20:1 default (D = 20·N).",
+  gpu: "GPU model from the catalog. Options: H100 SXM, H100 PCIe, H200, B200, A100 80GB, A100 40GB, L40S, MI300X, RTX 4090, RTX 5090, RTX 5060Ti.",
+  n_gpus: "Number of GPUs in your training/serving cluster.",
+  mfu: "<strong>Model FLOPs Utilization</strong>. Realistic fraction of peak FLOPs achieved. Typical: 0.4-0.5 for well-tuned. Default 0.45.",
+  api_model: "Frontier API to compare against. Options: GPT-4o, GPT-4o-mini, Claude-Opus-4, Claude-Sonnet-4, Claude-Haiku-4, Gemini-1.5-Pro, DeepSeek-V3, Llama-3.3-70B (Together).",
+  monthly_tokens_M: "Expected monthly token volume <em>in millions</em>. e.g. <code>10</code> = 10 million tokens/month.",
+  USD_budget: "Your training budget in US dollars (no symbol). e.g. <code>5000</code> for $5K.",
+  bytes_per_weight: "Memory per parameter. BF16/FP16 = 2, INT8 = 1, INT4 = 0.5.",
+  target_tokens_per_day: "How many tokens/day you need to serve. e.g. <code>10000000</code> = 10M tokens/day.",
+  concurrent_users: "Simultaneous concurrent requests. Affects KV cache memory needed.",
+};
 
 function getRecipeDefaults(recipeId) {
   const D = {
@@ -405,6 +436,7 @@ json.dumps(result)
 }
 
 function renderResult(r) {
+  console.log("[TAF] renderResult called with:", r);
   if (r.error) {
     $("verdict-box").className = "verdict-no";
     $("verdict-box").innerHTML = `<strong>Error</strong>: ${escapeHtml(r.error)}`;
@@ -412,21 +444,28 @@ function renderResult(r) {
     return;
   }
   const vBox = $("verdict-box");
+  if (!vBox) {
+    console.error("[TAF] verdict-box element not found!");
+    return;
+  }
+  const verdictStr = String(r.verdict || "UNKNOWN");
   let vClass = "";
-  if (r.verdict.startsWith("YES") || r.verdict === "GO") vClass = "verdict-yes";
-  else if (r.verdict.startsWith("NO")) vClass = "verdict-no";
+  if (verdictStr.startsWith("YES") || verdictStr === "GO" || verdictStr.startsWith("USE SOFT")) vClass = "verdict-yes";
+  else if (verdictStr.startsWith("NO") || verdictStr.startsWith("MEMORY") || verdictStr === "TINY-MODEL") vClass = "verdict-no";
   else vClass = "verdict-degraded";
   vBox.className = vClass;
+  const verdictEmoji = vClass === "verdict-yes" ? "✅" : (vClass === "verdict-no" ? "❌" : "⚠");
   vBox.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-      <div style="font-size:1.3rem; font-weight:700;">${escapeHtml(r.verdict)}</div>
-      <div class="recipe-tag">${r.recipe_id} — ${escapeHtml(r.recipe_name)}</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; gap:1rem; flex-wrap:wrap;">
+      <div style="font-size:1.6rem; font-weight:800;">${verdictEmoji} ${escapeHtml(verdictStr)}</div>
+      <div class="recipe-tag">${escapeHtml(r.recipe_id || "")} — ${escapeHtml(r.recipe_name || "")}</div>
     </div>
-    <div><strong>Reason:</strong> ${escapeHtml(r.reason)}</div>
+    <div style="margin-bottom:0.5rem;"><strong>Reason:</strong> ${escapeHtml(r.reason || "(none)")}</div>
     ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe."
-      ? `<div style="margin-top:0.5rem;"><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
+      ? `<div><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
       : ""}
   `;
+  console.log("[TAF] verdict-box populated with class:", vClass, "verdict:", verdictStr);
 
   const cBox = $("chain-box");
   cBox.innerHTML = "";
@@ -566,6 +605,15 @@ function formatResultPlain(r) {
   if (typeof r === "object") return JSON.stringify(r);
   return String(r);
 }
+
+// ════════════════════════════════════════════════════════════════════
+// Help modal
+// ════════════════════════════════════════════════════════════════════
+$("help-btn").addEventListener("click", () => $("help-modal").classList.add("open"));
+$("help-close").addEventListener("click", () => $("help-modal").classList.remove("open"));
+$("help-modal").addEventListener("click", (e) => {
+  if (e.target.id === "help-modal") $("help-modal").classList.remove("open");
+});
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap

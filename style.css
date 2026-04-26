@@ -133,6 +133,117 @@ button:disabled { background: #444; cursor: not-allowed; }
   border-radius: 4px;
 }
 
+/* ─── Info icon + tooltip system ─── */
+.info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-style: italic;
+  font-family: serif;
+  cursor: help;
+  margin-left: 0.3rem;
+  position: relative;
+  user-select: none;
+}
+.info:hover { border-color: var(--accent); background: var(--accent-dim); color: white; }
+.info::before { content: "i"; }
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s, visibility 0.15s;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1f29;
+  color: var(--fg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-style: normal;
+  width: 280px;
+  z-index: 100;
+  text-align: left;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  pointer-events: none;
+}
+.tooltip strong { color: var(--accent); }
+.tooltip code {
+  background: var(--bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+.info:hover .tooltip { visibility: visible; opacity: 1; }
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--accent) transparent transparent transparent;
+}
+
+/* Make verdict box more prominent */
+#verdict-box {
+  font-size: 1.1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 6px solid;
+  margin-bottom: 1rem;
+  min-height: 80px;
+}
+.verdict-yes { background: rgba(63, 185, 80, 0.15); border-color: var(--success); }
+.verdict-no { background: rgba(248, 81, 73, 0.15); border-color: var(--danger); }
+.verdict-degraded { background: rgba(210, 153, 34, 0.15); border-color: var(--warning); }
+
+/* Help modal */
+#help-btn {
+  background: transparent; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 6px;
+  padding: 0.3rem 0.7rem; font-size: 0.85rem;
+}
+#help-btn:hover { background: var(--accent); color: white; }
+#help-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 1000;
+  padding: 2rem; overflow-y: auto;
+}
+#help-modal.open { display: flex; align-items: flex-start; justify-content: center; }
+.help-content {
+  background: var(--bg-card); color: var(--fg);
+  max-width: 800px; width: 100%;
+  border: 1px solid var(--accent); border-radius: 12px;
+  padding: 2rem; position: relative;
+}
+.help-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: var(--bg-input); border: 1px solid var(--border);
+  color: var(--fg); border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;
+}
+.help-content h3 { color: var(--accent); margin-top: 1.5rem; }
+.help-content code {
+  background: var(--bg-input); padding: 0.1rem 0.4rem;
+  border-radius: 3px; font-family: monospace;
+}
+.help-example {
+  background: var(--bg-input); border-left: 3px solid var(--accent);
+  padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px;
+}
+
 .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
 .mode-btn {
   background: var(--bg-input); color: var(--fg-dim);

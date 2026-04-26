@@ -17,7 +17,108 @@
     <p class="subtle">
       All computation happens locally — your data never leaves this page.
     </p>
+    <p style="margin-top: 0.75rem;">
+      <button id="help-btn" type="button">📘 Help & examples</button>
+    </p>
   </header>
+
+  <!-- Help modal -->
+  <div id="help-modal">
+    <div class="help-content">
+      <button class="help-close" id="help-close">×</button>
+      <h2>📘 TAF Agent — User Manual</h2>
+
+      <h3>What does it do?</h3>
+      <p>Predicts <strong>practical viability</strong> of any transformer LLM <em>before you spend GPU/$</em>.
+      Answers questions like "will this model work at L=32K?" or "should I train custom or use API?" using
+      deterministic Python formulas (TAF — Thermodynamic Attention Framework).</p>
+
+      <h3>How to use — 2 modes</h3>
+      <p><strong>💬 Ask in plain English</strong> (default): type your question, the in-browser LLM picks
+      the right recipe and runs it. Best for casual exploration.</p>
+      <p><strong>📋 Pick recipe + form</strong>: select a recipe manually, fill the parameters, run.
+      Best when you want full control or know exactly what you need.</p>
+
+      <h3>The 5 recipes available</h3>
+
+      <p><strong>X-1 Custom training vs API</strong> — compares cost of training your own model vs paying for API access.</p>
+      <div class="help-example">
+        Try: <em>"Should I train an 8B custom model or use GPT-4o for 50M tokens/month?"</em><br>
+        Answer types: YES (custom) / NO (API) with break-even months.
+      </div>
+
+      <p><strong>X-2 Long Context Viability</strong> — predicts if a model serves a target context length reliably.</p>
+      <div class="help-example">
+        Try: <em>"Will Meta-Llama-3-8B handle 32000 tokens for retrieval?"</em><br>
+        Chains: γ_Padé → decomposition → d_horizon → NIAH ceiling → hallucination → KV memory.<br>
+        Verdict: YES / DEGRADED / NO with mitigation if needed.
+      </div>
+
+      <p><strong>X-3 Budget pre-flight</strong> — given $ budget, what model is feasible to train?</p>
+      <div class="help-example">
+        Try: <em>"I have $5000, what model can I train?"</em><br>
+        Answer: GO / TINY-MODEL / MEMORY-LIMITED with concrete N (params) and D (tokens).
+      </div>
+
+      <p><strong>X-5 Hardware selection</strong> — which GPU should I use to serve at target throughput?</p>
+      <div class="help-example">
+        Try: <em>"Cheapest hardware to serve Llama-3-8B at 10M tokens/day"</em><br>
+        Answer: best GPU + $/Mtok + capacity vs target.
+      </div>
+
+      <p><strong>X-19 KV Compression decision</strong> — should I use soft decay, hard cutoff, or literature methods?</p>
+      <div class="help-example">
+        Try: <em>"How to compress KV cache for Qwen2.5-7B at 32K?"</em><br>
+        Answer: USE SOFT DECAY / USE D_f CUTOFF / USE LITERATURE METHODS / USE HARD T_train.
+      </div>
+
+      <h3>Adding new models</h3>
+      <ul>
+        <li><strong>Preset list</strong>: 11 popular models curated. Just select from dropdown.</li>
+        <li><strong>HF Hub fetch</strong>: paste any model id (e.g. <code>Qwen/Qwen2.5-32B-Instruct</code>),
+          click 📥 Fetch. Browser downloads <code>config.json</code> directly from HuggingFace,
+          fills the form. Works for any public model.</li>
+        <li><strong>Manual</strong>: fill the form fields directly with values from the model card.</li>
+      </ul>
+
+      <h3>The audit chain</h3>
+      <p>Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
+      output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
+      to the underlying paper for derivation.</p>
+
+      <h3>The plain-English answer</h3>
+      <p>After the deterministic chain runs, an in-browser LLM (Qwen2.5-0.5B, ~350MB cached after first load)
+      synthesizes a plain-English summary. The numbers above are <em>always correct</em> (deterministic Python);
+      the synthesis is LLM-generated — verify against the chain if in doubt.</p>
+
+      <h3>Common parameters explained</h3>
+      <ul>
+        <li><strong>θ (rope_theta)</strong>: RoPE base frequency. Higher = more long-range capacity.
+          Typical: 10000 (early), 500000 (Llama-3), 1000000 (Qwen2.5).</li>
+        <li><strong>T_train</strong>: max context the model was trained on. From <code>max_position_embeddings</code>.</li>
+        <li><strong>T_eval</strong>: <em>your target</em> inference context length. The key knob.</li>
+        <li><strong>n_kv_heads &lt; n_attention_heads</strong>: model uses GQA (Grouped Query Attention).
+          Reduces KV memory but pushes γ toward Hagedorn.</li>
+        <li><strong>has_SWA</strong>: model uses Sliding Window Attention (Mistral, gemma-2).</li>
+        <li><strong>n_params</strong>: total parameter count. Threshold ~400M for induction-head emergence.</li>
+      </ul>
+
+      <h3>What to look for in verdicts</h3>
+      <ul>
+        <li><strong style="color:#3fb950;">YES / GO</strong> — proceed with confidence; numbers support the choice.</li>
+        <li><strong style="color:#d29922;">DEGRADED / TINY-MODEL</strong> — works but with caveats; read the action.</li>
+        <li><strong style="color:#f85149;">NO / MEMORY-LIMITED</strong> — don't proceed as-is; mitigation provided.</li>
+      </ul>
+
+      <h3>Privacy</h3>
+      <p>Everything runs in your browser. No telemetry, no analytics, no data sent anywhere. Even the LLM model
+      runs locally via WebGPU/WebAssembly. Your model_ids and questions never leave this page.</p>
+
+      <h3>Source & paper</h3>
+      <p>Source code: <a href="https://github.com/karlesmarin/tafagent" target="_blank">github.com/karlesmarin/tafagent</a><br>
+      Paper: <em>Marin 2026 — Transformer Thermodynamics</em> (arXiv forthcoming)</p>
+    </div>
+  </div>
 
   <main>
     <!-- Status -->
@@ -25,7 +126,11 @@
 
     <!-- Mode toggle -->
     <section id="mode-section">
-      <h2>🎯 Mode</h2>
+      <h2>🎯 Mode <span class="info"><span class="tooltip"><strong>Two ways to use the tool</strong>.<br>
+        <strong>Ask</strong>: free-form question, browser LLM picks the right recipe.<br>
+        <strong>Recipe</strong>: manual selection with full form control.<br>
+        Same result either way — pick whichever fits your style.
+        </span></span></h2>
       <div class="mode-tabs">
         <button class="mode-btn active" data-mode="ask">💬 Ask in plain English</button>
         <button class="mode-btn" data-mode="recipe">📋 Pick recipe + fill form</button>
