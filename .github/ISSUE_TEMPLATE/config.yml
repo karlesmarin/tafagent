@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📤 Submit a TAF analysis
+    url: https://github.com/karlesmarin/tafagent-registry/issues/new
+    about: Submit your model analysis to the public registry (use the web tool's Submit button for pre-filled form)
+  - name: ❌ Refute a TAF prediction
+    url: https://github.com/karlesmarin/tafagent-registry/issues/new?template=refutation.md
+    about: Empirical measurement contradicts a TAF prediction
+  - name: 📄 Paper questions
+    url: https://github.com/karlesmarin/NeurIPS
+    about: Discussion about the underlying Transformer Thermodynamics paper
