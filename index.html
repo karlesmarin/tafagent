@@ -159,6 +159,7 @@
       <div class="mode-tabs">
         <button class="mode-btn active" data-mode="profile" data-i18n="modes.profile">📇 Profile a model</button>
         <button class="mode-btn" data-mode="compare" data-i18n="modes.compare">🆚 Compare models</button>
+        <button class="mode-btn" data-mode="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
         <button class="mode-btn" data-mode="ask" data-i18n="modes.ask">💬 Ask plain English</button>
         <button class="mode-btn" data-mode="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
       </div>
@@ -247,6 +248,42 @@
       </div>
 
       <button id="profile-btn" disabled data-i18n="profile.btn">🚀 Generate full profile</button>
+    </section>
+
+    <!-- INSPECTOR mode (paste config.json directly) -->
+    <section id="inspector-section" style="display:none;">
+      <div class="quickstart-banner" data-i18n="inspector.quickstart">
+        💡 Use case: you have a private model not on HF Hub, or a config you're designing. Paste the raw JSON below and get a full TAF profile.
+      </div>
+      <h2><span data-i18n="inspector.title">🔍 Architecture Inspector</span>
+        <span class="info"><span class="tooltip" data-i18n="inspector.tip">
+          <strong>Paste any config.json directly</strong>. Tool parses it and runs the full Profile.
+          Useful for: private models, in-development configs, models not yet on HuggingFace,
+          or comparing what your custom architecture would do.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="inspector.desc">
+        Paste the raw <code>config.json</code> contents. The tool extracts the architectural
+        parameters and runs the full 5-recipe Profile.
+      </p>
+      <textarea id="inspector-json" rows="12"
+        data-i18n-placeholder="inspector.placeholder"
+        placeholder='{
+  "model_type": "llama",
+  "rope_theta": 500000,
+  "max_position_embeddings": 8192,
+  "num_attention_heads": 32,
+  "num_key_value_heads": 8,
+  "hidden_size": 4096,
+  "num_hidden_layers": 32,
+  "vocab_size": 128256
+}'></textarea>
+      <div class="form-row" style="margin-top:0.5rem;">
+        <label for="inspector-T_eval" data-i18n="inspector.T_eval">T_eval (your target context):</label>
+        <input type="number" id="inspector-T_eval" value="32000" />
+      </div>
+      <button id="inspector-btn" disabled data-i18n="inspector.btn">🚀 Inspect & profile</button>
+      <span id="inspector-status" class="subtle" style="margin-left:0.75rem;"></span>
     </section>
 
     <!-- COMPARE mode -->
@@ -404,6 +441,26 @@
       </p>
       <button id="import-btn" class="secondary" type="button" data-i18n="share.import_btn">📂 Load shared JSON</button>
       <span id="import-status" class="subtle" style="margin-left:0.75rem;"></span>
+    </section>
+
+    <!-- Browse community submissions (live from GitHub Issues) -->
+    <section id="community-section">
+      <h2 data-i18n="community.title">🌐 Recent community submissions</h2>
+      <p class="recipe-desc" data-i18n="community.desc">
+        Live feed from the public registry. Click any submission to view full analysis.
+        <a href="https://github.com/karlesmarin/tafagent-registry/issues" target="_blank" data-i18n="community.browse_all">Browse all →</a>
+      </p>
+      <div id="community-feed" class="subtle"><span data-i18n="community.loading">Loading...</span></div>
+    </section>
+
+    <!-- FALSIFICATION dashboard (paper predictions status) -->
+    <section id="falsification-section">
+      <h2 data-i18n="falsification.title">🔬 Paper predictions — falsification status</h2>
+      <p class="recipe-desc" data-i18n="falsification.desc">
+        The TAF framework rests on falsifiable predictions (F1-F23). Each is empirically tested.
+        Here's the live status of every prediction in the paper.
+      </p>
+      <div id="falsification-table"></div>
     </section>
   </main>
 

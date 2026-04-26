@@ -124,6 +124,10 @@ function enableUI() {
   $("profile-btn").disabled = false;
   $("compare-recipe").disabled = false;
   $("compare-btn").disabled = false;
+  $("inspector-btn").disabled = false;
+  // Render community feed + falsification (independent of Pyodide)
+  renderFalsificationDashboard();
+  loadCommunityFeed();
   // Restore from URL if present
   parseUrlState();
 }
@@ -162,9 +166,17 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       $("compare-section").style.display = "";
       $("mode-desc").textContent =
         "Pick 2-3 candidate models + one recipe. See verdicts side-by-side in a comparison table.";
+    } else if (mode === "inspector") {
+      $("inspector-section").style.display = "";
+      $("mode-desc").textContent =
+        "Paste a config.json directly. Useful for private/in-development models not on HF Hub.";
     }
   });
 });
+
+// Make sure inspector section is hidden initially
+const _inspectorSection = $("inspector-section");
+if (_inspectorSection) _inspectorSection.style.display = "none";
 
 // ════════════════════════════════════════════════════════════════════
 // Recipe selector
@@ -675,6 +687,234 @@ function formatResultPlain(r) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// INSPECTOR mode (paste raw config.json)
+// ════════════════════════════════════════════════════════════════════
+$("inspector-btn").addEventListener("click", async () => {
+  const raw = $("inspector-json").value.trim();
+  if (!raw) {
+    $("inspector-status").textContent = "⚠ Paste a config.json first";
+    return;
+  }
+  let cfg;
+  try {
+    cfg = JSON.parse(raw);
+  } catch (e) {
+    $("inspector-status").textContent = `❌ Invalid JSON: ${e.message}`;
+    return;
+  }
+  $("inspector-status").textContent = "⏳ Parsing + profiling...";
+  $("inspector-btn").disabled = true;
+  try {
+    const preset = configToPreset(cfg, cfg.model_type ? `<inspector:${cfg.model_type}>` : "<inspector>");
+    state.lastModelId = preset._model_id || "<inspected>";
+    const T_eval = parseInt($("inspector-T_eval").value) || preset.T_train;
+    const params = {
+      theta: preset.theta, T_train: preset.T_train, T_eval: T_eval,
+      n_attention_heads: preset.n_attention_heads,
+      n_kv_heads: preset.n_kv_heads,
+      d_head: preset.d_head, n_layers: preset.n_layers,
+      n_params: preset.n_params, has_SWA: preset.has_SWA,
+    };
+    state.pyodide.globals.set("__pp", state.pyodide.toPy(params));
+    const json = state.pyodide.runPython(`
+import json
+result = profile_model(**__pp)
+json.dumps(result)
+`);
+    const profile = JSON.parse(json);
+    renderProfile(profile, params);
+    state.lastResult = { type: "profile", params };
+    state.lastFullResult = profile;
+    $("inspector-status").innerHTML = `✅ Profiled: <strong>${preset._family}</strong> (${preset.n_params.toExponential(2)} params)`;
+  } catch (err) {
+    $("inspector-status").textContent = `❌ ${err.message}`;
+    console.error(err);
+  } finally {
+    $("inspector-btn").disabled = false;
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// What-if T_eval slider — interactive exploration
+// ════════════════════════════════════════════════════════════════════
+function renderWhatIfSlider(profile, params, targetEl) {
+  if (!profile || !params) return;
+  const minL = 256;
+  const maxL = Math.max(params.T_eval * 4, 200000);
+  const initialL = params.T_eval;
+
+  targetEl.innerHTML = `
+    <h3 data-i18n="whatif.title">🎚 What-if: drag T_eval to see γ change live</h3>
+    <p class="subtle" data-i18n="whatif.desc">Pure JS recompute (no Pyodide call). Shows the geometric γ_Padé and d_horizon as you slide. The full chain re-runs on click.</p>
+    <input type="range" id="whatif-slider" class="whatif-slider"
+      min="${minL}" max="${maxL}" step="${Math.round(maxL/200)}" value="${initialL}" />
+    <div class="whatif-row"><span data-i18n="whatif.T_eval"><strong>T_eval</strong></span><span id="whatif-T_eval">${initialL.toLocaleString()}</span></div>
+    <div class="whatif-row"><span data-i18n="whatif.gamma_pade"><strong>γ_Padé</strong></span><span id="whatif-gamma">—</span></div>
+    <div class="whatif-row"><span data-i18n="whatif.d_horizon"><strong>d_horizon</strong></span><span id="whatif-dh">—</span></div>
+    <div class="whatif-row"><span data-i18n="whatif.l_niah"><strong>L_NIAH ceiling</strong></span><span id="whatif-niah">—</span></div>
+    <div class="whatif-row"><span data-i18n="whatif.predicted"><strong>Predicted geometric verdict</strong></span><span id="whatif-verdict" class="verdict-text">—</span></div>
+    <button id="whatif-rerun" class="secondary" type="button" style="margin-top:0.5rem;" data-i18n="whatif.rerun">↻ Recompute full chain at this T_eval</button>
+  `;
+
+  if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+
+  const update = () => {
+    const T = parseInt($("whatif-slider").value);
+    const sqrt2 = Math.SQRT2;
+    const g_pade = (2 * params.theta - T * sqrt2) / (2 * params.theta + T * sqrt2);
+    // Apply same decomposition as Python
+    const g_corr = g_pade
+      + (params.n_kv_heads < params.n_attention_heads ? 0.11 : 0)
+      + (params.has_SWA ? -0.21 : 0)
+      + (params.n_params >= 4e8 ? -0.15 : 0);
+    let dh = null, niah = null, verdict, vClass;
+    if (g_corr > 0 && g_corr < 1) {
+      dh = params.theta * (1 - g_corr) * sqrt2 / (1 + g_corr);
+      niah = 2 * dh;
+      if (T < dh) { verdict = `✅ YES (margin ${((1 - T / dh) * 100).toFixed(0)}%)`; vClass = "yes"; }
+      else if (T < niah) { verdict = `⚠ DEGRADED`; vClass = "deg"; }
+      else { verdict = `❌ NO (past NIAH ceiling)`; vClass = "no"; }
+    } else {
+      verdict = `❌ NO (Phase B)`; vClass = "no";
+    }
+    $("whatif-T_eval").textContent = T.toLocaleString();
+    $("whatif-gamma").textContent = g_pade.toFixed(4) + (g_corr !== g_pade ? ` → ${g_corr.toFixed(4)}` : "");
+    $("whatif-dh").textContent = dh !== null ? Math.round(dh).toLocaleString() : "n/a (Phase B)";
+    $("whatif-niah").textContent = niah !== null ? Math.round(niah).toLocaleString() : "n/a";
+    const vEl = $("whatif-verdict");
+    vEl.textContent = verdict;
+    vEl.className = "verdict-text " + vClass;
+  };
+  $("whatif-slider").addEventListener("input", update);
+  $("whatif-rerun").addEventListener("click", () => {
+    const T = parseInt($("whatif-slider").value);
+    // Update params and trigger full re-profile
+    $("profile-T_eval").value = T;
+    $("profile-btn").click();
+  });
+  update();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FALSIFICATION dashboard inline
+// ════════════════════════════════════════════════════════════════════
+const FALSIFICATION_STATUS = [
+  { id: "F1",  claim: "γ_Padé MAE < 5% on non-anomalous Phase A models",                status: "confirmed", evidence: "n=9, paper Tab. 4" },
+  { id: "F2",  claim: "d_horizon predicts NIAH collapse within 1% (pythia-70m)",          status: "confirmed", evidence: "predicted 4078, observed 4096" },
+  { id: "F3",  claim: "Fisher info predicts forward-hook recovery within 0.2%",            status: "confirmed", evidence: "12.5% predicted vs 12.3% observed" },
+  { id: "F4",  claim: "Layer asymmetry early/late ratio ≈ 13.5× (pythia-70m)",             status: "confirmed", evidence: "F2 thermostat experiment" },
+  { id: "F5",  claim: "Area law S_γ = O(log N) for all γ > 0",                              status: "confirmed", evidence: "n=56, r=-0.954" },
+  { id: "F6",  claim: "KV truncation at D_f gives ΔPPL ≤ 0 in γ ∈ [0.65, 0.85]",            status: "confirmed", evidence: "pythia-2.8b ΔPPL=-0.51" },
+  { id: "F7",  claim: "Linear pruning cost: ΔPPL ≈ 0.18 × %Q/K_pruned",                    status: "confirmed", evidence: "pythia-1b 0.17, 2.8b 0.18" },
+  { id: "F8",  claim: "Padé saturates at [1,1] in LLM regime z<<1",                        status: "confirmed", evidence: "sage round 4" },
+  { id: "F9",  claim: "RoPE attention is Euclidean fractional (d_eff=1/γ), not hyperbolic", status: "confirmed", evidence: "EXP-METRIC-RoPE sage" },
+  { id: "F10", claim: "Δγ < -0.1 in models ≥ 400M ⇒ GQA / induction-head dominance",       status: "confirmed", evidence: "n=20+ models" },
+  { id: "F11", claim: "Δγ > +0.3 ⇒ alternating SWA (Gemma family signature)",              status: "confirmed", evidence: "Gemma-2-9b Δγ=+0.51" },
+  { id: "F12", claim: "Mamba L_crit = 45, α = 0.703",                                       status: "confirmed", evidence: "3 seeds" },
+  { id: "F13", claim: "Phase boundary at γ = 1 (Hagedorn)",                                 status: "confirmed", evidence: "χ → ∞" },
+  { id: "F14", claim: "RLHF Δγ shift ≤ 0.072 (recipe-specific)",                            status: "partial",   evidence: "n=8 recipe-locked" },
+  { id: "F15", claim: "R_c boundary at R_c★ ≈ 1.68",                                        status: "refuted",   evidence: "overlap zone [0.92, 3.08] n=9" },
+  { id: "F16", claim: "Holographic pruning: alive bands in ℓ > L_crit ΔPPL ≈ 0",             status: "refuted",   evidence: "linear cost law instead" },
+  { id: "F17", claim: "Soft d_horizon decay beats hard in regime d_h ≳ T_train/2",          status: "partial",   evidence: "n=2/3 (pythia-1b refuted)" },
+  { id: "F18", claim: "Mittag-Leffler prefactor 1/Γ(1-γ) governs A_0",                       status: "refuted",   evidence: "n=39, ratio 0.23" },
+  { id: "F19", claim: "γ_Padé predicts γ_obs across-model variance",                          status: "partial",   evidence: "centroid OK, ~0.1% var explained, see §sec:gamma_decomposition" },
+  { id: "F20", claim: "β-flow exactly equivalent to logistic ODE",                            status: "confirmed", evidence: "sage symbolic check" },
+  { id: "F21", claim: "tanh trajectory γ(t)~tanh(log step) on pythia-1b checkpoints",        status: "refuted",   evidence: "R²=0.15 on 4 checkpoints" },
+  { id: "F22", claim: "χ(z*) = (5+√17)/4 closed form at Cayley fixed point",                 status: "confirmed", evidence: "sage symbolic, minimal poly 2y²-5y+1" },
+  { id: "F23", claim: "T ↔ d_horizon involution: θ_design ∘ γ_Padé = id",                    status: "confirmed", evidence: "sage symbolic" },
+];
+
+function renderFalsificationDashboard() {
+  const target = $("falsification-table");
+  if (!target) return;
+  const counts = { confirmed: 0, partial: 0, refuted: 0, untested: 0 };
+  FALSIFICATION_STATUS.forEach(f => counts[f.status]++);
+  const summary = `<p class="subtle">
+    ✅ <strong>${counts.confirmed}</strong> confirmed ·
+    ⚠ <strong>${counts.partial}</strong> partial ·
+    ❌ <strong>${counts.refuted}</strong> refuted ·
+    ⏳ <strong>${counts.untested}</strong> untested
+    (out of ${FALSIFICATION_STATUS.length} total predictions)
+  </p>`;
+  let table = `<table class="falsification-table"><thead>
+    <tr><th>ID</th><th>Claim</th><th>Status</th><th>Evidence</th></tr>
+    </thead><tbody>`;
+  FALSIFICATION_STATUS.forEach(f => {
+    const icon = ({ confirmed: "✅", partial: "⚠", refuted: "❌", untested: "⏳" })[f.status];
+    table += `<tr>
+      <td><code>${f.id}</code></td>
+      <td>${escapeHtml(f.claim)}</td>
+      <td class="fal-status ${f.status}">${icon} ${f.status}</td>
+      <td class="subtle">${escapeHtml(f.evidence)}</td>
+    </tr>`;
+  });
+  table += "</tbody></table>";
+  target.innerHTML = summary + table;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Browse community submissions (live from GitHub Issues API)
+// ════════════════════════════════════════════════════════════════════
+async function loadCommunityFeed() {
+  const target = $("community-feed");
+  if (!target) return;
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${REGISTRY_REPO}/issues?state=open&per_page=15&sort=created&direction=desc`);
+    if (!resp.ok) {
+      if (resp.status === 404) {
+        target.innerHTML = `<em>The registry repo isn't created yet. Once <a href="https://github.com/${REGISTRY_REPO}" target="_blank"><code>${REGISTRY_REPO}</code></a> exists with submissions, they'll appear here live.</em>`;
+        return;
+      }
+      throw new Error(`HTTP ${resp.status}`);
+    }
+    const issues = await resp.json();
+    if (!issues || issues.length === 0) {
+      target.innerHTML = `<em>No submissions yet. Be the first — generate a Profile and click <strong>📤 Submit to registry</strong>.</em>`;
+      return;
+    }
+    const html = issues.map(issue => {
+      const verdict = extractVerdictFromTitle(issue.title);
+      const vClass = verdictClass(verdict);
+      const time = relativeTime(new Date(issue.created_at));
+      return `<div class="community-item">
+        <span class="verdict-badge ${vClass}">${escapeHtml(verdict)}</span>
+        <a href="${escapeHtml(issue.html_url)}" target="_blank">${escapeHtml(issue.title)}</a>
+        <span class="item-time">${time}</span>
+      </div>`;
+    }).join("");
+    target.innerHTML = html;
+  } catch (err) {
+    target.innerHTML = `<em>⚠ Couldn't load community feed: ${escapeHtml(err.message)}</em>`;
+  }
+}
+
+function extractVerdictFromTitle(title) {
+  const m = title.match(/→\s*(\S+)/);
+  if (m) return m[1];
+  if (title.includes("YES")) return "YES";
+  if (title.includes("NO"))  return "NO";
+  if (title.includes("DEGRADED")) return "DEG";
+  if (title.includes("Profile")) return "📇";
+  if (title.includes("Compare")) return "🆚";
+  return "?";
+}
+
+function verdictClass(v) {
+  if (v.startsWith("YES") || v === "GO") return "yes";
+  if (v.startsWith("NO")) return "no";
+  if (v === "DEG" || v === "DEGRADED") return "deg";
+  return "";
+}
+
+function relativeTime(d) {
+  const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
+  return `${Math.floor(sec / 86400)}d ago`;
+}
+
+// ════════════════════════════════════════════════════════════════════
 // PROFILE mode
 // ════════════════════════════════════════════════════════════════════
 $("profile-preset").addEventListener("change", (e) => {
@@ -809,13 +1049,15 @@ function renderProfile(p, params) {
         </div>
       </div>
 
-      <h3>📋 Recipes (verdict per dimension)</h3>
+      <h3 data-i18n="tafcard.recipes_title">📋 Recipes (verdict per dimension)</h3>
       <div class="taf-recipes-grid">${recipesHtml}</div>
 
-      <h3>🔢 Key numbers (paper §26)</h3>
+      <h3 data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h3>
       <div class="taf-key-numbers">${numbersHtml}</div>
 
-      <h3>🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
+      <div id="whatif-container" class="whatif-box"></div>
+
+      <h3 data-i18n="tafcard.fals_title">🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
       ${falsHtml || '<div class="subtle">No falsifications applicable.</div>'}
 
       <div class="share-bar">
@@ -826,6 +1068,9 @@ function renderProfile(p, params) {
       </div>
     </div>
   `;
+
+  // Render the what-if slider for interactive exploration
+  renderWhatIfSlider(p, params, $("whatif-container"));
 
   // Re-apply translations to dynamically inserted buttons
   if (window.__taf_applyTranslations) window.__taf_applyTranslations();
