@@ -765,6 +765,180 @@ def get_preset(model_id: str) -> dict:
     return PRESETS.get(model_id, {})
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# MODEL PROFILE — runs all 5 recipes with sensible defaults
+# ════════════════════════════════════════════════════════════════════════════
+def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
+                  n_layers, n_params, has_SWA=False,
+                  T_eval=None, USD_budget=5000, target_tokens_per_day=10_000_000,
+                  api_model="GPT-4o", monthly_tokens_M=10.0,
+                  **_unused) -> dict:
+    """Run all 5 recipes against the same model and assemble a TAF Card profile.
+
+    This produces the canonical paper §sec:gamma_decomposition view: one model,
+    all viability dimensions, with κey numbers + falsification status per dimension.
+    """
+    if T_eval is None:
+        T_eval = T_train  # default eval at training context
+
+    has_GQA = n_kv_heads < n_attention_heads
+    g_pade = gamma_pade(theta, T_eval)
+    decomp = gamma_decompose(g_pade, has_GQA, has_SWA, n_params)
+    g_corr = decomp["gamma_corrected"]
+    dh = d_horizon(theta, g_corr)
+    chi = chi_susceptibility(g_corr) if 0 < g_corr < 2 else None
+
+    # Architecture classification (paper species map)
+    if has_SWA:
+        arch_class = "SWA-alternating (gemma/phi family signature)"
+    elif has_GQA and n_params >= 4e8:
+        arch_class = "RoPE-GQA post-IH (Llama-3 / Mistral / Qwen-style)"
+    elif has_GQA:
+        arch_class = "RoPE-GQA pre-IH (small GQA model)"
+    elif n_params >= 4e8:
+        arch_class = "RoPE-MHA post-IH (classical Llama-2 / pythia-large)"
+    else:
+        arch_class = "RoPE-MHA pre-IH (small MHA model)"
+
+    common_params = {
+        "theta": theta, "T_train": T_train, "T_eval": T_eval,
+        "n_attention_heads": n_attention_heads, "n_kv_heads": n_kv_heads,
+        "d_head": d_head, "n_layers": n_layers, "n_params": n_params,
+        "has_SWA": has_SWA,
+    }
+
+    # Run all 5 recipes
+    results = {}
+    try:
+        results["X-2"] = run_recipe_x2(**common_params)
+    except Exception as e:
+        results["X-2"] = {"error": str(e)}
+
+    try:
+        results["X-19"] = run_recipe_x19(**common_params)
+    except Exception as e:
+        results["X-19"] = {"error": str(e)}
+
+    try:
+        results["X-1"] = run_recipe_x1(N_params=n_params, gpu="H100 SXM",
+                                        n_gpus=8, mfu=0.45,
+                                        api_model=api_model, monthly_tokens_M=monthly_tokens_M)
+    except Exception as e:
+        results["X-1"] = {"error": str(e)}
+
+    try:
+        results["X-3"] = run_recipe_x3(USD_budget=USD_budget, gpu="H100 SXM",
+                                        mfu=0.45, n_gpus=1)
+    except Exception as e:
+        results["X-3"] = {"error": str(e)}
+
+    try:
+        results["X-5"] = run_recipe_x5(N_params=n_params, T_eval=T_eval,
+                                        n_layers=n_layers, n_kv_heads=n_kv_heads,
+                                        d_head=d_head, bytes_per_weight=2.0,
+                                        target_tokens_per_day=target_tokens_per_day,
+                                        concurrent_users=1)
+    except Exception as e:
+        results["X-5"] = {"error": str(e)}
+
+    # Falsification status (from FALSIFICATION.md F1-F23)
+    falsifications = []
+    if 0 < g_corr < 1:
+        falsifications.append({"id": "F1", "claim": "γ_Padé median MAE < 5%", "status": "✅ in scope"})
+    if dh is not None:
+        falsifications.append({"id": "F2", "claim": "d_horizon predicts NIAH ±1%", "status": "✅ applicable"})
+        falsifications.append({"id": "F17", "claim": "Soft KV decay regime",
+                               "status": "✅ applies" if dh >= T_train / 2 else "⚠ refuted regime"})
+    if has_GQA:
+        falsifications.append({"id": "F10", "claim": "GQA Δγ < -0.1 ⇒ post-IH",
+                               "status": "✅ in scope"})
+    if has_SWA:
+        falsifications.append({"id": "F11", "claim": "SWA Δγ > +0.3 (gemma signature)",
+                               "status": "✅ in scope"})
+
+    return {
+        "model_summary": {
+            "architecture_class": arch_class,
+            "n_params": n_params,
+            "T_train": T_train,
+            "T_eval": T_eval,
+            "rope_theta": theta,
+            "has_GQA": has_GQA,
+            "has_SWA": has_SWA,
+        },
+        "key_numbers": {
+            "gamma_pade": g_pade,
+            "gamma_decomposed": g_corr,
+            "decomposition_breakdown": decomp,
+            "d_horizon": dh,
+            "L_NIAH_ceiling": l_niah_c(dh),
+            "chi_susceptibility": chi,
+            "kv_memory_per_request_GB": kv_cache_memory(n_layers, n_kv_heads,
+                                                        d_head, T_eval)["GB"],
+        },
+        "recipes": {
+            rid: {
+                "verdict": r.get("verdict", "ERROR"),
+                "reason": r.get("reason", r.get("error", "")),
+                "mitigation": r.get("mitigation", ""),
+                "name": r.get("recipe_name", ""),
+            }
+            for rid, r in results.items()
+        },
+        "falsification_status": falsifications,
+    }
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# COMPARE — same recipe across multiple models
+# ════════════════════════════════════════════════════════════════════════════
+def compare_models(model_specs: list, recipe_id: str = "X-2",
+                   shared_params: dict = None) -> dict:
+    """Run one recipe across multiple models and assemble side-by-side comparison.
+
+    Args:
+        model_specs: list of dicts each with model architectural params + a "label" key
+        recipe_id: which recipe to run (X-1, X-2, X-3, X-5, X-19)
+        shared_params: extra params to pass to recipe (T_eval, etc.)
+    """
+    shared_params = shared_params or {}
+    rows = []
+    for spec in model_specs:
+        label = spec.pop("label", spec.get("model_id", "model"))
+        params = {**spec, **shared_params}
+        try:
+            result = run_recipe(recipe_id, **params)
+            rows.append({
+                "label": label,
+                "verdict": result.get("verdict", "ERROR"),
+                "reason": result.get("reason", ""),
+                "key_numbers": _extract_key_numbers(result),
+            })
+        except Exception as e:
+            rows.append({"label": label, "verdict": "ERROR", "reason": str(e), "key_numbers": {}})
+    return {
+        "recipe_id": recipe_id,
+        "recipe_name": RECIPES.get(recipe_id, {}).get("name", recipe_id),
+        "shared_params": shared_params,
+        "rows": rows,
+    }
+
+
+def _extract_key_numbers(result: dict) -> dict:
+    """Pull the numerically interesting fields from a recipe result for compare table."""
+    nums = {}
+    for step in result.get("chain", []):
+        name = step.get("name", "")
+        res = step.get("result")
+        if res is None:
+            continue
+        if isinstance(res, (int, float)):
+            nums[name] = res
+        elif isinstance(res, dict) and "GB" in res:
+            nums[name] = res["GB"]
+    return nums
+
+
 # Smoke test
 if __name__ == "__main__":
     print("─── X-2 Llama-3-8B @ 32K ───")

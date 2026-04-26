@@ -12,12 +12,21 @@
   <header>
     <h1>🔬 TAF Agent</h1>
     <p class="tagline">
-      Transformer diagnostic in your browser. <strong>Free. Unlimited. Auditable.</strong>
+      Test <strong>ANY</strong> transformer LLM before you spend GPU/$.
     </p>
-    <p class="subtle">
-      All computation happens locally — your data never leaves this page.
+    <div class="arch-badges">
+      <span class="badge">✓ RoPE-MHA</span>
+      <span class="badge">✓ RoPE-GQA</span>
+      <span class="badge">✓ ALiBi</span>
+      <span class="badge">✓ AbsPE</span>
+      <span class="badge">✓ SWA</span>
+      <span class="badge">✓ SSM (Mamba)</span>
+      <span class="badge">✓ Any HuggingFace public model</span>
+    </div>
+    <p class="subtle" style="margin-top:0.75rem;">
+      All computation runs locally in your browser. Free. Unlimited. Auditable.
     </p>
-    <p style="margin-top: 0.75rem;">
+    <p style="margin-top:0.75rem;">
       <button id="help-btn" type="button">📘 Help & examples</button>
     </p>
   </header>
@@ -126,20 +135,159 @@
 
     <!-- Mode toggle -->
     <section id="mode-section">
-      <h2>🎯 Mode <span class="info"><span class="tooltip"><strong>Two ways to use the tool</strong>.<br>
-        <strong>Ask</strong>: free-form question, browser LLM picks the right recipe.<br>
-        <strong>Recipe</strong>: manual selection with full form control.<br>
-        Same result either way — pick whichever fits your style.
+      <h2>🎯 Mode <span class="info"><span class="tooltip"><strong>Four ways to use the tool</strong>.<br>
+        <strong>📇 Profile</strong>: paste a model id → all 5 recipes at once = TAF Card.<br>
+        <strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br>
+        <strong>💬 Ask</strong>: free-form question, browser LLM picks the recipe.<br>
+        <strong>📋 Recipe</strong>: manual selection with full form control.
         </span></span></h2>
       <div class="mode-tabs">
-        <button class="mode-btn active" data-mode="ask">💬 Ask in plain English</button>
-        <button class="mode-btn" data-mode="recipe">📋 Pick recipe + fill form</button>
+        <button class="mode-btn active" data-mode="profile">📇 Profile a model</button>
+        <button class="mode-btn" data-mode="compare">🆚 Compare models</button>
+        <button class="mode-btn" data-mode="ask">💬 Ask plain English</button>
+        <button class="mode-btn" data-mode="recipe">📋 Pick recipe</button>
       </div>
       <p id="mode-desc" class="recipe-desc">
-        Type a free-form question (e.g. "Will Llama-3-8B work at 32K context?"). The
-        in-browser LLM picks the right recipe and runs it.
+        <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
+        click Profile. See all 5 recipes scored in seconds.
       </p>
     </section>
+
+    <!-- PROFILE mode -->
+    <section id="profile-section">
+      <h2>📇 Profile a model
+        <span class="info"><span class="tooltip">
+          <strong>One-click full diagnosis</strong>. Paste any HF model id (or pick preset).
+          Tool runs all 5 recipes (long-context, KV-compression, custom-vs-API, budget,
+          hardware) and produces a single <strong>TAF Card</strong> showing verdict per
+          dimension + key numbers + architecture classification.<br><br>
+          <strong>Use case</strong>: "I'm evaluating Qwen2.5-32B for production —
+          what's its full viability profile?" → paste id → Profile → done.
+        </span></span>
+      </h2>
+      <p class="recipe-desc">
+        <strong>For technicians</strong>: when you need a complete viability snapshot
+        of a candidate model. Outputs match paper §sec:gamma_decomposition format.
+      </p>
+
+      <div class="form-row">
+        <label for="profile-preset">Preset:</label>
+        <select id="profile-preset" disabled>
+          <option value="">— or pick from list —</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="profile-hf-id">HF model id:</label>
+        <input type="text" id="profile-hf-id"
+          placeholder="e.g. meta-llama/Meta-Llama-3-8B or Qwen/Qwen2.5-7B" style="flex:1;" />
+        <button id="profile-fetch-btn" type="button" class="secondary">📥 Fetch</button>
+      </div>
+      <div id="profile-hf-status" class="subtle" style="margin: -0.5rem 0 1rem; min-height:1.2em;"></div>
+
+      <div class="form-grid" id="profile-form">
+        <div class="form-field">
+          <label>θ (rope_theta) <span class="info"><span class="tooltip">RoPE base frequency from <code>config.rope_theta</code>.</span></span></label>
+          <input type="number" id="profile-theta" value="500000" />
+        </div>
+        <div class="form-field">
+          <label>T_train <span class="info"><span class="tooltip">Max training context. From <code>max_position_embeddings</code>.</span></span></label>
+          <input type="number" id="profile-T_train" value="8192" />
+        </div>
+        <div class="form-field">
+          <label>T_eval (your target) <span class="info"><span class="tooltip">Inference context length you'll actually serve. The key knob.</span></span></label>
+          <input type="number" id="profile-T_eval" value="32000" />
+        </div>
+        <div class="form-field">
+          <label>n_attention_heads</label>
+          <input type="number" id="profile-n_attn" value="32" />
+        </div>
+        <div class="form-field">
+          <label>n_kv_heads</label>
+          <input type="number" id="profile-n_kv" value="8" />
+        </div>
+        <div class="form-field">
+          <label>head_dim</label>
+          <input type="number" id="profile-d_head" value="128" />
+        </div>
+        <div class="form-field">
+          <label>n_layers</label>
+          <input type="number" id="profile-n_layers" value="32" />
+        </div>
+        <div class="form-field">
+          <label>n_params (e.g. 8e9)</label>
+          <input type="text" id="profile-n_params" value="8e9" />
+        </div>
+        <div class="form-field">
+          <label>Has SWA?</label>
+          <select id="profile-has_swa">
+            <option value="false" selected>No</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="profile-btn" disabled>🚀 Generate full profile</button>
+    </section>
+
+    <!-- COMPARE mode -->
+    <section id="compare-section" style="display:none;">
+      <h2>🆚 Compare models side-by-side
+        <span class="info"><span class="tooltip">
+          <strong>Same recipe, multiple models</strong>. Pick 2-3 candidate models and
+          one recipe. See verdicts in a single comparison table.<br><br>
+          <strong>Use case</strong>: "I need long-context retrieval at 16K — which is
+          best: Llama-3-8B, Mistral-7B, or Qwen-7B?" → pick 3 + X-2 + 16K → see winner.
+        </span></span>
+      </h2>
+      <p class="recipe-desc">
+        <strong>For technicians</strong>: when choosing between 2-3 candidate models for
+        a specific deployment scenario. Compare their verdicts on the same recipe.
+      </p>
+
+      <div class="form-row">
+        <label for="compare-recipe">Recipe:</label>
+        <select id="compare-recipe" disabled>
+          <option value="">— pick a recipe —</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="compare-T_eval">T_eval (target context):</label>
+        <input type="number" id="compare-T_eval" value="16000" style="flex:1;" />
+        <span class="info" style="margin-top:0.5rem;"><span class="tooltip">
+          For X-2 / X-19 only. The context length all compared models will be
+          evaluated at. Other recipes use their own params.
+        </span></span>
+      </div>
+
+      <div id="compare-models">
+        <h3 style="margin-top:1rem;">Models to compare (add up to 3)</h3>
+        <div class="compare-slot" data-slot="1">
+          <input type="text" class="compare-hf-id" placeholder="HF model id (e.g. meta-llama/Meta-Llama-3-8B)" />
+          <select class="compare-preset">
+            <option value="">— or preset —</option>
+          </select>
+        </div>
+        <div class="compare-slot" data-slot="2">
+          <input type="text" class="compare-hf-id" placeholder="HF model id #2" />
+          <select class="compare-preset">
+            <option value="">— or preset —</option>
+          </select>
+        </div>
+        <div class="compare-slot" data-slot="3">
+          <input type="text" class="compare-hf-id" placeholder="HF model id #3 (optional)" />
+          <select class="compare-preset">
+            <option value="">— or preset —</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="compare-btn" disabled style="margin-top:1rem;">🚀 Compare</button>
+    </section>
+
+    <!-- ASK mode -->
+    <section id="ask-section" style="display:none;">
 
     <!-- Free-form question (mode=ask) -->
     <section id="ask-section">
@@ -184,10 +332,15 @@
       <button id="run-btn" disabled>🚀 Analyze</button>
     </section>
 
-    <!-- Output -->
+    <!-- Output (single-recipe verdict + chain) -->
     <section id="output-section" style="display:none;">
       <h2>📊 Verdict</h2>
       <div id="verdict-box"></div>
+
+      <div style="margin: 0.75rem 0;">
+        <button id="share-btn" class="secondary" type="button">🔗 Copy share link</button>
+        <span id="share-status" class="subtle" style="margin-left:0.75rem;"></span>
+      </div>
 
       <h2>🔍 Computation Chain</h2>
       <p class="subtle">Every number below is deterministic Python. Click a step to expand.</p>
@@ -195,6 +348,18 @@
 
       <h2 id="answer-header" style="display:none;">💬 Plain-English Answer</h2>
       <div id="answer-box" style="display:none;"></div>
+    </section>
+
+    <!-- Profile output -->
+    <section id="profile-output" style="display:none;">
+      <h2>📇 TAF Card — full model profile</h2>
+      <div id="profile-box"></div>
+    </section>
+
+    <!-- Compare output -->
+    <section id="compare-output" style="display:none;">
+      <h2>🆚 Comparison Table</h2>
+      <div id="compare-box"></div>
     </section>
   </main>
 

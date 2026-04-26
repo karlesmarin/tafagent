@@ -55,24 +55,41 @@ async function loadPyodideAndTaf() {
 }
 
 function populatePresets() {
-  const sel = $("preset");
-  sel.innerHTML = '<option value="">— select to autofill —</option>';
-  state.presets.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = `${p.label}  (θ=${p.theta.toLocaleString()}, T_train=${p.T_train})`;
-    sel.appendChild(opt);
+  // Recipe form preset
+  ["preset", "profile-preset"].forEach(id => {
+    const sel = $(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— select to autofill —</option>';
+    state.presets.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.label}  (θ=${p.theta.toLocaleString()}, T_train=${p.T_train})`;
+      sel.appendChild(opt);
+    });
+  });
+  // Compare slot presets
+  document.querySelectorAll(".compare-preset").forEach(sel => {
+    sel.innerHTML = '<option value="">— or preset —</option>';
+    state.presets.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
   });
 }
 
 function populateRecipes() {
-  const sel = $("recipe-select");
-  sel.innerHTML = '<option value="">— select a recipe —</option>';
-  state.recipes.forEach(r => {
-    const opt = document.createElement("option");
-    opt.value = r.id;
-    opt.textContent = `${r.id} — ${r.name}`;
-    sel.appendChild(opt);
+  ["recipe-select", "compare-recipe"].forEach(id => {
+    const sel = $(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— select a recipe —</option>';
+    state.recipes.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = `${r.id} — ${r.name}`;
+      sel.appendChild(opt);
+    });
   });
 }
 
@@ -80,6 +97,12 @@ function enableUI() {
   $("ask-btn").disabled = false;
   $("recipe-select").disabled = false;
   $("preset").disabled = false;
+  $("profile-preset").disabled = false;
+  $("profile-btn").disabled = false;
+  $("compare-recipe").disabled = false;
+  $("compare-btn").disabled = false;
+  // Restore from URL if present
+  parseUrlState();
 }
 
 function setStatus(msg) { $("status").textContent = msg; }
@@ -93,17 +116,29 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     btn.classList.add("active");
     const mode = btn.dataset.mode;
     state.currentMode = mode;
+    // Hide all mode sections
+    ["ask-section", "recipe-section", "form-section",
+     "profile-section", "compare-section"].forEach(id => {
+      const el = $(id);
+      if (el) el.style.display = "none";
+    });
+    // Show selected
     if (mode === "ask") {
       $("ask-section").style.display = "";
-      $("recipe-section").style.display = "none";
-      $("form-section").style.display = "none";
       $("mode-desc").textContent =
         "Type a free-form question. The in-browser LLM picks the right recipe and runs it.";
-    } else {
-      $("ask-section").style.display = "none";
+    } else if (mode === "recipe") {
       $("recipe-section").style.display = "";
       $("mode-desc").textContent =
-        "Pick a recipe directly and fill the form. Same result as Ask mode but fully manual.";
+        "Pick a recipe directly and fill the form. Full manual control.";
+    } else if (mode === "profile") {
+      $("profile-section").style.display = "";
+      $("mode-desc").textContent =
+        "Quickest start: paste any HuggingFace model id, click Profile. See all 5 recipes scored in seconds.";
+    } else if (mode === "compare") {
+      $("compare-section").style.display = "";
+      $("mode-desc").textContent =
+        "Pick 2-3 candidate models + one recipe. See verdicts side-by-side in a comparison table.";
     }
   });
 });
@@ -244,6 +279,18 @@ function fillRecipeForm(p) {
 // ════════════════════════════════════════════════════════════════════
 // HF Hub fetch (any model)
 // ════════════════════════════════════════════════════════════════════
+async function fetchHfConfig(modelId) {
+  const url = `https://huggingface.co/${modelId}/raw/main/config.json`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error(`Model is gated (${resp.status}). Accept license on HF Hub first, or fill manually.`);
+    }
+    throw new Error(`HTTP ${resp.status} — config.json not found at ${url}`);
+  }
+  return await resp.json();
+}
+
 $("hf-fetch-btn").addEventListener("click", async () => {
   const modelId = $("hf-id").value.trim();
   if (!modelId) {
@@ -253,15 +300,7 @@ $("hf-fetch-btn").addEventListener("click", async () => {
   $("hf-status").textContent = `⏳ Fetching config.json from HF Hub for ${modelId}...`;
   $("hf-fetch-btn").disabled = true;
   try {
-    const url = `https://huggingface.co/${modelId}/raw/main/config.json`;
-    const resp = await fetch(url);
-    if (!resp.ok) {
-      if (resp.status === 401 || resp.status === 403) {
-        throw new Error(`Model is gated (${resp.status}). Accept license on HF Hub first, or fill manually.`);
-      }
-      throw new Error(`HTTP ${resp.status} — config.json not found`);
-    }
-    const cfg = await resp.json();
+    const cfg = await fetchHfConfig(modelId);
     const preset = configToPreset(cfg, modelId);
     fillRecipeForm(preset);
     $("hf-status").innerHTML = `✅ Config loaded for <strong>${modelId}</strong> (family: ${preset._family}). Verify values, click Analyze.`;
@@ -429,6 +468,9 @@ json.dumps(result)
   result._original_question = originalQuestion;
   renderResult(result);
   $("output-section").style.display = "block";
+  $("profile-output").style.display = "none";
+  $("compare-output").style.display = "none";
+  state.lastResult = { type: "recipe", recipeId, params };
   setStatus("✅ Done. Numbers below.");
   if (ENABLE_WEBLLM) {
     await synthesizeAnswer(result);
@@ -605,6 +647,337 @@ function formatResultPlain(r) {
   if (typeof r === "object") return JSON.stringify(r);
   return String(r);
 }
+
+// ════════════════════════════════════════════════════════════════════
+// PROFILE mode
+// ════════════════════════════════════════════════════════════════════
+$("profile-preset").addEventListener("change", (e) => {
+  if (!e.target.value) return;
+  const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(e.target.value)})`);
+  const p = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
+  if (!p || Object.keys(p).length === 0) return;
+  $("profile-theta").value = p.theta;
+  $("profile-T_train").value = p.T_train;
+  $("profile-n_attn").value = p.n_attention_heads;
+  $("profile-n_kv").value = p.n_kv_heads;
+  $("profile-d_head").value = p.d_head;
+  $("profile-n_layers").value = p.n_layers;
+  $("profile-n_params").value = p.n_params.toExponential(2);
+  $("profile-has_swa").value = String(p.has_SWA);
+});
+
+$("profile-fetch-btn").addEventListener("click", async () => {
+  const id = $("profile-hf-id").value.trim();
+  if (!id) { $("profile-hf-status").textContent = "⚠ Enter a model id"; return; }
+  $("profile-hf-status").textContent = `⏳ Fetching ${id}...`;
+  $("profile-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(id);
+    const p = configToPreset(cfg, id);
+    $("profile-theta").value = p.theta;
+    $("profile-T_train").value = p.T_train;
+    $("profile-n_attn").value = p.n_attention_heads;
+    $("profile-n_kv").value = p.n_kv_heads;
+    $("profile-d_head").value = p.d_head;
+    $("profile-n_layers").value = p.n_layers;
+    $("profile-n_params").value = p.n_params.toExponential(2);
+    $("profile-has_swa").value = String(p.has_SWA);
+    $("profile-hf-status").innerHTML = `✅ <strong>${id}</strong> (${p._family})`;
+  } catch (err) {
+    $("profile-hf-status").textContent = `❌ ${err.message}`;
+  } finally {
+    $("profile-fetch-btn").disabled = false;
+  }
+});
+
+$("profile-btn").addEventListener("click", async () => {
+  const params = {
+    theta: parseFloat($("profile-theta").value),
+    T_train: parseInt($("profile-T_train").value),
+    T_eval: parseInt($("profile-T_eval").value),
+    n_attention_heads: parseInt($("profile-n_attn").value),
+    n_kv_heads: parseInt($("profile-n_kv").value),
+    d_head: parseInt($("profile-d_head").value),
+    n_layers: parseInt($("profile-n_layers").value),
+    n_params: parseFloat($("profile-n_params").value),
+    has_SWA: $("profile-has_swa").value === "true",
+  };
+  setStatus("🧮 Profiling — running all 5 recipes...");
+  $("profile-btn").disabled = true;
+  try {
+    state.pyodide.globals.set("__pp", state.pyodide.toPy(params));
+    const json = state.pyodide.runPython(`
+import json
+result = profile_model(**__pp)
+json.dumps(result)
+`);
+    const profile = JSON.parse(json);
+    renderProfile(profile, params);
+    state.lastResult = { type: "profile", params };
+    setStatus("✅ Profile ready.");
+  } catch (err) {
+    setStatus(`❌ ${err.message}`);
+    console.error(err);
+  } finally {
+    $("profile-btn").disabled = false;
+  }
+});
+
+function renderProfile(p, params) {
+  $("profile-output").style.display = "block";
+  // Hide other outputs
+  $("output-section").style.display = "none";
+  $("compare-output").style.display = "none";
+
+  const verdictClass = (v) => {
+    if (v.startsWith("YES") || v === "GO" || v.startsWith("USE SOFT")) return "v-yes";
+    if (v.startsWith("NO") || v.startsWith("MEMORY") || v === "TINY-MODEL") return "v-no";
+    return "v-deg";
+  };
+  const verdictEmoji = (v) => verdictClass(v) === "v-yes" ? "✅"
+                            : verdictClass(v) === "v-no" ? "❌" : "⚠";
+
+  const ms = p.model_summary;
+  const kn = p.key_numbers;
+  const formatN = (x) => x === null || x === undefined ? "n/a"
+                       : (typeof x === "number" ? x.toLocaleString(undefined, { maximumFractionDigits: 4 }) : String(x));
+
+  const recipesHtml = Object.entries(p.recipes).map(([rid, r]) => `
+    <div class="taf-recipe-tile ${verdictClass(r.verdict)}">
+      <div class="tile-header">
+        <span>${escapeHtml(rid)} — <span class="tile-name">${escapeHtml(r.name)}</span></span>
+        <span class="tile-verdict">${verdictEmoji(r.verdict)} ${escapeHtml(r.verdict)}</span>
+      </div>
+      <div class="tile-reason">${escapeHtml(r.reason || "")}</div>
+      ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe."
+        ? `<div class="tile-reason" style="margin-top:0.4rem; color:var(--fg-dim);"><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
+        : ""}
+    </div>
+  `).join("");
+
+  const numbersHtml = `
+    <div class="num-row"><span class="num-label">γ_Padé(T_eval)</span><span class="num-value">${formatN(kn.gamma_pade)}</span></div>
+    <div class="num-row"><span class="num-label">γ_decomposed</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
+    <div class="num-row"><span class="num-label">d_horizon</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
+    <div class="num-row"><span class="num-label">L_NIAH ceiling</span><span class="num-value">${formatN(kn.L_NIAH_ceiling)}</span></div>
+    <div class="num-row"><span class="num-label">χ susceptibility</span><span class="num-value">${formatN(kn.chi_susceptibility)}</span></div>
+    <div class="num-row"><span class="num-label">KV memory @ T_eval (BF16)</span><span class="num-value">${formatN(kn.kv_memory_per_request_GB)} GB</span></div>
+  `;
+
+  const falsHtml = (p.falsification_status || []).map(f =>
+    `<div class="taf-falsification"><strong>${escapeHtml(f.id)}</strong> — ${escapeHtml(f.claim)}: ${escapeHtml(f.status)}</div>`
+  ).join("");
+
+  $("profile-box").innerHTML = `
+    <div class="taf-card">
+      <div class="taf-card-summary">
+        <div style="font-size:1.2rem; font-weight:700;">${escapeHtml(ms.architecture_class)}</div>
+        <div class="subtle">
+          n_params=${formatN(ms.n_params)} ·
+          T_train=${ms.T_train} · T_eval=${ms.T_eval} ·
+          θ=${formatN(ms.rope_theta)} ·
+          ${ms.has_GQA ? "GQA" : "MHA"}${ms.has_SWA ? " + SWA" : ""}
+        </div>
+      </div>
+
+      <h3>📋 Recipes (verdict per dimension)</h3>
+      <div class="taf-recipes-grid">${recipesHtml}</div>
+
+      <h3>🔢 Key numbers (paper §26)</h3>
+      <div class="taf-key-numbers">${numbersHtml}</div>
+
+      <h3>🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
+      ${falsHtml || '<div class="subtle">No falsifications applicable.</div>'}
+
+      <div style="margin-top: 1rem;">
+        <button class="secondary" id="profile-share-btn">🔗 Copy share link</button>
+        <span id="profile-share-status" class="subtle" style="margin-left:0.75rem;"></span>
+      </div>
+    </div>
+  `;
+
+  // Wire share button
+  $("profile-share-btn").addEventListener("click", () => copyShareLink("profile", params));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// COMPARE mode
+// ════════════════════════════════════════════════════════════════════
+$("compare-recipe").addEventListener("change", () => {
+  $("compare-btn").disabled = !$("compare-recipe").value;
+});
+
+document.querySelectorAll(".compare-preset").forEach(sel => {
+  sel.addEventListener("change", (e) => {
+    const slot = e.target.closest(".compare-slot");
+    if (e.target.value) {
+      slot.querySelector(".compare-hf-id").value = e.target.value;
+    }
+  });
+});
+
+$("compare-btn").addEventListener("click", async () => {
+  const recipeId = $("compare-recipe").value;
+  if (!recipeId) { alert("Pick a recipe first."); return; }
+  const T_eval = parseInt($("compare-T_eval").value);
+  const slots = document.querySelectorAll(".compare-slot");
+  const specs = [];
+  setStatus("⏳ Fetching configs for compared models...");
+  $("compare-btn").disabled = true;
+
+  for (const slot of slots) {
+    const id = slot.querySelector(".compare-hf-id").value.trim();
+    if (!id) continue;
+    try {
+      let preset = null;
+      const presetProxy = state.pyodide.runPython(`get_preset(${JSON.stringify(id)})`);
+      const p = presetProxy.toJs ? presetProxy.toJs({ dict_converter: Object.fromEntries }) : presetProxy;
+      if (p && Object.keys(p).length > 0) {
+        preset = p;
+      } else {
+        const cfg = await fetchHfConfig(id);
+        preset = configToPreset(cfg, id);
+      }
+      specs.push({ ...preset, label: id.split("/").pop() });
+    } catch (err) {
+      console.error("compare fetch fail for", id, err);
+      setStatus(`⚠ Skipped ${id}: ${err.message}`);
+    }
+  }
+
+  if (specs.length < 2) {
+    setStatus("❌ Need at least 2 models to compare.");
+    $("compare-btn").disabled = false;
+    return;
+  }
+
+  setStatus(`🧮 Comparing ${specs.length} models on ${recipeId}...`);
+  try {
+    state.pyodide.globals.set("__cspecs", state.pyodide.toPy(specs));
+    state.pyodide.globals.set("__crid", recipeId);
+    state.pyodide.globals.set("__cshared", state.pyodide.toPy({ T_eval }));
+    const json = state.pyodide.runPython(`
+import json
+result = compare_models(__cspecs.to_py(), __crid, __cshared.to_py())
+json.dumps(result)
+`);
+    const cmp = JSON.parse(json);
+    renderCompare(cmp);
+    state.lastResult = { type: "compare", recipeId, T_eval, specs };
+    setStatus("✅ Comparison ready.");
+  } catch (err) {
+    setStatus(`❌ ${err.message}`);
+    console.error(err);
+  } finally {
+    $("compare-btn").disabled = false;
+  }
+});
+
+function renderCompare(cmp) {
+  $("compare-output").style.display = "block";
+  $("output-section").style.display = "none";
+  $("profile-output").style.display = "none";
+
+  const verdictClass = (v) => {
+    if (v.startsWith("YES") || v === "GO" || v.startsWith("USE SOFT")) return "v-yes";
+    if (v.startsWith("NO") || v.startsWith("MEMORY")) return "v-no";
+    return "v-deg";
+  };
+
+  // Collect all unique key_numbers across rows
+  const allKeys = new Set();
+  cmp.rows.forEach(r => Object.keys(r.key_numbers || {}).forEach(k => allKeys.add(k)));
+
+  let html = `
+    <p class="recipe-desc"><strong>Recipe:</strong> ${escapeHtml(cmp.recipe_id)} — ${escapeHtml(cmp.recipe_name)}</p>
+    <p class="recipe-desc"><strong>Shared params:</strong> ${escapeHtml(JSON.stringify(cmp.shared_params))}</p>
+    <table class="compare-table">
+      <thead>
+        <tr><th>Model</th><th>Verdict</th><th>Reason</th>
+  `;
+  allKeys.forEach(k => html += `<th>${escapeHtml(k)}</th>`);
+  html += "</tr></thead><tbody>";
+
+  cmp.rows.forEach(r => {
+    const cls = verdictClass(r.verdict);
+    html += `<tr><td><strong>${escapeHtml(r.label)}</strong></td>`;
+    html += `<td class="${cls}">${escapeHtml(r.verdict)}</td>`;
+    html += `<td>${escapeHtml(r.reason)}</td>`;
+    allKeys.forEach(k => {
+      const v = r.key_numbers ? r.key_numbers[k] : null;
+      html += `<td>${v === undefined || v === null ? "—" : (typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 2 }) : escapeHtml(String(v)))}</td>`;
+    });
+    html += "</tr>";
+  });
+  html += `</tbody></table>
+    <div style="margin-top: 1rem;">
+      <button class="secondary" id="compare-share-btn">🔗 Copy share link</button>
+      <span id="compare-share-status" class="subtle" style="margin-left:0.75rem;"></span>
+    </div>
+  `;
+  $("compare-box").innerHTML = html;
+  $("compare-share-btn").addEventListener("click", () => {
+    const params = { recipeId: cmp.recipe_id, T_eval: cmp.shared_params.T_eval,
+                     models: cmp.rows.map(r => r.label) };
+    copyShareLink("compare", params);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SHARE — encode current state to URL
+// ════════════════════════════════════════════════════════════════════
+function copyShareLink(mode, params) {
+  const url = new URL(window.location.href.split("?")[0]);
+  url.searchParams.set("mode", mode);
+  url.searchParams.set("p", btoa(JSON.stringify(params)));
+  navigator.clipboard.writeText(url.toString()).then(
+    () => {
+      const tgt = $("share-status") || $("profile-share-status") || $("compare-share-status");
+      if (tgt) {
+        tgt.textContent = "✅ Copied to clipboard!";
+        setTimeout(() => tgt.textContent = "", 3000);
+      }
+    },
+    () => alert("Copy failed. Manually copy: " + url.toString())
+  );
+}
+
+function parseUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  const pData = params.get("p");
+  if (!mode || !pData) return;
+  try {
+    const decoded = JSON.parse(atob(pData));
+    // Switch to right mode tab
+    const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    if (btn) btn.click();
+    // Wait a tick for tab to render
+    setTimeout(() => {
+      if (mode === "profile") {
+        Object.entries(decoded).forEach(([k, v]) => {
+          const map = { theta: "profile-theta", T_train: "profile-T_train",
+                        T_eval: "profile-T_eval",
+                        n_attention_heads: "profile-n_attn", n_kv_heads: "profile-n_kv",
+                        d_head: "profile-d_head", n_layers: "profile-n_layers",
+                        n_params: "profile-n_params", has_SWA: "profile-has_swa" };
+          const id = map[k];
+          if (id && $(id)) $(id).value = String(v);
+        });
+        setTimeout(() => $("profile-btn").click(), 200);
+      }
+      // Other modes: future
+    }, 200);
+  } catch (e) {
+    console.warn("Failed to parse URL state:", e);
+  }
+}
+
+// Wire single-recipe share button
+$("share-btn").addEventListener("click", () => {
+  if (!state.lastResult) return;
+  copyShareLink(state.lastResult.type || "recipe", state.lastResult.params || {});
+});
 
 // ════════════════════════════════════════════════════════════════════
 // Help modal

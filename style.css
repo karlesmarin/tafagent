@@ -270,7 +270,98 @@ textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); 
   main { padding: 0.75rem; }
   .form-row { flex-direction: column; align-items: stretch; }
   .form-row label { min-width: auto; }
+  .arch-badges { justify-content: flex-start; }
 }
+
+/* ─── Architecture coverage badges (hero) ─── */
+.arch-badges {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: center; margin-top: 0.75rem;
+}
+.badge {
+  background: var(--bg-input); color: var(--success);
+  border: 1px solid var(--border); padding: 0.2rem 0.5rem;
+  border-radius: 4px; font-size: 0.85rem; font-family: monospace;
+}
+
+/* ─── Profile (TAF Card) ─── */
+.taf-card {
+  background: var(--bg-input);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.taf-card h3 { color: var(--accent); margin-top: 1rem; margin-bottom: 0.5rem; }
+.taf-card-summary {
+  background: var(--bg);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border-left: 4px solid var(--accent);
+  margin-bottom: 1rem;
+}
+.taf-recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.taf-recipe-tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--fg-dim);
+}
+.taf-recipe-tile.v-yes { border-left-color: var(--success); }
+.taf-recipe-tile.v-no  { border-left-color: var(--danger); }
+.taf-recipe-tile.v-deg { border-left-color: var(--warning); }
+.taf-recipe-tile .tile-header {
+  display:flex; justify-content: space-between; align-items: center;
+  font-weight: 600; margin-bottom: 0.25rem;
+}
+.taf-recipe-tile .tile-name { color: var(--fg-dim); font-size: 0.9rem; }
+.taf-recipe-tile .tile-verdict { font-weight: 700; }
+.taf-recipe-tile.v-yes .tile-verdict { color: var(--success); }
+.taf-recipe-tile.v-no  .tile-verdict { color: var(--danger); }
+.taf-recipe-tile.v-deg .tile-verdict { color: var(--warning); }
+.taf-recipe-tile .tile-reason { font-size: 0.85rem; color: var(--fg); }
+.taf-key-numbers { font-family: monospace; font-size: 0.9rem; }
+.taf-key-numbers .num-row {
+  display: flex; justify-content: space-between;
+  padding: 0.2rem 0; border-bottom: 1px solid var(--border);
+}
+.taf-key-numbers .num-label { color: var(--fg-dim); }
+.taf-key-numbers .num-value { color: var(--success); font-weight: 600; }
+.taf-falsification {
+  font-size: 0.85rem; padding: 0.5rem 0.75rem;
+  background: var(--bg); border-radius: 4px;
+  border-left: 3px solid var(--accent);
+  margin-top: 0.5rem;
+}
+
+/* ─── Compare table ─── */
+.compare-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 0.5rem; font-size: 0.95rem;
+}
+.compare-table th, .compare-table td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.compare-table th {
+  background: var(--bg-input); color: var(--accent);
+  font-family: monospace;
+}
+.compare-table td.v-yes { background: rgba(63, 185, 80, 0.12); color: var(--success); font-weight: 600; }
+.compare-table td.v-no  { background: rgba(248, 81, 73, 0.12); color: var(--danger); font-weight: 600; }
+.compare-table td.v-deg { background: rgba(210, 153, 34, 0.12); color: var(--warning); font-weight: 600; }
+
+.compare-slot {
+  display: flex; gap: 0.5rem; margin: 0.5rem 0; align-items: center;
+}
+.compare-slot input { flex: 2; }
+.compare-slot select { flex: 1; min-width: 200px; }
 
 footer {
   text-align: center;
