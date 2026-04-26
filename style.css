@@ -33,29 +33,53 @@ header {
 }
 header h1 { margin: 0 0 0.5rem 0; font-size: 2rem; }
 
-/* Language switcher (top-right) */
+/* Language switcher (top-right) — round flags */
 .lang-switcher {
   position: absolute;
   top: 1rem; right: 1rem;
-  display: flex; gap: 0.25rem;
+  display: flex; gap: 0.4rem;
   z-index: 50;
 }
 .lang-btn {
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   color: var(--fg);
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.1rem;
   cursor: pointer;
   line-height: 1;
-  transition: border-color 0.15s, background 0.15s;
+  transition: all 0.2s ease;
+  position: relative;
 }
-.lang-btn:hover { border-color: var(--accent); }
+.lang-btn:hover {
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
 .lang-btn.lang-active {
   border-color: var(--accent);
   background: var(--accent-dim);
+  box-shadow: 0 0 12px rgba(88, 166, 255, 0.4);
 }
+.lang-btn::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  font-size: 0.65rem;
+  color: var(--fg-dim);
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.lang-btn:hover::after { opacity: 1; }
 
 /* Quickstart banner */
 .quickstart-banner {
@@ -97,7 +121,41 @@ section {
 h2 { margin-top: 0; font-size: 1.2rem; color: var(--accent); }
 
 #status-bar { padding: 0.75rem 1.25rem; }
-#status { font-family: monospace; }
+#status { font-family: monospace; margin-bottom: 0.4rem; }
+
+/* Loading progress bar */
+#loading-bar-wrap {
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+#loading-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent), var(--accent-dim));
+  background-size: 200% 100%;
+  width: 0%;
+  transition: width 0.3s ease-out;
+  border-radius: 3px;
+  animation: loading-shimmer 1.5s linear infinite;
+}
+@keyframes loading-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+#loading-bar.indeterminate {
+  width: 100%;
+  background: linear-gradient(90deg,
+    var(--bg-input) 0%, var(--accent) 50%, var(--bg-input) 100%);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: loading-indeterminate 1.5s linear infinite;
+}
+@keyframes loading-indeterminate {
+  0%   { background-position: -50% 0; }
+  100% { background-position: 150% 0; }
+}
 
 .recipe-desc { color: var(--fg-dim); margin: 0.5rem 0 0 0; }
 

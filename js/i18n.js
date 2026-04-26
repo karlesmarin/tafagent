@@ -64,11 +64,14 @@ export const TRANSLATIONS = {
 
     "compare.title_out":       "🆚 Comparison Table",
 
-    "status.loading_pyodide":  "⏳ Loading Python runtime...",
+    "status.loading_pyodide":  "⏳ Loading Python runtime (~10MB, first time only)...",
     "status.loading_taf":      "⏳ Loading TAF formulas + recipes...",
     "status.ready":            "✅ Ready. Pick a model and click Profile to start.",
     "status.computing":        "🧮 Computing TAF chain...",
     "status.done":             "✅ Done.",
+
+    "profile.hf_placeholder":  "e.g. meta-llama/Meta-Llama-3-8B or Qwen/Qwen2.5-7B",
+    "compare.hf_placeholder":  "HF model id (e.g. meta-llama/Meta-Llama-3-8B)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · independent research · the tool that closes the loop of the paper.",
   },
@@ -127,11 +130,14 @@ export const TRANSLATIONS = {
 
     "compare.title_out":       "🆚 Tabla comparativa",
 
-    "status.loading_pyodide":  "⏳ Cargando runtime Python...",
+    "status.loading_pyodide":  "⏳ Cargando runtime Python (~10MB, solo primera vez)...",
     "status.loading_taf":      "⏳ Cargando fórmulas TAF + recetas...",
     "status.ready":            "✅ Listo. Elige un modelo y click Perfilar para empezar.",
     "status.computing":        "🧮 Calculando cadena TAF...",
     "status.done":             "✅ Hecho.",
+
+    "profile.hf_placeholder":  "ej. meta-llama/Meta-Llama-3-8B o Qwen/Qwen2.5-7B",
+    "compare.hf_placeholder":  "ID modelo HF (ej. meta-llama/Meta-Llama-3-8B)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · investigación independiente · la herramienta que cierra el círculo del paper.",
   },
@@ -190,11 +196,14 @@ export const TRANSLATIONS = {
 
     "compare.title_out":       "🆚 Tableau comparatif",
 
-    "status.loading_pyodide":  "⏳ Chargement du runtime Python...",
+    "status.loading_pyodide":  "⏳ Chargement du runtime Python (~10MB, première fois)...",
     "status.loading_taf":      "⏳ Chargement des formules TAF + recettes...",
     "status.ready":            "✅ Prêt. Choisissez un modèle et cliquez Profiler pour commencer.",
     "status.computing":        "🧮 Calcul de la chaîne TAF...",
     "status.done":             "✅ Terminé.",
+
+    "profile.hf_placeholder":  "ex. meta-llama/Meta-Llama-3-8B ou Qwen/Qwen2.5-7B",
+    "compare.hf_placeholder":  "ID modèle HF (ex. meta-llama/Meta-Llama-3-8B)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · recherche indépendante · l'outil qui ferme la boucle du paper.",
   },
@@ -253,11 +262,14 @@ export const TRANSLATIONS = {
 
     "compare.title_out":       "🆚 比较表",
 
-    "status.loading_pyodide":  "⏳ 加载 Python 运行时...",
+    "status.loading_pyodide":  "⏳ 加载 Python 运行时 (~10MB,首次加载)...",
     "status.loading_taf":      "⏳ 加载 TAF 公式 + 配方...",
     "status.ready":            "✅ 就绪。选择一个模型并点击画像开始。",
     "status.computing":        "🧮 计算 TAF 链...",
     "status.done":             "✅ 完成。",
+
+    "profile.hf_placeholder":  "例如: meta-llama/Meta-Llama-3-8B 或 Qwen/Qwen2.5-7B",
+    "compare.hf_placeholder":  "HF 模型 id (例如: meta-llama/Meta-Llama-3-8B)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · 独立研究 · 闭合论文回路的工具。",
   },

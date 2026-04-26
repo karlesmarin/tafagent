@@ -39,12 +39,29 @@ const EXAMPLES = [
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
+function showLoadingBar(show, progress=null) {
+  const wrap = $("loading-bar-wrap");
+  const bar = $("loading-bar");
+  if (!wrap || !bar) return;
+  if (!show) { wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  if (progress === null) {
+    bar.classList.add("indeterminate");
+    bar.style.width = "100%";
+  } else {
+    bar.classList.remove("indeterminate");
+    bar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
+  }
+}
+
 async function loadPyodideAndTaf() {
-  setStatus("⏳ Loading Pyodide (Python runtime ~10MB)...");
+  showLoadingBar(true, null);
+  setStatus(t("status.loading_pyodide"));
   state.pyodide = await loadPyodide({
     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
   });
-  setStatus("⏳ Loading TAF formulas + recipes...");
+  showLoadingBar(true, 0.5);
+  setStatus(t("status.loading_taf"));
   const tafCode = await fetch(TAF_BROWSER_URL).then(r => r.text());
   await state.pyodide.runPythonAsync(tafCode);
 
@@ -52,10 +69,12 @@ async function loadPyodideAndTaf() {
   state.recipes = JSON.parse(state.pyodide.runPython("list_recipes()"));
   state.recipesById = Object.fromEntries(state.recipes.map(r => [r.id, r]));
 
+  showLoadingBar(true, 0.95);
   populatePresets();
   populateRecipes();
   enableUI();
-  setStatus("✅ Ready. Ask a question or pick a recipe.");
+  showLoadingBar(false);
+  setStatus(t("status.ready"));
 }
 
 function populatePresets() {
