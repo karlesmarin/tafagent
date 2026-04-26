@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAF Agent — Transformer Diagnostic in your Browser</title>
+  <meta name="description" content="Predict transformer LLM behaviour from config alone. Free, unlimited, runs entirely in your browser." />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🔬 TAF Agent</h1>
+    <p class="tagline">
+      Transformer diagnostic in your browser. <strong>Free. Unlimited. Auditable.</strong>
+    </p>
+    <p class="subtle">
+      All computation happens locally — your data never leaves this page.
+    </p>
+  </header>
+
+  <main>
+    <!-- Status -->
+    <section id="status-bar"><div id="status">⏳ Loading Python runtime...</div></section>
+
+    <!-- Mode toggle -->
+    <section id="mode-section">
+      <h2>🎯 Mode</h2>
+      <div class="mode-tabs">
+        <button class="mode-btn active" data-mode="ask">💬 Ask in plain English</button>
+        <button class="mode-btn" data-mode="recipe">📋 Pick recipe + fill form</button>
+      </div>
+      <p id="mode-desc" class="recipe-desc">
+        Type a free-form question (e.g. "Will Llama-3-8B work at 32K context?"). The
+        in-browser LLM picks the right recipe and runs it.
+      </p>
+    </section>
+
+    <!-- Free-form question (mode=ask) -->
+    <section id="ask-section">
+      <h2>❓ Your question</h2>
+      <textarea id="question" rows="3" placeholder="e.g. Will Mistral-7B handle 16K NIAH retrieval? Or: I have $5,000, what model can I train? Or: Cheapest GPU to serve Llama-70B at 100M tokens/day?"></textarea>
+      <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
+        <button id="ask-btn" disabled>🚀 Analyze</button>
+        <button id="example-btn" type="button" class="secondary">💡 Try an example</button>
+      </div>
+    </section>
+
+    <!-- Recipe selector (mode=recipe) -->
+    <section id="recipe-section" style="display:none;">
+      <h2>📋 Recipe</h2>
+      <select id="recipe-select" disabled>
+        <option value="">— select a recipe —</option>
+      </select>
+      <p id="recipe-desc-display" class="recipe-desc"></p>
+    </section>
+
+    <!-- Form (mode=recipe) -->
+    <section id="form-section" style="display:none;">
+      <h2>🎯 Inputs</h2>
+
+      <div class="form-row">
+        <label for="preset">Preset model:</label>
+        <select id="preset" disabled>
+          <option value="">— select to autofill —</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="hf-id">Or any HF model:</label>
+        <input type="text" id="hf-id" placeholder="e.g. Qwen/Qwen2.5-32B-Instruct" style="flex:1;" />
+        <button id="hf-fetch-btn" type="button" class="secondary">📥 Fetch</button>
+      </div>
+      <div id="hf-status" class="subtle" style="margin: -0.5rem 0 1rem; min-height:1.2em;"></div>
+
+      <!-- Dynamic form fields based on recipe -->
+      <div id="dynamic-form" class="form-grid"></div>
+
+      <button id="run-btn" disabled>🚀 Analyze</button>
+    </section>
+
+    <!-- Output -->
+    <section id="output-section" style="display:none;">
+      <h2>📊 Verdict</h2>
+      <div id="verdict-box"></div>
+
+      <h2>🔍 Computation Chain</h2>
+      <p class="subtle">Every number below is deterministic Python. Click a step to expand.</p>
+      <div id="chain-box"></div>
+
+      <h2 id="answer-header" style="display:none;">💬 Plain-English Answer</h2>
+      <div id="answer-box" style="display:none;"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      © 2026 Carles Marin · Apache-2.0 ·
+      <a href="https://github.com/karlesmarin/tafagent" target="_blank">Source on GitHub</a>
+    </p>
+    <p class="subtle">
+      Computation: Pyodide (Python in browser) · Synthesis: WebLLM (Llama-3.2-1B local) · Hosting: GitHub Pages
+    </p>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

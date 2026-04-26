@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Build artefacts
+dist/
+build/
+node_modules/
+*.log
+
+# Local sandbox
+local/
+.cache/
