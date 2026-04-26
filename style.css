@@ -467,6 +467,18 @@ textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); 
 .compare-slot input { flex: 2; }
 .compare-slot select { flex: 1; min-width: 200px; }
 
+/* Share bar (download / share / submit / etc.) */
+.share-bar {
+  display: flex; gap: 0.5rem; margin: 0.75rem 0;
+  flex-wrap: wrap; align-items: center;
+}
+.share-bar .subtle { margin-left: 0.5rem; }
+
+#import-section {
+  background: rgba(88, 166, 255, 0.05);
+  border: 1px dashed var(--accent);
+}
+
 footer {
   text-align: center;
   padding: 1.5rem;

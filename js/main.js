@@ -494,6 +494,7 @@ json.dumps(result)
   $("profile-output").style.display = "none";
   $("compare-output").style.display = "none";
   state.lastResult = { type: "recipe", recipeId, params };
+  state.lastFullResult = result;
   setStatus("✅ Done. Numbers below.");
   if (ENABLE_WEBLLM) {
     await synthesizeAnswer(result);
@@ -628,7 +629,7 @@ async function synthesizeAnswer(result) {
   try {
     const reply = await engine.chat.completions.create({
       messages: [
-        { role: "system", content: "You are a precise transformer LLM diagnostic assistant. Summarise pre-computed TAF results in 4-6 sentences. Cite section numbers. Always recommend an action. Never invent numbers." },
+        { role: "system", content: t("synthesis.system") },
         { role: "user", content: prompt },
       ],
       max_tokens: 400,
@@ -737,6 +738,7 @@ json.dumps(result)
     const profile = JSON.parse(json);
     renderProfile(profile, params);
     state.lastResult = { type: "profile", params };
+    state.lastFullResult = profile;
     setStatus("✅ Profile ready.");
   } catch (err) {
     setStatus(`❌ ${err.message}`);
@@ -812,15 +814,32 @@ function renderProfile(p, params) {
       <h3>🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
       ${falsHtml || '<div class="subtle">No falsifications applicable.</div>'}
 
-      <div style="margin-top: 1rem;">
-        <button class="secondary" id="profile-share-btn">🔗 Copy share link</button>
-        <span id="profile-share-status" class="subtle" style="margin-left:0.75rem;"></span>
+      <div class="share-bar">
+        <button class="secondary" id="profile-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
+        <button class="secondary" id="profile-download-btn" data-i18n="share.download">💾 Download JSON</button>
+        <button class="secondary" id="profile-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
+        <span id="profile-share-status" class="subtle"></span>
       </div>
     </div>
   `;
 
-  // Wire share button
+  // Re-apply translations to dynamically inserted buttons
+  if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+
+  // Wire share/download/submit buttons
   $("profile-share-btn").addEventListener("click", () => copyShareLink("profile", params));
+  $("profile-download-btn").addEventListener("click", () => {
+    const safeName = (state.lastResult?.params?.theta || "model") + "-T" + (state.lastResult?.params?.T_eval || "?");
+    downloadJSON(`taf-profile-${safeName}.json`, exportableData("profile", p));
+    $("profile-share-status").textContent = "✅ Downloaded";
+    setTimeout(() => $("profile-share-status").textContent = "", 3000);
+  });
+  $("profile-submit-btn").addEventListener("click", () => {
+    const url = buildIssueUrl("profile", p);
+    window.open(url, "_blank");
+    $("profile-share-status").textContent = "↗ Opened GitHub registry";
+    setTimeout(() => $("profile-share-status").textContent = "", 3000);
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -887,6 +906,7 @@ json.dumps(result)
     const cmp = JSON.parse(json);
     renderCompare(cmp);
     state.lastResult = { type: "compare", recipeId, T_eval, specs };
+    state.lastFullResult = cmp;
     setStatus("✅ Comparison ready.");
   } catch (err) {
     setStatus(`❌ ${err.message}`);
@@ -933,16 +953,29 @@ function renderCompare(cmp) {
     html += "</tr>";
   });
   html += `</tbody></table>
-    <div style="margin-top: 1rem;">
-      <button class="secondary" id="compare-share-btn">🔗 Copy share link</button>
-      <span id="compare-share-status" class="subtle" style="margin-left:0.75rem;"></span>
+    <div class="share-bar">
+      <button class="secondary" id="compare-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
+      <button class="secondary" id="compare-download-btn" data-i18n="share.download">💾 Download JSON</button>
+      <button class="secondary" id="compare-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
+      <span id="compare-share-status" class="subtle"></span>
     </div>
   `;
   $("compare-box").innerHTML = html;
+  if (window.__taf_applyTranslations) window.__taf_applyTranslations();
   $("compare-share-btn").addEventListener("click", () => {
     const params = { recipeId: cmp.recipe_id, T_eval: cmp.shared_params.T_eval,
                      models: cmp.rows.map(r => r.label) };
     copyShareLink("compare", params);
+  });
+  $("compare-download-btn").addEventListener("click", () => {
+    downloadJSON(`taf-compare-${cmp.recipe_id}.json`, exportableData("compare", cmp));
+    $("compare-share-status").textContent = "✅ Downloaded";
+    setTimeout(() => $("compare-share-status").textContent = "", 3000);
+  });
+  $("compare-submit-btn").addEventListener("click", () => {
+    window.open(buildIssueUrl("compare", cmp), "_blank");
+    $("compare-share-status").textContent = "↗ Opened GitHub registry";
+    setTimeout(() => $("compare-share-status").textContent = "", 3000);
   });
 }
 
@@ -996,10 +1029,23 @@ function parseUrlState() {
   }
 }
 
-// Wire single-recipe share button
+// Wire single-recipe share/download/submit buttons
 $("share-btn").addEventListener("click", () => {
   if (!state.lastResult) return;
   copyShareLink(state.lastResult.type || "recipe", state.lastResult.params || {});
+});
+$("recipe-download-btn").addEventListener("click", () => {
+  if (!state.lastFullResult) return;
+  downloadJSON(`taf-recipe-${state.lastFullResult.recipe_id || "result"}.json`,
+               exportableData("recipe", state.lastFullResult));
+  $("share-status").textContent = "✅ Downloaded";
+  setTimeout(() => $("share-status").textContent = "", 3000);
+});
+$("recipe-submit-btn").addEventListener("click", () => {
+  if (!state.lastFullResult) return;
+  window.open(buildIssueUrl("recipe", state.lastFullResult), "_blank");
+  $("share-status").textContent = "↗ Opened GitHub registry";
+  setTimeout(() => $("share-status").textContent = "", 3000);
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -1009,6 +1055,137 @@ $("help-btn").addEventListener("click", () => $("help-modal").classList.add("ope
 $("help-close").addEventListener("click", () => $("help-modal").classList.remove("open"));
 $("help-modal").addEventListener("click", (e) => {
   if (e.target.id === "help-modal") $("help-modal").classList.remove("open");
+});
+
+// ════════════════════════════════════════════════════════════════════
+// SHARING — Download / Upload / Submit to registry
+// ════════════════════════════════════════════════════════════════════
+const REGISTRY_REPO = "karlesmarin/tafagent-registry";
+
+function downloadJSON(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+function exportableData(type, data) {
+  return {
+    _taf_export: true,
+    _taf_type: type,
+    _taf_version: "0.2",
+    _taf_timestamp: new Date().toISOString(),
+    payload: data,
+  };
+}
+
+function buildIssueUrl(type, data) {
+  let title, body;
+  if (type === "profile") {
+    const ms = data.model_summary || {};
+    title = `[TAF Profile] T_eval=${ms.T_eval || "?"} on ${ms.architecture_class || "model"}`;
+    body = profileToMarkdown(data);
+  } else if (type === "compare") {
+    title = `[TAF Compare] ${data.recipe_id} across ${data.rows.length} models`;
+    body = compareToMarkdown(data);
+  } else {
+    title = `[TAF ${data.recipe_id}] ${data.verdict}`;
+    body = recipeToMarkdown(data);
+  }
+  const params = new URLSearchParams({
+    title: title,
+    body: body + "\n\n---\n*Submitted via [TAF Agent](https://karlesmarin.github.io/tafagent)*",
+  });
+  return `https://github.com/${REGISTRY_REPO}/issues/new?${params.toString()}`;
+}
+
+function profileToMarkdown(p) {
+  const ms = p.model_summary || {};
+  const kn = p.key_numbers || {};
+  let md = `## TAF Profile\n\n`;
+  md += `**Architecture**: ${ms.architecture_class || "?"}\n`;
+  md += `**Params**: ${ms.n_params}, **T_train**: ${ms.T_train}, **T_eval**: ${ms.T_eval}\n`;
+  md += `**θ**: ${ms.rope_theta}, GQA=${ms.has_GQA}, SWA=${ms.has_SWA}\n\n`;
+  md += `### Recipes\n\n`;
+  Object.entries(p.recipes || {}).forEach(([rid, r]) => {
+    md += `- **${rid}** (${r.name || ""}): ${r.verdict} — ${r.reason}\n`;
+  });
+  md += `\n### Key numbers\n\n\`\`\`json\n${JSON.stringify(kn, null, 2)}\n\`\`\`\n`;
+  md += `\n### Full data\n\n<details><summary>Click to expand</summary>\n\n\`\`\`json\n${JSON.stringify(p, null, 2)}\n\`\`\`\n\n</details>\n`;
+  return md;
+}
+
+function compareToMarkdown(c) {
+  let md = `## TAF Comparison — ${c.recipe_id} (${c.recipe_name})\n\n`;
+  md += `**Shared params**: \`${JSON.stringify(c.shared_params)}\`\n\n`;
+  md += `| Model | Verdict | Reason |\n|-------|---------|--------|\n`;
+  c.rows.forEach(r => {
+    md += `| ${r.label} | ${r.verdict} | ${r.reason.slice(0, 80)}${r.reason.length > 80 ? "..." : ""} |\n`;
+  });
+  md += `\n<details><summary>Full data</summary>\n\n\`\`\`json\n${JSON.stringify(c, null, 2)}\n\`\`\`\n\n</details>\n`;
+  return md;
+}
+
+function recipeToMarkdown(r) {
+  let md = `## TAF Recipe ${r.recipe_id} — ${r.recipe_name}\n\n`;
+  md += `**Verdict**: ${r.verdict}\n`;
+  md += `**Reason**: ${r.reason}\n`;
+  if (r.mitigation) md += `**Action**: ${r.mitigation}\n`;
+  md += `\n### Inputs\n\n\`\`\`json\n${JSON.stringify(r.inputs, null, 2)}\n\`\`\`\n`;
+  md += `\n### Computation chain\n\n`;
+  (r.chain || []).forEach(s => {
+    md += `**Step ${s.step} ${s.section}** — ${s.name}: \`${s.formula}\` → ${formatResultPlain(s.result)}\n`;
+  });
+  md += `\n<details><summary>Full data</summary>\n\n\`\`\`json\n${JSON.stringify(r, null, 2)}\n\`\`\`\n\n</details>\n`;
+  return md;
+}
+
+function importJSON(file, statusEl) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data._taf_export) {
+        statusEl.innerHTML = "❌ Not a TAF export file (missing _taf_export marker).";
+        return;
+      }
+      const type = data._taf_type;
+      const payload = data.payload;
+      if (type === "profile") {
+        renderProfile(payload, payload.model_summary || {});
+        statusEl.innerHTML = `✅ Profile loaded (${data._taf_timestamp || "?"})`;
+      } else if (type === "compare") {
+        renderCompare(payload);
+        statusEl.innerHTML = `✅ Comparison loaded (${data._taf_timestamp || "?"})`;
+      } else if (type === "recipe") {
+        renderResult(payload);
+        $("output-section").style.display = "block";
+        statusEl.innerHTML = `✅ Recipe result loaded (${data._taf_timestamp || "?"})`;
+      } else {
+        statusEl.innerHTML = `❌ Unknown TAF type: ${type}`;
+      }
+    } catch (err) {
+      statusEl.innerHTML = `❌ Failed to parse JSON: ${err.message}`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Wire import button (always available)
+document.addEventListener("DOMContentLoaded", () => {
+  const importBtn = document.getElementById("import-btn");
+  const importFile = document.getElementById("import-file");
+  if (importBtn && importFile) {
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) importJSON(file, document.getElementById("import-status"));
+    });
+  }
 });
 
 // ════════════════════════════════════════════════════════════════════

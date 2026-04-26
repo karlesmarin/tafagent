@@ -365,9 +365,11 @@
       <h2 data-i18n="verdict.title">📊 Verdict</h2>
       <div id="verdict-box"></div>
 
-      <div style="margin: 0.75rem 0;">
+      <div class="share-bar">
         <button id="share-btn" class="secondary" type="button" data-i18n="share.btn">🔗 Copy share link</button>
-        <span id="share-status" class="subtle" style="margin-left:0.75rem;"></span>
+        <button id="recipe-download-btn" class="secondary" type="button" data-i18n="share.download">💾 Download JSON</button>
+        <button id="recipe-submit-btn" class="secondary" type="button" data-i18n="share.submit">📤 Submit to registry</button>
+        <span id="share-status" class="subtle"></span>
       </div>
 
       <h2 data-i18n="chain.title">🔍 Computation Chain</h2>
@@ -388,6 +390,20 @@
     <section id="compare-output" style="display:none;">
       <h2 data-i18n="compare.title_out">🆚 Comparison Table</h2>
       <div id="compare-box"></div>
+    </section>
+
+    <!-- Hidden file input for JSON upload (shared by all import buttons) -->
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none;" />
+
+    <!-- Floating import bar (always visible) -->
+    <section id="import-section">
+      <h2 data-i18n="share.import_title">📂 Import a shared TAF result</h2>
+      <p class="recipe-desc" data-i18n="share.import_desc">
+        Got a JSON file from someone else's TAF analysis? Load it here to see the verdict + chain locally.
+        Same view as if you'd run it yourself.
+      </p>
+      <button id="import-btn" class="secondary" type="button" data-i18n="share.import_btn">📂 Load shared JSON</button>
+      <span id="import-status" class="subtle" style="margin-left:0.75rem;"></span>
     </section>
   </main>
 

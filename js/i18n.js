@@ -56,6 +56,12 @@ export const TRANSLATIONS = {
     "answer.title":            "💬 Plain-English Answer",
     "share.btn":               "🔗 Copy share link",
     "share.copied":            "✅ Copied to clipboard!",
+    "share.download":          "💾 Download JSON",
+    "share.submit":            "📤 Submit to registry",
+    "share.import_title":      "📂 Import a shared TAF result",
+    "share.import_desc":       "Got a JSON file from someone else's TAF analysis? Load it here to see the verdict + chain locally. Same view as if you'd run it yourself.",
+    "share.import_btn":        "📂 Load shared JSON",
+    "synthesis.system":        "You are a precise transformer LLM diagnostic assistant. Given pre-computed TAF formula results, write a clear plain-English summary in 4-6 sentences. Cite the section number (§X.Y) for each number you mention. Always give a concrete recommendation. Do NOT invent numbers.",
 
     "tafcard.title":           "📇 TAF Card — full model profile",
     "tafcard.recipes_title":   "📋 Recipes (verdict per dimension)",
@@ -191,6 +197,12 @@ export const TRANSLATIONS = {
     "answer.title":            "💬 Respuesta en lenguaje natural",
     "share.btn":               "🔗 Copiar link",
     "share.copied":            "✅ ¡Copiado al portapapeles!",
+    "share.download":          "💾 Descargar JSON",
+    "share.submit":            "📤 Enviar al registry",
+    "share.import_title":      "📂 Importar un resultado TAF compartido",
+    "share.import_desc":       "¿Tienes un fichero JSON del análisis TAF de alguien? Cárgalo aquí para ver el veredicto + cadena localmente. La misma vista que si lo hubieras ejecutado tú.",
+    "share.import_btn":        "📂 Cargar JSON compartido",
+    "synthesis.system":        "Eres un asistente de diagnóstico preciso para LLMs transformer. Dados resultados de fórmulas TAF pre-calculados, escribe un resumen claro en español de 4-6 frases. Cita el número de sección (§X.Y) para cada número que menciones. Da siempre una recomendación concreta. NO inventes números.",
 
     "tafcard.title":           "📇 TAF Card — perfil completo del modelo",
     "tafcard.recipes_title":   "📋 Recetas (veredicto por dimensión)",
@@ -326,6 +338,12 @@ export const TRANSLATIONS = {
     "answer.title":            "💬 Réponse en langage naturel",
     "share.btn":               "🔗 Copier le lien",
     "share.copied":            "✅ Copié dans le presse-papiers!",
+    "share.download":          "💾 Télécharger JSON",
+    "share.submit":            "📤 Soumettre au registry",
+    "share.import_title":      "📂 Importer un résultat TAF partagé",
+    "share.import_desc":       "Vous avez un fichier JSON de l'analyse TAF de quelqu'un ? Chargez-le ici pour voir le verdict + la chaîne localement. La même vue que si vous l'aviez exécuté vous-même.",
+    "share.import_btn":        "📂 Charger JSON partagé",
+    "synthesis.system":        "Vous êtes un assistant de diagnostic précis pour LLMs transformer. Étant donné des résultats de formules TAF pré-calculés, écrivez un résumé clair en français de 4-6 phrases. Citez le numéro de section (§X.Y) pour chaque nombre mentionné. Donnez toujours une recommandation concrète. N'INVENTEZ PAS de nombres.",
 
     "tafcard.title":           "📇 TAF Card — profil complet du modèle",
     "tafcard.recipes_title":   "📋 Recettes (verdict par dimension)",
@@ -461,6 +479,12 @@ export const TRANSLATIONS = {
     "answer.title":            "💬 自然语言回答",
     "share.btn":               "🔗 复制分享链接",
     "share.copied":            "✅ 已复制到剪贴板!",
+    "share.download":          "💾 下载 JSON",
+    "share.submit":            "📤 提交到 registry",
+    "share.import_title":      "📂 导入共享的 TAF 结果",
+    "share.import_desc":       "有他人 TAF 分析的 JSON 文件? 在这里加载以本地查看判定 + 链。与您自己运行的视图相同。",
+    "share.import_btn":        "📂 加载共享的 JSON",
+    "synthesis.system":        "您是 transformer LLM 的精确诊断助手。给定预先计算的 TAF 公式结果,用 4-6 句中文写出清晰的摘要。为每个提到的数字引用章节号 (§X.Y)。始终给出具体建议。不要编造数字。",
 
     "tafcard.title":           "📇 TAF 卡 — 完整模型画像",
     "tafcard.recipes_title":   "📋 配方(每个维度的判定)",
@@ -582,6 +606,11 @@ export function applyTranslations() {
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
+}
+
+// Expose so dynamically-inserted DOM (renderProfile, renderCompare) can re-apply
+if (typeof window !== "undefined") {
+  window.__taf_applyTranslations = applyTranslations;
 }
 
 export function initI18n() {
