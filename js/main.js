@@ -272,6 +272,7 @@ function getRecipeDefaults(recipeId) {
 // ════════════════════════════════════════════════════════════════════
 $("preset").addEventListener("change", (e) => {
   if (!e.target.value) return;
+  state.lastModelId = e.target.value;  // remember for filename/hash
   const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(e.target.value)})`);
   const preset = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
   if (!preset || Object.keys(preset).length === 0) return;
@@ -322,6 +323,7 @@ $("hf-fetch-btn").addEventListener("click", async () => {
   }
   $("hf-status").textContent = `⏳ Fetching config.json from HF Hub for ${modelId}...`;
   $("hf-fetch-btn").disabled = true;
+  state.lastModelId = modelId;  // remember for filename/hash
   try {
     const cfg = await fetchHfConfig(modelId);
     const preset = configToPreset(cfg, modelId);
@@ -677,6 +679,7 @@ function formatResultPlain(r) {
 // ════════════════════════════════════════════════════════════════════
 $("profile-preset").addEventListener("change", (e) => {
   if (!e.target.value) return;
+  state.lastModelId = e.target.value;  // remember for filename/hash
   const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(e.target.value)})`);
   const p = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
   if (!p || Object.keys(p).length === 0) return;
@@ -695,6 +698,7 @@ $("profile-fetch-btn").addEventListener("click", async () => {
   if (!id) { $("profile-hf-status").textContent = "⚠ Enter a model id"; return; }
   $("profile-hf-status").textContent = `⏳ Fetching ${id}...`;
   $("profile-fetch-btn").disabled = true;
+  state.lastModelId = id;  // remember for filename/hash
   try {
     const cfg = await fetchHfConfig(id);
     const p = configToPreset(cfg, id);
@@ -828,17 +832,18 @@ function renderProfile(p, params) {
 
   // Wire share/download/submit buttons
   $("profile-share-btn").addEventListener("click", () => copyShareLink("profile", params));
-  $("profile-download-btn").addEventListener("click", () => {
-    const safeName = (state.lastResult?.params?.theta || "model") + "-T" + (state.lastResult?.params?.T_eval || "?");
-    downloadJSON(`taf-profile-${safeName}.json`, exportableData("profile", p));
-    $("profile-share-status").textContent = "✅ Downloaded";
-    setTimeout(() => $("profile-share-status").textContent = "", 3000);
+  $("profile-download-btn").addEventListener("click", async () => {
+    const filename = await makeFilename("profile", p);
+    const data = await exportableData("profile", p);
+    downloadJSON(filename, data);
+    $("profile-share-status").textContent = `✅ Downloaded ${filename}`;
+    setTimeout(() => $("profile-share-status").textContent = "", 5000);
   });
-  $("profile-submit-btn").addEventListener("click", () => {
-    const url = buildIssueUrl("profile", p);
+  $("profile-submit-btn").addEventListener("click", async () => {
+    const url = await buildIssueUrl("profile", p);
     window.open(url, "_blank");
-    $("profile-share-status").textContent = "↗ Opened GitHub registry";
-    setTimeout(() => $("profile-share-status").textContent = "", 3000);
+    $("profile-share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
+    setTimeout(() => $("profile-share-status").textContent = "", 6000);
   });
 }
 
@@ -967,15 +972,18 @@ function renderCompare(cmp) {
                      models: cmp.rows.map(r => r.label) };
     copyShareLink("compare", params);
   });
-  $("compare-download-btn").addEventListener("click", () => {
-    downloadJSON(`taf-compare-${cmp.recipe_id}.json`, exportableData("compare", cmp));
-    $("compare-share-status").textContent = "✅ Downloaded";
-    setTimeout(() => $("compare-share-status").textContent = "", 3000);
+  $("compare-download-btn").addEventListener("click", async () => {
+    const filename = await makeFilename("compare", cmp);
+    const data = await exportableData("compare", cmp);
+    downloadJSON(filename, data);
+    $("compare-share-status").textContent = `✅ Downloaded ${filename}`;
+    setTimeout(() => $("compare-share-status").textContent = "", 5000);
   });
-  $("compare-submit-btn").addEventListener("click", () => {
-    window.open(buildIssueUrl("compare", cmp), "_blank");
+  $("compare-submit-btn").addEventListener("click", async () => {
+    const url = await buildIssueUrl("compare", cmp);
+    window.open(url, "_blank");
     $("compare-share-status").textContent = "↗ Opened GitHub registry";
-    setTimeout(() => $("compare-share-status").textContent = "", 3000);
+    setTimeout(() => $("compare-share-status").textContent = "", 6000);
   });
 }
 
@@ -1034,18 +1042,20 @@ $("share-btn").addEventListener("click", () => {
   if (!state.lastResult) return;
   copyShareLink(state.lastResult.type || "recipe", state.lastResult.params || {});
 });
-$("recipe-download-btn").addEventListener("click", () => {
+$("recipe-download-btn").addEventListener("click", async () => {
   if (!state.lastFullResult) return;
-  downloadJSON(`taf-recipe-${state.lastFullResult.recipe_id || "result"}.json`,
-               exportableData("recipe", state.lastFullResult));
-  $("share-status").textContent = "✅ Downloaded";
-  setTimeout(() => $("share-status").textContent = "", 3000);
+  const filename = await makeFilename("recipe", state.lastFullResult);
+  const data = await exportableData("recipe", state.lastFullResult);
+  downloadJSON(filename, data);
+  $("share-status").textContent = `✅ Downloaded ${filename}`;
+  setTimeout(() => $("share-status").textContent = "", 5000);
 });
-$("recipe-submit-btn").addEventListener("click", () => {
+$("recipe-submit-btn").addEventListener("click", async () => {
   if (!state.lastFullResult) return;
-  window.open(buildIssueUrl("recipe", state.lastFullResult), "_blank");
-  $("share-status").textContent = "↗ Opened GitHub registry";
-  setTimeout(() => $("share-status").textContent = "", 3000);
+  const url = await buildIssueUrl("recipe", state.lastFullResult);
+  window.open(url, "_blank");
+  $("share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
+  setTimeout(() => $("share-status").textContent = "", 6000);
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -1073,40 +1083,124 @@ function downloadJSON(filename, data) {
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 }
 
-function exportableData(type, data) {
+// Sort object keys recursively for deterministic JSON
+function sortKeys(o) {
+  if (Array.isArray(o)) return o.map(sortKeys);
+  if (o && typeof o === "object") {
+    return Object.keys(o).sort().reduce((acc, k) => { acc[k] = sortKeys(o[k]); return acc; }, {});
+  }
+  return o;
+}
+
+// Compute 8-char hex hash of canonical inputs.
+// Identical inputs → identical hash (forever). Different inputs → different hash.
+async function inputHash(type, data) {
+  let canonical;
+  if (type === "profile") {
+    const ms = data.model_summary || data;
+    canonical = sortKeys({
+      type: "profile",
+      theta: ms.rope_theta ?? ms.theta,
+      T_train: ms.T_train,
+      T_eval: ms.T_eval,
+      n_attn: ms.n_attention_heads ?? ms.n_attn,
+      n_kv: ms.n_kv_heads ?? ms.n_kv,
+      d_head: ms.d_head,
+      n_layers: ms.n_layers,
+      n_params: ms.n_params,
+      has_SWA: ms.has_SWA,
+    });
+  } else if (type === "compare") {
+    canonical = sortKeys({
+      type: "compare",
+      recipe: data.recipe_id,
+      T_eval: (data.shared_params || {}).T_eval,
+      models: (data.rows || []).map(r => r.label).sort(),
+    });
+  } else {
+    canonical = sortKeys({
+      type: "recipe",
+      recipe: data.recipe_id,
+      inputs: data.inputs || {},
+    });
+  }
+  const text = JSON.stringify(canonical);
+  const buf = new TextEncoder().encode(text);
+  const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hashBuf)).slice(0, 4)
+    .map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function safeFilename(s) {
+  return String(s).replace(/[/\\?%*:|"<>]/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+function modelShortName(data, fallback="model") {
+  // Try to get from various places
+  if (state.lastModelId) return safeFilename(state.lastModelId);
+  if (data && data.model_summary) {
+    const ms = data.model_summary;
+    return safeFilename(`m${ms.n_params || 0}-θ${ms.rope_theta || 0}`);
+  }
+  if (data && data.inputs) {
+    const i = data.inputs;
+    return safeFilename(`m${i.n_params || ""}-θ${i.theta || ""}`);
+  }
+  return fallback;
+}
+
+async function exportableData(type, data) {
+  const hash = await inputHash(type, data);
   return {
     _taf_export: true,
     _taf_type: type,
     _taf_version: "0.2",
+    _taf_input_hash: hash,        // identical inputs ⇒ identical hash
     _taf_timestamp: new Date().toISOString(),
     payload: data,
   };
 }
 
-function buildIssueUrl(type, data) {
+async function makeFilename(type, data) {
+  const hash = await inputHash(type, data);
+  const name = modelShortName(data);
+  let suffix;
+  if (type === "profile" && data.model_summary?.T_eval) suffix = `T${data.model_summary.T_eval}`;
+  else if (type === "compare" && data.shared_params?.T_eval) suffix = `T${data.shared_params.T_eval}`;
+  else if (type === "recipe" && data.inputs?.T_eval) suffix = `T${data.inputs.T_eval}`;
+  else suffix = data.recipe_id || "result";
+  return `taf-${type}-${name}-${suffix}-${hash}.json`;
+}
+
+async function buildIssueUrl(type, data) {
+  const hash = await inputHash(type, data);
+  const modelName = modelShortName(data, "model");
   let title, body;
   if (type === "profile") {
     const ms = data.model_summary || {};
-    title = `[TAF Profile] T_eval=${ms.T_eval || "?"} on ${ms.architecture_class || "model"}`;
-    body = profileToMarkdown(data);
+    title = `[TAF Profile] ${modelName} @ T=${ms.T_eval || "?"}  #${hash}`;
+    body = profileToMarkdown(data, hash);
   } else if (type === "compare") {
-    title = `[TAF Compare] ${data.recipe_id} across ${data.rows.length} models`;
-    body = compareToMarkdown(data);
+    title = `[TAF Compare] ${data.recipe_id} × ${data.rows.length} models  #${hash}`;
+    body = compareToMarkdown(data, hash);
   } else {
-    title = `[TAF ${data.recipe_id}] ${data.verdict}`;
-    body = recipeToMarkdown(data);
+    title = `[TAF ${data.recipe_id}] ${modelName} → ${data.verdict}  #${hash}`;
+    body = recipeToMarkdown(data, hash);
   }
+  const dedupNote = `\n\n> **Input hash**: \`#${hash}\` — search this hash in registry issues to find independent verifications. Same inputs always produce the same hash.`;
   const params = new URLSearchParams({
     title: title,
-    body: body + "\n\n---\n*Submitted via [TAF Agent](https://karlesmarin.github.io/tafagent)*",
+    body: body + dedupNote + "\n\n---\n*Submitted via [TAF Agent](https://karlesmarin.github.io/tafagent)*",
   });
   return `https://github.com/${REGISTRY_REPO}/issues/new?${params.toString()}`;
 }
 
-function profileToMarkdown(p) {
+function profileToMarkdown(p, hash="") {
   const ms = p.model_summary || {};
   const kn = p.key_numbers || {};
-  let md = `## TAF Profile\n\n`;
+  let md = `## TAF Profile`;
+  if (hash) md += ` \`#${hash}\``;
+  md += `\n\n`;
   md += `**Architecture**: ${ms.architecture_class || "?"}\n`;
   md += `**Params**: ${ms.n_params}, **T_train**: ${ms.T_train}, **T_eval**: ${ms.T_eval}\n`;
   md += `**θ**: ${ms.rope_theta}, GQA=${ms.has_GQA}, SWA=${ms.has_SWA}\n\n`;
@@ -1119,8 +1213,10 @@ function profileToMarkdown(p) {
   return md;
 }
 
-function compareToMarkdown(c) {
-  let md = `## TAF Comparison — ${c.recipe_id} (${c.recipe_name})\n\n`;
+function compareToMarkdown(c, hash="") {
+  let md = `## TAF Comparison — ${c.recipe_id} (${c.recipe_name})`;
+  if (hash) md += ` \`#${hash}\``;
+  md += `\n\n`;
   md += `**Shared params**: \`${JSON.stringify(c.shared_params)}\`\n\n`;
   md += `| Model | Verdict | Reason |\n|-------|---------|--------|\n`;
   c.rows.forEach(r => {
@@ -1130,8 +1226,10 @@ function compareToMarkdown(c) {
   return md;
 }
 
-function recipeToMarkdown(r) {
-  let md = `## TAF Recipe ${r.recipe_id} — ${r.recipe_name}\n\n`;
+function recipeToMarkdown(r, hash="") {
+  let md = `## TAF Recipe ${r.recipe_id} — ${r.recipe_name}`;
+  if (hash) md += ` \`#${hash}\``;
+  md += `\n\n`;
   md += `**Verdict**: ${r.verdict}\n`;
   md += `**Reason**: ${r.reason}\n`;
   if (r.mitigation) md += `**Action**: ${r.mitigation}\n`;
