@@ -7,7 +7,9 @@
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
-const WEBLLM_MODEL = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
+// Smaller model = fits in default browser quota (~350MB vs 700MB for Llama-1B)
+const WEBLLM_MODEL = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+const WEBLLM_FALLBACK = "SmolLM2-360M-Instruct-q4f16_1-MLC";
 
 const $ = (id) => document.getElementById(id);
 
@@ -463,11 +465,45 @@ function escapeHtml(s) {
 // ════════════════════════════════════════════════════════════════════
 async function loadWebLLM() {
   if (state.webllm) return state.webllm;
-  setStatus("⏳ Loading WebLLM library + Llama-3.2-1B (~700MB first time, cached after)...");
+
+  // Request persistent storage to avoid quota issues with cached model weights
+  if (navigator.storage && navigator.storage.persist) {
+    try {
+      const persistent = await navigator.storage.persist();
+      console.log(persistent ? "Persistent storage granted" : "Persistent storage denied");
+    } catch (e) {
+      console.warn("storage.persist() failed:", e);
+    }
+  }
+
+  setStatus(`⏳ Loading WebLLM library + ${WEBLLM_MODEL.split("-")[0]} (~350MB first time, cached after)...`);
   const { CreateMLCEngine } = await import("https://esm.run/@mlc-ai/web-llm");
-  state.webllm = await CreateMLCEngine(WEBLLM_MODEL, {
-    initProgressCallback: (info) => setStatus(`⏳ ${info.text || "Loading model..."}`),
-  });
+
+  const tryLoad = async (modelId) => {
+    return await CreateMLCEngine(modelId, {
+      initProgressCallback: (info) => setStatus(`⏳ ${info.text || "Loading model..."}`),
+    });
+  };
+
+  try {
+    state.webllm = await tryLoad(WEBLLM_MODEL);
+  } catch (err) {
+    if (String(err).includes("QuotaExceeded") || String(err).includes("storage")) {
+      setStatus(`⚠ Quota exceeded for ${WEBLLM_MODEL}. Trying smaller fallback ${WEBLLM_FALLBACK}...`);
+      try {
+        state.webllm = await tryLoad(WEBLLM_FALLBACK);
+      } catch (err2) {
+        throw new Error(
+          `Both models failed. Browser storage too constrained. ` +
+          `Try: (1) Settings → Privacy → Site settings → allow more storage for this site, ` +
+          `(2) clear browser cache, (3) use Chrome/Edge in non-incognito mode. ` +
+          `Original error: ${err2.message || err2}`
+        );
+      }
+    } else {
+      throw err;
+    }
+  }
   return state.webllm;
 }
 
