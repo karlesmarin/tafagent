@@ -151,19 +151,21 @@
 
     <!-- Mode toggle -->
     <section id="mode-section">
-      <h2>🎯 Mode <span class="info"><span class="tooltip"><strong>Four ways to use the tool</strong>.<br>
+      <h2><span data-i18n="modes.title">🎯 Mode</span>
+        <span class="info"><span class="tooltip" data-i18n="modes.tip"><strong>Four ways to use the tool</strong>.<br>
         <strong>📇 Profile</strong>: paste a model id → all 5 recipes at once = TAF Card.<br>
         <strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br>
         <strong>💬 Ask</strong>: free-form question, browser LLM picks the recipe.<br>
         <strong>📋 Recipe</strong>: manual selection with full form control.
-        </span></span></h2>
+        </span></span>
+      </h2>
       <div class="mode-tabs">
-        <button class="mode-btn active" data-mode="profile">📇 Profile a model</button>
-        <button class="mode-btn" data-mode="compare">🆚 Compare models</button>
-        <button class="mode-btn" data-mode="ask">💬 Ask plain English</button>
-        <button class="mode-btn" data-mode="recipe">📋 Pick recipe</button>
+        <button class="mode-btn active" data-mode="profile" data-i18n="modes.profile">📇 Profile a model</button>
+        <button class="mode-btn" data-mode="compare" data-i18n="modes.compare">🆚 Compare models</button>
+        <button class="mode-btn" data-mode="ask" data-i18n="modes.ask">💬 Ask plain English</button>
+        <button class="mode-btn" data-mode="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
       </div>
-      <p id="mode-desc" class="recipe-desc">
+      <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
         click Profile. See all 5 recipes scored in seconds.
       </p>
@@ -175,7 +177,7 @@
         💡 Quick start: pick any preset → click Generate. Or paste a model id from <a href='https://huggingface.co/models?library=transformers&sort=trending' target='_blank'>HF Hub trending</a> → 📥 Fetch → Generate.
       </div>
       <h2><span data-i18n="profile.title">📇 Profile a model</span>
-        <span class="info"><span class="tooltip">
+        <span class="info"><span class="tooltip" data-i18n="profile.tip">
           <strong>One-click full diagnosis</strong>. Paste any HF model id (or pick preset).
           Tool runs all 5 recipes (long-context, KV-compression, custom-vs-API, budget,
           hardware) and produces a single <strong>TAF Card</strong> showing verdict per
@@ -207,42 +209,42 @@
 
       <div class="form-grid" id="profile-form">
         <div class="form-field">
-          <label>θ (rope_theta) <span class="info"><span class="tooltip">RoPE base frequency from <code>config.rope_theta</code>.</span></span></label>
+          <label><span data-i18n="param.theta">θ (rope_theta)</span> <span class="info"><span class="tooltip" data-i18n="param.theta.tip">RoPE base frequency from <code>config.rope_theta</code>.</span></span></label>
           <input type="number" id="profile-theta" value="500000" />
         </div>
         <div class="form-field">
-          <label>T_train <span class="info"><span class="tooltip">Max training context. From <code>max_position_embeddings</code>.</span></span></label>
+          <label><span data-i18n="param.T_train">T_train</span> <span class="info"><span class="tooltip" data-i18n="param.T_train.tip">Max training context. From <code>max_position_embeddings</code>.</span></span></label>
           <input type="number" id="profile-T_train" value="8192" />
         </div>
         <div class="form-field">
-          <label>T_eval (your target) <span class="info"><span class="tooltip">Inference context length you'll actually serve. The key knob.</span></span></label>
+          <label><span data-i18n="param.T_eval">T_eval (your target)</span> <span class="info"><span class="tooltip" data-i18n="param.T_eval.tip">Inference context length you'll actually serve. The key knob.</span></span></label>
           <input type="number" id="profile-T_eval" value="32000" />
         </div>
         <div class="form-field">
-          <label>n_attention_heads</label>
+          <label data-i18n="param.n_attn">n_attention_heads</label>
           <input type="number" id="profile-n_attn" value="32" />
         </div>
         <div class="form-field">
-          <label>n_kv_heads</label>
+          <label data-i18n="param.n_kv">n_kv_heads</label>
           <input type="number" id="profile-n_kv" value="8" />
         </div>
         <div class="form-field">
-          <label>head_dim</label>
+          <label data-i18n="param.d_head">head_dim</label>
           <input type="number" id="profile-d_head" value="128" />
         </div>
         <div class="form-field">
-          <label>n_layers</label>
+          <label data-i18n="param.n_layers">n_layers</label>
           <input type="number" id="profile-n_layers" value="32" />
         </div>
         <div class="form-field">
-          <label>n_params (e.g. 8e9)</label>
+          <label data-i18n="param.n_params">n_params (e.g. 8e9)</label>
           <input type="text" id="profile-n_params" value="8e9" />
         </div>
         <div class="form-field">
-          <label>Has SWA?</label>
+          <label data-i18n="param.has_swa">Has SWA?</label>
           <select id="profile-has_swa">
-            <option value="false" selected>No</option>
-            <option value="true">Yes</option>
+            <option value="false" selected data-i18n="common.no">No</option>
+            <option value="true" data-i18n="common.yes">Yes</option>
           </select>
         </div>
       </div>
@@ -256,7 +258,7 @@
         💡 Try: paste 3 popular 7-8B models (Meta-Llama-3-8B, Mistral-7B-v0.1, Qwen/Qwen2.5-7B), pick recipe X-2, T_eval=16000. See which best handles long context.
       </div>
       <h2><span data-i18n="compare.title">🆚 Compare models side-by-side</span>
-        <span class="info"><span class="tooltip">
+        <span class="info"><span class="tooltip" data-i18n="compare.tip">
           <strong>Same recipe, multiple models</strong>. Pick 2-3 candidate models and
           one recipe. See verdicts in a single comparison table.<br><br>
           <strong>Use case</strong>: "I need long-context retrieval at 16K — which is
