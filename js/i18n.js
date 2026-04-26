@@ -64,6 +64,42 @@ export const TRANSLATIONS = {
     "share.import_btn":        "📂 Load shared JSON",
     "synthesis.system":        "You are a precise transformer LLM diagnostic assistant. Given pre-computed TAF formula results, write a clear plain-English summary in 4-6 sentences. Cite the section number (§X.Y) for each number you mention. Always give a concrete recommendation. Do NOT invent numbers.",
 
+    // INSPECTOR mode
+    "inspector.title":         "🔍 Architecture Inspector",
+    "inspector.desc":          "Paste the raw <code>config.json</code> contents. The tool extracts the architectural parameters and runs the full 5-recipe Profile.",
+    "inspector.tip":           "<strong>Paste any config.json directly</strong>. Tool parses it and runs the full Profile. Useful for: private models, in-development configs, models not yet on HuggingFace, or comparing what your custom architecture would do.",
+    "inspector.quickstart":    "💡 Use case: you have a private model not on HF Hub, or a config you're designing. Paste the raw JSON below and get a full TAF profile.",
+    "inspector.placeholder":   "{\n  \"model_type\": \"llama\",\n  \"rope_theta\": 500000,\n  \"max_position_embeddings\": 8192,\n  \"num_attention_heads\": 32,\n  \"num_key_value_heads\": 8,\n  \"hidden_size\": 4096,\n  \"num_hidden_layers\": 32\n}",
+    "inspector.T_eval":        "T_eval (your target context):",
+    "inspector.btn":           "🚀 Inspect & profile",
+
+    // WHAT-IF slider
+    "whatif.title":            "🎚 What-if: drag T_eval to see γ change live",
+    "whatif.desc":             "Pure JS recompute (no Pyodide call). Shows the geometric γ_Padé and d_horizon as you slide. The full chain re-runs on click.",
+    "whatif.T_eval":           "<strong>T_eval</strong>",
+    "whatif.gamma_pade":       "<strong>γ_Padé</strong>",
+    "whatif.d_horizon":        "<strong>d_horizon</strong>",
+    "whatif.l_niah":           "<strong>L_NIAH ceiling</strong>",
+    "whatif.predicted":        "<strong>Predicted geometric verdict</strong>",
+    "whatif.rerun":            "↻ Recompute full chain at this T_eval",
+
+    // COMMUNITY feed
+    "community.title":         "🌐 Recent community submissions",
+    "community.desc":          "Live feed from the public registry. Click any submission to view full analysis.",
+    "community.browse_all":    "Browse all →",
+    "community.loading":       "Loading...",
+    "community.no_repo":       "The registry repo isn't created yet. Once it exists with submissions, they'll appear here live.",
+    "community.no_submissions": "No submissions yet. Be the first — generate a Profile and click 📤 Submit to registry.",
+
+    // FALSIFICATION dashboard
+    "falsification.title":     "🔬 Paper predictions — falsification status",
+    "falsification.desc":      "The TAF framework rests on falsifiable predictions (F1-F23). Each is empirically tested. Here's the live status of every prediction in the paper.",
+    "falsification.summary":   "{confirmed} confirmed · {partial} partial · {refuted} refuted · {untested} untested (out of {total} total predictions)",
+    "falsification.col.id":    "ID",
+    "falsification.col.claim": "Claim",
+    "falsification.col.status": "Status",
+    "falsification.col.evidence": "Evidence",
+
     "tafcard.title":           "📇 TAF Card — full model profile",
     "tafcard.recipes_title":   "📋 Recipes (verdict per dimension)",
     "tafcard.numbers_title":   "🔢 Key numbers (paper §26)",
@@ -206,6 +242,42 @@ export const TRANSLATIONS = {
     "share.import_btn":        "📂 Cargar JSON compartido",
     "synthesis.system":        "Eres un asistente de diagnóstico preciso para LLMs transformer. Dados resultados de fórmulas TAF pre-calculados, escribe un resumen claro en español de 4-6 frases. Cita el número de sección (§X.Y) para cada número que menciones. Da siempre una recomendación concreta. NO inventes números.",
 
+    // INSPECTOR mode
+    "inspector.title":         "🔍 Inspector de Arquitectura",
+    "inspector.desc":          "Pega el contenido crudo de <code>config.json</code>. La herramienta extrae los parámetros arquitectónicos y ejecuta el Profile completo de 5 recetas.",
+    "inspector.tip":           "<strong>Pega cualquier config.json directamente</strong>. La herramienta lo parsea y ejecuta el Profile completo. Útil para: modelos privados, configs en desarrollo, modelos aún no en HuggingFace, o comparar qué haría tu arquitectura custom.",
+    "inspector.quickstart":    "💡 Caso de uso: tienes un modelo privado no en HF Hub, o una config que estás diseñando. Pega el JSON crudo abajo y obtén un perfil TAF completo.",
+    "inspector.placeholder":   "{\n  \"model_type\": \"llama\",\n  \"rope_theta\": 500000,\n  \"max_position_embeddings\": 8192,\n  \"num_attention_heads\": 32,\n  \"num_key_value_heads\": 8,\n  \"hidden_size\": 4096,\n  \"num_hidden_layers\": 32\n}",
+    "inspector.T_eval":        "T_eval (tu contexto objetivo):",
+    "inspector.btn":           "🚀 Inspeccionar y perfilar",
+
+    // WHAT-IF slider
+    "whatif.title":            "🎚 What-if: arrastra T_eval para ver γ cambiar en vivo",
+    "whatif.desc":             "Recálculo puro JS (sin llamada Pyodide). Muestra γ_Padé y d_horizon geométricos mientras deslizas. Click en el botón para re-ejecutar la cadena completa.",
+    "whatif.T_eval":           "<strong>T_eval</strong>",
+    "whatif.gamma_pade":       "<strong>γ_Padé</strong>",
+    "whatif.d_horizon":        "<strong>d_horizon</strong>",
+    "whatif.l_niah":           "<strong>Techo L_NIAH</strong>",
+    "whatif.predicted":        "<strong>Veredicto geométrico predicho</strong>",
+    "whatif.rerun":            "↻ Re-calcular cadena completa con este T_eval",
+
+    // COMMUNITY feed
+    "community.title":         "🌐 Envíos recientes de la comunidad",
+    "community.desc":          "Feed en vivo del registry público. Click en cualquier envío para ver análisis completo.",
+    "community.browse_all":    "Ver todo →",
+    "community.loading":       "Cargando...",
+    "community.no_repo":       "El repo del registry aún no está creado. Cuando exista con envíos, aparecerán aquí en vivo.",
+    "community.no_submissions": "Sin envíos aún. Sé el primero — genera un Profile y click 📤 Enviar al registry.",
+
+    // FALSIFICATION dashboard
+    "falsification.title":     "🔬 Predicciones del paper — estado de falsificación",
+    "falsification.desc":      "El framework TAF se basa en predicciones falsificables (F1-F23). Cada una está empíricamente testada. Aquí está el estado en vivo de cada predicción del paper.",
+    "falsification.summary":   "{confirmed} confirmadas · {partial} parciales · {refuted} refutadas · {untested} sin testear (de {total} predicciones totales)",
+    "falsification.col.id":    "ID",
+    "falsification.col.claim": "Claim",
+    "falsification.col.status": "Estado",
+    "falsification.col.evidence": "Evidencia",
+
     "tafcard.title":           "📇 TAF Card — perfil completo del modelo",
     "tafcard.recipes_title":   "📋 Recetas (veredicto por dimensión)",
     "tafcard.numbers_title":   "🔢 Números clave (paper §26)",
@@ -347,6 +419,42 @@ export const TRANSLATIONS = {
     "share.import_btn":        "📂 Charger JSON partagé",
     "synthesis.system":        "Vous êtes un assistant de diagnostic précis pour LLMs transformer. Étant donné des résultats de formules TAF pré-calculés, écrivez un résumé clair en français de 4-6 phrases. Citez le numéro de section (§X.Y) pour chaque nombre mentionné. Donnez toujours une recommandation concrète. N'INVENTEZ PAS de nombres.",
 
+    // INSPECTOR mode
+    "inspector.title":         "🔍 Inspecteur d'Architecture",
+    "inspector.desc":          "Collez le contenu brut de <code>config.json</code>. L'outil extrait les paramètres architecturaux et exécute le Profil complet à 5 recettes.",
+    "inspector.tip":           "<strong>Collez n'importe quel config.json directement</strong>. L'outil le parse et exécute le Profil complet. Utile pour : modèles privés, configs en développement, modèles pas encore sur HuggingFace, ou comparer ce que ferait votre architecture custom.",
+    "inspector.quickstart":    "💡 Cas d'usage : vous avez un modèle privé pas sur HF Hub, ou une config que vous concevez. Collez le JSON brut ci-dessous et obtenez un profil TAF complet.",
+    "inspector.placeholder":   "{\n  \"model_type\": \"llama\",\n  \"rope_theta\": 500000,\n  \"max_position_embeddings\": 8192,\n  \"num_attention_heads\": 32,\n  \"num_key_value_heads\": 8,\n  \"hidden_size\": 4096,\n  \"num_hidden_layers\": 32\n}",
+    "inspector.T_eval":        "T_eval (votre contexte cible) :",
+    "inspector.btn":           "🚀 Inspecter et profiler",
+
+    // WHAT-IF slider
+    "whatif.title":            "🎚 What-if : faites glisser T_eval pour voir γ changer en direct",
+    "whatif.desc":             "Recalcul pur JS (sans appel Pyodide). Montre γ_Padé et d_horizon géométriques pendant que vous glissez. Cliquez pour ré-exécuter la chaîne complète.",
+    "whatif.T_eval":           "<strong>T_eval</strong>",
+    "whatif.gamma_pade":       "<strong>γ_Padé</strong>",
+    "whatif.d_horizon":        "<strong>d_horizon</strong>",
+    "whatif.l_niah":           "<strong>Plafond L_NIAH</strong>",
+    "whatif.predicted":        "<strong>Verdict géométrique prédit</strong>",
+    "whatif.rerun":            "↻ Recalculer la chaîne complète à ce T_eval",
+
+    // COMMUNITY feed
+    "community.title":         "🌐 Soumissions récentes de la communauté",
+    "community.desc":          "Flux en direct du registre public. Cliquez sur n'importe quelle soumission pour voir l'analyse complète.",
+    "community.browse_all":    "Voir tout →",
+    "community.loading":       "Chargement...",
+    "community.no_repo":       "Le repo du registre n'est pas encore créé. Une fois qu'il existe avec des soumissions, elles apparaîtront ici en direct.",
+    "community.no_submissions": "Aucune soumission. Soyez le premier — générez un Profil et cliquez 📤 Soumettre au registry.",
+
+    // FALSIFICATION dashboard
+    "falsification.title":     "🔬 Prédictions du paper — statut de falsification",
+    "falsification.desc":      "Le framework TAF repose sur des prédictions falsifiables (F1-F23). Chacune est empiriquement testée. Voici le statut en direct de chaque prédiction du paper.",
+    "falsification.summary":   "{confirmed} confirmées · {partial} partielles · {refuted} réfutées · {untested} non testées (sur {total} prédictions au total)",
+    "falsification.col.id":    "ID",
+    "falsification.col.claim": "Claim",
+    "falsification.col.status": "Statut",
+    "falsification.col.evidence": "Preuve",
+
     "tafcard.title":           "📇 TAF Card — profil complet du modèle",
     "tafcard.recipes_title":   "📋 Recettes (verdict par dimension)",
     "tafcard.numbers_title":   "🔢 Nombres clés (paper §26)",
@@ -487,6 +595,42 @@ export const TRANSLATIONS = {
     "share.import_desc":       "有他人 TAF 分析的 JSON 文件? 在这里加载以本地查看判定 + 链。与您自己运行的视图相同。",
     "share.import_btn":        "📂 加载共享的 JSON",
     "synthesis.system":        "您是 transformer LLM 的精确诊断助手。给定预先计算的 TAF 公式结果,用 4-6 句中文写出清晰的摘要。为每个提到的数字引用章节号 (§X.Y)。始终给出具体建议。不要编造数字。",
+
+    // INSPECTOR 模式
+    "inspector.title":         "🔍 架构检查器",
+    "inspector.desc":          "粘贴 <code>config.json</code> 的原始内容。工具提取架构参数并运行完整的 5 配方 Profile。",
+    "inspector.tip":           "<strong>直接粘贴任意 config.json</strong>。工具解析它并运行完整 Profile。适用于:私有模型、开发中的 configs、尚未在 HuggingFace 的模型,或比较自定义架构的行为。",
+    "inspector.quickstart":    "💡 用例:您有未在 HF Hub 上的私有模型,或正在设计的 config。粘贴下面的原始 JSON,获取完整 TAF 画像。",
+    "inspector.placeholder":   "{\n  \"model_type\": \"llama\",\n  \"rope_theta\": 500000,\n  \"max_position_embeddings\": 8192,\n  \"num_attention_heads\": 32,\n  \"num_key_value_heads\": 8,\n  \"hidden_size\": 4096,\n  \"num_hidden_layers\": 32\n}",
+    "inspector.T_eval":        "T_eval (您的目标上下文):",
+    "inspector.btn":           "🚀 检查并画像",
+
+    // WHAT-IF 滑块
+    "whatif.title":            "🎚 What-if: 拖动 T_eval 实时查看 γ 变化",
+    "whatif.desc":             "纯 JS 重新计算 (不调用 Pyodide)。滑动时显示几何 γ_Padé 和 d_horizon。点击按钮重新运行完整链。",
+    "whatif.T_eval":           "<strong>T_eval</strong>",
+    "whatif.gamma_pade":       "<strong>γ_Padé</strong>",
+    "whatif.d_horizon":        "<strong>d_horizon</strong>",
+    "whatif.l_niah":           "<strong>L_NIAH 上限</strong>",
+    "whatif.predicted":        "<strong>预测几何判定</strong>",
+    "whatif.rerun":            "↻ 在此 T_eval 重新计算完整链",
+
+    // COMMUNITY 反馈
+    "community.title":         "🌐 社区最近提交",
+    "community.desc":          "公共 registry 的实时反馈。点击任意提交查看完整分析。",
+    "community.browse_all":    "浏览全部 →",
+    "community.loading":       "加载中...",
+    "community.no_repo":       "Registry 仓库尚未创建。一旦它存在并有提交,它们将在此处实时显示。",
+    "community.no_submissions": "暂无提交。成为第一个 — 生成一个 Profile 并点击 📤 提交到 registry。",
+
+    // FALSIFICATION 仪表板
+    "falsification.title":     "🔬 论文预测 — 可证伪状态",
+    "falsification.desc":      "TAF 框架基于可证伪的预测 (F1-F23)。每一个都经过经验测试。这是论文中每个预测的实时状态。",
+    "falsification.summary":   "{confirmed} 已确认 · {partial} 部分 · {refuted} 已反驳 · {untested} 未测试 (共 {total} 个预测)",
+    "falsification.col.id":    "ID",
+    "falsification.col.claim": "Claim",
+    "falsification.col.status": "状态",
+    "falsification.col.evidence": "证据",
 
     "tafcard.title":           "📇 TAF 卡 — 完整模型画像",
     "tafcard.recipes_title":   "📋 配方(每个维度的判定)",
