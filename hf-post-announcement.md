@@ -3,7 +3,7 @@
 Just shipped **TAF Agent**, a free browser-based diagnostic tool for transformer LLMs.
 No server, no auth, no cost. Runs entirely in your browser.
 
-🌐 **Try it**: https://huggingface.co/spaces/karlesmarin/taf-agent
+🌐 **Try it**: https://huggingface.co/spaces/karlexmarin/taf-agent
 📦 **Source**: https://github.com/karlesmarin/tafagent
 📄 **Paper**: [Transformer Thermodynamics](https://github.com/karlesmarin/NeurIPS)
 

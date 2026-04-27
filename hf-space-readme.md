@@ -83,7 +83,7 @@ Predicts practical viability of any transformer LLM from its config alone:
   author = {Marin, Carles},
   title  = {{TAF Agent}: Browser-Based Transformer Diagnostic Tool},
   year   = {2026},
-  url    = {https://huggingface.co/spaces/karlesmarin/taf-agent},
+  url    = {https://huggingface.co/spaces/karlexmarin/taf-agent},
 }
 ```
 

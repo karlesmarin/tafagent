@@ -17,7 +17,7 @@ I used it on this model and the prediction was:
 [paste your X-2 verdict here, e.g. "YES at 32K with 33% margin, but DEGRADED at 64K"]
 
 You can verify on your own model in 30s:
-https://huggingface.co/spaces/karlesmarin/taf-agent
+https://huggingface.co/spaces/karlexmarin/taf-agent
 → Profile mode → paste this model's id → Generate
 
 Curious if anyone has measured NIAH retrieval on this model at long
@@ -46,7 +46,7 @@ The interesting part is that γ_Padé = [value] places this model in the
 [Phase A / Phase B / borderline] regime per the underlying paper
 (Marin 2026, Transformer Thermodynamics).
 
-Try it: https://huggingface.co/spaces/karlesmarin/taf-agent
+Try it: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 If you've measured this model empirically at long context and the
 prediction is wrong, I'd love to know — refutations are first-class
@@ -74,7 +74,7 @@ Ran it on this model. Quick observations:
 Qwen2.5 has interesting design choices (high rope_theta, low n_kv) that
 the framework analyzes nicely.
 
-Tool URL: https://huggingface.co/spaces/karlesmarin/taf-agent
+Tool URL: https://huggingface.co/spaces/karlexmarin/taf-agent
 Source: https://github.com/karlesmarin/tafagent
 
 If you've actually measured long-context retrieval on this model and the
@@ -100,7 +100,7 @@ This is a small/edge-friendly model — TAF identifies that it's well-suited
 for [your context range].
 
 Try it on your own deployment scenario:
-https://huggingface.co/spaces/karlesmarin/taf-agent
+https://huggingface.co/spaces/karlexmarin/taf-agent
 
 100% browser-side, no auth, no rate limits, no cost.
 ```
@@ -125,7 +125,7 @@ For this specific model:
 - Verdict at [your T]: [verdict]
 - KV compression recommendation: [strategy]
 
-Tool: https://huggingface.co/spaces/karlesmarin/taf-agent
+Tool: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 Can be useful before deployment to predict context-length behavior.
 ```
@@ -148,7 +148,7 @@ and Apple Silicon.
 
 For this model: [verdict on edge feasibility]
 
-Tool: https://huggingface.co/spaces/karlesmarin/taf-agent
+Tool: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 (Bonus: the tool ITSELF runs in browser via WebLLM with a small model.
 So if you want to see how a 1B Instruct model handles tool-use synthesis,
@@ -170,7 +170,7 @@ though MLA itself isn't natively in the framework yet.
 Ran X-2 on this model: [verdict]
 Ran X-1 (custom vs API): [verdict given DeepSeek's pricing]
 
-URL: https://huggingface.co/spaces/karlesmarin/taf-agent
+URL: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 DeepSeek's API pricing makes interesting math for cost recipes — the
 break-even calculations show very different results vs frontier US APIs.
