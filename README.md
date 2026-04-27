@@ -4,27 +4,8 @@ emoji: 🔬
 colorFrom: blue
 colorTo: green
 sdk: static
-app_file: index.html
-pinned: true
+pinned: false
 license: apache-2.0
-short_description: Test any transformer LLM in browser before spending GPU/$.
-tags:
-  - transformer
-  - llm
-  - diagnostic
-  - rope
-  - kv-cache
-  - long-context
-  - viability
-  - thermodynamics
-  - free
-  - browser
-  - webgpu
-language:
-  - en
-  - es
-  - fr
-  - zh
 ---
 
 # 🔬 TAF Agent
