@@ -1,0 +1,35 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_chunks": 50,
+  "baseline_ppl": 15.714571287245102,
+  "results": {
+    "baseline": {
+      "ppl": 15.714571287245102
+    },
+    "identity": {
+      "ppl": 15.714571287245102,
+      "delta": 0.0,
+      "mean_gate": 1.0
+    },
+    "cool_top25_entropy": {
+      "ppl": 18.087363181636267,
+      "delta": 2.372791894391165,
+      "mean_gate": 0.875
+    },
+    "cool_top25_gamma": {
+      "ppl": 17.373013858379643,
+      "delta": 1.6584425711345414,
+      "mean_gate": 0.875
+    },
+    "cool_late_layers": {
+      "ppl": 20.825448372378585,
+      "delta": 5.110877085133483,
+      "mean_gate": 1.0
+    },
+    "cool_early_layers": {
+      "ppl": 84.632623816721,
+      "delta": 68.91805252947589,
+      "mean_gate": 0.5
+    }
+  }
+}

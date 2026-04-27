@@ -1,0 +1,146 @@
+{
+  "n_models_e4": 16,
+  "scaling_law": {
+    "n_points": 6,
+    "log_a": 2.448048010691624,
+    "beta": -0.07898050098855318,
+    "R2": 0.4115137883237414,
+    "gamma_7B_pred": 1.930202914273422,
+    "models": [
+      {
+        "model": "EleutherAI/pythia-31m",
+        "gamma": 1.2350013988825523,
+        "N_params": 31000000.0,
+        "chi_hagedorn": 4.255293818483924
+      },
+      {
+        "model": "EleutherAI/pythia-70m",
+        "gamma": 0.7476017873166874,
+        "N_params": 70000000.0,
+        "chi_hagedorn": 3.961993190715313
+      },
+      {
+        "model": "EleutherAI/pythia-410m",
+        "gamma": 1.0218530106365162,
+        "N_params": 410000000.0,
+        "chi_hagedorn": 45.760285236351216
+      },
+      {
+        "model": "EleutherAI/pythia-1b",
+        "gamma": 0.9311078627189842,
+        "N_params": 1000000000.0,
+        "chi_hagedorn": 14.515444569834292
+      },
+      {
+        "model": "EleutherAI/pythia-1.4b",
+        "gamma": 0.7050725013322717,
+        "N_params": 1400000000.0,
+        "chi_hagedorn": 3.3906638225234524
+      },
+      {
+        "model": "EleutherAI/pythia-2.8b",
+        "gamma": 0.6741618914822415,
+        "N_params": 2800000000.0,
+        "chi_hagedorn": 3.069008731204008
+      }
+    ]
+  },
+  "hagedorn_table": [
+    {
+      "model": "Qwen/Qwen2.5-7B",
+      "gamma": 0.9966953735480816,
+      "chi": 302.6060629090084,
+      "corpus": "mongo"
+    },
+    {
+      "model": "EleutherAI/pythia-14m",
+      "gamma": 1.003714187534367,
+      "chi": 269.23788601063444,
+      "corpus": "random"
+    },
+    {
+      "model": "EleutherAI/pythia-160m",
+      "gamma": 1.0171452847779678,
+      "chi": 58.32507380017551,
+      "corpus": "random"
+    },
+    {
+      "model": "EleutherAI/pythia-410m",
+      "gamma": 1.0218530106365162,
+      "chi": 45.760285236351216,
+      "corpus": "mongo"
+    },
+    {
+      "model": "meta-llama/Meta-Llama-3-8B",
+      "gamma": 1.0454762537473639,
+      "chi": 21.989498201750344,
+      "corpus": "mongo"
+    },
+    {
+      "model": "mistralai/Mistral-7B-v0.1",
+      "gamma": 1.060750419523944,
+      "chi": 16.46079167578194,
+      "corpus": "mongo"
+    },
+    {
+      "model": "EleutherAI/pythia-1b",
+      "gamma": 0.9311078627189842,
+      "chi": 14.515444569834292,
+      "corpus": "mongo"
+    },
+    {
+      "model": "google/gemma-2-9b-it",
+      "gamma": 1.1347958464287666,
+      "chi": 7.418626215077434,
+      "corpus": "random"
+    },
+    {
+      "model": "mistralai/Mistral-7B-v0.1",
+      "gamma": 0.8296009929924347,
+      "chi": 5.868578799614734,
+      "corpus": "random"
+    },
+    {
+      "model": "meta-llama/Llama-2-7b-hf",
+      "gamma": 0.8266242679750889,
+      "chi": 5.767819915282708,
+      "corpus": "random"
+    },
+    {
+      "model": "EleutherAI/pythia-31m",
+      "gamma": 1.2350013988825523,
+      "chi": 4.255293818483924,
+      "corpus": "mongo"
+    },
+    {
+      "model": "EleutherAI/pythia-70m",
+      "gamma": 0.7476017873166874,
+      "chi": 3.961993190715313,
+      "corpus": "mongo"
+    },
+    {
+      "model": "EleutherAI/pythia-1.4b",
+      "gamma": 0.7050725013322717,
+      "chi": 3.3906638225234524,
+      "corpus": "mongo"
+    },
+    {
+      "model": "EleutherAI/pythia-2.8b",
+      "gamma": 0.6741618914822415,
+      "chi": 3.069008731204008,
+      "corpus": "mongo"
+    },
+    {
+      "model": "google/gemma-2-9b-it",
+      "gamma": 0.6276459084140061,
+      "chi": 2.6856157152473603,
+      "corpus": "mongo"
+    },
+    {
+      "model": "meta-llama/Llama-2-7b-hf",
+      "gamma": 0.2870574377368437,
+      "chi": 1.4026375376238054,
+      "corpus": "mongo"
+    }
+  ]
+}

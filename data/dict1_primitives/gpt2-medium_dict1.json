@@ -1,0 +1,6 @@
+{
+  "model": "gpt2-medium",
+  "L_crit": 23,
+  "N_heads": 16,
+  "D_model": 1024,
+  "control_mean_cosim": 

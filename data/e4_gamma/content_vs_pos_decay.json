@@ -1,0 +1,67 @@
+{
+  "analysis": "T-ContentDecay: short vs long range gamma split",
+  "d_short_max": 100,
+  "d_long_min": 200,
+  "models": [
+    {
+      "model": "EleutherAI/pythia-70m",
+      "theta": 10000,
+      "gamma_full": 0.6811,
+      "r2_full": 0.9825,
+      "gamma_short": 0.6611,
+      "r2_short": 0.9632,
+      "gamma_long": 0.8564,
+      "r2_long": 0.9815,
+      "delta_long_minus_short": 0.1953,
+      "n_short": 5,
+      "n_long": 4,
+      "short_range": "d<=100",
+      "long_range": "d>=200"
+    },
+    {
+      "model": "meta-llama/Meta-Llama-3-8B",
+      "theta": 500000,
+      "gamma_full": 0.8313,
+      "r2_full": 0.9936,
+      "gamma_short": 0.8125,
+      "r2_short": 0.9899,
+      "gamma_long": 1.0413,
+      "r2_long": 0.988,
+      "delta_long_minus_short": 0.2289,
+      "n_short": 5,
+      "n_long": 4,
+      "short_range": "d<=100",
+      "long_range": "d>=200"
+    },
+    {
+      "model": "mistralai/Mistral-7B-v0.1",
+      "theta": 10000,
+      "gamma_full": null,
+      "r2_full": null,
+      "gamma_short": null,
+      "r2_short": null,
+      "gamma_long": null,
+      "r2_long": null,
+      "delta_long_minus_short": null,
+      "n_short": 2,
+      "n_long": 0,
+      "short_range": "d<=100",
+      "long_range": "d>=200"
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B",
+      "theta": 1000000,
+      "gamma_full": 0.9145,
+      "r2_full": 0.9993,
+      "gamma_short": 0.9041,
+      "r2_short": 0.9996,
+      "gamma_long": 0.8542,
+      "r2_long": 0.9936,
+      "delta_long_minus_short": -0.0499,
+      "n_short": 5,
+      "n_long": 4,
+      "short_range": "d<=100",
+      "long_range": "d>=200"
+    }
+  ]
+}

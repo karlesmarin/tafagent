@@ -1,0 +1,4 @@
+model,g_mongo,g_random,delta_g,R2_m,R2_r,class,arch
+mistralai--Mistral-7B-v0.1,1.060750,0.829601,0.231149,0.9987,0.9969,SWA_amplifies,SWA+RoPE
+google--gemma-2-9b-it,0.627646,1.134796,-0.507150,0.9773,0.9765,local_in_text,SWA+RoPE(alt)
+meta-llama--Llama-2-7b-hf,0.287057,0.826624,-0.539567,0.8149,0.9936,local_in_text,RoPE

@@ -1,0 +1,92 @@
+{
+  "formula": "gamma = 1 - T_eval*sqrt(2)/theta",
+  "T_eval": 2000,
+  "n_models": 8,
+  "regime_A": [
+    "pythia-70m",
+    "gemma-2-9b-it"
+  ],
+  "regime_B": [
+    "Mistral-7B-v0.1",
+    "Meta-Llama-3-8B",
+    "Qwen2.5-7B"
+  ],
+  "anomalies": [
+    "Llama-2-7b-hf",
+    "falcon-7b",
+    "Mistral-Nemo-Instruct-2407"
+  ],
+  "theta_star_range": [
+    10000,
+    10000
+  ],
+  "theta_star_geometric_mean": 10000.0,
+  "theta_star_from_formula": 2828.0,
+  "formula_err_regimeA_mean_pct": 6.5,
+  "all_models": [
+    {
+      "name": "pythia-70m",
+      "theta": 10000,
+      "gamma_obs": 0.7476,
+      "gamma_pred": 0.7172,
+      "err_pct": 4.1,
+      "regime": "A (formula valid)"
+    },
+    {
+      "name": "Llama-2-7b-hf",
+      "theta": 10000,
+      "gamma_obs": 0.2871,
+      "gamma_pred": 0.7172,
+      "err_pct": 149.8,
+      "regime": "A-ANOMALY (formula fails)"
+    },
+    {
+      "name": "Mistral-7B-v0.1",
+      "theta": 10000,
+      "gamma_obs": 1.2131,
+      "gamma_pred": 0.7172,
+      "err_pct": 40.9,
+      "regime": "B (gamma~1, long-context)"
+    },
+    {
+      "name": "gemma-2-9b-it",
+      "theta": 10000,
+      "gamma_obs": 0.6586,
+      "gamma_pred": 0.7172,
+      "err_pct": 8.9,
+      "regime": "A (formula valid)"
+    },
+    {
+      "name": "falcon-7b",
+      "theta": 10000,
+      "gamma_obs": 0.8928,
+      "gamma_pred": 0.7172,
+      "err_pct": 19.7,
+      "regime": "A-ANOMALY (formula fails)"
+    },
+    {
+      "name": "Meta-Llama-3-8B",
+      "theta": 500000,
+      "gamma_obs": 1.0455,
+      "gamma_pred": 0.9943,
+      "err_pct": 4.9,
+      "regime": "B (gamma~1, long-context)"
+    },
+    {
+      "name": "Qwen2.5-7B",
+      "theta": 1000000,
+      "gamma_obs": 0.9967,
+      "gamma_pred": 0.9972,
+      "err_pct": 0.0,
+      "regime": "B (gamma~1, long-context)"
+    },
+    {
+      "name": "Mistral-Nemo-Instruct-2407",
+      "theta": 1000000,
+      "gamma_obs": 0.5407,
+      "gamma_pred": 0.9972,
+      "err_pct": 84.4,
+      "regime": "A-ANOMALY (formula fails)"
+    }
+  ]
+}

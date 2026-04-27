@@ -1,0 +1,109 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_layers": 16,
+  "L_crit": 15,
+  "n_prompts": 30,
+  "seed": 42,
+  "logp_gap": 1.96565416653951,
+  "mean_delta_pre_lcrit": 42.40066298224842,
+  "cross_wins_layers": 14,
+  "interpretation": "Crystallized residual IS useful when injected early",
+  "per_layer": [
+    {
+      "layer": 0,
+      "R_std": 0.0,
+      "R_cross": 58.92,
+      "delta": 58.92
+    },
+    {
+      "layer": 1,
+      "R_std": 8.25,
+      "R_cross": 48.52,
+      "delta": 40.27
+    },
+    {
+      "layer": 2,
+      "R_std": 5.5,
+      "R_cross": 56.91,
+      "delta": 51.41
+    },
+    {
+      "layer": 3,
+      "R_std": -1.27,
+      "R_cross": 62.16,
+      "delta": 63.43
+    },
+    {
+      "layer": 4,
+      "R_std": -2.09,
+      "R_cross": 65.77,
+      "delta": 67.86
+    },
+    {
+      "layer": 5,
+      "R_std": 2.64,
+      "R_cross": 64.96,
+      "delta": 62.32
+    },
+    {
+      "layer": 6,
+      "R_std": 8.85,
+      "R_cross": 65.87,
+      "delta": 57.02
+    },
+    {
+      "layer": 7,
+      "R_std": 9.39,
+      "R_cross": 65.24,
+      "delta": 55.86
+    },
+    {
+      "layer": 8,
+      "R_std": 23.36,
+      "R_cross": 63.94,
+      "delta": 40.58
+    },
+    {
+      "layer": 9,
+      "R_std": 25.04,
+      "R_cross": 66.4,
+      "delta": 41.36
+    },
+    {
+      "layer": 10,
+      "R_std": 31.25,
+      "R_cross": 64.8,
+      "delta": 33.54
+    },
+    {
+      "layer": 11,
+      "R_std": 32.09,
+      "R_cross": 66.88,
+      "delta": 34.79
+    },
+    {
+      "layer": 12,
+      "R_std": 51.02,
+      "R_cross": 68.28,
+      "delta": 17.26
+    },
+    {
+      "layer": 13,
+      "R_std": 69.72,
+      "R_cross": 72.96,
+      "delta": 3.23
+    },
+    {
+      "layer": 14,
+      "R_std": 73.34,
+      "R_cross": 81.51,
+      "delta": 8.16
+    },
+    {
+      "layer": 15,
+      "R_std": 92.53,
+      "R_cross": 92.53,
+      "delta": 0.0
+    }
+  ]
+}

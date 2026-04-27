@@ -1,0 +1,49 @@
+{
+  "model": "EleutherAI/pythia-70m",
+  "n_layers": 6,
+  "L_crit": 4,
+  "n_prompts": 30,
+  "seed": 42,
+  "logp_gap": 0.6075656890869148,
+  "mean_delta_pre_lcrit": -116.41531740070917,
+  "cross_wins_layers": 0,
+  "interpretation": "Type mismatch: L_crit residual corrupts early layers",
+  "per_layer": [
+    {
+      "layer": 0,
+      "R_std": 0.0,
+      "R_cross": -59.78,
+      "delta": -59.78
+    },
+    {
+      "layer": 1,
+      "R_std": -60.06,
+      "R_cross": -95.11,
+      "delta": -35.05
+    },
+    {
+      "layer": 2,
+      "R_std": -25.53,
+      "R_cross": -183.66,
+      "delta": -158.13
+    },
+    {
+      "layer": 3,
+      "R_std": -102.32,
+      "R_cross": -315.01,
+      "delta": -212.7
+    },
+    {
+      "layer": 4,
+      "R_std": 123.53,
+      "R_cross": 123.53,
+      "delta": 0.0
+    },
+    {
+      "layer": 5,
+      "R_std": 98.83,
+      "R_cross": 90.63,
+      "delta": -8.2
+    }
+  ]
+}

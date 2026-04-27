@@ -1,0 +1,28 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_chunks": 50,
+  "baseline_ppl": 15.714571287245102,
+  "results": {
+    "baseline_no_hook": {
+      "ppl": 15.714571287245102
+    },
+    "identity": {
+      "ppl": 15.723431903954907,
+      "delta_vs_baseline": 0.008860616709805313,
+      "mean_nll": 2.755152077674866,
+      "last_gate_mean": 0.9933071732521057
+    },
+    "aggressive_mute": {
+      "ppl": 4013.370282414504,
+      "delta_vs_baseline": 3997.6557111272587,
+      "mean_nll": 8.297386636734009,
+      "last_gate_mean": 0.006692850962281227
+    },
+    "expert_prior": {
+      "ppl": 15.723431903954907,
+      "delta_vs_baseline": 0.008860616709805313,
+      "mean_nll": 2.755152077674866,
+      "last_gate_mean": 0.9933071732521057
+    }
+  }
+}

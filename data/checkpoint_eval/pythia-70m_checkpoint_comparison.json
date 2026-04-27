@@ -1,0 +1,48 @@
+{
+  "step8000": {
+    "revision": "step8000",
+    "expected_gamma": 1.064,
+    "gamma_obs": 1.0266835966009398,
+    "r2": 0.9820928579517015,
+    "attn_means_per_distance": [
+      0.013771302501360575,
+      0.008232926908466548,
+      0.00256258381737603,
+      0.002347815906008085,
+      0.0010662785420815148,
+      0.0002845022413465712,
+      0.00010495591494772167,
+      7.333743075529732e-05
+    ],
+    "passkey_accuracy": {
+      "256": 0.05,
+      "512": 0.2,
+      "1024": 0.05,
+      "2048": 0.0
+    },
+    "note_public_benchmarks": "LAMBADA/HellaSwag/PPL available in combined_training_dynamics.json from EleutherAI public evals"
+  },
+  "step143000": {
+    "revision": "step143000",
+    "expected_gamma": 0.781,
+    "gamma_obs": NaN,
+    "r2": NaN,
+    "attn_means_per_distance": [
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN
+    ],
+    "passkey_accuracy": {
+      "256": 0.0,
+      "512": 0.0,
+      "1024": 0.0,
+      "2048": 0.0
+    },
+    "note_public_benchmarks": "LAMBADA/HellaSwag/PPL available in combined_training_dynamics.json from EleutherAI public evals"
+  }
+}

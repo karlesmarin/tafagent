@@ -1,0 +1,104 @@
+{
+  "phase_AB_rc": [
+    {
+      "label": "Mistral-7B (4bit)",
+      "hf_id": "mistralai/Mistral-7B-v0.1",
+      "phase": "A",
+      "n_kv": 8,
+      "d_head": 128,
+      "n_params_M": 7240,
+      "theta": 10000,
+      "T_train": 32768,
+      "R_c": 0.9574147216280355,
+      "random": {
+        "gamma": 0.8341837934571041,
+        "r2": 0.677964594790021,
+        "means": {
+          "10": 0.007097774606736493,
+          "20": 0.005262479490847909,
+          "30": 0.004260748066699307,
+          "50": 0.003949870442265819,
+          "100": 0.013004653203142879,
+          "200": 0.001001053715207263,
+          "500": 0.0006962497123834055,
+          "1000": 0.0003346679925857643
+        }
+      },
+      "text": {
+        "gamma": 0.981381766010483,
+        "r2": 0.9904316492608461,
+        "means": {
+          "10": 0.00840350326976477,
+          "20": 0.004405914865783416,
+          "30": 0.0032953370028644714,
+          "50": 0.0023159317179761276,
+          "100": 0.0011866624017125105,
+          "200": 0.0006131482139687705,
+          "500": 0.0002772645528344242,
+          "1000": 9.826288272485328e-05
+        }
+      },
+      "delta_gamma": -0.14719797255337885,
+      "verdict": "post-IH"
+    },
+    {
+      "label": "Qwen2.5-7B (4bit)",
+      "hf_id": "Qwen/Qwen2.5-7B",
+      "phase": "A",
+      "n_kv": 4,
+      "d_head": 128,
+      "n_params_M": 7610,
+      "theta": 1000000,
+      "T_train": 131072,
+      "R_c": 1.1765191580975,
+      "error": "load: No module named 'transformers.models.audioflamingo3'"
+    },
+    {
+      "label": "OLMo-7B (4bit)",
+      "hf_id": "allenai/OLMo-7B-hf",
+      "phase": "B",
+      "n_kv": 32,
+      "d_head": 128,
+      "n_params_M": 6890,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 0.48704080868743954,
+      "error": "load: cannot import name 'FLAX_WEIGHTS_NAME' from 'transformers.utils' (/usr/local/lib/python3.12/dist-packages/transformers/utils/__init__.py)"
+    },
+    {
+      "label": "Falcon-7B (4bit)",
+      "hf_id": "tiiuae/falcon-7b",
+      "phase": "B",
+      "n_kv": 1,
+      "d_head": 64,
+      "n_params_M": 6920,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 1.4588955689285732,
+      "error": "measure: 'FalconModel' object has no attribute 'get_head_mask'"
+    },
+    {
+      "label": "pythia-6.9b (4bit)",
+      "hf_id": "EleutherAI/pythia-6.9b",
+      "phase": "B",
+      "n_kv": 32,
+      "d_head": 128,
+      "n_params_M": 6900,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 0.4867927697741792,
+      "error": "load: cannot import name 'FLAX_WEIGHTS_NAME' from 'transformers.utils' (/usr/local/lib/python3.12/dist-packages/transformers/utils/__init__.py)"
+    }
+  ],
+  "phase_C_multifractal": [
+    {
+      "label": "Llama-3-8B (4bit, Nous mirror)",
+      "hf_id": "NousResearch/Meta-Llama-3-8B",
+      "phase": "C",
+      "error": "load: 'default'"
+    }
+  ],
+  "elapsed_min": 36.784542791048686,
+  "n_completed_rc": 1,
+  "n_completed_mf": 0
+}

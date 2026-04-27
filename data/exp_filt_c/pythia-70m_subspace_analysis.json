@@ -1,0 +1,86 @@
+{
+  "model": "pythia-70m",
+  "theta": 10000,
+  "n_dead": 17,
+  "f_active": 0.4688,
+  "n_prompts": 20,
+  "per_layer": {
+    "0": {
+      "q_dead_energy": 0.7803,
+      "k_dead_energy": 0.582,
+      "score_dead_frac": 0.9195,
+      "score_active_frac": 0.0805,
+      "cosim_A1_A2_dead": 1.0,
+      "cosim_A1_A2_active": 1.0,
+      "cosim_A1_rand_dead": 0.9113,
+      "cosim_A1_rand_active": 0.8475,
+      "dead_discrimination": 0.0887,
+      "active_discrimination": 0.1525
+    },
+    "1": {
+      "q_dead_energy": 0.8043,
+      "k_dead_energy": 0.4436,
+      "score_dead_frac": 0.8771,
+      "score_active_frac": 0.1229,
+      "cosim_A1_A2_dead": 0.991,
+      "cosim_A1_A2_active": 0.9925,
+      "cosim_A1_rand_dead": 0.9675,
+      "cosim_A1_rand_active": 0.9697,
+      "dead_discrimination": 0.0235,
+      "active_discrimination": 0.0228
+    },
+    "2": {
+      "q_dead_energy": 0.7957,
+      "k_dead_energy": 0.4095,
+      "score_dead_frac": -1.0618,
+      "score_active_frac": 2.0618,
+      "cosim_A1_A2_dead": 0.9916,
+      "cosim_A1_A2_active": 0.9951,
+      "cosim_A1_rand_dead": 0.9852,
+      "cosim_A1_rand_active": 0.9911,
+      "dead_discrimination": 0.0064,
+      "active_discrimination": 0.004
+    },
+    "3": {
+      "q_dead_energy": 0.4186,
+      "k_dead_energy": 0.3957,
+      "score_dead_frac": 0.416,
+      "score_active_frac": 0.584,
+      "cosim_A1_A2_dead": 0.9954,
+      "cosim_A1_A2_active": 0.9987,
+      "cosim_A1_rand_dead": 0.9914,
+      "cosim_A1_rand_active": 0.998,
+      "dead_discrimination": 0.004,
+      "active_discrimination": 0.0007
+    },
+    "4": {
+      "q_dead_energy": 0.4395,
+      "k_dead_energy": 0.3844,
+      "score_dead_frac": 0.3923,
+      "score_active_frac": 0.6077,
+      "cosim_A1_A2_dead": 0.9987,
+      "cosim_A1_A2_active": 0.9999,
+      "cosim_A1_rand_dead": 0.9978,
+      "cosim_A1_rand_active": 0.9998,
+      "dead_discrimination": 0.0009,
+      "active_discrimination": 0.0001
+    },
+    "5": {
+      "q_dead_energy": 0.3863,
+      "k_dead_energy": 0.3832,
+      "score_dead_frac": 0.3766,
+      "score_active_frac": 0.6234,
+      "cosim_A1_A2_dead": 0.9974,
+      "cosim_A1_A2_active": 0.9999,
+      "cosim_A1_rand_dead": 0.995,
+      "cosim_A1_rand_active": 0.9998,
+      "dead_discrimination": 0.0024,
+      "active_discrimination": 0.0001
+    }
+  },
+  "summary": {
+    "mean_dead_discrimination": 0.021,
+    "mean_active_discrimination": 0.03,
+    "dead_dims_encode_semantics": true
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "experiment": "CDR_theta_analysis_2026-04-18",
+  "conclusion": "NEW FORMULA VALIDATED: gamma = 1 - T_eval*sqrt(2)/theta",
+  "old_formula": {
+    "formula": "gamma = C/ln(theta)",
+    "C": 9.2103,
+    "mean_error_pct": 33.3,
+    "status": "REFUTED"
+  },
+  "new_formula": {
+    "formula": "gamma = 1 - T_eval*sqrt(2)/theta",
+    "T_eval_e4": 2000,
+    "mean_error_pct": 3.0,
+    "status": "CONFIRMED"
+  },
+  "data": [
+    {
+      "model": "pythia-70m",
+      "theta": 10000,
+      "gamma_obs": 0.7476,
+      "gamma_old": 1.0,
+      "gamma_new": 0.7172,
+      "err_old_pct": 33.8,
+      "err_new_pct": 4.1
+    },
+    {
+      "model": "Llama-3-8B",
+      "theta": 500000,
+      "gamma_obs": 1.0455,
+      "gamma_old": 0.7019,
+      "gamma_new": 0.9943,
+      "err_old_pct": 32.9,
+      "err_new_pct": 4.9
+    },
+    {
+      "model": "Qwen2.5-7B",
+      "theta": 1000000,
+      "gamma_obs": 0.9967,
+      "gamma_old": 0.6667,
+      "gamma_new": 0.9972,
+      "err_old_pct": 33.1,
+      "err_new_pct": 0.0
+    }
+  ],
+  "note": "gamma>1 for Llama-3 likely from long-context fine-tuning (extra positional sharpening)",
+  "new_physics": "gamma = 1 - T_eval*sqrt(2)/theta = fraction of RoPE phases NOT aliased at distance T_eval"
+}

@@ -1,0 +1,259 @@
+{
+  "model": "gpt2-large",
+  "N": 36,
+  "L_crit": 33,
+  "summary": {
+    "0": {
+      "rank_median": 295.0,
+      "rank_mean": 1844.3,
+      "prob_mean": 0.0008142976017865067,
+      "entropy_mean": 9.040202701091767,
+      "top1_acc": 0.0
+    },
+    "1": {
+      "rank_median": 168.0,
+      "rank_mean": 1519.5,
+      "prob_mean": 0.00437108885781754,
+      "entropy_mean": 7.437587869167328,
+      "top1_acc": 0.0
+    },
+    "2": {
+      "rank_median": 81.0,
+      "rank_mean": 1509.35,
+      "prob_mean": 0.022237656241270543,
+      "entropy_mean": 5.999598908424377,
+      "top1_acc": 0.0
+    },
+    "3": {
+      "rank_median": 58.5,
+      "rank_mean": 1388.65,
+      "prob_mean": 0.022854797989299413,
+      "entropy_mean": 5.4002340450882915,
+      "top1_acc": 0.0
+    },
+    "4": {
+      "rank_median": 66.0,
+      "rank_mean": 1469.0,
+      "prob_mean": 0.018573055074975288,
+      "entropy_mean": 5.101497465372086,
+      "top1_acc": 0.0
+    },
+    "5": {
+      "rank_median": 99.0,
+      "rank_mean": 1175.55,
+      "prob_mean": 0.021596541565318716,
+      "entropy_mean": 4.484807601571083,
+      "top1_acc": 0.05
+    },
+    "6": {
+      "rank_median": 83.0,
+      "rank_mean": 851.5,
+      "prob_mean": 0.029523133340821062,
+      "entropy_mean": 3.9798384845256805,
+      "top1_acc": 0.0
+    },
+    "7": {
+      "rank_median": 72.0,
+      "rank_mean": 886.3,
+      "prob_mean": 0.03287024882073482,
+      "entropy_mean": 3.5318375647068025,
+      "top1_acc": 0.05
+    },
+    "8": {
+      "rank_median": 65.5,
+      "rank_mean": 990.0,
+      "prob_mean": 0.0446454816647341,
+      "entropy_mean": 3.173729035258293,
+      "top1_acc": 0.0
+    },
+    "9": {
+      "rank_median": 42.5,
+      "rank_mean": 841.75,
+      "prob_mean": 0.06293884984675913,
+      "entropy_mean": 2.6401389837265015,
+      "top1_acc": 0.1
+    },
+    "10": {
+      "rank_median": 61.5,
+      "rank_mean": 987.15,
+      "prob_mean": 0.09556773399166715,
+      "entropy_mean": 2.3502773948013784,
+      "top1_acc": 0.1
+    },
+    "11": {
+      "rank_median": 75.5,
+      "rank_mean": 936.1,
+      "prob_mean": 0.10289815487957425,
+      "entropy_mean": 2.1287053860723972,
+      "top1_acc": 0.1
+    },
+    "12": {
+      "rank_median": 56.0,
+      "rank_mean": 537.75,
+      "prob_mean": 0.1102860036525557,
+      "entropy_mean": 1.8507884941995143,
+      "top1_acc": 0.1
+    },
+    "13": {
+      "rank_median": 45.0,
+      "rank_mean": 353.45,
+      "prob_mean": 0.11194868451912496,
+      "entropy_mean": 1.6721342958509922,
+      "top1_acc": 0.1
+    },
+    "14": {
+      "rank_median": 28.0,
+      "rank_mean": 218.25,
+      "prob_mean": 0.08298045136286061,
+      "entropy_mean": 1.3356505129486322,
+      "top1_acc": 0.05
+    },
+    "15": {
+      "rank_median": 21.0,
+      "rank_mean": 152.7,
+      "prob_mean": 0.09413800044087912,
+      "entropy_mean": 1.2790355380624532,
+      "top1_acc": 0.05
+    },
+    "16": {
+      "rank_median": 25.5,
+      "rank_mean": 156.3,
+      "prob_mean": 0.14374329151086976,
+      "entropy_mean": 1.2230370048433543,
+      "top1_acc": 0.15
+    },
+    "17": {
+      "rank_median": 19.0,
+      "rank_mean": 108.4,
+      "prob_mean": 0.16959481575697463,
+      "entropy_mean": 0.982329808594659,
+      "top1_acc": 0.2
+    },
+    "18": {
+      "rank_median": 12.5,
+      "rank_mean": 69.95,
+      "prob_mean": 0.19127775111421444,
+      "entropy_mean": 0.7672953987181245,
+      "top1_acc": 0.2
+    },
+    "19": {
+      "rank_median": 7.5,
+      "rank_mean": 64.7,
+      "prob_mean": 0.27062316331389213,
+      "entropy_mean": 0.7049623723900382,
+      "top1_acc": 0.25
+    },
+    "20": {
+      "rank_median": 5.5,
+      "rank_mean": 41.3,
+      "prob_mean": 0.30554919984364703,
+      "entropy_mean": 0.5747898182224344,
+      "top1_acc": 0.3
+    },
+    "21": {
+      "rank_median": 4.5,
+      "rank_mean": 39.85,
+      "prob_mean": 0.33026042910579073,
+      "entropy_mean": 0.4324229697799177,
+      "top1_acc": 0.35
+    },
+    "22": {
+      "rank_median": 4.0,
+      "rank_mean": 26.55,
+      "prob_mean": 0.35049705050121727,
+      "entropy_mean": 0.4803217047677208,
+      "top1_acc": 0.35
+    },
+    "23": {
+      "rank_median": 2.5,
+      "rank_mean": 18.25,
+      "prob_mean": 0.3455437330581026,
+      "entropy_mean": 0.5304397597391521,
+      "top1_acc": 0.3
+    },
+    "24": {
+      "rank_median": 2.0,
+      "rank_mean": 13.7,
+      "prob_mean": 0.3823399636448174,
+      "entropy_mean": 0.32751835941043506,
+      "top1_acc": 0.4
+    },
+    "25": {
+      "rank_median": 1.0,
+      "rank_mean": 13.1,
+      "prob_mean": 0.4461008007887922,
+      "entropy_mean": 0.3247403331682063,
+      "top1_acc": 0.45
+    },
+    "26": {
+      "rank_median": 1.0,
+      "rank_mean": 16.25,
+      "prob_mean": 0.4586245931280814,
+      "entropy_mean": 0.3133909805019314,
+      "top1_acc": 0.45
+    },
+    "27": {
+      "rank_median": 0.5,
+      "rank_mean": 11.85,
+      "prob_mean": 0.4769530519190167,
+      "entropy_mean": 0.3853615205515963,
+      "top1_acc": 0.5
+    },
+    "28": {
+      "rank_median": 0.5,
+      "rank_mean": 9.65,
+      "prob_mean": 0.5166655593366426,
+      "entropy_mean": 0.24244572687020494,
+      "top1_acc": 0.5
+    },
+    "29": {
+      "rank_median": 0.5,
+      "rank_mean": 6.95,
+      "prob_mean": 0.5137617424570818,
+      "entropy_mean": 0.21511480996259963,
+      "top1_acc": 0.5
+    },
+    "30": {
+      "rank_median": 0.0,
+      "rank_mean": 5.15,
+      "prob_mean": 0.6711249749742791,
+      "entropy_mean": 0.2018442510888458,
+      "top1_acc": 0.7
+    },
+    "31": {
+      "rank_median": 0.0,
+      "rank_mean": 3.35,
+      "prob_mean": 0.6745306688925973,
+      "entropy_mean": 0.15133235824142555,
+      "top1_acc": 0.7
+    },
+    "32": {
+      "rank_median": 0.0,
+      "rank_mean": 2.25,
+      "prob_mean": 0.6442970273105088,
+      "entropy_mean": 0.2228813430716277,
+      "top1_acc": 0.6
+    },
+    "33": {
+      "rank_median": 0.0,
+      "rank_mean": 1.1,
+      "prob_mean": 0.7007993598404261,
+      "entropy_mean": 0.14786822918077186,
+      "top1_acc": 0.7
+    },
+    "34": {
+      "rank_median": 0.0,
+      "rank_mean": 0.4,
+      "prob_mean": 0.8490049915564896,
+      "entropy_mean": 0.18351739740651665,
+      "top1_acc": 0.85
+    },
+    "35": {
+      "rank_median": 0.0,
+      "rank_mean": 0.0,
+      "prob_mean": 0.935450142621994,
+      "entropy_mean": 0.17342249458097375,
+      "top1_acc": 1.0
+    }
+  }
+}

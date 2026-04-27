@@ -1,0 +1,568 @@
+{
+  "N_context": 2000,
+  "n_models": 56,
+  "results": [
+    {
+      "model": "meta-llama/Llama-2-7b-hf",
+      "corpus": "mongo",
+      "gamma": 0.2870574377368437,
+      "S_gamma": 7.540761817121435,
+      "area_law_pred": 5.419006875018258,
+      "ratio_S_area": 1.3915394445953768,
+      "phase": "A",
+      "r2": 0.814928
+    },
+    {
+      "model": "meta-llama/Llama-2-7b-hf",
+      "corpus": "mongo",
+      "gamma": 0.2870574377368437,
+      "S_gamma": 7.540761817121435,
+      "area_law_pred": 5.419006875018258,
+      "ratio_S_area": 1.3915394445953768,
+      "phase": "A",
+      "r2": 0.814928
+    },
+    {
+      "model": "EleutherAI/pythia-160m",
+      "corpus": "mongo",
+      "gamma": 0.510891565491545,
+      "S_gamma": 7.330756084048007,
+      "area_law_pred": 3.7176655028380927,
+      "ratio_S_area": 1.971870809369927,
+      "phase": "A",
+      "r2": 0.916873
+    },
+    {
+      "model": "allenai/OLMo-7B",
+      "corpus": "mongo",
+      "gamma": 0.5243966907611701,
+      "S_gamma": 7.310088552158613,
+      "area_law_pred": 3.6150143629597755,
+      "ratio_S_area": 2.0221464752835763,
+      "phase": "A",
+      "r2": 0.976863
+    },
+    {
+      "model": "allenai/OLMo-7B",
+      "corpus": "random",
+      "gamma": 0.5411598042384096,
+      "S_gamma": 7.282815329848365,
+      "area_law_pred": 3.487599572501043,
+      "ratio_S_area": 2.0882028393602767,
+      "phase": "A",
+      "r2": 0.96368
+    },
+    {
+      "model": "allenai/OLMo-7B-hf",
+      "corpus": "random",
+      "gamma": 0.550891782676269,
+      "S_gamma": 7.266127883242827,
+      "area_law_pred": 3.4136277536565065,
+      "ratio_S_area": 2.1285648019060415,
+      "phase": "A",
+      "r2": 0.957841
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-135M",
+      "corpus": "random",
+      "gamma": 0.62665506839462,
+      "S_gamma": 7.112817971850239,
+      "area_law_pred": 2.837758408896903,
+      "ratio_S_area": 2.506491725846085,
+      "phase": "A",
+      "r2": 0.828515
+    },
+    {
+      "model": "google/gemma-2-9b-it",
+      "corpus": "mongo",
+      "gamma": 0.6276459084140061,
+      "S_gamma": 7.110519287154698,
+      "area_law_pred": 2.8302271305565383,
+      "ratio_S_area": 2.5123493483565325,
+      "phase": "A",
+      "r2": 0.977314
+    },
+    {
+      "model": "microsoft/phi-3-mini-4k-instruct",
+      "corpus": "mongo",
+      "gamma": 0.6295631683122206,
+      "S_gamma": 7.106048616532607,
+      "area_law_pred": 2.815654225080619,
+      "ratio_S_area": 2.5237646559137223,
+      "phase": "A",
+      "r2": 0.985314
+    },
+    {
+      "model": "EleutherAI/pythia-2.8b",
+      "corpus": "mongo",
+      "gamma": 0.6741618914822415,
+      "S_gamma": 6.993335911568815,
+      "area_law_pred": 2.4766636804451707,
+      "ratio_S_area": 2.8236921980104257,
+      "phase": "A",
+      "r2": 0.999287
+    },
+    {
+      "model": "EleutherAI/pythia-14m",
+      "corpus": "mongo",
+      "gamma": 0.6852875452461592,
+      "S_gamma": 6.9625275628284164,
+      "area_law_pred": 2.3920986713869947,
+      "ratio_S_area": 2.9106356046723527,
+      "phase": "A",
+      "r2": 0.904735
+    },
+    {
+      "model": "EleutherAI/pythia-1.4b",
+      "corpus": "random",
+      "gamma": 0.6875846707476845,
+      "S_gamma": 6.956028732948211,
+      "area_law_pred": 2.3746384445125743,
+      "ratio_S_area": 2.9293001421005913,
+      "phase": "A",
+      "r2": 0.948837
+    },
+    {
+      "model": "EleutherAI/pythia-1.4b",
+      "corpus": "mongo",
+      "gamma": 0.7050725013322717,
+      "S_gamma": 6.904986546637838,
+      "area_law_pred": 2.2417151500101298,
+      "ratio_S_area": 3.080224776375641,
+      "phase": "A",
+      "r2": 0.841258
+    },
+    {
+      "model": "EleutherAI/pythia-1b",
+      "corpus": "random",
+      "gamma": 0.7127537531683527,
+      "S_gamma": 6.881681916795565,
+      "area_law_pred": 2.1833307040369005,
+      "ratio_S_area": 3.151919177462022,
+      "phase": "A",
+      "r2": 0.956201
+    },
+    {
+      "model": "gpt2-large",
+      "corpus": "random",
+      "gamma": 0.7274410953080044,
+      "S_gamma": 6.835595893390991,
+      "area_law_pred": 2.0716936490434854,
+      "ratio_S_area": 3.2995206103696995,
+      "phase": "A",
+      "r2": 0.977312
+    },
+    {
+      "model": "gpt2-medium",
+      "corpus": "random",
+      "gamma": 0.7409610966104535,
+      "S_gamma": 6.791383942293905,
+      "area_law_pred": 1.9689294378906879,
+      "ratio_S_area": 3.4492774660170187,
+      "phase": "A",
+      "r2": 0.9987
+    },
+    {
+      "model": "EleutherAI/pythia-70m",
+      "corpus": "mongo",
+      "gamma": 0.7476017873166874,
+      "S_gamma": 6.769034916681587,
+      "area_law_pred": 1.9184541955686165,
+      "ratio_S_area": 3.528379740479179,
+      "phase": "A",
+      "r2": 0.984269
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-135M",
+      "corpus": "mongo",
+      "gamma": 0.7479961324735662,
+      "S_gamma": 6.76769458718171,
+      "area_law_pred": 1.9154568164957875,
+      "ratio_S_area": 3.533201338134471,
+      "phase": "A",
+      "r2": 0.988937
+    },
+    {
+      "model": "gpt2-large",
+      "corpus": "mongo",
+      "gamma": 0.7526597997629645,
+      "S_gamma": 6.751731138994513,
+      "area_law_pred": 1.8800087363253144,
+      "ratio_S_area": 3.5913296616863177,
+      "phase": "A",
+      "r2": 0.963281
+    },
+    {
+      "model": "meta-llama/Meta-Llama-3-8B",
+      "corpus": "random",
+      "gamma": 0.7589145044527899,
+      "S_gamma": 6.7299962332100405,
+      "area_law_pred": 1.8324673360647112,
+      "ratio_S_area": 3.672641853285607,
+      "phase": "A",
+      "r2": 0.984284
+    },
+    {
+      "model": "Qwen/Qwen2.5-3B",
+      "corpus": "mongo",
+      "gamma": 0.7720333740995954,
+      "S_gamma": 6.683194212515172,
+      "area_law_pred": 1.7327520874998952,
+      "ratio_S_area": 3.8569823465964093,
+      "phase": "A",
+      "r2": 0.995841
+    },
+    {
+      "model": "gpt2-medium",
+      "corpus": "mongo",
+      "gamma": 0.7842197184521328,
+      "S_gamma": 6.6382427776423985,
+      "area_law_pred": 1.6401248727378668,
+      "ratio_S_area": 4.047400833914039,
+      "phase": "A",
+      "r2": 0.996208
+    },
+    {
+      "model": "meta-llama/Llama-2-7b-hf",
+      "corpus": "random",
+      "gamma": 0.8266242679750889,
+      "S_gamma": 6.470778115399689,
+      "area_law_pred": 1.3178120279730556,
+      "ratio_S_area": 4.9102436296263585,
+      "phase": "A",
+      "r2": 0.993628
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B",
+      "corpus": "random",
+      "gamma": 0.8270155146179213,
+      "S_gamma": 6.469153732984772,
+      "area_law_pred": 1.314838200403263,
+      "ratio_S_area": 4.9201139204813735,
+      "phase": "A",
+      "r2": 0.984663
+    },
+    {
+      "model": "allenai/OLMo-7B-hf",
+      "corpus": "mongo",
+      "gamma": 0.8291935914574181,
+      "S_gamma": 6.460084559322255,
+      "area_law_pred": 1.2982828507968605,
+      "ratio_S_area": 4.975868359777827,
+      "phase": "A",
+      "r2": 0.99587
+    },
+    {
+      "model": "mistralai/Mistral-7B-v0.1",
+      "corpus": "random",
+      "gamma": 0.8296009929924347,
+      "S_gamma": 6.4583832741852625,
+      "area_law_pred": 1.2951862314673315,
+      "ratio_S_area": 4.986451459469643,
+      "phase": "A",
+      "r2": 0.996923
+    },
+    {
+      "model": "EleutherAI/gpt-j-6B",
+      "corpus": "random",
+      "gamma": 0.8347553760849855,
+      "S_gamma": 6.436725078705287,
+      "area_law_pred": 1.25600826834174,
+      "ratio_S_area": 5.124747377024397,
+      "phase": "A",
+      "r2": 0.980141
+    },
+    {
+      "model": "microsoft/phi-2",
+      "corpus": "random",
+      "gamma": 0.8707349253167322,
+      "S_gamma": 6.278751523867516,
+      "area_law_pred": 0.9825312240929408,
+      "ratio_S_area": 6.3903837047662,
+      "phase": "A",
+      "r2": 0.947956
+    },
+    {
+      "model": "bigscience/bloom-7b1",
+      "corpus": "random",
+      "gamma": 0.882390442263598,
+      "S_gamma": 6.225096260313582,
+      "area_law_pred": 0.8939387766642747,
+      "ratio_S_area": 6.963671811555685,
+      "phase": "A",
+      "r2": 0.994632
+    },
+    {
+      "model": "EleutherAI/gpt-j-6B",
+      "corpus": "mongo",
+      "gamma": 0.8967966648253523,
+      "S_gamma": 6.157167619017644,
+      "area_law_pred": 0.784438484161926,
+      "ratio_S_area": 7.849140172662238,
+      "phase": "A",
+      "r2": 0.98687
+    },
+    {
+      "model": "deepseek-ai/deepseek-llm-7b-base",
+      "corpus": "random",
+      "gamma": 0.9103448618583042,
+      "S_gamma": 6.09171169898598,
+      "area_law_pred": 0.6814599600118006,
+      "ratio_S_area": 8.939207079577342,
+      "phase": "A",
+      "r2": 0.992208
+    },
+    {
+      "model": "Qwen/Qwen2.5-0.5B",
+      "corpus": "random",
+      "gamma": 0.9194920254637005,
+      "S_gamma": 6.046685882415325,
+      "area_law_pred": 0.6119332616657105,
+      "ratio_S_area": 9.881283239868296,
+      "phase": "A",
+      "r2": 0.995818
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-360M",
+      "corpus": "random",
+      "gamma": 0.9197098362636822,
+      "S_gamma": 6.0456057444940505,
+      "area_law_pred": 0.6102777030204145,
+      "ratio_S_area": 9.90631922905402,
+      "phase": "A",
+      "r2": 0.992716
+    },
+    {
+      "model": "EleutherAI/pythia-1b",
+      "corpus": "mongo",
+      "gamma": 0.9311078627189842,
+      "S_gamma": 5.988575565494448,
+      "area_law_pred": 0.5236424157023841,
+      "ratio_S_area": 11.436383657847337,
+      "phase": "A",
+      "r2": 0.983104
+    },
+    {
+      "model": "EleutherAI/pythia-410m",
+      "corpus": "random",
+      "gamma": 0.9362347719713631,
+      "S_gamma": 5.962605278027159,
+      "area_law_pred": 0.4846732785561282,
+      "ratio_S_area": 12.302318988556848,
+      "phase": "A",
+      "r2": 0.987529
+    },
+    {
+      "model": "deepseek-ai/deepseek-llm-7b-base",
+      "corpus": "mongo",
+      "gamma": 0.9469730981988765,
+      "S_gamma": 5.907593587772118,
+      "area_law_pred": 0.4030523083220558,
+      "ratio_S_area": 14.657138703326074,
+      "phase": "A",
+      "r2": 0.995256
+    },
+    {
+      "model": "Qwen/Qwen2.5-3B",
+      "corpus": "random",
+      "gamma": 0.9643628833140916,
+      "S_gamma": 5.816818113694677,
+      "area_law_pred": 0.2708742478689094,
+      "ratio_S_area": 21.47423817309406,
+      "phase": "A",
+      "r2": 0.97891
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM2-360M",
+      "corpus": "mongo",
+      "gamma": 0.9691725803316233,
+      "S_gamma": 5.791361269838827,
+      "area_law_pred": 0.23431620997870006,
+      "ratio_S_area": 24.716007784375126,
+      "phase": "A",
+      "r2": 0.998139
+    },
+    {
+      "model": "Qwen/Qwen2.5-7B",
+      "corpus": "mongo",
+      "gamma": 0.9966953735480816,
+      "S_gamma": 5.643021626136776,
+      "area_law_pred": 0.025118143326254574,
+      "ratio_S_area": 224.6591857065504,
+      "phase": "A",
+      "r2": 0.993942
+    },
+    {
+      "model": "EleutherAI/pythia-14m",
+      "corpus": "random",
+      "gamma": 1.003714187534367,
+      "S_gamma": 9.113816929580823,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.977698
+    },
+    {
+      "model": "gpt2-xl",
+      "corpus": "mongo",
+      "gamma": 1.0097027213131609,
+      "S_gamma": 8.144856340401692,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.980958
+    },
+    {
+      "model": "EleutherAI/pythia-160m",
+      "corpus": "random",
+      "gamma": 1.0171452847779678,
+      "S_gamma": 7.564188500805029,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.981723
+    },
+    {
+      "model": "EleutherAI/pythia-410m",
+      "corpus": "mongo",
+      "gamma": 1.0218530106365162,
+      "S_gamma": 7.314101726492739,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.981594
+    },
+    {
+      "model": "gpt2",
+      "corpus": "mongo",
+      "gamma": 1.0231174997210821,
+      "S_gamma": 7.255805984306381,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.955115
+    },
+    {
+      "model": "gpt2-xl",
+      "corpus": "random",
+      "gamma": 1.024099984346949,
+      "S_gamma": 7.2125851754934445,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.988966
+    },
+    {
+      "model": "Qwen/Qwen2.5-0.5B",
+      "corpus": "mongo",
+      "gamma": 1.0283740139174087,
+      "S_gamma": 7.042254100757362,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.996775
+    },
+    {
+      "model": "microsoft/phi-3-mini-4k-instruct",
+      "corpus": "random",
+      "gamma": 1.0366024777115062,
+      "S_gamma": 6.7735078789401655,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.977923
+    },
+    {
+      "model": "microsoft/phi-2",
+      "corpus": "mongo",
+      "gamma": 1.0446992618601783,
+      "S_gamma": 6.55917099187236,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.979964
+    },
+    {
+      "model": "meta-llama/Meta-Llama-3-8B",
+      "corpus": "mongo",
+      "gamma": 1.0454762537473639,
+      "S_gamma": 6.540515247430771,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.997461
+    },
+    {
+      "model": "gpt2",
+      "corpus": "random",
+      "gamma": 1.0514830126336872,
+      "S_gamma": 6.405275999206491,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.907872
+    },
+    {
+      "model": "mistralai/Mistral-7B-v0.1",
+      "corpus": "mongo",
+      "gamma": 1.060750419523944,
+      "S_gamma": 6.2218961952351,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.99869
+    },
+    {
+      "model": "google/gemma-2-9b-it",
+      "corpus": "random",
+      "gamma": 1.1347958464287666,
+      "S_gamma": 5.259629681982037,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.976472
+    },
+    {
+      "model": "EleutherAI/pythia-70m",
+      "corpus": "random",
+      "gamma": 1.1705141984482668,
+      "S_gamma": 4.933980978257978,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.994076
+    },
+    {
+      "model": "bigscience/bloom-7b1",
+      "corpus": "mongo",
+      "gamma": 1.2178239236386044,
+      "S_gamma": 4.562721586731967,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.99733
+    },
+    {
+      "model": "EleutherAI/pythia-31m",
+      "corpus": "mongo",
+      "gamma": 1.2350013988825523,
+      "S_gamma": 4.439867464810442,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.973742
+    },
+    {
+      "model": "EleutherAI/pythia-31m",
+      "corpus": "random",
+      "gamma": 1.5398244746231446,
+      "S_gamma": 2.8462032124350634,
+      "area_law_pred": null,
+      "ratio_S_area": null,
+      "phase": "B",
+      "r2": 0.964259
+    }
+  ],
+  "phase_a_ratio_mean": 11.448812263895999,
+  "phase_a_ratio_std": 34.96120529181214
+}

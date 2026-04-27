@@ -1,0 +1,51 @@
+{
+  "model": "Qwen/Qwen2.5-1.5B",
+  "n_layers": 28,
+  "n_heads": 12,
+  "n_prompts": 50,
+  "seq_len": 1100,
+  "summary": {
+    "PUNCT": {
+      "median_gamma_good": 1.215579508020458,
+      "iqr_gamma_good": 0.6466833055656311,
+      "n_good": 8,
+      "n_total": 336,
+      "mean_r2": 0.02054025828829171
+    },
+    "COMMON": {
+      "median_gamma_good": 1.2082695466428857,
+      "iqr_gamma_good": 0.3932278114506753,
+      "n_good": 9,
+      "n_total": 336,
+      "mean_r2": 0.021877626107433806
+    },
+    "RARE": {
+      "median_gamma_good": 0.9510497279589039,
+      "iqr_gamma_good": 0.1719710517541122,
+      "n_good": 5,
+      "n_total": 336,
+      "mean_r2": 0.014819719561501991
+    },
+    "NUMERIC": {
+      "median_gamma_good": 1.0281647855294356,
+      "iqr_gamma_good": 0.386727920107959,
+      "n_good": 8,
+      "n_total": 336,
+      "mean_r2": 0.02101423541081187
+    },
+    "WHITESP": {
+      "median_gamma_good": 1.2196060139456133,
+      "iqr_gamma_good": 0.9328794502235627,
+      "n_good": 8,
+      "n_total": 336,
+      "mean_r2": 0.02054414224176208
+    },
+    "MID": {
+      "median_gamma_good": 1.0393963689057721,
+      "iqr_gamma_good": 0.1720815905751275,
+      "n_good": 6,
+      "n_total": 336,
+      "mean_r2": 0.019486935554480445
+    }
+  }
+}

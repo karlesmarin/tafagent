@@ -1,0 +1,43 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "k_dead": 23,
+  "rotary_ndims": 64,
+  "results": {
+    "baseline": {
+      "passkey": {
+        "50": 0.0,
+        "200": 0.0,
+        "500": 0.0
+      },
+      "lambada": {
+        "accuracy": 0.005,
+        "ppl": 454866.0959065663,
+        "n": 200
+      }
+    },
+    "zero_dead": {
+      "passkey": {
+        "50": 0.0,
+        "200": 0.0,
+        "500": 0.0
+      },
+      "lambada": {
+        "accuracy": 0.0,
+        "ppl": 283545.2363100814,
+        "n": 200
+      }
+    },
+    "zero_alive": {
+      "passkey": {
+        "50": 0.0,
+        "200": 0.0,
+        "500": 0.0
+      },
+      "lambada": {
+        "accuracy": 0.005,
+        "ppl": 2038171.0155264542,
+        "n": 200
+      }
+    }
+  }
+}

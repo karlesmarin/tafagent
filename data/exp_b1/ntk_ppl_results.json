@@ -1,0 +1,139 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "gamma_text": 0.931,
+  "gamma_target": 0.5,
+  "alpha_opt_theory": 64.0,
+  "theta_base": 10000,
+  "results": {
+    "alpha_1": {
+      "alpha": 1.0,
+      "theta_new": 10000,
+      "depths": {
+        "in_train": {
+          "ctx_end": 1024,
+          "ctx_len": 124,
+          "ppl": 17.404948412148393
+        },
+        "at_boundary": {
+          "ctx_end": 2048,
+          "ctx_len": 148,
+          "ppl": 15.854351582229326
+        },
+        "out_1.5x": {
+          "ctx_end": 2650,
+          "ctx_len": 150,
+          "ppl": 16.97577129243789
+        },
+        "out_2x": {
+          "ctx_end": 3650,
+          "ctx_len": 150,
+          "ppl": 15.524942384458516
+        }
+      }
+    },
+    "alpha_4": {
+      "alpha": 4.0,
+      "theta_new": 40000,
+      "depths": {
+        "in_train": {
+          "ctx_end": 1024,
+          "ctx_len": 124,
+          "ppl": 18.491019027713858
+        },
+        "at_boundary": {
+          "ctx_end": 2048,
+          "ctx_len": 148,
+          "ppl": 16.854908619134363
+        },
+        "out_1.5x": {
+          "ctx_end": 2650,
+          "ctx_len": 150,
+          "ppl": 18.12599335819514
+        },
+        "out_2x": {
+          "ctx_end": 3650,
+          "ctx_len": 150,
+          "ppl": 16.456427754310326
+        }
+      }
+    },
+    "alpha_8": {
+      "alpha": 8.0,
+      "theta_new": 80000,
+      "depths": {
+        "in_train": {
+          "ctx_end": 1024,
+          "ctx_len": 124,
+          "ppl": 19.732665122735888
+        },
+        "at_boundary": {
+          "ctx_end": 2048,
+          "ctx_len": 148,
+          "ppl": 18.26191435396263
+        },
+        "out_1.5x": {
+          "ctx_end": 2650,
+          "ctx_len": 150,
+          "ppl": 19.605890918116287
+        },
+        "out_2x": {
+          "ctx_end": 3650,
+          "ctx_len": 150,
+          "ppl": 17.594068865300173
+        }
+      }
+    },
+    "alpha_16": {
+      "alpha": 16.0,
+      "theta_new": 160000,
+      "depths": {
+        "in_train": {
+          "ctx_end": 1024,
+          "ctx_len": 124,
+          "ppl": 21.76860403814333
+        },
+        "at_boundary": {
+          "ctx_end": 2048,
+          "ctx_len": 148,
+          "ppl": 20.56687230107969
+        },
+        "out_1.5x": {
+          "ctx_end": 2650,
+          "ctx_len": 150,
+          "ppl": 21.782426386202566
+        },
+        "out_2x": {
+          "ctx_end": 3650,
+          "ctx_len": 150,
+          "ppl": 19.421047912281473
+        }
+      }
+    },
+    "alpha_opt": {
+      "alpha": 64.0,
+      "theta_new": 640000,
+      "depths": {
+        "in_train": {
+          "ctx_end": 1024,
+          "ctx_len": 124,
+          "ppl": 30.34100202780192
+        },
+        "at_boundary": {
+          "ctx_end": 2048,
+          "ctx_len": 148,
+          "ppl": 31.045355589390898
+        },
+        "out_1.5x": {
+          "ctx_end": 2650,
+          "ctx_len": 150,
+          "ppl": 31.12833474923277
+        },
+        "out_2x": {
+          "ctx_end": 3650,
+          "ctx_len": 150,
+          "ppl": 27.826159362193188
+        }
+      }
+    }
+  }
+}

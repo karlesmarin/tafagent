@@ -1,0 +1,91 @@
+{
+  "tau_90": 0.9,
+  "tau_99": 0.99,
+  "N_prompts": 50,
+  "dist_short": 10,
+  "dist_long": 1000,
+  "vocab_low": 1000,
+  "vocab_high": 49000,
+  "n_prefix": 20,
+  "ref_logp_d10": {
+    "mean": -61.4318,
+    "std": 136.2948
+  },
+  "baseline_logp_d1000": {
+    "mean": -59.9124,
+    "std": 135.2336
+  },
+  "logp_gap": -1.5194,
+  "layer_sweep": {
+    "0": {
+      "recovery_pct": -0.0,
+      "logp_transplant_mean": -59.9124,
+      "logp_transplant_std": 135.2336
+    },
+    "1": {
+      "recovery_pct": 2.47,
+      "logp_transplant_mean": -59.9499,
+      "logp_transplant_std": 135.1706
+    },
+    "2": {
+      "recovery_pct": 44.57,
+      "logp_transplant_mean": -60.5896,
+      "logp_transplant_std": 135.8501
+    },
+    "3": {
+      "recovery_pct": 21.15,
+      "logp_transplant_mean": -60.2337,
+      "logp_transplant_std": 135.8855
+    },
+    "4": {
+      "recovery_pct": 35.23,
+      "logp_transplant_mean": -60.4477,
+      "logp_transplant_std": 136.3003
+    },
+    "5": {
+      "recovery_pct": 87.11,
+      "logp_transplant_mean": -61.2361,
+      "logp_transplant_std": 136.6496
+    },
+    "6": {
+      "recovery_pct": 103.73,
+      "logp_transplant_mean": -61.4885,
+      "logp_transplant_std": 136.5528
+    },
+    "7": {
+      "recovery_pct": 77.84,
+      "logp_transplant_mean": -61.0951,
+      "logp_transplant_std": 136.0754
+    },
+    "8": {
+      "recovery_pct": 74.94,
+      "logp_transplant_mean": -61.0511,
+      "logp_transplant_std": 136.1683
+    },
+    "9": {
+      "recovery_pct": 63.85,
+      "logp_transplant_mean": -60.8826,
+      "logp_transplant_std": 135.7116
+    },
+    "10": {
+      "recovery_pct": 89.21,
+      "logp_transplant_mean": -61.2679,
+      "logp_transplant_std": 136.3431
+    },
+    "11": {
+      "recovery_pct": 86.05,
+      "logp_transplant_mean": -61.2199,
+      "logp_transplant_std": 136.4501
+    }
+  },
+  "L_crit_90": null,
+  "L_crit_99": null,
+  "alpha_90": null,
+  "alpha_99": null,
+  "recovery_at_Lcrit": null,
+  "n_layers": 12,
+  "d_model": 768,
+  "model": "EleutherAI/pythia-160m",
+  "seed": 7,
+  "runtime_seconds": 32.1
+}

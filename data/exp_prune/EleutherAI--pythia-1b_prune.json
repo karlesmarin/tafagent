@@ -1,0 +1,74 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_layers": 16,
+  "n_heads": 8,
+  "d_head": 256,
+  "n_pairs": 128,
+  "k_dead": 91,
+  "L_crit_pred": 15,
+  "alpha": 0.9374717358310781,
+  "n_eval_chunks": 100,
+  "chunk_size": 1024,
+  "baseline": {
+    "ppl": 14.973609132474365,
+    "nll": 2.7062892603874205,
+    "std": 0.2595318035858822
+  },
+  "sweeps": [
+    {
+      "L_prune": 13,
+      "n_pruned_entries": 7274496,
+      "frac_qk_pruned": 0.05419921875,
+      "ppl": 15.548956277713987,
+      "nll": 2.743993515968323,
+      "std": 0.25814710014606357,
+      "delta_ppl": 0.5753471452396219,
+      "delta_nll": 0.0377042555809024,
+      "verdict": "DEGRADED"
+    },
+    {
+      "L_prune": 15,
+      "n_pruned_entries": 2424832,
+      "frac_qk_pruned": 0.01806640625,
+      "ppl": 15.16368330360712,
+      "nll": 2.7189033126831053,
+      "std": 0.2584823516819064,
+      "delta_ppl": 0.19007417113275515,
+      "delta_nll": 0.012614052295684797,
+      "verdict": "OK"
+    },
+    {
+      "L_prune": 16,
+      "n_pruned_entries": 0,
+      "frac_qk_pruned": 0.0,
+      "ppl": 14.973609132474365,
+      "nll": 2.7062892603874205,
+      "std": 0.2595318035858822,
+      "delta_ppl": 0.0,
+      "delta_nll": 0.0,
+      "verdict": "OK"
+    },
+    {
+      "L_prune": 17,
+      "n_pruned_entries": 0,
+      "frac_qk_pruned": 0.0,
+      "ppl": 14.973609132474365,
+      "nll": 2.7062892603874205,
+      "std": 0.2595318035858822,
+      "delta_ppl": 0.0,
+      "delta_nll": 0.0,
+      "verdict": "OK"
+    },
+    {
+      "L_prune": 19,
+      "n_pruned_entries": 0,
+      "frac_qk_pruned": 0.0,
+      "ppl": 14.973609132474365,
+      "nll": 2.7062892603874205,
+      "std": 0.2595318035858822,
+      "delta_ppl": 0.0,
+      "delta_nll": 0.0,
+      "verdict": "OK"
+    }
+  ]
+}

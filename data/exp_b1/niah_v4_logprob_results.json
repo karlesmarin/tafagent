@@ -1,0 +1,151 @@
+{
+  "model": "EleutherAI/pythia-70m",
+  "theta_base": 10000,
+  "T_train": 2048,
+  "gamma_obs": 0.748,
+  "N_trials": 50,
+  "N_wrong": 9,
+  "chance_level": 0.1,
+  "results": {
+    "alpha_1": {
+      "alpha": 1.0,
+      "results": {
+        "512": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "1024": {
+          "accuracy": 0.92,
+          "correct": 46,
+          "total": 50,
+          "chance": 0.1
+        },
+        "2048": {
+          "accuracy": 0.92,
+          "correct": 46,
+          "total": 50,
+          "chance": 0.1
+        },
+        "3072": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "4096": {
+          "accuracy": 0.1,
+          "correct": 5,
+          "total": 50,
+          "chance": 0.1
+        }
+      }
+    },
+    "alpha_4": {
+      "alpha": 4.0,
+      "results": {
+        "512": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "1024": {
+          "accuracy": 0.9,
+          "correct": 45,
+          "total": 50,
+          "chance": 0.1
+        },
+        "2048": {
+          "accuracy": 0.9,
+          "correct": 45,
+          "total": 50,
+          "chance": 0.1
+        },
+        "3072": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "4096": {
+          "accuracy": 0.86,
+          "correct": 43,
+          "total": 50,
+          "chance": 0.1
+        }
+      }
+    },
+    "alpha_8": {
+      "alpha": 8.0,
+      "results": {
+        "512": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "1024": {
+          "accuracy": 0.84,
+          "correct": 42,
+          "total": 50,
+          "chance": 0.1
+        },
+        "2048": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "3072": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        },
+        "4096": {
+          "accuracy": 0.88,
+          "correct": 44,
+          "total": 50,
+          "chance": 0.1
+        }
+      }
+    },
+    "alpha_16": {
+      "alpha": 16.0,
+      "results": {
+        "512": {
+          "accuracy": 0.74,
+          "correct": 37,
+          "total": 50,
+          "chance": 0.1
+        },
+        "1024": {
+          "accuracy": 0.84,
+          "correct": 42,
+          "total": 50,
+          "chance": 0.1
+        },
+        "2048": {
+          "accuracy": 0.82,
+          "correct": 41,
+          "total": 50,
+          "chance": 0.1
+        },
+        "3072": {
+          "accuracy": 0.82,
+          "correct": 41,
+          "total": 50,
+          "chance": 0.1
+        },
+        "4096": {
+          "accuracy": 0.84,
+          "correct": 42,
+          "total": 50,
+          "chance": 0.1
+        }
+      }
+    }
+  }
+}

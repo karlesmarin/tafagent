@@ -1,0 +1,490 @@
+{
+  "step512": {
+    "revision": "step512",
+    "h3": {
+      "recovery": [
+        0.0,
+        0.1148,
+        0.3847,
+        0.4122,
+        0.5515,
+        0.7953
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -13.8133,
+      "mu_d10": -13.4207,
+      "denom": 0.3927,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 259,
+          "rank90_frac": 0.5059,
+          "fro_norm": 7.4594
+        },
+        {
+          "layer": 1,
+          "rank90": 259,
+          "rank90_frac": 0.5059,
+          "fro_norm": 7.5453
+        },
+        {
+          "layer": 2,
+          "rank90": 258,
+          "rank90_frac": 0.5039,
+          "fro_norm": 7.8337
+        },
+        {
+          "layer": 3,
+          "rank90": 259,
+          "rank90_frac": 0.5059,
+          "fro_norm": 7.7319
+        },
+        {
+          "layer": 4,
+          "rank90": 260,
+          "rank90_frac": 0.5078,
+          "fro_norm": 7.6855
+        },
+        {
+          "layer": 5,
+          "rank90": 257,
+          "rank90_frac": 0.502,
+          "fro_norm": 7.7839
+        }
+      ],
+      "mean_rank90": 258.67
+    },
+    "load_time": 3.0
+  },
+  "step1000": {
+    "revision": "step1000",
+    "h3": {
+      "recovery": [
+        0.0,
+        9.1507,
+        17.58,
+        -31.4381,
+        16.3582,
+        -38.5978
+      ],
+      "L_crit_90": 1,
+      "L_crit_99": 1,
+      "mu_baseline": -14.3819,
+      "mu_d10": -14.3795,
+      "denom": 0.0024,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 243,
+          "rank90_frac": 0.4746,
+          "fro_norm": 6.9889
+        },
+        {
+          "layer": 1,
+          "rank90": 248,
+          "rank90_frac": 0.4844,
+          "fro_norm": 7.512
+        },
+        {
+          "layer": 2,
+          "rank90": 238,
+          "rank90_frac": 0.4648,
+          "fro_norm": 8.3055
+        },
+        {
+          "layer": 3,
+          "rank90": 232,
+          "rank90_frac": 0.4531,
+          "fro_norm": 9.7956
+        },
+        {
+          "layer": 4,
+          "rank90": 252,
+          "rank90_frac": 0.4922,
+          "fro_norm": 8.4148
+        },
+        {
+          "layer": 5,
+          "rank90": 250,
+          "rank90_frac": 0.4883,
+          "fro_norm": 8.1698
+        }
+      ],
+      "mean_rank90": 243.83
+    },
+    "load_time": 2.9
+  },
+  "step2000": {
+    "revision": "step2000",
+    "h3": {
+      "recovery": [
+        -0.0,
+        -0.0209,
+        0.0046,
+        0.2466,
+        0.5994,
+        0.7305
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -12.934,
+      "mu_d10": -14.008,
+      "denom": -1.074,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 206,
+          "rank90_frac": 0.4023,
+          "fro_norm": 8.746
+        },
+        {
+          "layer": 1,
+          "rank90": 221,
+          "rank90_frac": 0.4316,
+          "fro_norm": 10.1861
+        },
+        {
+          "layer": 2,
+          "rank90": 201,
+          "rank90_frac": 0.3926,
+          "fro_norm": 10.7152
+        },
+        {
+          "layer": 3,
+          "rank90": 223,
+          "rank90_frac": 0.4355,
+          "fro_norm": 14.0474
+        },
+        {
+          "layer": 4,
+          "rank90": 226,
+          "rank90_frac": 0.4414,
+          "fro_norm": 13.1378
+        },
+        {
+          "layer": 5,
+          "rank90": 233,
+          "rank90_frac": 0.4551,
+          "fro_norm": 10.8229
+        }
+      ],
+      "mean_rank90": 218.33
+    },
+    "load_time": 4.8
+  },
+  "step3000": {
+    "revision": "step3000",
+    "h3": {
+      "recovery": [
+        -0.0,
+        0.0081,
+        0.1936,
+        0.3893,
+        0.3923,
+        0.6119
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -12.6007,
+      "mu_d10": -13.3391,
+      "denom": -0.7385,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 198,
+          "rank90_frac": 0.3867,
+          "fro_norm": 10.641
+        },
+        {
+          "layer": 1,
+          "rank90": 220,
+          "rank90_frac": 0.4297,
+          "fro_norm": 12.3794
+        },
+        {
+          "layer": 2,
+          "rank90": 192,
+          "rank90_frac": 0.375,
+          "fro_norm": 12.7894
+        },
+        {
+          "layer": 3,
+          "rank90": 230,
+          "rank90_frac": 0.4492,
+          "fro_norm": 16.7001
+        },
+        {
+          "layer": 4,
+          "rank90": 231,
+          "rank90_frac": 0.4512,
+          "fro_norm": 17.2439
+        },
+        {
+          "layer": 5,
+          "rank90": 238,
+          "rank90_frac": 0.4648,
+          "fro_norm": 13.5513
+        }
+      ],
+      "mean_rank90": 218.17
+    },
+    "load_time": 13.7
+  },
+  "step8000": {
+    "revision": "step8000",
+    "h3": {
+      "recovery": [
+        -0.0,
+        -0.001,
+        0.163,
+        0.4596,
+        0.467,
+        0.6935
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -13.3228,
+      "mu_d10": -14.2469,
+      "denom": -0.9241,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 192,
+          "rank90_frac": 0.375,
+          "fro_norm": 14.8205
+        },
+        {
+          "layer": 1,
+          "rank90": 226,
+          "rank90_frac": 0.4414,
+          "fro_norm": 16.8638
+        },
+        {
+          "layer": 2,
+          "rank90": 185,
+          "rank90_frac": 0.3613,
+          "fro_norm": 18.0866
+        },
+        {
+          "layer": 3,
+          "rank90": 235,
+          "rank90_frac": 0.459,
+          "fro_norm": 21.8594
+        },
+        {
+          "layer": 4,
+          "rank90": 249,
+          "rank90_frac": 0.4863,
+          "fro_norm": 26.9032
+        },
+        {
+          "layer": 5,
+          "rank90": 256,
+          "rank90_frac": 0.5,
+          "fro_norm": 20.4489
+        }
+      ],
+      "mean_rank90": 223.83
+    },
+    "load_time": 12.2
+  },
+  "step16000": {
+    "revision": "step16000",
+    "h3": {
+      "recovery": [
+        -0.0,
+        -0.0312,
+        0.0265,
+        0.271,
+        0.3668,
+        0.6868
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -13.3378,
+      "mu_d10": -14.4215,
+      "denom": -1.0837,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 189,
+          "rank90_frac": 0.3691,
+          "fro_norm": 16.3548
+        },
+        {
+          "layer": 1,
+          "rank90": 228,
+          "rank90_frac": 0.4453,
+          "fro_norm": 18.3408
+        },
+        {
+          "layer": 2,
+          "rank90": 182,
+          "rank90_frac": 0.3555,
+          "fro_norm": 20.2797
+        },
+        {
+          "layer": 3,
+          "rank90": 232,
+          "rank90_frac": 0.4531,
+          "fro_norm": 22.8214
+        },
+        {
+          "layer": 4,
+          "rank90": 255,
+          "rank90_frac": 0.498,
+          "fro_norm": 30.659
+        },
+        {
+          "layer": 5,
+          "rank90": 262,
+          "rank90_frac": 0.5117,
+          "fro_norm": 23.3895
+        }
+      ],
+      "mean_rank90": 224.67
+    },
+    "load_time": 10.5
+  },
+  "step32000": {
+    "revision": "step32000",
+    "h3": {
+      "recovery": [
+        -0.0,
+        -0.2954,
+        0.0591,
+        0.374,
+        0.2268,
+        0.8518
+      ],
+      "L_crit_90": null,
+      "L_crit_99": null,
+      "mu_baseline": -14.1658,
+      "mu_d10": -14.8156,
+      "denom": -0.6498,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 191,
+          "rank90_frac": 0.373,
+          "fro_norm": 16.7226
+        },
+        {
+          "layer": 1,
+          "rank90": 230,
+          "rank90_frac": 0.4492,
+          "fro_norm": 18.5145
+        },
+        {
+          "layer": 2,
+          "rank90": 180,
+          "rank90_frac": 0.3516,
+          "fro_norm": 20.6984
+        },
+        {
+          "layer": 3,
+          "rank90": 227,
+          "rank90_frac": 0.4434,
+          "fro_norm": 22.4047
+        },
+        {
+          "layer": 4,
+          "rank90": 256,
+          "rank90_frac": 0.5,
+          "fro_norm": 31.7069
+        },
+        {
+          "layer": 5,
+          "rank90": 264,
+          "rank90_frac": 0.5156,
+          "fro_norm": 18.9558
+        }
+      ],
+      "mean_rank90": 224.67
+    },
+    "load_time": 9.3
+  },
+  "step143000": {
+    "revision": "step143000",
+    "h3": {
+      "recovery": [
+        0.0,
+        -1.6746,
+        -0.7017,
+        -0.6383,
+        1.2949,
+        0.9589
+      ],
+      "L_crit_90": 4,
+      "L_crit_99": 4,
+      "mu_baseline": -16.482,
+      "mu_d10": -15.7736,
+      "denom": 0.7085,
+      "n_prompts": 50
+    },
+    "wo_rank": {
+      "layers": [
+        {
+          "layer": 0,
+          "rank90": 193,
+          "rank90_frac": 0.377,
+          "fro_norm": 10.7524
+        },
+        {
+          "layer": 1,
+          "rank90": 230,
+          "rank90_frac": 0.4492,
+          "fro_norm": 11.6785
+        },
+        {
+          "layer": 2,
+          "rank90": 180,
+          "rank90_frac": 0.3516,
+          "fro_norm": 13.7552
+        },
+        {
+          "layer": 3,
+          "rank90": 188,
+          "rank90_frac": 0.3672,
+          "fro_norm": 18.607
+        },
+        {
+          "layer": 4,
+          "rank90": 205,
+          "rank90_frac": 0.4004,
+          "fro_norm": 8.1702
+        },
+        {
+          "layer": 5,
+          "rank90": 240,
+          "rank90_frac": 0.4688,
+          "fro_norm": 8.2678
+        }
+      ],
+      "mean_rank90": 206.0
+    },
+    "load_time": 2.1
+  }
+}

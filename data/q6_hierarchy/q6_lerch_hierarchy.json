@@ -1,0 +1,58 @@
+{
+  "experiment": "Q6_lerch_hierarchy",
+  "date": "2026-04-23",
+  "claim_tested": "err_Pade(z) = z^2/(2+3z+z^2) predicts observed error before measuring gamma_obs",
+  "result": "NEGATIVE \u2014 mean ratio err_obs/err_pred = 88.6x for standard models",
+  "valid_regime": "z < 0.01 (theta > 290K): err_pred < 0.001, negligible",
+  "invalid_regime": "z > 0.03: model-specific spread 5-1300x larger than prediction",
+  "math_hierarchy": {
+    "level_0": {
+      "formula": "gamma=1",
+      "error": "O(z)"
+    },
+    "level_1": {
+      "formula": "gamma=1-z",
+      "error": "O(z^2)"
+    },
+    "pade": {
+      "formula": "(2-z)/(2+z)",
+      "error": "O(z^2/(2+3z))"
+    },
+    "lerch": {
+      "formula": "1/(1+z)",
+      "error": "O(z^3/(1+z)^2)",
+      "improvement": "~5%_globally"
+    },
+    "exact": {
+      "formula": "Lerch_sum",
+      "error": "0 (pre-softmax)"
+    }
+  },
+  "paper_claim_revised": "Hierarchy valid mathematically. z predicts REGIME not exact error. For non-anomalous large-theta models (z<0.01): any formula works. For z~0.3 (theta=10K): use 1/(1+z). Anomalous models (GQA/SWA/Hagedorn): must measure.",
+  "per_model": {
+    "pythia-70m": {
+      "z": 0.2896,
+      "err_pred": 0.0284,
+      "err_obs": 0.0056,
+      "ratio": 0.2
+    },
+    "Qwen2.5-7B": {
+      "z": 0.0029,
+      "err_pred": 0.0,
+      "err_obs": 0.0001,
+      "ratio": 26.8
+    },
+    "LLaMA-2-7b": {
+      "z": 0.2896,
+      "err_pred": 0.0284,
+      "err_obs": 0.4884,
+      "ratio": 17.2
+    },
+    "SmolLM2-135M": {
+      "z": 0.029,
+      "err_pred": 0.0004,
+      "err_obs": 0.2239,
+      "ratio": 557.1
+    }
+  }
+}

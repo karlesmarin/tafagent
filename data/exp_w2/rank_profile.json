@@ -1,0 +1,489 @@
+{
+  "pythia-70m": {
+    "model": "pythia-70m",
+    "pe": "RoPE",
+    "d_model": 512,
+    "L_crit": 4,
+    "f_active": 0.374,
+    "rank90_pred": 191,
+    "k_thresh_rho": 191,
+    "layers": [
+      {
+        "layer": 0,
+        "label": "pre_Lcrit",
+        "rank90": 193,
+        "rank50": 55,
+        "rho": 0.8981,
+        "fro_norm": 10.7524,
+        "rank90_frac": 0.377,
+        "rank90_err_pct": 1.0
+      },
+      {
+        "layer": 1,
+        "label": "pre_Lcrit",
+        "rank90": 230,
+        "rank50": 78,
+        "rho": 0.8394,
+        "fro_norm": 11.6785,
+        "rank90_frac": 0.4492,
+        "rank90_err_pct": 20.4
+      },
+      {
+        "layer": 2,
+        "label": "pre_Lcrit",
+        "rank90": 180,
+        "rank50": 53,
+        "rho": 0.9157,
+        "fro_norm": 13.7552,
+        "rank90_frac": 0.3516,
+        "rank90_err_pct": -5.8
+      },
+      {
+        "layer": 3,
+        "label": "pre_Lcrit",
+        "rank90": 188,
+        "rank50": 53,
+        "rho": 0.9051,
+        "fro_norm": 18.607,
+        "rank90_frac": 0.3672,
+        "rank90_err_pct": -1.6
+      },
+      {
+        "layer": 4,
+        "label": "at_Lcrit",
+        "rank90": 205,
+        "rank50": 69,
+        "rho": 0.8797,
+        "fro_norm": 8.1702,
+        "rank90_frac": 0.4004,
+        "rank90_err_pct": 7.3
+      },
+      {
+        "layer": 5,
+        "label": "post_Lcrit",
+        "rank90": 240,
+        "rank50": 82,
+        "rho": 0.8183,
+        "fro_norm": 8.2678,
+        "rank90_frac": 0.4688,
+        "rank90_err_pct": 25.7
+      }
+    ],
+    "summary": {
+      "mean_rank90": 206.0,
+      "std_rank90": 21.99,
+      "pre_Lcrit_mean_rho": 0.8896,
+      "post_Lcrit_mean_rho": 0.8183
+    }
+  },
+  "gpt2-medium": {
+    "model": "gpt2-medium",
+    "pe": "AbsPE",
+    "d_model": 1024,
+    "L_crit": 23,
+    "f_active": null,
+    "rank90_pred": null,
+    "k_thresh_rho": 512,
+    "layers": [
+      {
+        "layer": 0,
+        "label": "pre_Lcrit",
+        "rank90": 419,
+        "rank50": 102,
+        "rho": 0.9437,
+        "fro_norm": 43.0384,
+        "rank90_frac": 0.4092
+      },
+      {
+        "layer": 1,
+        "label": "pre_Lcrit",
+        "rank90": 268,
+        "rank50": 20,
+        "rho": 0.9792,
+        "fro_norm": 92.178,
+        "rank90_frac": 0.2617
+      },
+      {
+        "layer": 2,
+        "label": "pre_Lcrit",
+        "rank90": 392,
+        "rank50": 97,
+        "rho": 0.9542,
+        "fro_norm": 72.4524,
+        "rank90_frac": 0.3828
+      },
+      {
+        "layer": 3,
+        "label": "pre_Lcrit",
+        "rank90": 429,
+        "rank50": 126,
+        "rho": 0.9423,
+        "fro_norm": 69.9871,
+        "rank90_frac": 0.4189
+      },
+      {
+        "layer": 4,
+        "label": "pre_Lcrit",
+        "rank90": 431,
+        "rank50": 125,
+        "rho": 0.9418,
+        "fro_norm": 72.3096,
+        "rank90_frac": 0.4209
+      },
+      {
+        "layer": 5,
+        "label": "pre_Lcrit",
+        "rank90": 437,
+        "rank50": 131,
+        "rho": 0.9398,
+        "fro_norm": 78.4996,
+        "rank90_frac": 0.4268
+      },
+      {
+        "layer": 6,
+        "label": "pre_Lcrit",
+        "rank90": 431,
+        "rank50": 121,
+        "rho": 0.9413,
+        "fro_norm": 84.0501,
+        "rank90_frac": 0.4209
+      },
+      {
+        "layer": 7,
+        "label": "pre_Lcrit",
+        "rank90": 430,
+        "rank50": 130,
+        "rho": 0.9424,
+        "fro_norm": 87.7387,
+        "rank90_frac": 0.4199
+      },
+      {
+        "layer": 8,
+        "label": "pre_Lcrit",
+        "rank90": 415,
+        "rank50": 119,
+        "rho": 0.9479,
+        "fro_norm": 91.8613,
+        "rank90_frac": 0.4053
+      },
+      {
+        "layer": 9,
+        "label": "pre_Lcrit",
+        "rank90": 406,
+        "rank50": 96,
+        "rho": 0.9503,
+        "fro_norm": 98.2563,
+        "rank90_frac": 0.3965
+      },
+      {
+        "layer": 10,
+        "label": "pre_Lcrit",
+        "rank90": 393,
+        "rank50": 89,
+        "rho": 0.9538,
+        "fro_norm": 97.6642,
+        "rank90_frac": 0.3838
+      },
+      {
+        "layer": 11,
+        "label": "pre_Lcrit",
+        "rank90": 420,
+        "rank50": 113,
+        "rho": 0.9453,
+        "fro_norm": 97.9002,
+        "rank90_frac": 0.4102
+      },
+      {
+        "layer": 12,
+        "label": "pre_Lcrit",
+        "rank90": 405,
+        "rank50": 114,
+        "rho": 0.9504,
+        "fro_norm": 96.6644,
+        "rank90_frac": 0.3955
+      },
+      {
+        "layer": 13,
+        "label": "pre_Lcrit",
+        "rank90": 428,
+        "rank50": 130,
+        "rho": 0.9426,
+        "fro_norm": 94.9417,
+        "rank90_frac": 0.418
+      },
+      {
+        "layer": 14,
+        "label": "pre_Lcrit",
+        "rank90": 460,
+        "rank50": 145,
+        "rho": 0.9289,
+        "fro_norm": 95.5705,
+        "rank90_frac": 0.4492
+      },
+      {
+        "layer": 15,
+        "label": "pre_Lcrit",
+        "rank90": 419,
+        "rank50": 117,
+        "rho": 0.9465,
+        "fro_norm": 100.0642,
+        "rank90_frac": 0.4092
+      },
+      {
+        "layer": 16,
+        "label": "pre_Lcrit",
+        "rank90": 458,
+        "rank50": 144,
+        "rho": 0.9291,
+        "fro_norm": 103.4509,
+        "rank90_frac": 0.4473
+      },
+      {
+        "layer": 17,
+        "label": "pre_Lcrit",
+        "rank90": 448,
+        "rank50": 140,
+        "rho": 0.9345,
+        "fro_norm": 105.379,
+        "rank90_frac": 0.4375
+      },
+      {
+        "layer": 18,
+        "label": "pre_Lcrit",
+        "rank90": 479,
+        "rank50": 157,
+        "rho": 0.9192,
+        "fro_norm": 108.1156,
+        "rank90_frac": 0.4678
+      },
+      {
+        "layer": 19,
+        "label": "pre_Lcrit",
+        "rank90": 505,
+        "rank50": 162,
+        "rho": 0.9046,
+        "fro_norm": 115.4507,
+        "rank90_frac": 0.4932
+      },
+      {
+        "layer": 20,
+        "label": "pre_Lcrit",
+        "rank90": 498,
+        "rank50": 163,
+        "rho": 0.9089,
+        "fro_norm": 117.7071,
+        "rank90_frac": 0.4863
+      },
+      {
+        "layer": 21,
+        "label": "pre_Lcrit",
+        "rank90": 499,
+        "rank50": 153,
+        "rho": 0.908,
+        "fro_norm": 123.4158,
+        "rank90_frac": 0.4873
+      },
+      {
+        "layer": 22,
+        "label": "pre_Lcrit",
+        "rank90": 490,
+        "rank50": 141,
+        "rho": 0.913,
+        "fro_norm": 132.9368,
+        "rank90_frac": 0.4785
+      },
+      {
+        "layer": 23,
+        "label": "at_Lcrit",
+        "rank90": 408,
+        "rank50": 45,
+        "rho": 0.9462,
+        "fro_norm": 145.1893,
+        "rank90_frac": 0.3984
+      }
+    ],
+    "summary": {
+      "mean_rank90": 432.0,
+      "std_rank90": 47.56,
+      "pre_Lcrit_mean_rho": 0.9377,
+      "post_Lcrit_mean_rho": 0.0
+    }
+  },
+  "pythia-1b": {
+    "model": "pythia-1b",
+    "pe": "RoPE",
+    "d_model": 2048,
+    "L_crit": 15,
+    "f_active": 0.128,
+    "rank90_pred": 262,
+    "k_thresh_rho": 262,
+    "layers": [
+      {
+        "layer": 0,
+        "label": "pre_Lcrit",
+        "rank90": 810,
+        "rank50": 211,
+        "rho": 0.563,
+        "fro_norm": 36.8091,
+        "rank90_frac": 0.3955,
+        "rank90_err_pct": 209.2
+      },
+      {
+        "layer": 1,
+        "label": "pre_Lcrit",
+        "rank90": 894,
+        "rank50": 265,
+        "rho": 0.4974,
+        "fro_norm": 32.1104,
+        "rank90_frac": 0.4365,
+        "rank90_err_pct": 241.2
+      },
+      {
+        "layer": 2,
+        "label": "pre_Lcrit",
+        "rank90": 930,
+        "rank50": 280,
+        "rho": 0.4807,
+        "fro_norm": 35.3559,
+        "rank90_frac": 0.4541,
+        "rank90_err_pct": 255.0
+      },
+      {
+        "layer": 3,
+        "label": "pre_Lcrit",
+        "rank90": 893,
+        "rank50": 278,
+        "rho": 0.4817,
+        "fro_norm": 36.2661,
+        "rank90_frac": 0.436,
+        "rank90_err_pct": 240.8
+      },
+      {
+        "layer": 4,
+        "label": "pre_Lcrit",
+        "rank90": 917,
+        "rank50": 274,
+        "rho": 0.4865,
+        "fro_norm": 37.3924,
+        "rank90_frac": 0.4478,
+        "rank90_err_pct": 250.0
+      },
+      {
+        "layer": 5,
+        "label": "pre_Lcrit",
+        "rank90": 899,
+        "rank50": 273,
+        "rho": 0.4879,
+        "fro_norm": 40.6263,
+        "rank90_frac": 0.439,
+        "rank90_err_pct": 243.1
+      },
+      {
+        "layer": 6,
+        "label": "pre_Lcrit",
+        "rank90": 865,
+        "rank50": 247,
+        "rho": 0.518,
+        "fro_norm": 42.9162,
+        "rank90_frac": 0.4224,
+        "rank90_err_pct": 230.2
+      },
+      {
+        "layer": 7,
+        "label": "pre_Lcrit",
+        "rank90": 907,
+        "rank50": 295,
+        "rho": 0.4617,
+        "fro_norm": 42.1987,
+        "rank90_frac": 0.4429,
+        "rank90_err_pct": 246.2
+      },
+      {
+        "layer": 8,
+        "label": "pre_Lcrit",
+        "rank90": 837,
+        "rank50": 235,
+        "rho": 0.5343,
+        "fro_norm": 44.9326,
+        "rank90_frac": 0.4087,
+        "rank90_err_pct": 219.5
+      },
+      {
+        "layer": 9,
+        "label": "pre_Lcrit",
+        "rank90": 903,
+        "rank50": 291,
+        "rho": 0.4654,
+        "fro_norm": 45.1014,
+        "rank90_frac": 0.4409,
+        "rank90_err_pct": 244.7
+      },
+      {
+        "layer": 10,
+        "label": "pre_Lcrit",
+        "rank90": 960,
+        "rank50": 322,
+        "rho": 0.4331,
+        "fro_norm": 45.0008,
+        "rank90_frac": 0.4688,
+        "rank90_err_pct": 266.4
+      },
+      {
+        "layer": 11,
+        "label": "pre_Lcrit",
+        "rank90": 901,
+        "rank50": 290,
+        "rho": 0.4662,
+        "fro_norm": 52.5301,
+        "rank90_frac": 0.4399,
+        "rank90_err_pct": 243.9
+      },
+      {
+        "layer": 12,
+        "label": "pre_Lcrit",
+        "rank90": 947,
+        "rank50": 311,
+        "rho": 0.4436,
+        "fro_norm": 52.3493,
+        "rank90_frac": 0.4624,
+        "rank90_err_pct": 261.5
+      },
+      {
+        "layer": 13,
+        "label": "pre_Lcrit",
+        "rank90": 1001,
+        "rank50": 348,
+        "rho": 0.4063,
+        "fro_norm": 54.4121,
+        "rank90_frac": 0.4888,
+        "rank90_err_pct": 282.1
+      },
+      {
+        "layer": 14,
+        "label": "pre_Lcrit",
+        "rank90": 1015,
+        "rank50": 352,
+        "rho": 0.4052,
+        "fro_norm": 51.9307,
+        "rank90_frac": 0.4956,
+        "rank90_err_pct": 287.4
+      },
+      {
+        "layer": 15,
+        "label": "at_Lcrit",
+        "rank90": 1039,
+        "rank50": 364,
+        "rho": 0.3934,
+        "fro_norm": 51.225,
+        "rank90_frac": 0.5073,
+        "rank90_err_pct": 296.6
+      }
+    ],
+    "summary": {
+      "mean_rank90": 919.9,
+      "std_rank90": 59.62,
+      "pre_Lcrit_mean_rho": 0.4754,
+      "post_Lcrit_mean_rho": 0.0
+    }
+  }
+}

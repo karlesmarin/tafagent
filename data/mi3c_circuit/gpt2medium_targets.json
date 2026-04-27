@@ -1,0 +1,82 @@
+[
+  {
+    "layer": 1,
+    "head": 8,
+    "label": "top-1 MI-2b",
+    "mean_attn_short": 0.022860591299831867,
+    "mean_attn_long": 0.003218296985141933,
+    "ratio": 7.103297294314412,
+    "induction": "YES",
+    "ov_top": [
+      " Thumbnails",
+      " Each",
+      " guiActiveUnfocused",
+      " https",
+      " The",
+      " Houses",
+      " Though",
+      " EVERY"
+    ],
+    "n_pairs": 10
+  },
+  {
+    "layer": 7,
+    "head": 0,
+    "label": "top-2 MI-2b",
+    "mean_attn_short": 0.00786478203954175,
+    "mean_attn_long": 0.001453155224226066,
+    "ratio": 5.412173308599796,
+    "induction": "YES",
+    "ov_top": [
+      "surv",
+      " perpet",
+      "Program",
+      " Juda",
+      " athlet",
+      "Community",
+      "atever",
+      "paste"
+    ],
+    "n_pairs": 10
+  },
+  {
+    "layer": 22,
+    "head": 9,
+    "label": "near L_crit-1",
+    "mean_attn_short": 0.016976462613092734,
+    "mean_attn_long": 0.002230018798582023,
+    "ratio": 7.612665192434878,
+    "induction": "YES",
+    "ov_top": [
+      " Flowers",
+      " Collect",
+      " Doct",
+      "arted",
+      " Powell",
+      "Barn",
+      "learn",
+      "anian"
+    ],
+    "n_pairs": 10
+  },
+  {
+    "layer": 23,
+    "head": 5,
+    "label": "L_crit",
+    "mean_attn_short": 0.10905305915512145,
+    "mean_attn_long": 0.017094450870354196,
+    "ratio": 6.379438344513399,
+    "induction": "YES",
+    "ov_top": [
+      "The",
+      "This",
+      "5",
+      "1",
+      "esp",
+      " followed",
+      "When",
+      "For"
+    ],
+    "n_pairs": 10
+  }
+]

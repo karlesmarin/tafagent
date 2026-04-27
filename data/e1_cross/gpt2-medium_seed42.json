@@ -1,0 +1,157 @@
+{
+  "model": "gpt2-medium",
+  "n_layers": 24,
+  "L_crit": 23,
+  "n_prompts": 30,
+  "seed": 42,
+  "logp_gap": 4.162486102183659,
+  "mean_delta_pre_lcrit": 32.67454236379804,
+  "cross_wins_layers": 22,
+  "interpretation": "Crystallized residual IS useful when injected early",
+  "per_layer": [
+    {
+      "layer": 0,
+      "R_std": 5.79,
+      "R_cross": 17.04,
+      "delta": 11.25
+    },
+    {
+      "layer": 1,
+      "R_std": -1.54,
+      "R_cross": 20.2,
+      "delta": 21.74
+    },
+    {
+      "layer": 2,
+      "R_std": -21.26,
+      "R_cross": 19.01,
+      "delta": 40.28
+    },
+    {
+      "layer": 3,
+      "R_std": -29.6,
+      "R_cross": 21.67,
+      "delta": 51.27
+    },
+    {
+      "layer": 4,
+      "R_std": -26.49,
+      "R_cross": 18.44,
+      "delta": 44.93
+    },
+    {
+      "layer": 5,
+      "R_std": -25.21,
+      "R_cross": 29.79,
+      "delta": 55.0
+    },
+    {
+      "layer": 6,
+      "R_std": -19.6,
+      "R_cross": 28.69,
+      "delta": 48.29
+    },
+    {
+      "layer": 7,
+      "R_std": -8.72,
+      "R_cross": 36.14,
+      "delta": 44.87
+    },
+    {
+      "layer": 8,
+      "R_std": -2.99,
+      "R_cross": 38.69,
+      "delta": 41.68
+    },
+    {
+      "layer": 9,
+      "R_std": 1.06,
+      "R_cross": 42.66,
+      "delta": 41.61
+    },
+    {
+      "layer": 10,
+      "R_std": 3.4,
+      "R_cross": 44.52,
+      "delta": 41.13
+    },
+    {
+      "layer": 11,
+      "R_std": 17.14,
+      "R_cross": 46.96,
+      "delta": 29.82
+    },
+    {
+      "layer": 12,
+      "R_std": 28.7,
+      "R_cross": 49.77,
+      "delta": 21.07
+    },
+    {
+      "layer": 13,
+      "R_std": 25.42,
+      "R_cross": 52.57,
+      "delta": 27.15
+    },
+    {
+      "layer": 14,
+      "R_std": 26.2,
+      "R_cross": 55.31,
+      "delta": 29.11
+    },
+    {
+      "layer": 15,
+      "R_std": 23.99,
+      "R_cross": 58.04,
+      "delta": 34.06
+    },
+    {
+      "layer": 16,
+      "R_std": 24.36,
+      "R_cross": 61.94,
+      "delta": 37.59
+    },
+    {
+      "layer": 17,
+      "R_std": 30.28,
+      "R_cross": 66.59,
+      "delta": 36.31
+    },
+    {
+      "layer": 18,
+      "R_std": 33.87,
+      "R_cross": 67.98,
+      "delta": 34.11
+    },
+    {
+      "layer": 19,
+      "R_std": 42.27,
+      "R_cross": 69.1,
+      "delta": 26.83
+    },
+    {
+      "layer": 20,
+      "R_std": 53.52,
+      "R_cross": 73.36,
+      "delta": 19.84
+    },
+    {
+      "layer": 21,
+      "R_std": 68.11,
+      "R_cross": 77.5,
+      "delta": 9.38
+    },
+    {
+      "layer": 22,
+      "R_std": 83.15,
+      "R_cross": 87.35,
+      "delta": 4.2
+    },
+    {
+      "layer": 23,
+      "R_std": 93.07,
+      "R_cross": 93.07,
+      "delta": 0.0
+    }
+  ]
+}

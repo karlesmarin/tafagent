@@ -1,0 +1,35 @@
+[
+  {
+    "model": "mistralai--Mistral-7B-v0.1",
+    "g_mongo": 1.060750419523944,
+    "g_random": 0.8296009929924347,
+    "delta_g": 0.23114942653150938,
+    "R2_m": 0.99869,
+    "R2_r": 0.996923,
+    "arch": "SWA+RoPE",
+    "class": "SWA_amplifies",
+    "theta": 10000
+  },
+  {
+    "model": "google--gemma-2-9b-it",
+    "g_mongo": 0.6276459084140061,
+    "g_random": 1.1347958464287666,
+    "delta_g": -0.5071499380147605,
+    "R2_m": 0.977314,
+    "R2_r": 0.976472,
+    "arch": "SWA+RoPE(alt)",
+    "class": "local_in_text",
+    "theta": 10000
+  },
+  {
+    "model": "meta-llama--Llama-2-7b-hf",
+    "g_mongo": 0.2870574377368437,
+    "g_random": 0.8266242679750889,
+    "delta_g": -0.5395668302382453,
+    "R2_m": 0.814928,
+    "R2_r": 0.993628,
+    "arch": "RoPE",
+    "class": "local_in_text",
+    "theta": 10000
+  }
+]

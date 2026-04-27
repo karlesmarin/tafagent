@@ -1,0 +1,110 @@
+{
+  "mean_pearson_r": 0.0153,
+  "mean_slope_ratio": -0.0196,
+  "H0_supported": false,
+  "H0_partial": false,
+  "per_file": {
+    "EleutherAI--pythia-1b_T1000": {
+      "model": "EleutherAI/pythia-1b",
+      "T_seq": 1000,
+      "ln_T": 6.908,
+      "n_layers": 16,
+      "pearson_r_H_1minusR": 0.075,
+      "pearson_r_H_R": -0.075,
+      "ols_slope": 0.1629,
+      "slope_vs_lnT_ratio": 0.0236,
+      "mae_vs_theory": 2.5022,
+      "H_attn_mean": 3.3132,
+      "H_attn_range": [
+        2.106,
+        4.388
+      ],
+      "R_max": 0.9076
+    },
+    "EleutherAI--pythia-70m_T500": {
+      "model": "EleutherAI/pythia-70m",
+      "T_seq": 500,
+      "ln_T": 6.215,
+      "n_layers": 6,
+      "pearson_r_H_1minusR": 0.6141,
+      "pearson_r_H_R": -0.6141,
+      "ols_slope": 0.5616,
+      "slope_vs_lnT_ratio": 0.0904,
+      "mae_vs_theory": 5.9782,
+      "H_attn_mean": 2.489,
+      "H_attn_range": [
+        0.674,
+        3.681
+      ],
+      "R_max": 1.2949
+    },
+    "gpt2-large_T200": {
+      "model": "gpt2-large",
+      "T_seq": 200,
+      "ln_T": 5.298,
+      "n_layers": 36,
+      "pearson_r_H_1minusR": -0.2319,
+      "pearson_r_H_R": 0.2319,
+      "ols_slope": -0.4107,
+      "slope_vs_lnT_ratio": -0.0775,
+      "mae_vs_theory": 2.3358,
+      "H_attn_mean": 2.256,
+      "H_attn_range": [
+        1.418,
+        3.782
+      ],
+      "R_max": 1.0004
+    },
+    "gpt2-medium_T200": {
+      "model": "gpt2-medium",
+      "T_seq": 200,
+      "ln_T": 5.298,
+      "n_layers": 24,
+      "pearson_r_H_1minusR": -0.152,
+      "pearson_r_H_R": 0.152,
+      "ols_slope": -0.3266,
+      "slope_vs_lnT_ratio": -0.0616,
+      "mae_vs_theory": 2.6443,
+      "H_attn_mean": 2.1176,
+      "H_attn_range": [
+        1.268,
+        4.093
+      ],
+      "R_max": 0.932
+    },
+    "gpt2-medium_T500": {
+      "model": "gpt2-medium",
+      "T_seq": 500,
+      "ln_T": 6.215,
+      "n_layers": 24,
+      "pearson_r_H_1minusR": -0.2643,
+      "pearson_r_H_R": 0.2643,
+      "ols_slope": -0.6838,
+      "slope_vs_lnT_ratio": -0.11,
+      "mae_vs_theory": 3.0876,
+      "H_attn_mean": 2.5431,
+      "H_attn_range": [
+        1.569,
+        4.912
+      ],
+      "R_max": 0.932
+    },
+    "gpt2-xl_T200": {
+      "model": "gpt2-xl",
+      "T_seq": 200,
+      "ln_T": 5.298,
+      "n_layers": 48,
+      "pearson_r_H_1minusR": 0.0509,
+      "pearson_r_H_R": -0.0509,
+      "ols_slope": 0.0943,
+      "slope_vs_lnT_ratio": 0.0178,
+      "mae_vs_theory": 1.8847,
+      "H_attn_mean": 2.2185,
+      "H_attn_range": [
+        1.427,
+        4.104
+      ],
+      "R_max": 1.0052
+    }
+  }
+}

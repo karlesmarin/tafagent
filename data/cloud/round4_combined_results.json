@@ -1,0 +1,81 @@
+{
+  "phase_AB_rc": [
+    {
+      "label": "Mistral-7B (4bit)",
+      "hf_id": "mistralai/Mistral-7B-v0.1",
+      "phase": "A",
+      "n_kv": 8,
+      "d_head": 128,
+      "n_params_M": 7240,
+      "theta": 10000,
+      "T_train": 32768,
+      "R_c": 0.9574147216280355,
+      "error": "load: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`"
+    },
+    {
+      "label": "Gemma-2-9b (4bit)",
+      "hf_id": "google/gemma-2-9b",
+      "phase": "A",
+      "n_kv": 16,
+      "d_head": 256,
+      "n_params_M": 9240,
+      "theta": 10000,
+      "T_train": 8192,
+      "R_c": 0.8830371105651076,
+      "error": "load: You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/google/gemma-2-9b.\n401 Client Error. (Request ID: Root=1-69ecc931-748a97af79a21cbd0472673c;838debda-8ccf-406b-a3c9-b7e1f43062b3)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-9b/resolve/main/config.json.\nAccess to model google/gemma-2-9b is restricted. You must have access to it and be authenticated to access it. Please log in."
+    },
+    {
+      "label": "OLMo-7B (4bit)",
+      "hf_id": "allenai/OLMo-7B-hf",
+      "phase": "B",
+      "n_kv": 32,
+      "d_head": 128,
+      "n_params_M": 6890,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 0.48704080868743954,
+      "error": "load: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`"
+    },
+    {
+      "label": "Falcon-7B (4bit)",
+      "hf_id": "tiiuae/falcon-7b",
+      "phase": "B",
+      "n_kv": 1,
+      "d_head": 64,
+      "n_params_M": 6920,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 1.4588955689285732,
+      "error": "load: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`"
+    },
+    {
+      "label": "pythia-6.9b (4bit)",
+      "hf_id": "EleutherAI/pythia-6.9b",
+      "phase": "B",
+      "n_kv": 32,
+      "d_head": 128,
+      "n_params_M": 6900,
+      "theta": 10000,
+      "T_train": 2048,
+      "R_c": 0.4867927697741792,
+      "error": "load: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`"
+    }
+  ],
+  "phase_C_multifractal": [
+    {
+      "label": "Llama-3-8B (4bit)",
+      "hf_id": "meta-llama/Meta-Llama-3-8B",
+      "phase": "C",
+      "error": "load: You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.\n401 Client Error. (Request ID: Root=1-69ecc936-20895f6374a7bc1b2e481224;f56b13e3-d463-4c02-a912-bb4a7de5e9d6)\n\nCannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.\nAccess to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in."
+    },
+    {
+      "label": "Mistral-7B (4bit)",
+      "hf_id": "mistralai/Mistral-7B-v0.1",
+      "phase": "C",
+      "error": "load: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`"
+    }
+  ],
+  "elapsed_min": 0.17913634777069093,
+  "n_completed_rc": 0,
+  "n_completed_mf": 0
+}

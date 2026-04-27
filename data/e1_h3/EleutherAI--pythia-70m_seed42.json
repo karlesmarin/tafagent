@@ -1,0 +1,61 @@
+{
+  "tau_90": 0.9,
+  "tau_99": 0.99,
+  "N_prompts": 50,
+  "dist_short": 10,
+  "dist_long": 1000,
+  "vocab_low": 1000,
+  "vocab_high": 49000,
+  "n_prefix": 20,
+  "ref_logp_d10": {
+    "mean": -15.7736,
+    "std": 14.0313
+  },
+  "baseline_logp_d1000": {
+    "mean": -16.482,
+    "std": 11.7338
+  },
+  "logp_gap": 0.7085,
+  "layer_sweep": {
+    "0": {
+      "recovery_pct": 0.0,
+      "logp_transplant_mean": -16.482,
+      "logp_transplant_std": 11.7338
+    },
+    "1": {
+      "recovery_pct": -167.46,
+      "logp_transplant_mean": -17.6685,
+      "logp_transplant_std": 16.7109
+    },
+    "2": {
+      "recovery_pct": -70.17,
+      "logp_transplant_mean": -16.9792,
+      "logp_transplant_std": 13.0732
+    },
+    "3": {
+      "recovery_pct": -63.83,
+      "logp_transplant_mean": -16.9343,
+      "logp_transplant_std": 12.0846
+    },
+    "4": {
+      "recovery_pct": 129.49,
+      "logp_transplant_mean": -15.5646,
+      "logp_transplant_std": 13.3919
+    },
+    "5": {
+      "recovery_pct": 95.89,
+      "logp_transplant_mean": -15.8027,
+      "logp_transplant_std": 14.5107
+    }
+  },
+  "L_crit_90": 4,
+  "L_crit_99": 4,
+  "alpha_90": 0.6667,
+  "alpha_99": 0.6667,
+  "recovery_at_Lcrit": 1.2949,
+  "n_layers": 6,
+  "d_model": 512,
+  "model": "EleutherAI/pythia-70m",
+  "seed": 42,
+  "runtime_seconds": 6.5
+}

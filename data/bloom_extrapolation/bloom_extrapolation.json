@@ -1,0 +1,35 @@
+{
+  "random": {
+    "model": "bloom-7b1",
+    "training_window": 2048,
+    "distances": [
+      10,
+      20,
+      50,
+      100,
+      200,
+      500,
+      1000,
+      2000,
+      3000
+    ],
+    "means": [
+      0.011754,
+      0.006069,
+      0.002389,
+      0.00128,
+      0.000567,
+      0.000224,
+      8.2e-05,
+      2e-05,
+      6e-06
+    ],
+    "gamma_short": 1.1505681472053984,
+    "r2_short": 0.9847279057720187,
+    "gamma_local_extrapolation": 2.969362295916118,
+    "delta_gamma": 1.8187941487107198,
+    "n_prompts": 15,
+    "seed": 42,
+    "note": "d=5000,8000 failed OOM (seq^2 attention matrix). d=3000 is only extrapolation point."
+  }
+}

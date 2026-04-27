@@ -1,0 +1,50 @@
+{
+  "model": "mistral",
+  "l_crit": 31,
+  "rope_theta": 10000,
+  "n_layers": 32,
+  "n_prompts": 50,
+  "passkey_digits": 5,
+  "distances": {
+    "100": {
+      "exact_match_base": 0.02,
+      "exact_match_transplant": 0.02,
+      "digit_overlap_base": 0.02,
+      "digit_overlap_transplant": 0.02,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    },
+    "200": {
+      "exact_match_base": 0.02,
+      "exact_match_transplant": 0.02,
+      "digit_overlap_base": 0.02,
+      "digit_overlap_transplant": 0.02,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    },
+    "500": {
+      "exact_match_base": 0.0,
+      "exact_match_transplant": 0.0,
+      "digit_overlap_base": 0.0,
+      "digit_overlap_transplant": 0.0,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    },
+    "1000": {
+      "exact_match_base": 0.0,
+      "exact_match_transplant": 0.0,
+      "digit_overlap_base": 0.0,
+      "digit_overlap_transplant": 0.0,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    },
+    "2000": {
+      "exact_match_base": 0.0,
+      "exact_match_transplant": 0.0,
+      "digit_overlap_base": 0.0,
+      "digit_overlap_transplant": 0.0,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    }
+  }
+}

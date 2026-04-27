@@ -1,0 +1,486 @@
+{
+  "horizon_results": [
+    {
+      "name": "pythia-14m",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.685,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": 2643.7820305491095,
+      "d_horizon_alpha4": 10575.128122196438,
+      "alpha_opt_4xTtrain": 3.0985913003949634
+    },
+    {
+      "name": "pythia-31m",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 1.235,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "pythia-70m",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.748,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": 2038.7975841991988,
+      "d_horizon_alpha4": 8155.190336796795,
+      "alpha_opt_4xTtrain": 4.018054594280709
+    },
+    {
+      "name": "pythia-160m",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.511,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": 4576.773209797773,
+      "d_horizon_alpha4": 18307.092839191093,
+      "alpha_opt_4xTtrain": 1.789907348361264
+    },
+    {
+      "name": "pythia-410m",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 1.022,
+      "arch": "MHA",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "pythia-1b",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.931,
+      "arch": "MHA",
+      "phase": "A",
+      "d_horizon_alpha1": 505.3378343021414,
+      "d_horizon_alpha4": 2021.3513372085656,
+      "alpha_opt_4xTtrain": 16.210937404504737
+    },
+    {
+      "name": "pythia-1.4b",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.705,
+      "arch": "MHA",
+      "phase": "A",
+      "d_horizon_alpha1": 2446.879770674857,
+      "d_horizon_alpha4": 9787.519082699428,
+      "alpha_opt_4xTtrain": 3.3479372783978767
+    },
+    {
+      "name": "pythia-2.8b",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 0.674,
+      "arch": "MHA",
+      "phase": "A",
+      "d_horizon_alpha1": 2754.0837594601494,
+      "d_horizon_alpha4": 11016.335037840598,
+      "alpha_opt_4xTtrain": 2.974491960115906
+    },
+    {
+      "name": "gpt2-117m",
+      "theta": null,
+      "T_train": 1024,
+      "gamma": 1.023,
+      "arch": "AbsPE",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "gpt2-345m",
+      "theta": null,
+      "T_train": 1024,
+      "gamma": 0.784,
+      "arch": "AbsPE",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "gpt2-774m",
+      "theta": null,
+      "T_train": 1024,
+      "gamma": 0.753,
+      "arch": "AbsPE",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "gpt2-1.5b",
+      "theta": null,
+      "T_train": 1024,
+      "gamma": 1.01,
+      "arch": "AbsPE",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "Qwen2.5-0.5B",
+      "theta": 1000000,
+      "T_train": 8192,
+      "gamma": 1.028,
+      "arch": "GQA-MHA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "Qwen2.5-3B",
+      "theta": 1000000,
+      "T_train": 8192,
+      "gamma": 0.772,
+      "arch": "GQA-n2",
+      "phase": "B",
+      "d_horizon_alpha1": 181964.2732624524,
+      "d_horizon_alpha4": 727857.0930498096,
+      "alpha_opt_4xTtrain": 0.1800793057477704
+    },
+    {
+      "name": "Qwen2.5-7B",
+      "theta": 1000000,
+      "T_train": 8192,
+      "gamma": 0.997,
+      "arch": "GQA",
+      "phase": "H",
+      "d_horizon_alpha1": 2124.507104215969,
+      "d_horizon_alpha4": 8498.028416863875,
+      "alpha_opt_4xTtrain": 15.423812862274593
+    },
+    {
+      "name": "gemma-2-9b",
+      "theta": null,
+      "T_train": 8192,
+      "gamma": 0.628,
+      "arch": "SWA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "phi-3-mini",
+      "theta": null,
+      "T_train": 4096,
+      "gamma": 0.63,
+      "arch": "SWA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "Llama-2-7b",
+      "theta": 10000,
+      "T_train": 4096,
+      "gamma": 1.026,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "Llama-3-8B",
+      "theta": 500000,
+      "T_train": 8192,
+      "gamma": 1.045,
+      "arch": "GQA",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "Mistral-7B",
+      "theta": 10000,
+      "T_train": 8192,
+      "gamma": 1.061,
+      "arch": "GQA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "DeepSeek-7B",
+      "theta": 10000,
+      "T_train": 4096,
+      "gamma": 0.947,
+      "arch": "MHA",
+      "phase": "A",
+      "d_horizon_alpha1": 384.9682527261125,
+      "d_horizon_alpha4": 1539.87301090445,
+      "alpha_opt_4xTtrain": 42.55935361936579
+    },
+    {
+      "name": "phi-2",
+      "theta": 10000,
+      "T_train": 2048,
+      "gamma": 1.045,
+      "arch": "MHA",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "bloom-7b1",
+      "theta": null,
+      "T_train": 2048,
+      "gamma": 1.151,
+      "arch": "ALiBi",
+      "phase": "B",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "mamba-2.8b",
+      "theta": null,
+      "T_train": 2048,
+      "gamma": 0.703,
+      "arch": "SSM",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    },
+    {
+      "name": "gpt-j-6B",
+      "theta": null,
+      "T_train": 2048,
+      "gamma": 0.897,
+      "arch": "AbsPE",
+      "phase": "A",
+      "d_horizon_alpha1": null,
+      "d_horizon_alpha4": null,
+      "alpha_opt_4xTtrain": null
+    }
+  ],
+  "phase_diagram": [
+    {
+      "name": "pythia-14m",
+      "gamma_rand": 1.004,
+      "gamma_text": 0.685,
+      "delta_gamma": 0.31899999999999995,
+      "arch": "MHA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "pythia-31m",
+      "gamma_rand": 1.54,
+      "gamma_text": 1.235,
+      "delta_gamma": 0.30499999999999994,
+      "arch": "MHA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "pythia-70m",
+      "gamma_rand": 1.171,
+      "gamma_text": 0.748,
+      "delta_gamma": 0.42300000000000004,
+      "arch": "MHA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "pythia-160m",
+      "gamma_rand": 1.017,
+      "gamma_text": 0.511,
+      "delta_gamma": 0.5059999999999999,
+      "arch": "MHA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "pythia-410m",
+      "gamma_rand": 0.936,
+      "gamma_text": 1.022,
+      "delta_gamma": -0.08599999999999997,
+      "arch": "MHA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "pythia-1b",
+      "gamma_rand": 0.713,
+      "gamma_text": 0.931,
+      "delta_gamma": -0.21800000000000008,
+      "arch": "MHA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "pythia-1.4b",
+      "gamma_rand": 0.688,
+      "gamma_text": 0.705,
+      "delta_gamma": -0.017000000000000015,
+      "arch": "MHA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "pythia-2.8b",
+      "gamma_rand": 0.551,
+      "gamma_text": 0.674,
+      "delta_gamma": -0.123,
+      "arch": "MHA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "gpt2-117m",
+      "gamma_rand": 1.051,
+      "gamma_text": 1.023,
+      "delta_gamma": 0.028000000000000025,
+      "arch": "AbsPE",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "gpt2-345m",
+      "gamma_rand": 0.741,
+      "gamma_text": 0.784,
+      "delta_gamma": -0.04300000000000004,
+      "arch": "AbsPE",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "gpt2-774m",
+      "gamma_rand": 0.727,
+      "gamma_text": 0.753,
+      "delta_gamma": -0.026000000000000023,
+      "arch": "AbsPE",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "gpt2-1.5b",
+      "gamma_rand": 1.024,
+      "gamma_text": 1.01,
+      "delta_gamma": 0.014000000000000012,
+      "arch": "AbsPE",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "Qwen2.5-0.5B",
+      "gamma_rand": 0.919,
+      "gamma_text": 1.028,
+      "delta_gamma": -0.10899999999999999,
+      "arch": "GQA-MHA",
+      "phase": "B",
+      "region": "post-IH"
+    },
+    {
+      "name": "Qwen2.5-3B",
+      "gamma_rand": 0.964,
+      "gamma_text": 0.772,
+      "delta_gamma": 0.19199999999999995,
+      "arch": "GQA-n2",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "Qwen2.5-7B",
+      "gamma_rand": 0.827,
+      "gamma_text": 0.997,
+      "delta_gamma": -0.17000000000000004,
+      "arch": "GQA",
+      "phase": "H",
+      "region": "post-IH"
+    },
+    {
+      "name": "gemma-2-9b",
+      "gamma_rand": 1.135,
+      "gamma_text": 0.628,
+      "delta_gamma": 0.507,
+      "arch": "SWA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "phi-3-mini",
+      "gamma_rand": 1.037,
+      "gamma_text": 0.63,
+      "delta_gamma": 0.4069999999999999,
+      "arch": "SWA",
+      "phase": "B",
+      "region": "pre-IH"
+    },
+    {
+      "name": "Llama-3-8B",
+      "gamma_rand": 0.759,
+      "gamma_text": 1.045,
+      "delta_gamma": -0.2859999999999999,
+      "arch": "GQA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "Mistral-7B",
+      "gamma_rand": 0.83,
+      "gamma_text": 1.061,
+      "delta_gamma": -0.23099999999999998,
+      "arch": "GQA",
+      "phase": "B",
+      "region": "post-IH"
+    },
+    {
+      "name": "DeepSeek-7B",
+      "gamma_rand": 0.91,
+      "gamma_text": 0.947,
+      "delta_gamma": -0.03699999999999992,
+      "arch": "MHA",
+      "phase": "A",
+      "region": "post-IH"
+    },
+    {
+      "name": "phi-2",
+      "gamma_rand": 0.871,
+      "gamma_text": 1.045,
+      "delta_gamma": -0.17399999999999993,
+      "arch": "MHA",
+      "phase": "B",
+      "region": "post-IH"
+    },
+    {
+      "name": "gpt-j-6B",
+      "gamma_rand": 0.835,
+      "gamma_text": 0.897,
+      "delta_gamma": -0.062000000000000055,
+      "arch": "AbsPE",
+      "phase": "A",
+      "region": "post-IH"
+    }
+  ],
+  "formula": {
+    "d_horizon": "theta * (1-gamma)*sqrt(2) / (1+gamma)",
+    "theta_design": "T_eval * sqrt(2) * (1+gamma) / (2*(1-gamma))",
+    "alpha_opt": "theta_design / theta_train",
+    "note": "d_horizon = T_eval when theta = theta_design. Inverse relationship.",
+    "validation": "pythia-70m: d_horizon(alpha=1)=2046, collapse at L=4096=2*d_horizon \u2713"
+  }
+}

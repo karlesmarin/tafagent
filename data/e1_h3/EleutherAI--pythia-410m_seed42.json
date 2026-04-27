@@ -1,0 +1,151 @@
+{
+  "tau_90": 0.9,
+  "tau_99": 0.99,
+  "N_prompts": 100,
+  "dist_short": 10,
+  "dist_long": 1000,
+  "vocab_low": 1000,
+  "vocab_high": 49000,
+  "n_prefix": 20,
+  "ref_logp_d10": {
+    "mean": -14.6451,
+    "std": 3.0988
+  },
+  "baseline_logp_d1000": {
+    "mean": -14.6291,
+    "std": 2.388
+  },
+  "logp_gap": -0.0161,
+  "layer_sweep": {
+    "0": {
+      "recovery_pct": -0.0,
+      "logp_transplant_mean": -14.6291,
+      "logp_transplant_std": 2.388
+    },
+    "1": {
+      "recovery_pct": -5050.33,
+      "logp_transplant_mean": -13.8177,
+      "logp_transplant_std": 2.233
+    },
+    "2": {
+      "recovery_pct": -3127.33,
+      "logp_transplant_mean": -14.1266,
+      "logp_transplant_std": 2.35
+    },
+    "3": {
+      "recovery_pct": 1832.75,
+      "logp_transplant_mean": -14.9235,
+      "logp_transplant_std": 2.2994
+    },
+    "4": {
+      "recovery_pct": 945.74,
+      "logp_transplant_mean": -14.781,
+      "logp_transplant_std": 2.3575
+    },
+    "5": {
+      "recovery_pct": 1694.84,
+      "logp_transplant_mean": -14.9014,
+      "logp_transplant_std": 2.4098
+    },
+    "6": {
+      "recovery_pct": 2094.07,
+      "logp_transplant_mean": -14.9655,
+      "logp_transplant_std": 2.3604
+    },
+    "7": {
+      "recovery_pct": 1837.22,
+      "logp_transplant_mean": -14.9242,
+      "logp_transplant_std": 2.4151
+    },
+    "8": {
+      "recovery_pct": -162.02,
+      "logp_transplant_mean": -14.603,
+      "logp_transplant_std": 2.5811
+    },
+    "9": {
+      "recovery_pct": 524.54,
+      "logp_transplant_mean": -14.7133,
+      "logp_transplant_std": 2.5711
+    },
+    "10": {
+      "recovery_pct": -1133.04,
+      "logp_transplant_mean": -14.447,
+      "logp_transplant_std": 2.5077
+    },
+    "11": {
+      "recovery_pct": 294.75,
+      "logp_transplant_mean": -14.6764,
+      "logp_transplant_std": 2.5075
+    },
+    "12": {
+      "recovery_pct": 63.72,
+      "logp_transplant_mean": -14.6393,
+      "logp_transplant_std": 2.5217
+    },
+    "13": {
+      "recovery_pct": 279.82,
+      "logp_transplant_mean": -14.674,
+      "logp_transplant_std": 2.3902
+    },
+    "14": {
+      "recovery_pct": 90.83,
+      "logp_transplant_mean": -14.6437,
+      "logp_transplant_std": 2.4973
+    },
+    "15": {
+      "recovery_pct": 356.09,
+      "logp_transplant_mean": -14.6863,
+      "logp_transplant_std": 2.6265
+    },
+    "16": {
+      "recovery_pct": 2421.84,
+      "logp_transplant_mean": -15.0182,
+      "logp_transplant_std": 2.9079
+    },
+    "17": {
+      "recovery_pct": 2248.68,
+      "logp_transplant_mean": -14.9903,
+      "logp_transplant_std": 3.0452
+    },
+    "18": {
+      "recovery_pct": 1279.96,
+      "logp_transplant_mean": -14.8347,
+      "logp_transplant_std": 2.8254
+    },
+    "19": {
+      "recovery_pct": -1248.61,
+      "logp_transplant_mean": -14.4285,
+      "logp_transplant_std": 2.8562
+    },
+    "20": {
+      "recovery_pct": -7.37,
+      "logp_transplant_mean": -14.6279,
+      "logp_transplant_std": 2.8882
+    },
+    "21": {
+      "recovery_pct": 401.03,
+      "logp_transplant_mean": -14.6935,
+      "logp_transplant_std": 2.9714
+    },
+    "22": {
+      "recovery_pct": 558.51,
+      "logp_transplant_mean": -14.7188,
+      "logp_transplant_std": 3.2055
+    },
+    "23": {
+      "recovery_pct": 116.62,
+      "logp_transplant_mean": -14.6478,
+      "logp_transplant_std": 3.0985
+    }
+  },
+  "L_crit_90": null,
+  "L_crit_99": null,
+  "alpha_90": null,
+  "alpha_99": null,
+  "recovery_at_Lcrit": null,
+  "n_layers": 24,
+  "d_model": 1024,
+  "model": "EleutherAI/pythia-410m",
+  "seed": 42,
+  "runtime_seconds": 331.3
+}

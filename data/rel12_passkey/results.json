@@ -1,0 +1,56 @@
+[
+  {
+    "d": 100,
+    "f_dead": 0.3005,
+    "T_cross": 628.3,
+    "pred": "PASS",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": false
+  },
+  {
+    "d": 300,
+    "f_dead": 0.4197,
+    "T_cross": 628.3,
+    "pred": "PASS",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": false
+  },
+  {
+    "d": 500,
+    "f_dead": 0.4752,
+    "T_cross": 628.3,
+    "pred": "PASS",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": false
+  },
+  {
+    "d": 700,
+    "f_dead": 0.5117,
+    "T_cross": 628.3,
+    "pred": "FAIL",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": true
+  },
+  {
+    "d": 1000,
+    "f_dead": 0.5505,
+    "T_cross": 628.3,
+    "pred": "FAIL",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": true
+  },
+  {
+    "d": 1500,
+    "f_dead": 0.5945,
+    "T_cross": 628.3,
+    "pred": "FAIL",
+    "match_rate": 0.0,
+    "n_trials": 60,
+    "confirms_rel12": true
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "theta": 1000000.0,
+  "d_head": 64,
+  "n_layers": 24,
+  "n_heads": 14,
+  "d_long": 1000,
+  "n_dead_pairs": 11,
+  "k_pred": 23,
+  "k_obs_90_mean": null,
+  "k_obs_90_std": null,
+  "err_90_pct": null,
+  "snr_active_vs_dead_mean": null,
+  "layers": []
+}

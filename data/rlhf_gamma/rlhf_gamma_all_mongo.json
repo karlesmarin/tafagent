@@ -1,0 +1,9 @@
+[
+  {
+    "pair": "pythia-70m",
+    "gamma_base": 0.7476017873166874,
+    "R2_base": 0.984269,
+    "gamma_instruct": null,
+    "status": "base_only \u2014 instruct measurement pending"
+  }
+]

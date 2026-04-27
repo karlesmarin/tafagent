@@ -1,0 +1,51 @@
+{
+  "model": "EleutherAI/pythia-2.8b",
+  "n_layers": 32,
+  "n_heads": 32,
+  "n_prompts": 50,
+  "seq_len": 1100,
+  "summary": {
+    "PUNCT": {
+      "median_gamma_good": 0.2856476458860821,
+      "iqr_gamma_good": 1.2096973106029958,
+      "n_good": 300,
+      "n_total": 1024,
+      "mean_r2": 0.30846221533659146
+    },
+    "COMMON": {
+      "median_gamma_good": -0.421589187258973,
+      "iqr_gamma_good": 1.3949766244469055,
+      "n_good": 242,
+      "n_total": 1024,
+      "mean_r2": 0.27288483897702187
+    },
+    "RARE": {
+      "median_gamma_good": 0.5851144126693855,
+      "iqr_gamma_good": 1.4518170241225195,
+      "n_good": 148,
+      "n_total": 1024,
+      "mean_r2": 0.22978847887629006
+    },
+    "NUMERIC": {
+      "median_gamma_good": 0.8695919211258053,
+      "iqr_gamma_good": 0.42385599184562506,
+      "n_good": 614,
+      "n_total": 1024,
+      "mean_r2": 0.5189374455325683
+    },
+    "WHITESP": {
+      "median_gamma_good": 0.8481436473418742,
+      "iqr_gamma_good": 0.5575323551567233,
+      "n_good": 613,
+      "n_total": 1024,
+      "mean_r2": 0.497662638153801
+    },
+    "MID": {
+      "median_gamma_good": -0.38145584725038295,
+      "iqr_gamma_good": 1.0269605167046376,
+      "n_good": 334,
+      "n_total": 1024,
+      "mean_r2": 0.3412117810330888
+    }
+  }
+}

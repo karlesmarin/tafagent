@@ -1,0 +1,200 @@
+[
+  {
+    "name": "pythia-14m",
+    "gamma_rand": 1.004,
+    "gamma_text": 0.685,
+    "delta_gamma": 0.31899999999999995,
+    "arch": "MHA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "pythia-31m",
+    "gamma_rand": 1.54,
+    "gamma_text": 1.235,
+    "delta_gamma": 0.30499999999999994,
+    "arch": "MHA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "pythia-70m",
+    "gamma_rand": 1.171,
+    "gamma_text": 0.748,
+    "delta_gamma": 0.42300000000000004,
+    "arch": "MHA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "pythia-160m",
+    "gamma_rand": 1.017,
+    "gamma_text": 0.511,
+    "delta_gamma": 0.5059999999999999,
+    "arch": "MHA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "pythia-410m",
+    "gamma_rand": 0.936,
+    "gamma_text": 1.022,
+    "delta_gamma": -0.08599999999999997,
+    "arch": "MHA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "pythia-1b",
+    "gamma_rand": 0.713,
+    "gamma_text": 0.931,
+    "delta_gamma": -0.21800000000000008,
+    "arch": "MHA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "pythia-1.4b",
+    "gamma_rand": 0.688,
+    "gamma_text": 0.705,
+    "delta_gamma": -0.017000000000000015,
+    "arch": "MHA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "pythia-2.8b",
+    "gamma_rand": 0.551,
+    "gamma_text": 0.674,
+    "delta_gamma": -0.123,
+    "arch": "MHA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "gpt2-117m",
+    "gamma_rand": 1.051,
+    "gamma_text": 1.023,
+    "delta_gamma": 0.028000000000000025,
+    "arch": "AbsPE",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "gpt2-345m",
+    "gamma_rand": 0.741,
+    "gamma_text": 0.784,
+    "delta_gamma": -0.04300000000000004,
+    "arch": "AbsPE",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "gpt2-774m",
+    "gamma_rand": 0.727,
+    "gamma_text": 0.753,
+    "delta_gamma": -0.026000000000000023,
+    "arch": "AbsPE",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "gpt2-1.5b",
+    "gamma_rand": 1.024,
+    "gamma_text": 1.01,
+    "delta_gamma": 0.014000000000000012,
+    "arch": "AbsPE",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "Qwen2.5-0.5B",
+    "gamma_rand": 0.919,
+    "gamma_text": 1.028,
+    "delta_gamma": -0.10899999999999999,
+    "arch": "GQA-MHA",
+    "phase": "B",
+    "region": "post-IH"
+  },
+  {
+    "name": "Qwen2.5-3B",
+    "gamma_rand": 0.964,
+    "gamma_text": 0.772,
+    "delta_gamma": 0.19199999999999995,
+    "arch": "GQA-n2",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "Qwen2.5-7B",
+    "gamma_rand": 0.827,
+    "gamma_text": 0.997,
+    "delta_gamma": -0.17000000000000004,
+    "arch": "GQA",
+    "phase": "H",
+    "region": "post-IH"
+  },
+  {
+    "name": "gemma-2-9b",
+    "gamma_rand": 1.135,
+    "gamma_text": 0.628,
+    "delta_gamma": 0.507,
+    "arch": "SWA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "phi-3-mini",
+    "gamma_rand": 1.037,
+    "gamma_text": 0.63,
+    "delta_gamma": 0.4069999999999999,
+    "arch": "SWA",
+    "phase": "B",
+    "region": "pre-IH"
+  },
+  {
+    "name": "Llama-3-8B",
+    "gamma_rand": 0.759,
+    "gamma_text": 1.045,
+    "delta_gamma": -0.2859999999999999,
+    "arch": "GQA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "Mistral-7B",
+    "gamma_rand": 0.83,
+    "gamma_text": 1.061,
+    "delta_gamma": -0.23099999999999998,
+    "arch": "GQA",
+    "phase": "B",
+    "region": "post-IH"
+  },
+  {
+    "name": "DeepSeek-7B",
+    "gamma_rand": 0.91,
+    "gamma_text": 0.947,
+    "delta_gamma": -0.03699999999999992,
+    "arch": "MHA",
+    "phase": "A",
+    "region": "post-IH"
+  },
+  {
+    "name": "phi-2",
+    "gamma_rand": 0.871,
+    "gamma_text": 1.045,
+    "delta_gamma": -0.17399999999999993,
+    "arch": "MHA",
+    "phase": "B",
+    "region": "post-IH"
+  },
+  {
+    "name": "gpt-j-6B",
+    "gamma_rand": 0.835,
+    "gamma_text": 0.897,
+    "delta_gamma": -0.062000000000000055,
+    "arch": "AbsPE",
+    "phase": "A",
+    "region": "post-IH"
+  }
+]

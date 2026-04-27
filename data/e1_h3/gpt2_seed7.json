@@ -1,0 +1,91 @@
+{
+  "tau_90": 0.9,
+  "tau_99": 0.99,
+  "N_prompts": 50,
+  "dist_short": 10,
+  "dist_long": 1000,
+  "vocab_low": 1000,
+  "vocab_high": 49000,
+  "n_prefix": 20,
+  "ref_logp_d10": {
+    "mean": -5.1622,
+    "std": 2.4225
+  },
+  "baseline_logp_d1000": {
+    "mean": -9.513,
+    "std": 2.2446
+  },
+  "logp_gap": 4.3509,
+  "layer_sweep": {
+    "0": {
+      "recovery_pct": -31.02,
+      "logp_transplant_mean": -10.8627,
+      "logp_transplant_std": 1.4275
+    },
+    "1": {
+      "recovery_pct": -31.11,
+      "logp_transplant_mean": -10.8667,
+      "logp_transplant_std": 1.5341
+    },
+    "2": {
+      "recovery_pct": -31.84,
+      "logp_transplant_mean": -10.8983,
+      "logp_transplant_std": 1.1872
+    },
+    "3": {
+      "recovery_pct": -36.91,
+      "logp_transplant_mean": -11.1188,
+      "logp_transplant_std": 1.0651
+    },
+    "4": {
+      "recovery_pct": -33.9,
+      "logp_transplant_mean": -10.9879,
+      "logp_transplant_std": 1.0012
+    },
+    "5": {
+      "recovery_pct": -29.9,
+      "logp_transplant_mean": -10.8137,
+      "logp_transplant_std": 0.987
+    },
+    "6": {
+      "recovery_pct": -19.62,
+      "logp_transplant_mean": -10.3664,
+      "logp_transplant_std": 1.0476
+    },
+    "7": {
+      "recovery_pct": -6.35,
+      "logp_transplant_mean": -9.7892,
+      "logp_transplant_std": 1.2019
+    },
+    "8": {
+      "recovery_pct": 7.39,
+      "logp_transplant_mean": -9.1916,
+      "logp_transplant_std": 1.4155
+    },
+    "9": {
+      "recovery_pct": 17.31,
+      "logp_transplant_mean": -8.7599,
+      "logp_transplant_std": 1.4997
+    },
+    "10": {
+      "recovery_pct": 45.37,
+      "logp_transplant_mean": -7.5392,
+      "logp_transplant_std": 1.9887
+    },
+    "11": {
+      "recovery_pct": 79.17,
+      "logp_transplant_mean": -6.0686,
+      "logp_transplant_std": 2.1742
+    }
+  },
+  "L_crit_90": null,
+  "L_crit_99": null,
+  "alpha_90": null,
+  "alpha_99": null,
+  "recovery_at_Lcrit": null,
+  "n_layers": 12,
+  "d_model": 768,
+  "model": "gpt2",
+  "seed": 7,
+  "runtime_seconds": 32.7
+}

@@ -1,0 +1,159 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "gamma_text": 0.931,
+  "gamma_target": 0.5,
+  "alpha_opt_theory": 10000.000000000018,
+  "C": 9.210340371976184,
+  "results": {
+    "alpha_1": {
+      "alpha": 1.0,
+      "results": {
+        "512": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "1024": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "2048": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "3072": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "4096": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        }
+      }
+    },
+    "alpha_4": {
+      "alpha": 4.0,
+      "results": {
+        "512": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "1024": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "2048": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "3072": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "4096": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        }
+      }
+    },
+    "alpha_8": {
+      "alpha": 8.0,
+      "results": {
+        "512": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "1024": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "2048": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "3072": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "4096": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        }
+      }
+    },
+    "alpha_16": {
+      "alpha": 16.0,
+      "results": {
+        "512": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "1024": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "2048": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "3072": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "4096": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        }
+      }
+    },
+    "alpha_opt": {
+      "alpha": 64.0,
+      "results": {
+        "512": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "1024": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "2048": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "3072": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        },
+        "4096": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 40
+        }
+      }
+    }
+  }
+}

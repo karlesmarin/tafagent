@@ -1,0 +1,1114 @@
+{
+  "model": "gpt2",
+  "N": 12,
+  "L_crit": null,
+  "n_heads": 12,
+  "d_head": 64,
+  "n_active": null,
+  "layer_stats": {
+    "0": {
+      "mean_stable_rank": 20.54891794294623,
+      "mean_spectral_entropy": 3.97858460744222,
+      "mean_top_singular_frac": 0.03878004057332873,
+      "max_stable_rank_head": 10,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 16.772587903834285,
+          "spectral_entropy": 3.891568899154663,
+          "top_singular_frac": 0.037108540534973145,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 25.95965481652204,
+          "spectral_entropy": 4.050695419311523,
+          "top_singular_frac": 0.026456860825419426,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 14.228952302908226,
+          "spectral_entropy": 3.902189016342163,
+          "top_singular_frac": 0.040134843438863754,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 23.39769034803083,
+          "spectral_entropy": 4.084882736206055,
+          "top_singular_frac": 0.02758875861763954,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 22.28319199036109,
+          "spectral_entropy": 4.074897766113281,
+          "top_singular_frac": 0.02853013575077057,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 31.514598281841884,
+          "spectral_entropy": 4.082849502563477,
+          "top_singular_frac": 0.023471342399716377,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 5.8548667665825835,
+          "spectral_entropy": 3.8688101768493652,
+          "top_singular_frac": 0.06529883295297623,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 20.271938306949398,
+          "spectral_entropy": 4.01046895980835,
+          "top_singular_frac": 0.03121809847652912,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 16.874305450544085,
+          "spectral_entropy": 3.9101405143737793,
+          "top_singular_frac": 0.03658284619450569,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 28.51838044894121,
+          "spectral_entropy": 4.045000076293945,
+          "top_singular_frac": 0.025383008643984795,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 37.74390616825879,
+          "spectral_entropy": 4.11109733581543,
+          "top_singular_frac": 0.021044833585619926,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 3.1669425305803394,
+          "spectral_entropy": 3.7104148864746094,
+          "top_singular_frac": 0.10254238545894623,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "1": {
+      "mean_stable_rank": 5.408035022885328,
+      "mean_spectral_entropy": 3.523526887098948,
+      "mean_top_singular_frac": 0.10943823866546154,
+      "max_stable_rank_head": 5,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 6.741789385862621,
+          "spectral_entropy": 3.927548408508301,
+          "top_singular_frac": 0.058860644698143005,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 4.912148493144858,
+          "spectral_entropy": 3.8125648498535156,
+          "top_singular_frac": 0.0784454494714737,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 2.0761865263019037,
+          "spectral_entropy": 2.965096950531006,
+          "top_singular_frac": 0.2135297656059265,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 2.707892599177071,
+          "spectral_entropy": 2.8835039138793945,
+          "top_singular_frac": 0.19209466874599457,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 2.8274264246558167,
+          "spectral_entropy": 3.1331522464752197,
+          "top_singular_frac": 0.1634136587381363,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 12.699378115222647,
+          "spectral_entropy": 3.9372670650482178,
+          "top_singular_frac": 0.04170381277799606,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 7.927121733790247,
+          "spectral_entropy": 3.8810224533081055,
+          "top_singular_frac": 0.05514828860759735,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 6.506350138531822,
+          "spectral_entropy": 3.9508345127105713,
+          "top_singular_frac": 0.058792535215616226,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 4.957943308873153,
+          "spectral_entropy": 3.3704967498779297,
+          "top_singular_frac": 0.09863679111003876,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 3.2391695065215416,
+          "spectral_entropy": 3.44173526763916,
+          "top_singular_frac": 0.12059128284454346,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 2.9336436658876712,
+          "spectral_entropy": 2.9010934829711914,
+          "top_singular_frac": 0.18215598165988922,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 7.367370376654579,
+          "spectral_entropy": 4.078006744384766,
+          "top_singular_frac": 0.049885984510183334,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "2": {
+      "mean_stable_rank": 2.9981938292263277,
+      "mean_spectral_entropy": 3.548010249932607,
+      "mean_top_singular_frac": 0.14282788274188837,
+      "max_stable_rank_head": 6,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 3.306441829390279,
+          "spectral_entropy": 3.748694896697998,
+          "top_singular_frac": 0.10423664003610611,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 5.899783138667421,
+          "spectral_entropy": 3.85343861579895,
+          "top_singular_frac": 0.06669148057699203,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 2.0174223599061762,
+          "spectral_entropy": 3.445655345916748,
+          "top_singular_frac": 0.18624968826770782,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 2.142010877003213,
+          "spectral_entropy": 3.5436182022094727,
+          "top_singular_frac": 0.1642923653125763,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 2.7519354311336497,
+          "spectral_entropy": 3.6701486110687256,
+          "top_singular_frac": 0.12455720454454422,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 2.0065955749831863,
+          "spectral_entropy": 3.4051661491394043,
+          "top_singular_frac": 0.19114762544631958,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 5.95398400109017,
+          "spectral_entropy": 3.710178852081299,
+          "top_singular_frac": 0.07370765507221222,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 1.867614619133873,
+          "spectral_entropy": 3.2985708713531494,
+          "top_singular_frac": 0.1951521635055542,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 2.418668100968061,
+          "spectral_entropy": 3.6216399669647217,
+          "top_singular_frac": 0.14443325996398926,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 2.4169053741147897,
+          "spectral_entropy": 3.5364794731140137,
+          "top_singular_frac": 0.1579783856868744,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 2.750753047183869,
+          "spectral_entropy": 3.3745944499969482,
+          "top_singular_frac": 0.14768365025520325,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 2.44621159714124,
+          "spectral_entropy": 3.3679375648498535,
+          "top_singular_frac": 0.157804474234581,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "3": {
+      "mean_stable_rank": 9.839873432042834,
+      "mean_spectral_entropy": 3.922416925430298,
+      "mean_top_singular_frac": 0.05075060483068228,
+      "max_stable_rank_head": 9,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 5.449403846858111,
+          "spectral_entropy": 3.9531264305114746,
+          "top_singular_frac": 0.06530832499265671,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 13.562461754989188,
+          "spectral_entropy": 3.9443273544311523,
+          "top_singular_frac": 0.040346067398786545,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 7.00235515207363,
+          "spectral_entropy": 3.8598008155822754,
+          "top_singular_frac": 0.06154673919081688,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 7.61780438950167,
+          "spectral_entropy": 3.8996005058288574,
+          "top_singular_frac": 0.056831177324056625,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 12.31611151004516,
+          "spectral_entropy": 3.9858994483947754,
+          "top_singular_frac": 0.04096503555774689,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 12.012644122151606,
+          "spectral_entropy": 3.946624755859375,
+          "top_singular_frac": 0.04275018721818924,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 7.479484687179621,
+          "spectral_entropy": 3.874399185180664,
+          "top_singular_frac": 0.0580713152885437,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 7.1967249712706955,
+          "spectral_entropy": 3.929482936859131,
+          "top_singular_frac": 0.05770816653966904,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 7.07705202251314,
+          "spectral_entropy": 3.9308109283447266,
+          "top_singular_frac": 0.057764697819948196,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 14.633598180230253,
+          "spectral_entropy": 3.929500102996826,
+          "top_singular_frac": 0.03891022130846977,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 13.43906103644516,
+          "spectral_entropy": 3.8707034587860107,
+          "top_singular_frac": 0.0422184020280838,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 10.2917795112558,
+          "spectral_entropy": 3.9447271823883057,
+          "top_singular_frac": 0.04658692330121994,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "4": {
+      "mean_stable_rank": 10.721275175771977,
+      "mean_spectral_entropy": 3.912612239519755,
+      "mean_top_singular_frac": 0.04788041456292073,
+      "max_stable_rank_head": 4,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 8.913847300362841,
+          "spectral_entropy": 3.86849308013916,
+          "top_singular_frac": 0.05322720482945442,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 10.17227629640135,
+          "spectral_entropy": 3.910954236984253,
+          "top_singular_frac": 0.04793316125869751,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 8.90250239087533,
+          "spectral_entropy": 3.9107863903045654,
+          "top_singular_frac": 0.05136754363775253,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 10.809024798176072,
+          "spectral_entropy": 3.889604330062866,
+          "top_singular_frac": 0.04699653014540672,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 15.46201226219978,
+          "spectral_entropy": 3.9376115798950195,
+          "top_singular_frac": 0.03761986643075943,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 10.740366184261916,
+          "spectral_entropy": 3.8961727619171143,
+          "top_singular_frac": 0.04705396667122841,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 11.845440222816366,
+          "spectral_entropy": 3.9918618202209473,
+          "top_singular_frac": 0.04162279888987541,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 13.276492322130073,
+          "spectral_entropy": 3.9776597023010254,
+          "top_singular_frac": 0.039631765335798264,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 8.523950149114564,
+          "spectral_entropy": 3.8947322368621826,
+          "top_singular_frac": 0.05289027467370033,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 15.434901394094016,
+          "spectral_entropy": 3.9583823680877686,
+          "top_singular_frac": 0.03709797561168671,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 6.815730461493818,
+          "spectral_entropy": 3.897758960723877,
+          "top_singular_frac": 0.05915495753288269,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 7.758758327337592,
+          "spectral_entropy": 3.8173294067382812,
+          "top_singular_frac": 0.05996892973780632,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "5": {
+      "mean_stable_rank": 13.397514340774647,
+      "mean_spectral_entropy": 3.930776576201121,
+      "mean_top_singular_frac": 0.041944171922902264,
+      "max_stable_rank_head": 1,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 12.499260733013466,
+          "spectral_entropy": 3.8399033546447754,
+          "top_singular_frac": 0.04469495639204979,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 18.231113922801015,
+          "spectral_entropy": 3.9823131561279297,
+          "top_singular_frac": 0.03350158408284187,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 11.792627459337753,
+          "spectral_entropy": 3.9038329124450684,
+          "top_singular_frac": 0.04441992565989494,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 10.031812854775813,
+          "spectral_entropy": 3.9716761112213135,
+          "top_singular_frac": 0.04597597196698189,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 8.8100196142071,
+          "spectral_entropy": 3.8733649253845215,
+          "top_singular_frac": 0.05302615091204643,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 17.239357698343944,
+          "spectral_entropy": 3.9256327152252197,
+          "top_singular_frac": 0.03581751883029938,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 15.395531245216064,
+          "spectral_entropy": 3.9918556213378906,
+          "top_singular_frac": 0.036198802292346954,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 14.315359434978093,
+          "spectral_entropy": 3.9171035289764404,
+          "top_singular_frac": 0.03969641029834747,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 14.31262862359247,
+          "spectral_entropy": 3.889373302459717,
+          "top_singular_frac": 0.0405779629945755,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 13.529798863266253,
+          "spectral_entropy": 4.002249240875244,
+          "top_singular_frac": 0.0385473407804966,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 7.624617578569405,
+          "spectral_entropy": 3.900118589401245,
+          "top_singular_frac": 0.05574554204940796,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 16.988044061194397,
+          "spectral_entropy": 3.971895456314087,
+          "top_singular_frac": 0.035127896815538406,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "6": {
+      "mean_stable_rank": 10.385380729293983,
+      "mean_spectral_entropy": 3.8834681709607444,
+      "mean_top_singular_frac": 0.05067484204967817,
+      "max_stable_rank_head": 9,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 10.493835308918278,
+          "spectral_entropy": 3.87605619430542,
+          "top_singular_frac": 0.048185236752033234,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 12.288235206129885,
+          "spectral_entropy": 3.9089105129241943,
+          "top_singular_frac": 0.043359722942113876,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 9.861276550430194,
+          "spectral_entropy": 3.8827483654022217,
+          "top_singular_frac": 0.049483560025691986,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 12.212110363160614,
+          "spectral_entropy": 3.953441619873047,
+          "top_singular_frac": 0.04202663525938988,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 8.237445353936831,
+          "spectral_entropy": 3.883042097091675,
+          "top_singular_frac": 0.05437833443284035,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 7.40615387605852,
+          "spectral_entropy": 3.8541159629821777,
+          "top_singular_frac": 0.059031132608652115,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 15.84816259608988,
+          "spectral_entropy": 3.9643642902374268,
+          "top_singular_frac": 0.036519892513751984,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 10.010067817406421,
+          "spectral_entropy": 3.929054021835327,
+          "top_singular_frac": 0.047457944601774216,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 5.8782343878074315,
+          "spectral_entropy": 3.7356553077697754,
+          "top_singular_frac": 0.07297303527593613,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 17.442705874675,
+          "spectral_entropy": 3.941126823425293,
+          "top_singular_frac": 0.03530983254313469,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 6.772004575042436,
+          "spectral_entropy": 3.826209545135498,
+          "top_singular_frac": 0.06285222619771957,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 8.17433684187231,
+          "spectral_entropy": 3.846893310546875,
+          "top_singular_frac": 0.056520551443099976,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "7": {
+      "mean_stable_rank": 10.130267363522004,
+      "mean_spectral_entropy": 3.8654574155807495,
+      "mean_top_singular_frac": 0.052597637909154095,
+      "max_stable_rank_head": 2,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 5.210730454141143,
+          "spectral_entropy": 3.737128257751465,
+          "top_singular_frac": 0.0797845721244812,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 9.865775000441863,
+          "spectral_entropy": 3.8715033531188965,
+          "top_singular_frac": 0.04969180002808571,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 15.905931163226311,
+          "spectral_entropy": 3.913206100463867,
+          "top_singular_frac": 0.037916842848062515,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 7.031114381829853,
+          "spectral_entropy": 3.8617441654205322,
+          "top_singular_frac": 0.061126116663217545,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 7.7627874438176345,
+          "spectral_entropy": 3.8367743492126465,
+          "top_singular_frac": 0.05827735364437103,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 11.834289504409465,
+          "spectral_entropy": 3.9347238540649414,
+          "top_singular_frac": 0.04330651834607124,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 11.408370017900852,
+          "spectral_entropy": 3.9280898571014404,
+          "top_singular_frac": 0.04426136985421181,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 12.013417672964428,
+          "spectral_entropy": 3.8746418952941895,
+          "top_singular_frac": 0.044802695512771606,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 7.101915322421357,
+          "spectral_entropy": 3.8180108070373535,
+          "top_singular_frac": 0.06276211887598038,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 6.4536232302721155,
+          "spectral_entropy": 3.8164315223693848,
+          "top_singular_frac": 0.06626778095960617,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 13.168109802964215,
+          "spectral_entropy": 3.913646697998047,
+          "top_singular_frac": 0.041452985256910324,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 13.807144367874807,
+          "spectral_entropy": 3.8795881271362305,
+          "top_singular_frac": 0.041521500796079636,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "8": {
+      "mean_stable_rank": 8.588102707164909,
+      "mean_spectral_entropy": 3.849526286125183,
+      "mean_top_singular_frac": 0.06226382311433554,
+      "max_stable_rank_head": 1,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 13.815290682213616,
+          "spectral_entropy": 3.928388833999634,
+          "top_singular_frac": 0.04022029787302017,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 15.726194469400188,
+          "spectral_entropy": 3.949498414993286,
+          "top_singular_frac": 0.03716174513101578,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 3.1238252788084044,
+          "spectral_entropy": 3.7848122119903564,
+          "top_singular_frac": 0.09919799864292145,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 10.796249397346587,
+          "spectral_entropy": 3.916820526123047,
+          "top_singular_frac": 0.0458897165954113,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 5.335745521056488,
+          "spectral_entropy": 3.732435464859009,
+          "top_singular_frac": 0.07991687953472137,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 4.6177851155437155,
+          "spectral_entropy": 3.699676036834717,
+          "top_singular_frac": 0.08782633394002914,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 13.736777877307071,
+          "spectral_entropy": 3.937767505645752,
+          "top_singular_frac": 0.03998145833611488,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 4.51364863846439,
+          "spectral_entropy": 3.619126558303833,
+          "top_singular_frac": 0.0964168831706047,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 7.821900576496092,
+          "spectral_entropy": 3.8958168029785156,
+          "top_singular_frac": 0.05545078217983246,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 9.144724399697461,
+          "spectral_entropy": 3.9262747764587402,
+          "top_singular_frac": 0.049821872264146805,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 7.904858234053957,
+          "spectral_entropy": 3.935814142227173,
+          "top_singular_frac": 0.05343753844499588,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 6.520232295590924,
+          "spectral_entropy": 3.8678841590881348,
+          "top_singular_frac": 0.061844371259212494,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "9": {
+      "mean_stable_rank": 10.42315899068788,
+      "mean_spectral_entropy": 3.852445125579834,
+      "mean_top_singular_frac": 0.05871348517636458,
+      "max_stable_rank_head": 5,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 11.765789759193764,
+          "spectral_entropy": 3.9414262771606445,
+          "top_singular_frac": 0.04304874688386917,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 15.305155734609425,
+          "spectral_entropy": 3.9585299491882324,
+          "top_singular_frac": 0.037246573716402054,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 10.230307747362096,
+          "spectral_entropy": 3.91330885887146,
+          "top_singular_frac": 0.047461435198783875,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 4.058931607314408,
+          "spectral_entropy": 3.5093493461608887,
+          "top_singular_frac": 0.11280500888824463,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 12.221413314786355,
+          "spectral_entropy": 3.935237407684326,
+          "top_singular_frac": 0.042423609644174576,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 16.716316241355518,
+          "spectral_entropy": 3.993741273880005,
+          "top_singular_frac": 0.03478403016924858,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 14.327458503403285,
+          "spectral_entropy": 3.942858934402466,
+          "top_singular_frac": 0.03885767608880997,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 3.3482205795352513,
+          "spectral_entropy": 3.7969913482666016,
+          "top_singular_frac": 0.09526665508747101,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 8.74447781232857,
+          "spectral_entropy": 3.8921151161193848,
+          "top_singular_frac": 0.0522313229739666,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 16.28833757151712,
+          "spectral_entropy": 3.956057071685791,
+          "top_singular_frac": 0.03622189909219742,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 4.201228750622032,
+          "spectral_entropy": 3.5410940647125244,
+          "top_singular_frac": 0.1073368713259697,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 7.870270266226736,
+          "spectral_entropy": 3.8486318588256836,
+          "top_singular_frac": 0.056877993047237396,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "10": {
+      "mean_stable_rank": 9.766436836913453,
+      "mean_spectral_entropy": 3.8401251832644143,
+      "mean_top_singular_frac": 0.05966843261073033,
+      "max_stable_rank_head": 8,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 7.787827189587669,
+          "spectral_entropy": 3.879901885986328,
+          "top_singular_frac": 0.05634399503469467,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 12.28844300101696,
+          "spectral_entropy": 3.9502358436584473,
+          "top_singular_frac": 0.041923750191926956,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 14.826304571414397,
+          "spectral_entropy": 3.919924736022949,
+          "top_singular_frac": 0.03889035806059837,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 7.470295062749167,
+          "spectral_entropy": 3.916905403137207,
+          "top_singular_frac": 0.05535682663321495,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 7.7879825939991605,
+          "spectral_entropy": 3.8939003944396973,
+          "top_singular_frac": 0.05543794482946396,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 4.087582821704354,
+          "spectral_entropy": 3.4018325805664062,
+          "top_singular_frac": 0.12106303870677948,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 11.820122696802231,
+          "spectral_entropy": 3.925790786743164,
+          "top_singular_frac": 0.04353642463684082,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 13.316274670840079,
+          "spectral_entropy": 3.9559335708618164,
+          "top_singular_frac": 0.04037044197320938,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 17.180158722134625,
+          "spectral_entropy": 3.9715254306793213,
+          "top_singular_frac": 0.03476087376475334,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 3.899515432019366,
+          "spectral_entropy": 3.401111125946045,
+          "top_singular_frac": 0.12437739968299866,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 9.20681444045566,
+          "spectral_entropy": 3.9301352500915527,
+          "top_singular_frac": 0.0494387187063694,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 7.52592084023777,
+          "spectral_entropy": 3.934305191040039,
+          "top_singular_frac": 0.05452141910791397,
+          "rope_alignment": null
+        }
+      ]
+    },
+    "11": {
+      "mean_stable_rank": 6.929702107275941,
+      "mean_spectral_entropy": 3.8606763084729514,
+      "mean_top_singular_frac": 0.0667615169659257,
+      "max_stable_rank_head": 7,
+      "per_head": [
+        {
+          "head": 0,
+          "stable_rank": 6.932838815581778,
+          "spectral_entropy": 3.885451316833496,
+          "top_singular_frac": 0.059482503682374954,
+          "rope_alignment": null
+        },
+        {
+          "head": 1,
+          "stable_rank": 10.631444741769325,
+          "spectral_entropy": 3.8975844383239746,
+          "top_singular_frac": 0.047052085399627686,
+          "rope_alignment": null
+        },
+        {
+          "head": 2,
+          "stable_rank": 6.872039949897464,
+          "spectral_entropy": 3.8743844032287598,
+          "top_singular_frac": 0.06043419614434242,
+          "rope_alignment": null
+        },
+        {
+          "head": 3,
+          "stable_rank": 3.932279224420238,
+          "spectral_entropy": 3.8263792991638184,
+          "top_singular_frac": 0.08522184193134308,
+          "rope_alignment": null
+        },
+        {
+          "head": 4,
+          "stable_rank": 3.292454816072897,
+          "spectral_entropy": 3.819840908050537,
+          "top_singular_frac": 0.09381072968244553,
+          "rope_alignment": null
+        },
+        {
+          "head": 5,
+          "stable_rank": 9.088192813772363,
+          "spectral_entropy": 3.915809154510498,
+          "top_singular_frac": 0.05038663372397423,
+          "rope_alignment": null
+        },
+        {
+          "head": 6,
+          "stable_rank": 9.068627276109853,
+          "spectral_entropy": 3.8489179611206055,
+          "top_singular_frac": 0.05285482481122017,
+          "rope_alignment": null
+        },
+        {
+          "head": 7,
+          "stable_rank": 10.93768566096611,
+          "spectral_entropy": 3.916231632232666,
+          "top_singular_frac": 0.04567831754684448,
+          "rope_alignment": null
+        },
+        {
+          "head": 8,
+          "stable_rank": 2.49842332153342,
+          "spectral_entropy": 3.7718639373779297,
+          "top_singular_frac": 0.11428188532590866,
+          "rope_alignment": null
+        },
+        {
+          "head": 9,
+          "stable_rank": 8.83917901209052,
+          "spectral_entropy": 3.92108154296875,
+          "top_singular_frac": 0.05084900185465813,
+          "rope_alignment": null
+        },
+        {
+          "head": 10,
+          "stable_rank": 5.8049308631137615,
+          "spectral_entropy": 3.794830083847046,
+          "top_singular_frac": 0.07052602618932724,
+          "rope_alignment": null
+        },
+        {
+          "head": 11,
+          "stable_rank": 5.258328791983553,
+          "spectral_entropy": 3.855741024017334,
+          "top_singular_frac": 0.07056015729904175,
+          "rope_alignment": null
+        }
+      ]
+    }
+  }
+}

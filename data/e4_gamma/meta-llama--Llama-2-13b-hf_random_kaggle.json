@@ -1,0 +1,32 @@
+{
+  "model": "meta-llama/Llama-2-13b-hf",
+  "corpus": "random",
+  "platform": "Kaggle T4 x2 Linux",
+  "note": "fit d>=50 gamma=0.999 R2=0.9998",
+  "attn_by_distance": {
+    "10": {
+      "mean_across_seeds": 0.179776
+    },
+    "20": {
+      "mean_across_seeds": 0.087794
+    },
+    "30": {
+      "mean_across_seeds": 0.057804
+    },
+    "50": {
+      "mean_across_seeds": 0.034621
+    },
+    "100": {
+      "mean_across_seeds": 0.017573
+    },
+    "200": {
+      "mean_across_seeds": 0.008675
+    },
+    "500": {
+      "mean_across_seeds": 0.003262
+    },
+    "1000": {
+      "mean_across_seeds": 0.0016
+    }
+  }
+}

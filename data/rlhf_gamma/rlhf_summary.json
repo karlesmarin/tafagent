@@ -1,0 +1,35 @@
+{
+  "experiments_done": "2026-04-21",
+  "pairs": [
+    {
+      "pair": "smollm2-135m",
+      "base": "HuggingFaceTB/SmolLM2-135M",
+      "instruct": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "theta": 10000,
+      "gamma_base": 0.9019,
+      "gamma_instruct": 0.9164,
+      "delta_gamma": 0.0145,
+      "delta_pct": 1.6,
+      "R2_base": 0.9995,
+      "R2_instruct": 0.9989,
+      "hypothesis": "H3: no change",
+      "significant": false
+    },
+    {
+      "pair": "qwen-0.5b",
+      "base": "Qwen/Qwen2.5-0.5B",
+      "instruct": "Qwen/Qwen2.5-0.5B-Instruct",
+      "theta": 1000000,
+      "gamma_base": 0.7992,
+      "gamma_instruct": 0.7169,
+      "delta_gamma": -0.0824,
+      "delta_pct": 10.3,
+      "R2_base": 0.9544,
+      "R2_instruct": 0.9567,
+      "hypothesis": "H2: more global attention after RLHF",
+      "significant": true
+    }
+  ],
+  "finding": "Small models (theta=10K): SFT does not change gamma significantly. Large-theta models (theta=1M): instruct version has lower gamma = more global attention. Consistent with instruction-following requiring long-range context.",
+  "caveat": "Only 2 pairs measured. More pairs needed for robust claim. GPU experiments pending for larger models."
+}

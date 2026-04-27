@@ -1,0 +1,63 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_chunks": 50,
+  "results": {
+    "baseline": {
+      "rope_eps": 0.0,
+      "attn_eps": 0.0,
+      "ppl": 15.714571287245102,
+      "mean_nll": 2.7545883893966674,
+      "std_nll": 0.2679922705033423,
+      "elapsed_sec": 6.97636604309082
+    },
+    "rope_only": {
+      "rope_eps": 0.5,
+      "attn_eps": 0.0,
+      "ppl": 42.76397567251078,
+      "mean_nll": 3.7556960582733154,
+      "std_nll": 0.30121930052588414,
+      "elapsed_sec": 8.34188723564148
+    },
+    "attn_only": {
+      "rope_eps": 0.0,
+      "attn_eps": 0.5,
+      "ppl": 15.779192556951937,
+      "mean_nll": 2.758692145347595,
+      "std_nll": 0.2672898058897529,
+      "elapsed_sec": 4.9933202266693115
+    },
+    "combined": {
+      "rope_eps": 0.5,
+      "attn_eps": 0.5,
+      "ppl": 39.49806311144223,
+      "mean_nll": 3.6762516355514525,
+      "std_nll": 0.29927777380443615,
+      "elapsed_sec": 4.9077088832855225
+    },
+    "rope_strong": {
+      "rope_eps": 1.0,
+      "attn_eps": 0.0,
+      "ppl": 520.7552048869337,
+      "mean_nll": 6.255280075073242,
+      "std_nll": 0.373678034428659,
+      "elapsed_sec": 4.857015609741211
+    },
+    "attn_strong": {
+      "rope_eps": 0.0,
+      "attn_eps": 1.0,
+      "ppl": 15.912686739617495,
+      "mean_nll": 2.76711669921875,
+      "std_nll": 0.2665913433348051,
+      "elapsed_sec": 4.992188453674316
+    },
+    "combined_strong": {
+      "rope_eps": 1.0,
+      "attn_eps": 1.0,
+      "ppl": 385.1322818408073,
+      "mean_nll": 5.953586864471435,
+      "std_nll": 0.3827877508428578,
+      "elapsed_sec": 4.99796986579895
+    }
+  },
+  "verdict": "WEAK INTERACTION \u2014 combined \u2248 better-of-the-two"
+}

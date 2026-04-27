@@ -1,0 +1,16 @@
+{
+  "codellama": {
+    "exact_match_at_d500_base": 0.22,
+    "exact_match_at_d500_transplant": 0.2,
+    "exact_match_at_d2000_base": 0.04,
+    "exact_match_at_d2000_transplant": 0.04,
+    "max_improvement_exact": 0.020000000000000018
+  },
+  "mistral": {
+    "exact_match_at_d500_base": 0.0,
+    "exact_match_at_d500_transplant": 0.0,
+    "exact_match_at_d2000_base": 0.0,
+    "exact_match_at_d2000_transplant": 0.0,
+    "max_improvement_exact": 0.0
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "model": "EleutherAI/pythia-1b",
+  "n_layers": 16,
+  "n_heads": 8,
+  "seq_len": 512,
+  "n_samples": 50,
+  "l_crit_from_e1": {
+    "mean": 15.0,
+    "values": [
+      15,
+      15
+    ]
+  },
+  "peak_cv_layer_1indexed": 11,
+  "peak_cv_value": 0.000822,
+  "min_entropy_layer_1indexed": 11,
+  "min_entropy_value": 2.265,
+  "variance_per_layer": [
+    6.2e-05,
+    0.000159,
+    0.000155,
+    0.00035,
+    0.00031,
+    0.000318,
+    0.000495,
+    0.000661,
+    0.000655,
+    0.000516,
+    0.000822,
+    0.000324,
+    0.000533,
+    0.000486,
+    0.00013,
+    0.000284
+  ],
+  "entropy_per_layer": [
+    4.5899,
+    4.0317,
+    4.2177,
+    3.9346,
+    3.5781,
+    3.4876,
+    3.0741,
+    2.438,
+    3.0571,
+    3.3015,
+    2.265,
+    3.9201,
+    3.2108,
+    3.3708,
+    4.6141,
+    3.5329
+  ],
+  "n_nan_layers": 0,
+  "dtype": "bfloat16",
+  "decision": "NEAR: peak_Cv=11, L_crit=15.0 (\u0394=4.0)",
+  "runtime_seconds": 5.9
+}

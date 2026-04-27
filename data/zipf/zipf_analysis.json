@@ -1,0 +1,90 @@
+[
+  {
+    "model": "EleutherAI/pythia-70m",
+    "total_tokens": 169329,
+    "vocab_used": 17324,
+    "alpha_zipf": 0.9973645096319834,
+    "zipf_R2": 0.978809,
+    "gamma_mongo": 0.7476017873166874,
+    "gamma_random": null,
+    "delta_gamma": null,
+    "alpha_vs_gamma_mongo": 0.24976272231529606,
+    "alpha_vs_gamma_random": null
+  },
+  {
+    "model": "EleutherAI/pythia-1b",
+    "total_tokens": 169329,
+    "vocab_used": 17324,
+    "alpha_zipf": 0.9973645096319834,
+    "zipf_R2": 0.978809,
+    "gamma_mongo": 0.9311078627189842,
+    "gamma_random": null,
+    "delta_gamma": null,
+    "alpha_vs_gamma_mongo": 0.06625664691299926,
+    "alpha_vs_gamma_random": null
+  },
+  {
+    "model": "EleutherAI/pythia-1.4b",
+    "total_tokens": 169329,
+    "vocab_used": 17324,
+    "alpha_zipf": 0.9973645096319834,
+    "zipf_R2": 0.978809,
+    "gamma_mongo": 0.7050725013322717,
+    "gamma_random": null,
+    "delta_gamma": null,
+    "alpha_vs_gamma_mongo": 0.2922920082997117,
+    "alpha_vs_gamma_random": null
+  },
+  {
+    "model": "meta-llama/Llama-2-7b-hf",
+    "total_tokens": 200246,
+    "vocab_used": 11341,
+    "alpha_zipf": 1.2322830988294957,
+    "zipf_R2": 0.927161,
+    "gamma_mongo": 0.2870574377368437,
+    "gamma_random": 0.8266242679750889,
+    "delta_gamma": -0.5395668302382453,
+    "alpha_vs_gamma_mongo": 0.9452256610926519,
+    "alpha_vs_gamma_random": 0.4056588308544068
+  },
+  {
+    "model": "mistralai/Mistral-7B-v0.1",
+    "total_tokens": 193925,
+    "vocab_used": 12353,
+    "alpha_zipf": 1.1648981055146908,
+    "zipf_R2": 0.939854,
+    "gamma_mongo": 1.060750419523944,
+    "gamma_random": 0.8296009929924347,
+    "delta_gamma": 0.23114942653150938,
+    "alpha_vs_gamma_mongo": 0.10414768599074664,
+    "alpha_vs_gamma_random": 0.335297112522256
+  },
+  {
+    "model": "google/gemma-2-9b-it",
+    "error": "You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/google/gemma-2-9b-it.\n401 Client Error. (Request ID: Root=1-69e770ce-6778cc954cb65267276b20ff;f52fb9d9-3b4a-484c-9d89-1a7f614879c1)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-9b-it/resolve/main/config.json.\nAccess to model google/gemma-2-9b-it is restricted. You must have access to it and be authenticated to access it. Please log in."
+  },
+  {
+    "model": "Qwen/Qwen2.5-7B",
+    "total_tokens": 172878,
+    "vocab_used": 17271,
+    "alpha_zipf": 1.0155457637932153,
+    "zipf_R2": 0.979609,
+    "gamma_mongo": 0.9966953735480816,
+    "gamma_random": null,
+    "delta_gamma": null,
+    "alpha_vs_gamma_mongo": 0.018850390245133686,
+    "alpha_vs_gamma_random": null
+  },
+  {
+    "model": "meta-llama/Meta-Llama-3-8B",
+    "total_tokens": 170402,
+    "vocab_used": 17622,
+    "alpha_zipf": 1.0072810259559108,
+    "zipf_R2": 0.977575,
+    "gamma_mongo": 1.0454762537473639,
+    "gamma_random": null,
+    "delta_gamma": null,
+    "alpha_vs_gamma_mongo": -0.03819522779145301,
+    "alpha_vs_gamma_random": null
+  }
+]

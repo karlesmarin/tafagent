@@ -118,12 +118,32 @@ Click flags top-right to switch.
 
 ## Local development
 
+### Browser application
+
 ```bash
 git clone https://github.com/karlesmarin/tafagent
 cd tafagent
 python -m http.server 8000
 # open http://localhost:8000
 ```
+
+### CLI diagnostic (for the paper)
+
+The directory `cli/diagnose_model.py` is the command-line companion
+described in the paper *Transformer Thermodynamics* (Marin 2026).
+It characterises any causal language model from HuggingFace in
+minutes on CPU and produces the raw `gamma_obs`, `R²`, and
+thermodynamic profile used in the manuscript.
+
+```bash
+pip install torch transformers numpy
+python cli/diagnose_model.py --model EleutherAI/pythia-2.8b --fast --cpu
+```
+
+### Reproducibility data
+
+The directory `data/` ships every measurement referenced in the
+paper (343 JSON files, ~5.5 MB). See `data/README.md` for the layout.
 
 ## Browser requirements
 
@@ -134,7 +154,7 @@ python -m http.server 8000
 
 ## How you can help
 
-This tool is at v0.2. There's a long way to go.
+This tool is at v0.3. There's a long way to go.
 
 - **🐛 Report bugs**: https://github.com/karlesmarin/tafagent/issues
 - **🌐 Translate**: add a language to `js/i18n.js`, send a PR

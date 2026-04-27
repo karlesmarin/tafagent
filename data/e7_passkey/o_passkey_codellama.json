@@ -1,0 +1,50 @@
+{
+  "model": "codellama",
+  "l_crit": 28,
+  "rope_theta": 1000000,
+  "n_layers": 40,
+  "n_prompts": 50,
+  "passkey_digits": 5,
+  "distances": {
+    "100": {
+      "exact_match_base": 0.3,
+      "exact_match_transplant": 0.3,
+      "digit_overlap_base": 0.43200000000000005,
+      "digit_overlap_transplant": 0.436,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.003999999999999948
+    },
+    "200": {
+      "exact_match_base": 0.44,
+      "exact_match_transplant": 0.46,
+      "digit_overlap_base": 0.5680000000000001,
+      "digit_overlap_transplant": 0.584,
+      "improvement_exact": 0.020000000000000018,
+      "improvement_digit": 0.015999999999999903
+    },
+    "500": {
+      "exact_match_base": 0.22,
+      "exact_match_transplant": 0.2,
+      "digit_overlap_base": 0.244,
+      "digit_overlap_transplant": 0.23199999999999998,
+      "improvement_exact": -0.01999999999999999,
+      "improvement_digit": -0.01200000000000001
+    },
+    "1000": {
+      "exact_match_base": 0.16,
+      "exact_match_transplant": 0.16,
+      "digit_overlap_base": 0.21200000000000002,
+      "digit_overlap_transplant": 0.21200000000000002,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    },
+    "2000": {
+      "exact_match_base": 0.04,
+      "exact_match_transplant": 0.04,
+      "digit_overlap_base": 0.09200000000000001,
+      "digit_overlap_transplant": 0.09200000000000001,
+      "improvement_exact": 0.0,
+      "improvement_digit": 0.0
+    }
+  }
+}

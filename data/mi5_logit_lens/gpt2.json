@@ -1,0 +1,91 @@
+{
+  "model": "gpt2",
+  "N": 12,
+  "L_crit": null,
+  "summary": {
+    "0": {
+      "rank_median": 1410.0,
+      "rank_mean": 7538.65,
+      "prob_mean": 2.0723215761599164e-06,
+      "entropy_mean": 1.2335072463989492,
+      "top1_acc": 0.0
+    },
+    "1": {
+      "rank_median": 1176.5,
+      "rank_mean": 5828.4,
+      "prob_mean": 3.7778498767853433e-06,
+      "entropy_mean": 0.9767906448571011,
+      "top1_acc": 0.0
+    },
+    "2": {
+      "rank_median": 457.5,
+      "rank_mean": 2046.25,
+      "prob_mean": 0.00020276291264603656,
+      "entropy_mean": 0.8634470824152232,
+      "top1_acc": 0.0
+    },
+    "3": {
+      "rank_median": 164.0,
+      "rank_mean": 735.9,
+      "prob_mean": 0.004644197407801644,
+      "entropy_mean": 0.7560844500549138,
+      "top1_acc": 0.0
+    },
+    "4": {
+      "rank_median": 105.0,
+      "rank_mean": 682.5,
+      "prob_mean": 0.013926062619341423,
+      "entropy_mean": 0.7917257328517735,
+      "top1_acc": 0.0
+    },
+    "5": {
+      "rank_median": 53.0,
+      "rank_mean": 224.05,
+      "prob_mean": 0.03508824152485183,
+      "entropy_mean": 0.5140653299167752,
+      "top1_acc": 0.0
+    },
+    "6": {
+      "rank_median": 19.0,
+      "rank_mean": 75.4,
+      "prob_mean": 0.09848060719183697,
+      "entropy_mean": 0.45440693941454813,
+      "top1_acc": 0.1
+    },
+    "7": {
+      "rank_median": 7.0,
+      "rank_mean": 39.85,
+      "prob_mean": 0.10439612692250629,
+      "entropy_mean": 0.32832070246007816,
+      "top1_acc": 0.1
+    },
+    "8": {
+      "rank_median": 2.0,
+      "rank_mean": 10.7,
+      "prob_mean": 0.2261893954086814,
+      "entropy_mean": 0.29561946169138614,
+      "top1_acc": 0.2
+    },
+    "9": {
+      "rank_median": 0.0,
+      "rank_mean": 1.9,
+      "prob_mean": 0.5549969809796357,
+      "entropy_mean": 0.30446562467295457,
+      "top1_acc": 0.55
+    },
+    "10": {
+      "rank_median": 0.0,
+      "rank_mean": 0.65,
+      "prob_mean": 0.720704834095075,
+      "entropy_mean": 0.15716689909388326,
+      "top1_acc": 0.75
+    },
+    "11": {
+      "rank_median": 0.0,
+      "rank_mean": 0.0,
+      "prob_mean": 0.9215896189212799,
+      "entropy_mean": 0.21304331419991565,
+      "top1_acc": 1.0
+    }
+  }
+}
