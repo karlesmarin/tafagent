@@ -4,6 +4,7 @@ emoji: 🔬
 colorFrom: blue
 colorTo: green
 sdk: static
+app_file: index.html
 pinned: true
 license: apache-2.0
 short_description: Test any transformer LLM in browser before spending GPU/$.
