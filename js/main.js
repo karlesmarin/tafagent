@@ -8,6 +8,7 @@
 //  5. i18n: EN/ES/FR/ZH
 
 import { initI18n, setLang, t } from "./i18n.js";
+import { initPhaseDiagram } from "./phase_diagram.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -145,7 +146,8 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     state.currentMode = mode;
     // Hide all mode sections
     ["ask-section", "recipe-section", "form-section",
-     "profile-section", "compare-section"].forEach(id => {
+     "profile-section", "compare-section", "inspector-section",
+     "diagnose-section", "phase-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -170,9 +172,70 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       $("inspector-section").style.display = "";
       $("mode-desc").textContent =
         "Paste a config.json directly. Useful for private/in-development models not on HF Hub.";
+    } else if (mode === "diagnose") {
+      $("diagnose-section").style.display = "";
+      $("mode-desc").textContent =
+        "Build the diagnose_model.py CLI command to MEASURE γ_obs on real GPU. Browser predicts; CLI measures.";
+    } else if (mode === "phase") {
+      $("phase-section").style.display = "";
+      $("mode-desc").textContent =
+        "γ × θ scatter of the paper's empirical panel. Hover a dot for details, click to load into Diagnose / Recipe forms.";
+      initPhaseDiagram();
     }
   });
 });
+
+// ════════════════════════════════════════════════════════════════════
+// Diagnose mode: build the diagnose_model.py CLI command
+// ════════════════════════════════════════════════════════════════════
+function buildDiagnoseCommand() {
+  const model = ($("diag-model")?.value || "").trim();
+  if (!model) {
+    return "# Please enter a HuggingFace model id";
+  }
+  const theta = ($("diag-theta")?.value || "").trim();
+  const N = ($("diag-N")?.value || "2000").trim();
+  const local = ($("diag-local")?.value || "").trim();
+  const fast = $("diag-fast")?.checked;
+  const cpu = $("diag-cpu")?.checked;
+  const fourbit = $("diag-4bit")?.checked;
+
+  const parts = ["python cli/diagnose_model.py"];
+  parts.push(`--model ${model}`);
+  if (theta) parts.push(`--theta ${theta}`);
+  if (N && N !== "2000") parts.push(`--N ${N}`);
+  if (local) parts.push(`--local "${local}"`);
+  if (fast) parts.push("--fast");
+  if (cpu) parts.push("--cpu");
+  if (fourbit) parts.push("--load_in_4bit");
+  return parts.join(" \\\n  ");
+}
+
+const _diagBuildBtn = $("diag-build-btn");
+if (_diagBuildBtn) {
+  _diagBuildBtn.addEventListener("click", () => {
+    const cmd = buildDiagnoseCommand();
+    $("diag-cmd").textContent = cmd;
+    $("diag-output").style.display = "";
+  });
+}
+
+const _diagCopyBtn = $("diag-copy-btn");
+if (_diagCopyBtn) {
+  _diagCopyBtn.addEventListener("click", async () => {
+    const cmd = $("diag-cmd").textContent;
+    if (!cmd) return;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      _diagCopyBtn.textContent = "✓ Copied";
+      setTimeout(() => {
+        _diagCopyBtn.textContent = (window.t ? window.t("diagnose.copy_btn") : "📋 Copy to clipboard");
+      }, 1800);
+    } catch (e) {
+      _diagCopyBtn.textContent = "✗ Copy failed (browser blocks)";
+    }
+  });
+}
 
 // Make sure inspector section is hidden initially
 const _inspectorSection = $("inspector-section");

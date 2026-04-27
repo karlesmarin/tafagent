@@ -575,3 +575,18 @@ footer {
 }
 footer a { color: var(--accent); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
+
+/* Diagnose mode CLI command box */
+.diag-cmd-box {
+  background: #0a0e14;
+  color: #e6f1ff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1em;
+  font-family: 'Courier New', monospace;
+  font-size: 0.92em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0.6em 0;
+  overflow-x: auto;
+}

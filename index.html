@@ -180,6 +180,8 @@
         <button class="mode-btn" data-mode="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
         <button class="mode-btn" data-mode="ask" data-i18n="modes.ask">💬 Ask plain English</button>
         <button class="mode-btn" data-mode="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
+        <button class="mode-btn" data-mode="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
+        <button class="mode-btn" data-mode="phase" data-i18n="modes.phase">📊 Phase diagram</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -379,6 +381,94 @@
         <button id="ask-btn" disabled data-i18n="ask.btn">🚀 Analyze</button>
         <button id="example-btn" type="button" class="secondary" data-i18n="ask.example_btn">💡 Try an example</button>
       </div>
+    </section>
+
+    <!-- Diagnose mode: build the CLI command for diagnose_model.py -->
+    <section id="diagnose-section" style="display:none;">
+      <h2><span data-i18n="diagnose.title">🩺 Diagnose CLI Command Builder</span>
+        <span class="info"><span class="tooltip" data-i18n="diagnose.tip">
+          <strong>Measure γ_obs (not predict)</strong>. The browser tool predicts γ from
+          config alone (Padé). To <em>measure</em> the actual decay on a real model
+          you need GPU + Python. This builder produces the exact CLI command you
+          run locally; the script is shipped in this repository at
+          <code>cli/diagnose_model.py</code>.<br><br>
+          <strong>Output</strong>: γ_obs, R², phase, KV cache budget D_90, KL anomaly,
+          full thermodynamic profile (Z, U, S, F, C_V, χ). Saved as JSON.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="diagnose.desc">
+        Pick options below and copy-paste the generated command on your local
+        machine (Python + transformers + numpy). Total wall time ≈ 5 min in
+        <code>--fast</code> mode on CPU; full mode 20–60 min on GPU.
+      </p>
+
+      <div class="form-row">
+        <label for="diag-model" data-i18n="diagnose.model_label">HF model id:</label>
+        <input type="text" id="diag-model" placeholder="EleutherAI/pythia-70m" value="EleutherAI/pythia-70m">
+      </div>
+
+      <div class="form-row">
+        <label for="diag-theta" data-i18n="diagnose.theta_label">θ (auto if blank):</label>
+        <input type="number" id="diag-theta" placeholder="auto-detect">
+      </div>
+
+      <div class="form-row">
+        <label for="diag-N" data-i18n="diagnose.n_label">Context N:</label>
+        <input type="number" id="diag-N" value="2000" min="100" max="32000">
+      </div>
+
+      <div class="form-row">
+        <label data-i18n="diagnose.options_label">Options:</label>
+        <span>
+          <label><input type="checkbox" id="diag-fast" checked>
+            <span data-i18n="diagnose.opt_fast">--fast (CPU, ~5 min)</span></label><br>
+          <label><input type="checkbox" id="diag-cpu">
+            <span data-i18n="diagnose.opt_cpu">--cpu (force CPU)</span></label><br>
+          <label><input type="checkbox" id="diag-4bit">
+            <span data-i18n="diagnose.opt_4bit">--load_in_4bit (≥7B models)</span></label>
+        </span>
+      </div>
+
+      <div class="form-row">
+        <label for="diag-local" data-i18n="diagnose.local_label">--local path (optional):</label>
+        <input type="text" id="diag-local" placeholder="/path/to/local/weights">
+      </div>
+
+      <button id="diag-build-btn" data-i18n="diagnose.build_btn">📋 Build command</button>
+
+      <div id="diag-output" style="display:none; margin-top:1em;">
+        <h3 data-i18n="diagnose.cmd_title">Generated command:</h3>
+        <pre id="diag-cmd" class="diag-cmd-box"></pre>
+        <button id="diag-copy-btn" data-i18n="diagnose.copy_btn">📋 Copy to clipboard</button>
+        <p class="recipe-desc" data-i18n="diagnose.next_steps">
+          <strong>Next steps</strong>:
+          (1) <code>git clone https://github.com/karlesmarin/tafagent</code>
+          (2) <code>cd tafagent &amp;&amp; pip install torch transformers numpy</code>
+          (3) Run the command above.
+          (4) Result JSON lands in <code>./diagnose_results/</code> — upload it
+          to the <strong>📋 Pick recipe</strong> mode (or paste in <strong>🔍 Inspect config</strong>) for full TAF analysis.
+        </p>
+      </div>
+    </section>
+
+    <!-- Phase diagram mode: live scatter of measured γ vs θ -->
+    <section id="phase-section" style="display:none;">
+      <h2><span data-i18n="phase.title">📊 Phase diagram (γ × θ)</span>
+        <span class="info"><span class="tooltip" data-i18n="phase.tip">
+          Each dot is one model from the paper's empirical panel
+          (data/master_gamma_results.json). The x-axis is RoPE base θ
+          on log scale; y-axis is measured γ.
+          The Hagedorn line γ=1 separates Phase A (γ&lt;1, global) from
+          Phase B (γ&gt;1, local-collapsed).
+          Hover dots for details; click to populate the recipe form.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="phase.desc">
+        23 models in the panel; the Padé curve (line) is
+        γ_pred(θ) = (2θ−T√2)/(2θ+T√2) at T=2000.
+      </p>
+      <canvas id="phase-canvas" width="900" height="500" style="max-width:100%; background: var(--card-bg); border-radius: 6px;"></canvas>
+      <div id="phase-info" class="recipe-desc" style="margin-top:0.6em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->
