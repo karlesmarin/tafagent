@@ -952,6 +952,94 @@ def _phase_label(g):
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# §32 — Sesión 29 visual-diagnostic helpers (paper 2 §4 bimodal + Hagedorn)
+# ════════════════════════════════════════════════════════════════════════════
+def hagedorn_safety_alert(gamma: float) -> dict:
+    """§32.1 — Classify γ into safety zones (paper 2 §4.2 finding F12).
+
+    Empirical n=25 panel: 36% of LLMs operate at γ ≥ 0.95 (Hagedorn-zone risk).
+    Models at γ ≥ 1.0 cannot serve long context without NTK extension.
+    """
+    if gamma is None or not isinstance(gamma, (int, float)):
+        return {"level": "unknown", "color": "gray", "message": "no γ available"}
+    if gamma >= 1.0:
+        return {
+            "level": "critical",
+            "color": "red",
+            "label": "🔴 HAGEDORN ZONE",
+            "message": ("γ ≥ 1.0: attention concentrates locally. Long-context "
+                        "retrieval will FAIL without NTK extension (α_opt > 1)."),
+            "fraction_of_panel": "36% of n=25 LLMs are in this zone",
+        }
+    if gamma >= 0.95:
+        return {
+            "level": "warning",
+            "color": "orange",
+            "label": "🟠 HAGEDORN BOUNDARY",
+            "message": ("γ ≥ 0.95: at the edge. Long context above T_train risky. "
+                        "Run X-2 long-context viability before deploying."),
+            "fraction_of_panel": "~24% of n=25 LLMs cluster here",
+        }
+    if gamma >= 0.65:
+        return {
+            "level": "ok",
+            "color": "green",
+            "label": "🟢 PHASE A NORMAL",
+            "message": ("γ ∈ [0.65, 0.95]: long-context OK. KV compression via "
+                        "D_f window applicable in [0.65, 0.85]."),
+            "fraction_of_panel": "~40% of n=25 LLMs",
+        }
+    if gamma > 0:
+        return {
+            "level": "info",
+            "color": "blue",
+            "label": "🔵 PHASE A WIDE-FIELD",
+            "message": ("γ < 0.65: very long-range attention. Model may be over-"
+                        "trained on long context, or pre-IH (small model)."),
+            "fraction_of_panel": "~12% of n=25 LLMs (mostly small or anomalous)",
+        }
+    return {
+        "level": "catastrophic",
+        "color": "darkred",
+        "label": "❌ NEGATIVE γ",
+        "message": "Negative γ means T_eval >> θ. Bad operating point. Use lower T or higher θ.",
+        "fraction_of_panel": "0% of n=25 (pathological)",
+    }
+
+
+def bimodal_phase_class(gamma: float) -> str:
+    """§32.2 — Bimodal classifier (paper 2 §4 finding F11).
+
+    γ_text panel n=25 shows 2 density peaks (~0.75 + ~1.0) with gap 0.85-0.95.
+    Hartigan dip test pending (paper 2 Tier-A E3).
+    """
+    if gamma is None:
+        return "unknown"
+    if gamma < 0:
+        return "catastrophic"
+    if gamma < 0.85:
+        return "Phase A (long-range)"
+    if gamma < 0.95:
+        return "boundary (gap zone)"
+    if gamma < 1.0:
+        return "Hagedorn boundary"
+    return "Hagedorn zone"
+
+
+def nearest_famous_constant(gamma: float, max_results: int = 3,
+                            tolerance: float = 0.05) -> list:
+    """§32.3 — Convenience wrapper: find named constants near γ.
+
+    Wraps famous_constant_proximity(); always returns a list (possibly empty).
+    Useful for displaying "your γ is close to <constant>" in UI.
+    """
+    if gamma is None:
+        return []
+    out = famous_constant_proximity(gamma, tolerance=tolerance)
+    return out.get("hits", [])[:max_results]
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Recipe registry
 # ════════════════════════════════════════════════════════════════════════════
 RECIPES = {
@@ -1211,6 +1299,14 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
         falsifications.append({"id": "F11", "claim": "SWA Δγ > +0.3 (gemma signature)",
                                "status": "✅ in scope"})
 
+    # Sesión 29 / paper 2 visual diagnostics
+    safety = hagedorn_safety_alert(g_corr)
+    phase_cls = bimodal_phase_class(g_corr)
+    constants = nearest_famous_constant(g_corr, max_results=2, tolerance=0.02)
+    n_params_M = n_params / 1e6
+    gamma_random_pred = gamma_random_predict(theta, T_eval, n_params_M)
+    K_inv = compute_invariant_K(g_corr, n_params_M)
+
     return {
         "model_summary": {
             "architecture_class": arch_class,
@@ -1230,6 +1326,16 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
             "chi_susceptibility": chi,
             "kv_memory_per_request_GB": kv_cache_memory(n_layers, n_kv_heads,
                                                         d_head, T_eval)["GB"],
+            "gamma_random_predicted": gamma_random_pred,
+            "compute_invariant_K": K_inv["K"],
+            "K_in_distribution": K_inv["in_distribution"],
+        },
+        "v04_diagnostics": {
+            "hagedorn_safety": safety,
+            "bimodal_phase_class": phase_cls,
+            "nearest_famous_constants": constants,
+            "imprint_predicted_shift": gamma_random_pred - g_pade,
+            "compute_invariant": K_inv,
         },
         "recipes": {
             rid: {
