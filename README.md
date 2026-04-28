@@ -33,7 +33,7 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent
 **📦 Source**: https://github.com/karlesmarin/tafagent
-**📄 Paper**: [Transformer Thermodynamics — Marin 2026](https://github.com/karlesmarin/NeurIPS)
+**📄 Paper**: [Predicting How Transformers Atten — Marin 2026](https://zenodo.org/records/19826343)
 
 ---
 
@@ -59,15 +59,21 @@ Drop in a model id (or paste any HuggingFace public model), get a
 falsifiable answer to "**will this work?**" — backed by the
 Thermodynamic Attention Framework (TAF) formulas:
 
+**Decision recipes**
 - *Will Llama-3-8B serve 32K context with NIAH retrieval?* → **X-2**
 - *Should I train a custom 7B model or pay for API access?* → **X-1**
 - *I have $5,000 — what model can I afford to train?* → **X-3**
 - *Cheapest GPU to serve Llama-70B at 100M tokens/day?* → **X-5**
 - *Soft KV decay or hard cutoff for compression?* → **X-19**
 
-Each as a chain of TAF formulas (paper §17, §19, §20, §24, §26) rendered
-with full audit trail. Every number is deterministic Python; nothing
-is hallucinated.
+**Diagnostic recipes** (NEW v0.4 — sesión 29 findings 2026-04-28)
+- *How much positional bias did training imprint on this model?* → **X-21**
+- *Does this model fit the empirical compute-context invariant band?* → **X-22**
+- *Is this checkpoint pre- or post-induction-head?* → **X-23**
+
+Each as a chain of TAF formulas (paper §17, §19, §20, §24, §26, §28-§30)
+rendered with full audit trail. Every number is deterministic Python;
+nothing is hallucinated.
 
 ## Four ways to use it
 
@@ -152,9 +158,61 @@ paper (343 JSON files, ~5.5 MB). See `data/README.md` for the layout.
 - ~2 GB free RAM for the synthesis LLM
 - ~350 MB disk for model cache (one-time)
 
+## What's new in v0.4 (2026-04-28)
+
+Three new diagnostic recipes derived from cross-model panel analysis (n=22 LLMs):
+
+### X-21 — Imprint Purity Diagnostic
+Predicts γ on RANDOM-token input via the **learned-imprint formula**:
+
+```
+γ_random = γ_pade(θ, T) + ν · log_10(P / 14M)
+   ν = −1/(2π) ≈ −0.1592   (DERIVED from RoPE rotation period)
+```
+
+Even on random tokens, weights apply a learned positional bias proportional
+to log(N_params). The slope ν is **fixed** (not fitted) — derivable from
+RoPE's 2π rotation period. Empirical validation: n=22 LLMs, p=0.022, |err|=0.3%.
+
+**Use case**: detect anomalous training, format conversion (e.g. OLMo native
+vs HF Δγ=0.30), or fine-tuning drift by comparing predicted vs measured
+γ_random.
+
+### X-22 — Compute-Context Invariant
+Computes the empirical Chinchilla×attention invariant:
+
+```
+K = γ × log(N² · D)   where D = 20·N (Chinchilla compute-optimal)
+Empirical band: K ∈ [34, 68]   (51.2 ± 16.8, CV=0.329, n=22)
+```
+
+K-outliers indicate scaling/training anomalies. Llama-3-8B with γ=1.045
+gives K=74.6 (z=1.39, high-K OUTLIER) — flags supra-Padé attention.
+
+### X-23 — IH-Phase Detector
+Uses the Δγ probe (cheaper than ICL benchmark):
+
+```
+sign(γ_text − γ_random) > 0   ⟺   post-induction-head formation
+```
+
+Pre-IH (P<400M, n=7): ⟨Δγ⟩=−0.19±0.26
+Post-IH (P≥400M, n=15): ⟨Δγ⟩=+0.03±0.26
+
+**Use case**: monitor training trajectories without running ICL benchmarks;
+detect anomalous checkpoints.
+
+### Other v0.4 additions
+
+- `gamma_decompose_v2(...)` — 6-axis decomposition with the new imprint axis
+- `famous_constant_proximity(...)` — detects γ-cluster on famous constants
+  (e.g. CodeLlama-13b γ=0.382 ≈ 1−1/φ golden conjugate)
+
+---
+
 ## How you can help
 
-This tool is at v0.3. There's a long way to go.
+This tool is at v0.4. There's a long way to go.
 
 - **🐛 Report bugs**: https://github.com/karlesmarin/tafagent/issues
 - **🌐 Translate**: add a language to `js/i18n.js`, send a PR
@@ -171,12 +229,13 @@ This tool is at v0.3. There's a long way to go.
 If this tool helps you — paper or code:
 
 ```bibtex
-@article{marin2026transformer_thermodynamics,
+@article{marin2026Predicting How Transformers Atten,
   author  = {Marin, Carles},
-  title   = {Transformer Thermodynamics: A Closed-Form Theory of Attention Decay,
-             Phase Transitions, and Context-Length Limits in RoPE Language Models},
+  title   = {Predicting How Transformers Attend
+Analytic Power-Law Theory, Phase Transitions, and Practical Compression
+Tools},
   year    = {2026},
-  url     = {https://github.com/karlesmarin/NeurIPS},
+  url     = {https://zenodo.org/records/19826343},
 }
 
 @misc{marin2026tafagent,

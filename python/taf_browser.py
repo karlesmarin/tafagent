@@ -100,6 +100,170 @@ def kv_soft_decay_regime(theta: float, gamma: float, T_train: int) -> str:
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# §28 — Sesión 29 (2026-04-28): learned-imprint, F2 Chinchilla, Δγ-IH probe
+# ════════════════════════════════════════════════════════════════════════════
+NU_IMPRINT = -1.0 / (2 * math.pi)  # §28 — learned-imprint slope (DERIVED, n=22 err 0.3%)
+P_0_IMPRINT_M = 14.0                # baseline pythia-14m (smallest panel reference)
+
+
+def gamma_random_predict(theta: float, T_eval: int, n_params_M: float) -> float:
+    """§28.1 — Predicted γ on RANDOM-token input.
+
+    γ_random = γ_pade(θ,T) + ν · log_10(P / P_0),  ν = -1/(2π) ≈ -0.1592.
+    Empirical n=22 LLMs (sesión 29). Random-input γ scales with model size
+    despite RoPE-Padé predicting only (θ,T) dependence — weights imprint
+    a learned positional bias proportional to log(N_params).
+
+    Predicted CI ≈ ±0.18 (95%).
+    """
+    g_pade = gamma_pade(theta, T_eval)
+    return g_pade + NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M)
+
+
+def imprint_purity(gamma_random_obs: float, theta: float, T_eval: int,
+                   n_params_M: float) -> dict:
+    """§28.2 — Diagnostic: how clean is the model's RoPE-Padé prediction?
+
+    Compares observed γ_random to predicted (γ_pade + ν·log_10(P/P_0)).
+    Negative residual ⇒ extra-strong training imprint (less clean).
+    Positive ⇒ weaker than expected imprint (cleaner / less trained).
+    """
+    g_pred = gamma_random_predict(theta, T_eval, n_params_M)
+    g_pade_only = gamma_pade(theta, T_eval)
+    residual = gamma_random_obs - g_pred
+    return {
+        "gamma_random_obs":      gamma_random_obs,
+        "gamma_random_pred":     g_pred,
+        "gamma_pade_only":       g_pade_only,
+        "imprint_predicted":     g_pred - g_pade_only,
+        "imprint_residual":      residual,
+        "purity":                "clean (within CI)" if abs(residual) < 0.18 else
+                                 ("over-imprinted" if residual < 0 else "under-imprinted"),
+        "ci_95_half_width":      0.18,
+    }
+
+
+def compute_invariant_K(gamma: float, n_params_M: float,
+                        D_tokens: float = None) -> dict:
+    """§29 — F2 Chinchilla compute-context invariant.
+
+    K = γ × log(N²·D),  D = 20·N (Chinchilla compute-optimal) if not given.
+    Empirical: K ≈ 51.2 ± 16.8 (CV=0.329, n=22). In-distribution if K∈[34, 68].
+    """
+    N = n_params_M * 1e6
+    if D_tokens is None:
+        D_tokens = 20 * N
+    K = gamma * math.log(N * N * D_tokens)
+    panel_mean, panel_std = 51.2, 16.8
+    z = (K - panel_mean) / panel_std
+    return {
+        "K":                K,
+        "panel_mean":       panel_mean,
+        "panel_std":        panel_std,
+        "z_score":          z,
+        "in_distribution":  abs(z) <= 1.0,
+        "interpretation":   "in-band" if abs(z) <= 1.0 else
+                            ("high-K outlier" if z > 0 else "low-K outlier"),
+    }
+
+
+def ih_phase_check(gamma_text: float, gamma_random: float,
+                   n_params_M: float = None) -> dict:
+    """§30 — IH-formation phase discriminator.
+
+    sign(γ_text − γ_random) > 0 ⟺ post-IH (text concentrates more than random).
+    Pre-IH (P<400M, n=7): ⟨Δγ⟩ = -0.19 ± 0.26
+    Post-IH (P≥400M, n=15): ⟨Δγ⟩ = +0.03 ± 0.26
+    """
+    delta = gamma_text - gamma_random
+    phase_observed = "post-IH" if delta > 0 else ("pre-IH" if delta < 0 else "ambiguous")
+    phase_expected = None
+    if n_params_M is not None:
+        phase_expected = "post-IH" if n_params_M * 1e6 >= 4e8 else "pre-IH"
+    consistent = (phase_expected is None) or (phase_observed == phase_expected)
+    return {
+        "delta_gamma":       delta,
+        "phase_observed":    phase_observed,
+        "phase_expected_by_size": phase_expected,
+        "consistent":        consistent,
+        "panel_pre_IH_mean": -0.19,
+        "panel_post_IH_mean": +0.03,
+        "panel_std":         0.26,
+    }
+
+
+def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
+                       has_GQA: bool = False, has_SWA: bool = False,
+                       corpus: str = "text", is_instruct: bool = False) -> dict:
+    """§28.3 — 6-axis decomposition (sesión 29 update with imprint axis).
+
+    γ_obs = γ_pade
+           + ν·log_10(P/P_0)·𝟙[corpus=random]    ← NEW imprint axis (DERIVED)
+           + Δ_corpus(text-rand)
+           + δ_arch(GQA, SWA)
+           + δ_circuit(IH phase)
+           + δ_train(steps, RLHF, instruct)
+           + ε
+    Imprint axis activates only on RANDOM input. TEXT input dominated by corpus.
+    """
+    delta_imprint = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M) \
+                    if corpus == "random" else 0.0
+    delta_GQA = +0.11 if has_GQA else 0.0
+    delta_SWA = -0.21 if has_SWA else 0.0
+    delta_post_IH = -0.15 if n_params_M >= 400 else 0.0
+    delta_instruct = -0.10 if is_instruct else 0.0  # F9 tentative (n=3, p=0.06)
+    return {
+        "pade_centroid":       gamma_pade_val,
+        "delta_imprint":       delta_imprint,
+        "delta_GQA":           delta_GQA,
+        "delta_SWA":           delta_SWA,
+        "delta_post_IH":       delta_post_IH,
+        "delta_instruct":      delta_instruct,
+        "gamma_corrected":     gamma_pade_val + delta_imprint + delta_GQA
+                                + delta_SWA + delta_post_IH + delta_instruct,
+        "corpus":              corpus,
+        "axes":                ["pade", "imprint", "GQA", "SWA", "IH", "instruct"],
+    }
+
+
+def famous_constant_proximity(gamma: float, tolerance: float = 0.01) -> dict:
+    """§31 — Detect proximity to famous constants in γ-cluster (sesión 29).
+
+    Empirical hits (n=4 in panel):
+      CodeLlama-13b   γ=0.3823 ≈ 1−1/φ = 0.3820 (golden conjugate)
+      pythia-1.4b     γ=0.7051 ≈ 1/√2  = 0.7071
+      Llama-2-7b      γ=0.2871 ≈ 1−1/√2 = 0.2929
+      Mistral-Nemo    γ=0.4284 ≈ log_10(e) = 0.4343
+    Returns nearest constant within tolerance, or None.
+    """
+    phi = (1 + math.sqrt(5)) / 2
+    constants = {
+        "1−1/φ (golden conjugate)": 1 - 1/phi,
+        "1/√2":                     1 / math.sqrt(2),
+        "1−1/√2":                   1 - 1/math.sqrt(2),
+        "log_10(e)":                math.log10(math.e),
+        "1/π":                      1 / math.pi,
+        "2/π":                      2 / math.pi,
+        "1/φ":                      1 / phi,
+        "ln(2)":                    math.log(2),
+        "z*_Cayley = (√17−3)/2":    (math.sqrt(17) - 3) / 2,
+    }
+    hits = []
+    for name, val in constants.items():
+        err = abs(gamma - val)
+        if err <= tolerance:
+            hits.append({"constant": name, "value": val, "error": err})
+    hits.sort(key=lambda h: h["error"])
+    return {
+        "gamma":     gamma,
+        "tolerance": tolerance,
+        "n_hits":    len(hits),
+        "hits":      hits[:3],
+        "caveat":    "n=4 hits in panel; could be coincidence (continuous distribution)",
+    }
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # §17 — Pre-training viability formulas
 # ════════════════════════════════════════════════════════════════════════════
 def chinchilla_optimal_tokens(N_params: float, ratio: float = 20.0) -> float:
@@ -584,6 +748,172 @@ def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
     return _wrap("X-19", "KV compression decision", locals(), chain, verdict, reason, mit)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# X-21 — Imprint Purity Diagnostic (sesión 29 — uses §28 ν=−1/(2π))
+# ─────────────────────────────────────────────────────────────────────
+def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
+                   d_head, n_layers, n_params, T_eval=None,
+                   gamma_random_obs=None, **_unused):
+    """X-21: how clean is the model's RoPE-Padé prediction?
+
+    Predicts γ on RANDOM-token input via learned-imprint formula:
+      γ_random = γ_pade(θ,T) + ν·log_10(P/14M),  ν = −1/(2π) ≈ −0.1592
+    If user provides observed γ_random, returns purity diagnostic.
+    """
+    chain = []
+    if T_eval is None:
+        T_eval = T_train
+
+    # Step 1: γ_Padé baseline
+    g_pade = gamma_pade(theta, T_eval)
+    chain.append(_step(1, "§26.1", "γ_Padé", "(2θ-T√2)/(2θ+T√2)",
+                       {"theta": theta, "T_eval": T_eval}, g_pade,
+                       _phase_label(g_pade)))
+
+    # Step 2: predicted imprint shift
+    n_params_M = n_params / 1e6
+    imprint_shift = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M)
+    chain.append(_step(2, "§28.1", "Imprint shift", "ν·log_10(P/P_0), ν=−1/(2π)",
+                       {"P_M": n_params_M, "P_0_M": P_0_IMPRINT_M, "nu": NU_IMPRINT},
+                       imprint_shift,
+                       f"Bigger model → stronger imprint (more negative shift)."))
+
+    # Step 3: predicted γ_random
+    g_pred = g_pade + imprint_shift
+    chain.append(_step(3, "§28.1", "γ_random predicted", "γ_pade + ν·log_10(P/P_0)",
+                       {"gamma_pade": g_pade, "imprint": imprint_shift}, g_pred,
+                       f"Predicted γ_random = {g_pred:.4f} ± 0.18 (95% CI)"))
+
+    # Step 4: purity diagnostic if observed value provided
+    if gamma_random_obs is not None:
+        purity = imprint_purity(gamma_random_obs, theta, T_eval, n_params_M)
+        chain.append(_step(4, "§28.2", "Imprint purity",
+                           "obs − pred (purity = within ±0.18)",
+                           {"gamma_random_obs": gamma_random_obs,
+                            "gamma_random_pred": g_pred},
+                           purity["imprint_residual"], purity["purity"]))
+        verdict = "CLEAN" if abs(purity["imprint_residual"]) < 0.18 else \
+                  ("OVER-IMPRINTED" if purity["imprint_residual"] < 0 else "UNDER-IMPRINTED")
+        reason = (f"Residual γ_random_obs − γ_pred = {purity['imprint_residual']:+.4f}. "
+                  f"95% CI is ±0.18.")
+        mit = ("Models far from prediction may have anomalous training (e.g. heavy "
+               "fine-tuning, format conversion). Compare to native checkpoint.")
+    else:
+        verdict = "PREDICTION ONLY"
+        reason = (f"Predicted γ_random = {g_pred:.4f}. Provide gamma_random_obs to "
+                  f"check purity (measure on RANDOM token sequences, e.g. via E4 protocol).")
+        mit = ("To measure: run a 150-prompt forward pass on RANDOM-token sequences "
+               "across distances d=10..1000 and fit power law. "
+               "(See https://github.com/karlesmarin/tafagent for E4 protocol.)")
+
+    return _wrap("X-21", "Imprint Purity Diagnostic", locals(), chain,
+                 verdict, reason, mit)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# X-22 — Compute-Context Invariant Check (sesión 29 — F2 Chinchilla)
+# ─────────────────────────────────────────────────────────────────────
+def run_recipe_x22(theta, T_train, n_params, gamma_obs, D_tokens=None,
+                   T_eval=None, **_unused):
+    """X-22: does the model lie in the empirical Chinchilla invariant band?
+
+    K = γ × log(N²·D),  D = 20·N if not given.
+    Empirical: K ≈ 51.2 ± 16.8 (CV=0.329, n=22 panel).
+    """
+    chain = []
+    if T_eval is None:
+        T_eval = T_train
+
+    n_params_M = n_params / 1e6
+    if D_tokens is None:
+        D_tokens = 20 * n_params  # Chinchilla compute-optimal
+
+    # Step 1: K computation
+    inv = compute_invariant_K(gamma_obs, n_params_M, D_tokens)
+    chain.append(_step(1, "§29", "K = γ·log(N²·D)", "γ × ln(N²·D)",
+                       {"gamma": gamma_obs, "N": n_params, "D": D_tokens},
+                       inv["K"],
+                       f"K = {inv['K']:.2f} (panel mean {inv['panel_mean']:.1f} ± "
+                       f"{inv['panel_std']:.1f})"))
+
+    # Step 2: z-score interpretation
+    chain.append(_step(2, "§29", "z-score vs panel", "(K − μ)/σ",
+                       {"K": inv["K"], "mean": inv["panel_mean"],
+                        "std": inv["panel_std"]},
+                       inv["z_score"],
+                       inv["interpretation"]))
+
+    # Step 3: γ_pade comparison (anomaly test)
+    g_pade = gamma_pade(theta, T_eval)
+    pade_diff = gamma_obs - g_pade
+    chain.append(_step(3, "§26.1", "γ deviation from Padé", "γ_obs − γ_pade",
+                       {"gamma_obs": gamma_obs, "gamma_pade": g_pade}, pade_diff,
+                       "negative = anomaly (sub-Padé); positive = supra-Padé"))
+
+    if inv["in_distribution"]:
+        verdict = "IN-BAND"
+        reason = f"K = {inv['K']:.2f} within ±1σ of panel mean {inv['panel_mean']:.1f}."
+        mit = "Model conforms to compute-context invariant. No action needed."
+    else:
+        verdict = "OUTLIER"
+        reason = (f"K = {inv['K']:.2f} ({inv['interpretation']}). "
+                  f"|z| = {abs(inv['z_score']):.2f} > 1.")
+        mit = ("High-K (over-concentrating attention for given compute) or low-K "
+               "(under-using compute for attention concentration). Check tokenizer, "
+               "training recipe, fine-tuning history.")
+
+    return _wrap("X-22", "Compute-Context Invariant", locals(), chain,
+                 verdict, reason, mit)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# X-23 — IH-Phase Detector (sesión 29 — F4 Δγ probe)
+# ─────────────────────────────────────────────────────────────────────
+def run_recipe_x23(n_params, gamma_text=None, gamma_random=None, **_unused):
+    """X-23: is this checkpoint pre- or post-induction-head formation?
+
+    Discriminator: sign(γ_text − γ_random) > 0 ⟺ post-IH.
+    Cheaper than ICL benchmark for monitoring training trajectories.
+    """
+    chain = []
+    n_params_M = n_params / 1e6
+
+    # Step 1: size-based prediction
+    expected = "post-IH" if n_params >= 4e8 else "pre-IH"
+    chain.append(_step(1, "§30", "Size-based phase prediction",
+                       "P ≥ 400M ⇒ post-IH",
+                       {"n_params_M": n_params_M, "threshold_M": 400}, expected))
+
+    # Step 2: γ-based discrimination if both gammas given
+    if gamma_text is not None and gamma_random is not None:
+        check = ih_phase_check(gamma_text, gamma_random, n_params_M)
+        chain.append(_step(2, "§30", "Δγ discriminator", "sign(γ_text − γ_random)",
+                           {"gamma_text": gamma_text, "gamma_random": gamma_random},
+                           check["delta_gamma"],
+                           f"observed phase: {check['phase_observed']}"))
+
+        if check["consistent"]:
+            verdict = f"CONFIRMED {check['phase_observed'].upper()}"
+            reason = (f"Δγ = {check['delta_gamma']:+.3f} sign matches size-prediction "
+                      f"({expected}).")
+            mit = "Phase confirmed. Use this checkpoint for downstream tasks accordingly."
+        else:
+            verdict = "ANOMALY"
+            reason = (f"Δγ = {check['delta_gamma']:+.3f} suggests {check['phase_observed']}, "
+                      f"but size predicts {expected}. Investigate.")
+            mit = ("Possible causes: incomplete training, anomalous fine-tuning, "
+                   "format conversion, tokenizer corruption (cf. F5 OLMo Δγ=0.30).")
+    else:
+        verdict = f"PREDICTED {expected.upper()}"
+        reason = (f"Only size given: P = {n_params_M:.0f}M. "
+                  f"Provide gamma_text + gamma_random to verify via Δγ probe.")
+        mit = ("Run E4 protocol with corpus=mongo and corpus=random; "
+               "compare γ values.")
+
+    return _wrap("X-23", "IH-Phase Detector", locals(), chain,
+                 verdict, reason, mit)
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ════════════════════════════════════════════════════════════════════════════
@@ -668,6 +998,31 @@ RECIPES = {
                    "d_head", "n_layers", "n_params", "has_SWA"],
         "category": "kv-compression",
         "uses_sections": ["§26", "§19"],
+    },
+    "X-21": {
+        "name": "Imprint Purity Diagnostic",
+        "description": "How clean is the model's RoPE-Padé prediction? Predicts γ on RANDOM-token input via ν=−1/(2π).",
+        "fn": run_recipe_x21,
+        "params": ["theta", "T_train", "n_attention_heads", "n_kv_heads",
+                   "d_head", "n_layers", "n_params", "T_eval", "gamma_random_obs"],
+        "category": "diagnostic",
+        "uses_sections": ["§26", "§28"],
+    },
+    "X-22": {
+        "name": "Compute-Context Invariant",
+        "description": "Does γ × log(N²·D) lie in the panel band 51.2 ± 16.8? Detects training/scaling anomalies.",
+        "fn": run_recipe_x22,
+        "params": ["theta", "T_train", "n_params", "gamma_obs", "D_tokens", "T_eval"],
+        "category": "diagnostic",
+        "uses_sections": ["§26", "§29"],
+    },
+    "X-23": {
+        "name": "IH-Phase Detector",
+        "description": "Is this model pre- or post-induction-head? Cheap probe via sign(γ_text − γ_random).",
+        "fn": run_recipe_x23,
+        "params": ["n_params", "gamma_text", "gamma_random"],
+        "category": "diagnostic",
+        "uses_sections": ["§30"],
     },
 }
 

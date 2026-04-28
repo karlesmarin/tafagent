@@ -77,7 +77,7 @@
       <p data-i18n="help.modes.ask"><strong>💬 Ask plain English</strong>: free-form question, in-browser LLM picks the recipe. Best for casual exploration.</p>
       <p data-i18n="help.modes.recipe"><strong>📋 Recipe + form</strong>: manual selection, full parameter control. Best when you want exact control.</p>
 
-      <h3 data-i18n="help.recipes.title">The 5 recipes available</h3>
+      <h3 data-i18n="help.recipes.title">The 8 recipes available</h3>
 
       <p data-i18n="help.recipe.x1.title"><strong>X-1 Custom training vs API</strong> — compares cost of training your own model vs paying for API access.</p>
       <div class="help-example" data-i18n="help.recipe.x1.example">
@@ -109,6 +109,33 @@
         Try: <em>"How to compress KV cache for Qwen2.5-7B at 32K?"</em><br>
         Answer: USE SOFT DECAY / USE D_f CUTOFF / USE LITERATURE METHODS / USE HARD T_train.
       </div>
+
+      <h3 style="margin-top: 1.5em;">— v0.4 (sesión 29 findings) —</h3>
+
+      <p data-i18n="help.section.v04"><strong>What's new in v0.4</strong> (sesión 29 findings 2026-04-28): three diagnostic recipes derived from cross-model panel analysis (n=22 LLMs).</p>
+
+      <p data-i18n="help.recipe.x21.title"><strong>X-21 Imprint Purity Diagnostic</strong> — predicts γ on RANDOM tokens via ν=−1/(2π); how clean is the model's RoPE prediction?</p>
+      <div class="help-example" data-i18n="help.recipe.x21.example">
+        Try: <em>"How clean is the RoPE prediction on Llama-3-8B?"</em><br>
+        Answer: predicted γ_random + purity diagnostic (CLEAN / OVER-IMPRINTED / UNDER-IMPRINTED).
+      </div>
+      <p data-i18n="help.v04.imprint" style="font-size: 0.9em; opacity: 0.85;"><strong>Learned-imprint slope ν = −1/(2π)</strong>: RoPE rotation period 2π drives a positional bias on weights, proportional to log(N_params). Even random tokens show this scaling. ν is DERIVED — not fitted (empirical err 0.3%).</p>
+
+      <p data-i18n="help.recipe.x22.title"><strong>X-22 Compute-Context Invariant</strong> — does γ × log(N²·D) lie in panel band 51.2 ± 16.8? Detects scaling/training anomalies.</p>
+      <div class="help-example" data-i18n="help.recipe.x22.example">
+        Try: <em>"Does Mistral-7B fit the compute-context invariant?"</em><br>
+        Answer: K = γ·log(N²·D), z-score, IN-BAND or OUTLIER.
+      </div>
+      <p data-i18n="help.v04.invariant" style="font-size: 0.9em; opacity: 0.85;"><strong>Chinchilla-attention invariant K</strong>: γ × log(N²·D) ≈ 51.2 ± 16.8 (CV=0.329). Connects compute scaling and attention exponent into a single dimensionless number.</p>
+
+      <p data-i18n="help.recipe.x23.title"><strong>X-23 IH-Phase Detector</strong> — pre- or post-induction-head? Cheap probe via sign(γ_text − γ_random).</p>
+      <div class="help-example" data-i18n="help.recipe.x23.example">
+        Try: <em>"Is Qwen2.5-7B post-induction-head?"</em><br>
+        Answer: CONFIRMED PRE-IH / CONFIRMED POST-IH / ANOMALY (with size-vs-Δγ consistency check).
+      </div>
+      <p data-i18n="help.v04.ih_probe" style="font-size: 0.9em; opacity: 0.85;"><strong>Δγ as IH probe</strong>: sign(γ_text − γ_random) > 0 ⟺ post-induction-head. Cheaper than running an in-context-learning benchmark.</p>
+
+      <p data-i18n="help.v04.constants" style="font-size: 0.9em; opacity: 0.85;"><strong>γ-cluster on famous constants</strong> (intriguing, n=4): CodeLlama-13b γ=0.382 ≈ 1−1/φ (golden conjugate, err 0.0003); pythia-1.4b γ=0.705 ≈ 1/√2; Llama-2-7b γ=0.287 ≈ 1−1/√2; Mistral-Nemo γ=0.428 ≈ log_10(e). Caveat: could be coincidence.</p>
 
       <h3 data-i18n="help.add_models.title">Adding new models (3 ways)</h3>
       <ul>
