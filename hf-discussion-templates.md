@@ -44,7 +44,7 @@ X-19 (KV compression): [your verdict — soft decay applies?]
 
 The interesting part is that γ_Padé = [value] places this model in the
 [Phase A / Phase B / borderline] regime per the underlying paper
-(Marin 2026, Transformer Thermodynamics).
+(Marin 2026, "Predicting How Transformers Attend").
 
 Try it: https://huggingface.co/spaces/karlexmarin/taf-agent
 
@@ -116,7 +116,7 @@ https://huggingface.co/spaces/karlexmarin/taf-agent
 Built a browser diagnostic for transformer LLMs. Gemma family is
 interesting because of the alternating SWA pattern.
 
-Per the underlying framework (Marin 2026, Transformer Thermodynamics),
+Per the underlying framework (Marin 2026, "Predicting How Transformers Attend"),
 SWA gives a distinctive Δγ ≈ +0.5 signature visible in attention
 fingerprinting.
 

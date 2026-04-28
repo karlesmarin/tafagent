@@ -1,6 +1,6 @@
 """
-diagnose_model.py — Transformer Thermodynamics Diagnostic Tool
-==============================================================
+diagnose_model.py — "Predicting How Transformers Attend" Diagnostic Tool
+=========================================================================
 Single-command characterization of any causal LM via power-law attention decay.
 
 Measures:
@@ -407,7 +407,7 @@ def run_diagnostic(args) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Transformer Thermodynamics Diagnostic — characterize any causal LM"
+        description="Predicting How Transformers Attend — diagnostic for any causal LM"
     )
     parser.add_argument("--model",  required=True,
                         help="HuggingFace model ID (e.g. EleutherAI/pythia-70m)")

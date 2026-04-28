@@ -1,9 +1,8 @@
 # `data/` — Reproducibility artefacts for the TAF paper
 
 This directory ships the raw experimental outputs referenced in
-*Transformer Thermodynamics: A Closed-Form Theory of Attention Decay,
-Phase Transitions, and Context-Length Limits in RoPE Language Models*
-(Marin 2026).
+*Predicting How Transformers Attend: Analytic Power-Law Theory, Phase
+Transitions, and Practical Compression Tools* (Marin 2026).
 
 Every claim in the paper that depends on a measurement is backed by
 a JSON file under one of the subdirectories below. File contents are

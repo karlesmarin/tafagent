@@ -3,7 +3,7 @@
  * @version: 2.0.0
  * @description: Padé-based context compression for runtime token budgeting.
  *               Implements the closed-form D_f window from
- *               Marin 2026, Transformer Thermodynamics §sec:kvcache (Eq. 24).
+ *               Marin 2026, "Predicting How Transformers Attend" §sec:kvcache (Eq. 24).
  * @license: Apache-2.0
  *
  * Drop into a Node/browser pipeline before any LLM API call to truncate

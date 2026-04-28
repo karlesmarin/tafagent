@@ -42,7 +42,7 @@ language:
 This tool was built by **one independent researcher**, with no funding,
 no team, no GPUs beyond a single consumer card, and the full collaborative
 help of large language models as research instruments. It exists because the
-paper it complements (the *Transformer Thermodynamics* manuscript) needed a
+paper it complements (*Predicting How Transformers Attend* — Marin 2026) needed a
 way for any reader to **check the framework's predictions on their own
 model in seconds**, without installing anything, without paying anyone, and
 without trusting a server they don't control.
@@ -136,7 +136,7 @@ python -m http.server 8000
 ### CLI diagnostic (for the paper)
 
 The directory `cli/diagnose_model.py` is the command-line companion
-described in the paper *Transformer Thermodynamics* (Marin 2026).
+described in the paper *Predicting How Transformers Attend* (Marin 2026).
 It characterises any causal language model from HuggingFace in
 minutes on CPU and produces the raw `gamma_obs`, `R²`, and
 thermodynamic profile used in the manuscript.

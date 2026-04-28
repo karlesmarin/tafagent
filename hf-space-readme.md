@@ -66,7 +66,7 @@ Predicts practical viability of any transformer LLM from its config alone:
 
 ## Underlying paper
 
-[Marin 2026 — Transformer Thermodynamics](https://github.com/karlesmarin/NeurIPS)
+[Marin 2026 — Predicting How Transformers Attend](https://zenodo.org/records/19826343)
 
 ## Source
 

@@ -157,8 +157,8 @@ unless otherwise noted by the contributor. The TAF Agent code itself is
 
 - 🔬 [TAF Agent web tool](https://karlesmarin.github.io/tafagent) — the diagnostic itself
 - 📦 [TAF Agent source](https://github.com/karlesmarin/tafagent) — open source
-- 📄 [Underlying paper](https://github.com/karlesmarin/NeurIPS) — Marin 2026,
-  *Transformer Thermodynamics*
+- 📄 [Underlying paper](https://zenodo.org/records/19826343) — Marin 2026,
+  *Predicting How Transformers Attend*
 
 ---
 

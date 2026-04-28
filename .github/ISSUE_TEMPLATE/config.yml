@@ -8,4 +8,4 @@ contact_links:
     about: Empirical measurement contradicts a TAF prediction
   - name: 📄 Paper questions
     url: https://github.com/karlesmarin/NeurIPS
-    about: Discussion about the underlying Transformer Thermodynamics paper
+    about: Discussion about the underlying paper "Predicting How Transformers Attend" (Marin 2026)
