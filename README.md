@@ -33,7 +33,8 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent
 **📦 Source**: https://github.com/karlesmarin/tafagent
-**📄 Paper**: [Predicting How Transformers Atten — Marin 2026](https://zenodo.org/records/19826343)
+**📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/19826343)
+**🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
 

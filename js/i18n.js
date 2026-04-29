@@ -214,7 +214,7 @@ export const TRANSLATIONS = {
     "help.privacy.title":       "Privacy",
     "help.privacy.body":        "Everything runs in your browser. No telemetry, no analytics, no data sent anywhere. Even the LLM model runs locally via WebGPU/WebAssembly. Your model_ids and questions never leave this page.",
     "help.source.title":        "Source & paper",
-    "help.source.body":         "Source code: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv forthcoming)",
+    "help.source.body":         "Source code: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv forthcoming)<br>Dataset: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 γ-measurements across 32 models (CC-BY-4.0)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · independent research · the tool that closes the loop of the paper.",
   },
@@ -423,7 +423,7 @@ export const TRANSLATIONS = {
     "help.privacy.title":       "Privacidad",
     "help.privacy.body":        "Todo corre en tu navegador. Sin telemetría, sin analytics, sin datos enviados a ningún sitio. Incluso el modelo LLM corre localmente vía WebGPU/WebAssembly. Tus model_ids y preguntas nunca abandonan esta página.",
     "help.source.title":        "Código fuente y paper",
-    "help.source.body":         "Código: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv próximamente)",
+    "help.source.body":         "Código: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv próximamente)<br>Dataset: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 mediciones γ sobre 32 modelos (CC-BY-4.0)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · investigación independiente · la herramienta que cierra el círculo del paper.",
   },
@@ -631,7 +631,7 @@ export const TRANSLATIONS = {
     "help.privacy.title":       "Confidentialité",
     "help.privacy.body":        "Tout s'exécute dans votre navigateur. Pas de télémétrie, pas d'analytique, pas de données envoyées ailleurs. Même le modèle LLM s'exécute localement via WebGPU/WebAssembly. Vos model_ids et questions ne quittent jamais cette page.",
     "help.source.title":        "Code source et paper",
-    "help.source.body":         "Code : <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper : <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a> ; arXiv à venir)",
+    "help.source.body":         "Code : <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper : <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a> ; arXiv à venir)<br>Dataset : <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 mesures γ sur 32 modèles (CC-BY-4.0)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · recherche indépendante · l'outil qui ferme la boucle du paper.",
   },
@@ -839,7 +839,7 @@ export const TRANSLATIONS = {
     "help.privacy.title":       "隐私",
     "help.privacy.body":        "一切都在您的浏览器中运行。无遥测,无分析,无数据发送到任何地方。即使是 LLM 模型也通过 WebGPU/WebAssembly 在本地运行。您的 model_ids 和问题永不离开此页面。",
     "help.source.title":        "源代码和论文",
-    "help.source.body":         "源代码: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>论文: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv 即将)",
+    "help.source.body":         "源代码: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>论文: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv 即将)<br>数据集: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 32个模型上的58次γ测量 (CC-BY-4.0)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · 独立研究 · 闭合论文回路的工具。",
   },
