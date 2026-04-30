@@ -217,9 +217,34 @@ export const TRANSLATIONS = {
     "help.source.body":         "Source code: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/19826343\" target=\"_blank\">Zenodo</a>; arXiv forthcoming)<br>Dataset: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 γ-measurements across 32 models (CC-BY-4.0)",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · independent research · the tool that closes the loop of the paper.",
+
+    // §33 v0.4 (sesion 31, 2026-04-30) — new diagnostic functions
+    "v04.title":                  "🆕 v0.4 — New diagnostics (sesion 31)",
+    "v04.arch.label":             "Architectural Concentration",
+    "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Cross-panel correlational law (R²=0.30). Caveat: not per-model predictor.",
+    "v04.pdi.label":              "PDI — Padé Deviation Index",
+    "v04.pdi.desc":               "PDI = d_horizon_obs/T_eval. Traffic light: green (≈1), orange (>>1), yellow (<<1), red (Phase B negative).",
+    "v04.4bit.label":             "4-bit Shift Predictor",
+    "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ rises; R²>0.99 → γ drops. GQA: precision-robust regardless.",
+    "v04.crit.label":             "Critical Exponents Bundle",
+    "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORRECTED), α_C, γ_susc with AM-GM minimum at γ=1−1/√2≈0.293.",
   },
 
+  // ────────────────────────────────────────────────────────────────────────
+  // ES — Español
+  // ────────────────────────────────────────────────────────────────────────
   es: {
+    // §33 v0.4 (sesion 31, 2026-04-30) — nuevas funciones diagnósticas
+    "v04.title":                  "🆕 v0.4 — Nuevos diagnósticos (sesion 31)",
+    "v04.arch.label":             "Concentración Arquitectural",
+    "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Ley correlacional cross-panel (R²=0.30). Caveat: no es predictor per-model.",
+    "v04.pdi.label":              "PDI — Índice de Desviación de Padé",
+    "v04.pdi.desc":               "PDI = d_horizon_obs/T_eval. Semáforo: verde (≈1), naranja (>>1), amarillo (<<1), rojo (Phase B negativo).",
+    "v04.4bit.label":             "Predictor de Shift 4-bit",
+    "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ sube; R²>0.99 → γ baja. GQA: precision-robusto.",
+    "v04.crit.label":             "Bundle de Exponentes Críticos",
+    "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORREGIDO), α_C, γ_susc con mínimo AM-GM en γ=1−1/√2≈0.293.",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Prueba <strong>CUALQUIER</strong> LLM transformer antes de gastar GPU/€.",
     "hero.subtitle":  "Todo el cómputo corre localmente en tu navegador. Gratis. Sin límites. Auditable.",
@@ -428,7 +453,21 @@ export const TRANSLATIONS = {
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · investigación independiente · la herramienta que cierra el círculo del paper.",
   },
 
+  // ────────────────────────────────────────────────────────────────────────
+  // FR — Français
+  // ────────────────────────────────────────────────────────────────────────
   fr: {
+    // §33 v0.4 (sesion 31, 2026-04-30) — nouvelles fonctions de diagnostic
+    "v04.title":                  "🆕 v0.4 — Nouveaux diagnostics (sesion 31)",
+    "v04.arch.label":             "Concentration Architecturale",
+    "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Loi corrélationnelle cross-panel (R²=0.30). Caveat : pas un prédicteur par-modèle.",
+    "v04.pdi.label":              "PDI — Indice de Déviation de Padé",
+    "v04.pdi.desc":               "PDI = d_horizon_obs/T_eval. Feu : vert (≈1), orange (>>1), jaune (<<1), rouge (Phase B négatif).",
+    "v04.4bit.label":             "Prédicteur de Décalage 4-bit",
+    "v04.4bit.desc":              "MHA : R²(bf16)<0.9 → γ monte ; R²>0.99 → γ descend. GQA : précision-robuste.",
+    "v04.crit.label":             "Ensemble d'Exposants Critiques",
+    "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORRIGÉ), α_C, γ_susc avec minimum AM-GM à γ=1−1/√2≈0.293.",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Testez <strong>N'IMPORTE QUEL</strong> LLM transformer avant de dépenser du GPU/€.",
     "hero.subtitle":  "Tout le calcul s'exécute localement dans votre navigateur. Gratuit. Illimité. Auditable.",
@@ -636,7 +675,21 @@ export const TRANSLATIONS = {
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · recherche indépendante · l'outil qui ferme la boucle du paper.",
   },
 
+  // ────────────────────────────────────────────────────────────────────────
+  // ZH — 中文
+  // ────────────────────────────────────────────────────────────────────────
   zh: {
+    // §33 v0.4 (sesion 31, 2026-04-30) — 新诊断功能
+    "v04.title":                  "🆕 v0.4 — 新诊断 (会话 31)",
+    "v04.arch.label":             "架构集中度",
+    "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv。跨面板相关性定律（R²=0.30）。警告：不是逐模型预测器。",
+    "v04.pdi.label":              "PDI — Padé 偏差指数",
+    "v04.pdi.desc":               "PDI = d_horizon_obs/T_eval。交通灯：绿色（≈1）、橙色（>>1）、黄色（<<1）、红色（B 阶段负值）。",
+    "v04.4bit.label":             "4 位精度移位预测器",
+    "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ 上升；R²>0.99 → γ 下降。GQA: 精度稳健。",
+    "v04.crit.label":             "临界指数捆绑",
+    "v04.crit.desc":              "ν_c、β_c、η_c (=γ−1, 已修正)、α_C、γ_susc，AM-GM 最小值在 γ=1−1/√2≈0.293。",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "在花费 GPU/$ 之前，测试<strong>任意</strong> Transformer LLM。",
     "hero.subtitle":  "所有计算在您的浏览器本地运行。免费。无限制。可审计。",

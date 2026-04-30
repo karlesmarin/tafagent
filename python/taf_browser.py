@@ -1007,6 +1007,164 @@ def hagedorn_safety_alert(gamma: float) -> dict:
     }
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# §33 — Sesion 31 (2026-04-30) findings — added to TAF v0.4
+# Architectural concentration law, PDI, 4-bit R²-direction rule, critical exponents
+# ════════════════════════════════════════════════════════════════════════════
+
+def architectural_concentration_predict(gamma_pade_val: float, n_kv: int) -> dict:
+    """§33.1 — Architectural concentration law (paper 2 NEW, sesion 31).
+
+    γ_text ≈ γ_Padé − 0.012·n_kv
+    R² = 0.30 cross-panel (n=22) vs Padé alone R²=0.02.
+
+    IMPORTANT: This is a CORRELATIONAL law, NOT per-model predictor.
+    Mean per-model |err| = 0.27, WORSE than Padé alone (0.24).
+    Use as CROSS-PANEL diagnostic, not individual prediction.
+    """
+    k_arch = 0.012  # panel-fit coefficient (n=22), not derived from first principles
+    gamma_predicted = gamma_pade_val - k_arch * n_kv
+    return {
+        "gamma_pade": gamma_pade_val,
+        "n_kv": n_kv,
+        "k_arch": k_arch,
+        "gamma_text_predicted": gamma_predicted,
+        "caveat": "Correlational, not per-model predictor (R²=0.30, mean err 0.27)",
+        "interpretation": (
+            "GQA aggressive (low n_kv) → γ pushed up toward Hagedorn. "
+            "MHA full (n_kv=32) → γ drops below Padé (sink-prone)."
+        ),
+    }
+
+
+def padé_deviation_index(theta: float, gamma_obs: float, T_eval: int) -> dict:
+    """§33.2 — PDI Padé Deviation Index (paper 2 NEW, sesion 31).
+
+    PDI = d_horizon_obs / T_eval = θ(1−γ_obs)√2 / ((1+γ_obs)·T_eval)
+
+    Identity (D-NEW-1): PDI = 1 ⟺ γ_obs = γ_Padé(θ, T_eval)
+    Diagnostic value:
+      PDI ≈ 1: canonical (model matches Padé)
+      PDI > 1.5: γ_obs < γ_Padé (sink-dominated, code/instruct shift)
+      PDI < 0.5: γ_obs > γ_Padé but < 1 (over-concentrated)
+      PDI < 0: γ_obs > 1 (Phase B, formula sign-flips)
+
+    Equivalent log scale: log(PDI) + ΔH_Cardy = 0 (D-DEEP-15).
+    """
+    if gamma_obs == -1.0:
+        return {"PDI": float('inf'), "regime": "singular"}
+    pdi = theta * (1 - gamma_obs) * math.sqrt(2) / ((1 + gamma_obs) * T_eval)
+    if pdi < 0:
+        regime = "Phase B (γ>1, formula sign-flip)"
+        traffic = "🔴 RED — Phase B, NTK extension required"
+    elif 0.5 <= pdi <= 1.5:
+        regime = "canonical (γ_obs ≈ γ_Padé)"
+        traffic = "🟢 GREEN — model matches Padé prediction"
+    elif pdi > 1.5:
+        regime = "γ_obs << γ_Padé (sink-dominated or extreme alignment)"
+        traffic = "🟠 ORANGE — large positive deviation"
+    else:  # 0 < pdi < 0.5
+        regime = "γ_obs > γ_Padé (over-concentrated in Phase A)"
+        traffic = "🟡 YELLOW — moderate deviation"
+    return {
+        "PDI": pdi,
+        "log_PDI": math.log(pdi) if pdi > 0 else None,
+        "regime": regime,
+        "traffic_light": traffic,
+        "identity": "log(PDI) + ΔH_Cardy = 0 (use either, log-inverse)",
+    }
+
+
+def precision_shift_predict_4bit(gamma_bf16: float, R2_bf16: float, is_GQA: bool) -> dict:
+    """§33.3 — 4-bit precision shift direction predictor (paper 2 NEW, sesion 31).
+
+    Empirical n=5 rule: bf16 R² of power-law fit predicts 4-bit shift direction.
+
+    For MHA models:
+      R²(bf16) < 0.9 (sink-dominated): 4-bit shifts γ UP toward γ_Padé
+      R²(bf16) > 0.99 (clean): 4-bit shifts γ DOWN (introduces noise)
+      0.95 ≤ R² ≤ 0.99: stable (~no shift)
+
+    For GQA models: precision-robust regardless (|Δγ| < 0.05).
+    """
+    if is_GQA:
+        return {
+            "predicted_shift_direction": "stable",
+            "expected_magnitude": "|Δγ| < 0.05",
+            "reason": "GQA KV-sharing distributes attention; little long-tail to perturb",
+            "recommendation": "Either bf16 or 4-bit OK for deployment",
+        }
+    # MHA case — depends on R²
+    if R2_bf16 < 0.9:
+        direction = "UP"
+        magnitude = "+0.3 to +0.8 expected"
+        reason = "Sink-dominated bf16: 4-bit truncates long-tail, reveals Padé prediction"
+    elif R2_bf16 > 0.99:
+        direction = "DOWN"
+        magnitude = "−0.2 to −0.4 expected"
+        reason = "Clean bf16: 4-bit further sparsifies, introduces non-monotonicity"
+    else:
+        direction = "stable"
+        magnitude = "|Δγ| < 0.05"
+        reason = "Borderline R², 4-bit minimal effect"
+    return {
+        "predicted_shift_direction": direction,
+        "expected_magnitude": magnitude,
+        "reason": reason,
+        "evidence": "n=5 paired measurements (DeepSeek/Pythia-1B/Pythia-2.8B/Llama-3/Qwen-7B-Inst)",
+        "caveat": "R²-direction rule is empirical, not formally derived",
+    }
+
+
+def critical_exponents_bundle(gamma: float) -> dict:
+    """§33.4 — Critical exponents bundle (paper 2 NEW, sesion 31 + GAME-O).
+
+    Returns ν_c (correlation length), β_c (order parameter), η_c (anomalous dim),
+    α_C (specific heat), γ_susc (susceptibility) as functions of γ.
+
+    Hyperscaling consistent (Rushbrooke + Josephson, d=1).
+
+    NEW IDENTITY (GAME-P recursive):
+      γ_susc(γ) = 1/(1−γ) + 2(1−γ) ≥ 2√2 (AM-GM bound)
+      Minimum at γ = 1 − 1/√2 ≈ 0.293
+      Equals c_central=3 at γ=0 AND γ=1/2
+    """
+    if gamma >= 1:
+        return {"regime": "Hagedorn or beyond", "exponents": "diverge"}
+    nu_c = 1 / (1 - gamma)
+    beta_c = gamma - 1
+    eta_c = gamma - 1  # CORRECTED from paper 1's η=2γ (Lévy mapping consistent with hyperscaling)
+    alpha_C = 2 - 1 / (1 - gamma)
+    gamma_susc = 1 / (1 - gamma) + 2 * (1 - gamma)
+
+    # AM-GM bound check
+    gamma_min = 1 - 1 / math.sqrt(2)
+    gamma_susc_min = 2 * math.sqrt(2)
+
+    return {
+        "nu_correlation_length": nu_c,
+        "beta_order_param": beta_c,
+        "eta_anomalous_dim": eta_c,
+        "eta_note": "η_c = γ−1 (Lévy-derived, hyperscaling-consistent). Paper 1 claim η=2γ is INCORRECT.",
+        "alpha_specific_heat": alpha_C,
+        "gamma_susceptibility": gamma_susc,
+        "c_central_at_gamma_0": 3,  # γ_susc(γ=0) = 3 = c_central
+        "AM_GM_bound": {
+            "min_gamma_susc": gamma_susc_min,
+            "min_at_gamma": gamma_min,
+            "interpretation": (
+                f"γ_susc has UNIVERSAL minimum {gamma_susc_min:.3f} at γ = {gamma_min:.4f} "
+                "(AM-GM with ab=2 product constant)"
+            ),
+        },
+        "hyperscaling_check": {
+            "Rushbrooke (α + 2β + γ_susc = 2)": alpha_C + 2 * beta_c + gamma_susc,
+            "expected": 2,
+        },
+        "warning_paper1_eta": "Paper 1's η_c = 2γ is INCORRECT. Use η_c = γ-1 (this function).",
+    }
+
+
 def bimodal_phase_class(gamma: float) -> str:
     """§32.2 — Bimodal classifier (paper 2 §4 finding F11).
 
