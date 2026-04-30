@@ -71,11 +71,14 @@
       <em>before you spend GPU/$</em>. Answers questions like "will this model work at L=32K?" or
       "should I train custom or use API?" using deterministic Python formulas (TAF — Thermodynamic Attention Framework).</p>
 
-      <h3 data-i18n="help.modes.title">How to use — 4 modes</h3>
+      <h3 data-i18n="help.modes.title">How to use — 7 modes</h3>
       <p data-i18n="help.modes.profile"><strong>📇 Profile</strong>: paste model id → all recipes at once = TAF Card. <strong>Best starting point</strong>.</p>
       <p data-i18n="help.modes.compare"><strong>🆚 Compare</strong>: 2-3 models side-by-side on same recipe. Best when choosing between candidates.</p>
+      <p data-i18n="help.modes.inspector"><strong>🔍 Inspect config</strong>: paste raw <code>config.json</code> → tool parses + runs full Profile. For private models, in-development configs, or models not yet on HF Hub.</p>
       <p data-i18n="help.modes.ask"><strong>💬 Ask plain English</strong>: free-form question, in-browser LLM picks the recipe. Best for casual exploration.</p>
       <p data-i18n="help.modes.recipe"><strong>📋 Recipe + form</strong>: manual selection, full parameter control. Best when you want exact control.</p>
+      <p data-i18n="help.modes.diagnose"><strong>🩺 Diagnose CLI</strong>: generate Python command to measure γ on your local machine (transformers + numpy). Fast ≈5 min CPU; full ≈20–60 min GPU. Output JSON re-uploadable via Inspect.</p>
+      <p data-i18n="help.modes.phase"><strong>📊 Phase diagram</strong>: scatter plot of 23 panel models on (log θ, γ) plane. Hagedorn line γ=1 separates Phase A from Phase B. Click a dot to load that model into Recipe form.</p>
 
       <h3 data-i18n="help.recipes.title">The 8 recipes available</h3>
 
@@ -136,6 +139,17 @@
       <p data-i18n="help.v04.ih_probe" style="font-size: 0.9em; opacity: 0.85;"><strong>Δγ as IH probe</strong>: sign(γ_text − γ_random) > 0 ⟺ post-induction-head. Cheaper than running an in-context-learning benchmark.</p>
 
       <p data-i18n="help.v04.constants" style="font-size: 0.9em; opacity: 0.85;"><strong>γ-cluster on famous constants</strong> (intriguing, n=4): CodeLlama-13b γ=0.382 ≈ 1−1/φ (golden conjugate, err 0.0003); pythia-1.4b γ=0.705 ≈ 1/√2; Llama-2-7b γ=0.287 ≈ 1−1/√2; Mistral-Nemo γ=0.428 ≈ log_10(e). Caveat: could be coincidence.</p>
+
+      <h3 style="margin-top: 1.5em;" data-i18n="v04.title">🆕 v0.4 — New diagnostics (sesion 31)</h3>
+      <p style="opacity: 0.85;"><em data-i18n="v04.section.intro">Four new diagnostic functions derived sesion 31 (2026-04-30) from cross-of-crosses formula games + Sócratic interrogation. Available in <code>taf_browser.py</code> §33.</em></p>
+
+      <p><strong data-i18n="v04.arch.label">Architectural Concentration</strong> — <span data-i18n="v04.arch.desc">γ_text ≈ γ_Padé − 0.012·n_kv. Cross-panel correlational law (R²=0.30). Caveat: not per-model predictor.</span></p>
+
+      <p><strong data-i18n="v04.pdi.label">PDI — Padé Deviation Index</strong> — <span data-i18n="v04.pdi.desc">PDI = d_horizon_obs/T_eval. Traffic light: green (≈1), orange (>>1), yellow (<<1), red (Phase B negative).</span></p>
+
+      <p><strong data-i18n="v04.4bit.label">4-bit Shift Predictor</strong> — <span data-i18n="v04.4bit.desc">MHA: R²(bf16)<0.9 → γ rises; R²>0.99 → γ drops. GQA: precision-robust regardless.</span></p>
+
+      <p><strong data-i18n="v04.crit.label">Critical Exponents Bundle</strong> — <span data-i18n="v04.crit.desc">ν_c, β_c, η_c (=γ−1, CORRECTED), α_C, γ_susc with AM-GM minimum at γ=1−1/√2≈0.293.</span></p>
 
       <h3 data-i18n="help.add_models.title">Adding new models (3 ways)</h3>
       <ul>

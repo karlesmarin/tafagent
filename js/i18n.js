@@ -157,7 +157,7 @@ export const TRANSLATIONS = {
     "common.no":           "No",
 
     // Mode tooltips
-    "modes.tip":           "<strong>Four ways to use the tool</strong>.<br><strong>📇 Profile</strong>: paste a model id → all 5 recipes at once = TAF Card.<br><strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br><strong>💬 Ask</strong>: free-form question, browser LLM picks the recipe.<br><strong>📋 Recipe</strong>: manual selection with full form control.",
+    "modes.tip":           "<strong>Seven ways to use the tool</strong>.<br><strong>📇 Profile</strong>: paste a model id → all 8 recipes at once = TAF Card.<br><strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br><strong>🔍 Inspect config</strong>: paste raw config.json → full Profile.<br><strong>💬 Ask</strong>: free-form question, browser LLM picks the recipe.<br><strong>📋 Recipe</strong>: manual selection with full form control.<br><strong>🩺 Diagnose CLI</strong>: generate Python command for local γ measurement.<br><strong>📊 Phase diagram</strong>: 23-model panel on (log θ, γ) plane.",
     "profile.tip":         "<strong>One-click full diagnosis</strong>. Paste any HF model id (or pick preset). Tool runs all 5 recipes (long-context, KV-compression, custom-vs-API, budget, hardware) and produces a single <strong>TAF Card</strong> with verdict per dimension + key numbers + architecture classification.<br><br><strong>Use case</strong>: \"I'm evaluating Qwen2.5-32B for production — what's its full viability profile?\" → paste id → Profile → done.",
     "compare.tip":         "<strong>Same recipe, multiple models</strong>. Pick 2-3 candidate models and one recipe. See verdicts in a single comparison table.<br><br><strong>Use case</strong>: \"I need long-context retrieval at 16K — which is best: Llama-3-8B, Mistral-7B, or Qwen-7B?\" → pick 3 + X-2 + 16K → see winner.",
 
@@ -165,11 +165,14 @@ export const TRANSLATIONS = {
     "help.title":               "📘 TAF Agent — User Manual",
     "help.what.title":          "What does it do?",
     "help.what.body":           "Predicts <strong>practical viability</strong> of any transformer LLM <em>before you spend GPU/$</em>. Answers questions like \"will this model work at L=32K?\" or \"should I train custom or use API?\" using deterministic Python formulas (TAF — Thermodynamic Attention Framework).",
-    "help.modes.title":         "How to use — 4 modes",
+    "help.modes.title":         "How to use — 7 modes",
     "help.modes.profile":       "<strong>📇 Profile</strong>: paste model id → all recipes at once = TAF Card. <strong>Best starting point</strong>.",
     "help.modes.compare":       "<strong>🆚 Compare</strong>: 2-3 models side-by-side on same recipe. Best when choosing between candidates.",
+    "help.modes.inspector":     "<strong>🔍 Inspect config</strong>: paste raw <code>config.json</code> → tool parses + runs full Profile. For private models, in-development configs, or models not yet on HF Hub.",
     "help.modes.ask":           "<strong>💬 Ask plain English</strong>: free-form question, in-browser LLM picks the recipe. Best for casual exploration.",
     "help.modes.recipe":        "<strong>📋 Recipe + form</strong>: manual selection, full parameter control. Best when you want exact control.",
+    "help.modes.diagnose":      "<strong>🩺 Diagnose CLI</strong>: generate Python command to measure γ on your local machine (transformers + numpy). Fast ≈5 min CPU; full ≈20–60 min GPU. Output JSON re-uploadable via Inspect.",
+    "help.modes.phase":         "<strong>📊 Phase diagram</strong>: scatter plot of 23 panel models on (log θ, γ) plane. Hagedorn line γ=1 separates Phase A from Phase B. Click a dot to load that model into Recipe form.",
     "help.recipes.title":       "The 8 recipes available",
     "help.recipe.x1.title":     "<strong>X-1 Custom training vs API</strong> — compares cost of training your own model vs paying for API access.",
     "help.recipe.x1.example":   "Try: <em>\"Should I train an 8B custom model or use GPT-4o for 50M tokens/month?\"</em><br>Answer types: YES (custom) / NO (API) with break-even months.",
@@ -220,6 +223,7 @@ export const TRANSLATIONS = {
 
     // §33 v0.4 (sesion 31, 2026-04-30) — new diagnostic functions
     "v04.title":                  "🆕 v0.4 — New diagnostics (sesion 31)",
+    "v04.section.intro":          "Four new diagnostic functions derived sesion 31 (2026-04-30) from cross-of-crosses formula games + Sócratic interrogation. Available in <code>taf_browser.py</code> §33.",
     "v04.arch.label":             "Architectural Concentration",
     "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Cross-panel correlational law (R²=0.30). Caveat: not per-model predictor.",
     "v04.pdi.label":              "PDI — Padé Deviation Index",
@@ -236,6 +240,7 @@ export const TRANSLATIONS = {
   es: {
     // §33 v0.4 (sesion 31, 2026-04-30) — nuevas funciones diagnósticas
     "v04.title":                  "🆕 v0.4 — Nuevos diagnósticos (sesion 31)",
+    "v04.section.intro":          "Cuatro nuevas funciones diagnósticas derivadas en sesión 31 (2026-04-30) desde juegos de fórmulas cross-of-crosses + interrogación socrática. Disponibles en <code>taf_browser.py</code> §33.",
     "v04.arch.label":             "Concentración Arquitectural",
     "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Ley correlacional cross-panel (R²=0.30). Caveat: no es predictor per-model.",
     "v04.pdi.label":              "PDI — Índice de Desviación de Padé",
@@ -391,7 +396,7 @@ export const TRANSLATIONS = {
     "common.no":           "No",
 
     // Tooltips de modos
-    "modes.tip":           "<strong>Cuatro formas de usar la herramienta</strong>.<br><strong>📇 Perfil</strong>: pega un id → las 5 recetas a la vez = TAF Card.<br><strong>🆚 Comparar</strong>: 2-3 modelos lado a lado en una receta.<br><strong>💬 Pregunta</strong>: pregunta libre, el LLM del navegador elige la receta.<br><strong>📋 Receta</strong>: selección manual con control total del formulario.",
+    "modes.tip":           "<strong>Siete formas de usar la herramienta</strong>.<br><strong>📇 Perfil</strong>: pega un id → las 8 recetas a la vez = TAF Card.<br><strong>🆚 Comparar</strong>: 2-3 modelos lado a lado en una receta.<br><strong>🔍 Inspeccionar config</strong>: pega config.json crudo → Perfil completo.<br><strong>💬 Pregunta</strong>: pregunta libre, el LLM del navegador elige la receta.<br><strong>📋 Receta</strong>: selección manual con control total del formulario.<br><strong>🩺 Diagnóstico CLI</strong>: genera comando Python para medir γ localmente.<br><strong>📊 Diagrama de fase</strong>: panel de 23 modelos en plano (log θ, γ).",
     "profile.tip":         "<strong>Diagnóstico completo en un click</strong>. Pega cualquier id de modelo HF (o elige preset). La herramienta ejecuta las 5 recetas (contexto largo, compresión KV, custom vs API, presupuesto, hardware) y produce una única <strong>TAF Card</strong> con veredicto por dimensión + números clave + clasificación arquitectónica.<br><br><strong>Caso de uso</strong>: \"Estoy evaluando Qwen2.5-32B para producción — ¿cuál es su perfil completo de viabilidad?\" → pega id → Perfilar → listo.",
     "compare.tip":         "<strong>Misma receta, múltiples modelos</strong>. Elige 2-3 modelos candidatos y una receta. Ve los veredictos en una única tabla comparativa.<br><br><strong>Caso de uso</strong>: \"Necesito recuperación de contexto largo a 16K — ¿cuál es mejor: Llama-3-8B, Mistral-7B o Qwen-7B?\" → elige 3 + X-2 + 16K → ve el ganador.",
 
@@ -399,11 +404,14 @@ export const TRANSLATIONS = {
     "help.title":               "📘 TAF Agent — Manual de Usuario",
     "help.what.title":          "¿Qué hace?",
     "help.what.body":           "Predice la <strong>viabilidad práctica</strong> de cualquier LLM transformer <em>antes de gastar GPU/€</em>. Responde preguntas como \"¿funcionará este modelo a L=32K?\" o \"¿debería entrenar custom o usar API?\" usando fórmulas Python deterministas (TAF — Thermodynamic Attention Framework).",
-    "help.modes.title":         "Cómo usar — 4 modos",
+    "help.modes.title":         "Cómo usar — 7 modos",
     "help.modes.profile":       "<strong>📇 Perfilar</strong>: pega id de modelo → todas las recetas a la vez = TAF Card. <strong>Mejor punto de inicio</strong>.",
     "help.modes.compare":       "<strong>🆚 Comparar</strong>: 2-3 modelos lado a lado en la misma receta. Mejor al elegir entre candidatos.",
+    "help.modes.inspector":     "<strong>🔍 Inspeccionar config</strong>: pega <code>config.json</code> crudo → la herramienta lo parsea y ejecuta el Perfil completo. Para modelos privados, configs en desarrollo, o modelos aún no en HF Hub.",
     "help.modes.ask":           "<strong>💬 Pregunta libre</strong>: pregunta en lenguaje natural, el LLM del navegador elige la receta. Mejor para exploración casual.",
     "help.modes.recipe":        "<strong>📋 Receta + formulario</strong>: selección manual, control total de parámetros. Mejor cuando quieres control exacto.",
+    "help.modes.diagnose":      "<strong>🩺 Diagnóstico CLI</strong>: genera comando Python para medir γ en tu máquina local (transformers + numpy). Rápido ≈5 min CPU; completo ≈20–60 min GPU. JSON resultado re-subible por Inspect.",
+    "help.modes.phase":         "<strong>📊 Diagrama de fase</strong>: scatter de 23 modelos del panel en plano (log θ, γ). Línea Hagedorn γ=1 separa Fase A de Fase B. Click en un punto para cargar ese modelo en el formulario de Receta.",
     "help.recipes.title":       "Las 8 recetas disponibles",
     "help.recipe.x1.title":     "<strong>X-1 Entrenamiento custom vs API</strong> — compara coste de entrenar tu propio modelo vs pagar API.",
     "help.recipe.x1.example":   "Prueba: <em>\"¿Entrenar 8B custom o usar GPT-4o para 50M tokens/mes?\"</em><br>Respuestas: SÍ (custom) / NO (API) con meses para break-even.",
@@ -459,6 +467,7 @@ export const TRANSLATIONS = {
   fr: {
     // §33 v0.4 (sesion 31, 2026-04-30) — nouvelles fonctions de diagnostic
     "v04.title":                  "🆕 v0.4 — Nouveaux diagnostics (sesion 31)",
+    "v04.section.intro":          "Quatre nouvelles fonctions diagnostiques dérivées en session 31 (2026-04-30) depuis jeux de formules cross-of-crosses + interrogation socratique. Disponibles dans <code>taf_browser.py</code> §33.",
     "v04.arch.label":             "Concentration Architecturale",
     "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv. Loi corrélationnelle cross-panel (R²=0.30). Caveat : pas un prédicteur par-modèle.",
     "v04.pdi.label":              "PDI — Indice de Déviation de Padé",
@@ -613,7 +622,7 @@ export const TRANSLATIONS = {
     "common.no":           "Non",
 
     // Tooltips des modes
-    "modes.tip":           "<strong>Quatre façons d'utiliser l'outil</strong>.<br><strong>📇 Profil</strong>: collez un id → les 5 recettes à la fois = TAF Card.<br><strong>🆚 Comparer</strong>: 2-3 modèles côte à côte sur une recette.<br><strong>💬 Question</strong>: question libre, le LLM du navigateur choisit la recette.<br><strong>📋 Recette</strong>: sélection manuelle avec contrôle total du formulaire.",
+    "modes.tip":           "<strong>Sept façons d'utiliser l'outil</strong>.<br><strong>📇 Profil</strong>: collez un id → les 8 recettes à la fois = TAF Card.<br><strong>🆚 Comparer</strong>: 2-3 modèles côte à côte sur une recette.<br><strong>🔍 Inspecter config</strong>: collez config.json brut → Profil complet.<br><strong>💬 Question</strong>: question libre, le LLM du navigateur choisit la recette.<br><strong>📋 Recette</strong>: sélection manuelle avec contrôle total du formulaire.<br><strong>🩺 Diagnostic CLI</strong>: génère commande Python pour mesurer γ localement.<br><strong>📊 Diagramme de phase</strong>: panel de 23 modèles dans le plan (log θ, γ).",
     "profile.tip":         "<strong>Diagnostic complet en un clic</strong>. Collez n'importe quel id de modèle HF (ou choisissez préréglage). L'outil exécute les 5 recettes (contexte long, compression KV, custom vs API, budget, hardware) et produit une <strong>TAF Card</strong> unique avec verdict par dimension + nombres clés + classification architecturale.<br><br><strong>Cas d'usage</strong>: « J'évalue Qwen2.5-32B pour la production — quel est son profil complet de viabilité ? » → collez id → Profiler → fait.",
     "compare.tip":         "<strong>Même recette, plusieurs modèles</strong>. Choisissez 2-3 modèles candidats et une recette. Voyez les verdicts dans un seul tableau comparatif.<br><br><strong>Cas d'usage</strong>: « J'ai besoin de récupération longue contexte à 16K — quel est le meilleur : Llama-3-8B, Mistral-7B ou Qwen-7B ? » → choisissez 3 + X-2 + 16K → voyez le gagnant.",
 
@@ -621,11 +630,14 @@ export const TRANSLATIONS = {
     "help.title":               "📘 TAF Agent — Manuel d'utilisation",
     "help.what.title":          "Que fait-il ?",
     "help.what.body":           "Prédit la <strong>viabilité pratique</strong> de tout LLM transformer <em>avant de dépenser du GPU/€</em>. Répond à des questions comme « ce modèle fonctionnera-t-il à L=32K ? » ou « dois-je entraîner sur mesure ou utiliser une API ? » via des formules Python déterministes (TAF — Thermodynamic Attention Framework).",
-    "help.modes.title":         "Comment l'utiliser — 4 modes",
+    "help.modes.title":         "Comment l'utiliser — 7 modes",
     "help.modes.profile":       "<strong>📇 Profiler</strong>: collez id de modèle → toutes les recettes à la fois = TAF Card. <strong>Meilleur point de départ</strong>.",
     "help.modes.compare":       "<strong>🆚 Comparer</strong>: 2-3 modèles côte à côte sur la même recette. Mieux pour choisir entre candidats.",
+    "help.modes.inspector":     "<strong>🔍 Inspecter config</strong>: collez <code>config.json</code> brut → l'outil le parse et lance le Profil complet. Pour modèles privés, configs en développement, ou modèles pas encore sur HF Hub.",
     "help.modes.ask":           "<strong>💬 Question libre</strong>: question en langage naturel, le LLM du navigateur choisit la recette. Mieux pour exploration casuelle.",
     "help.modes.recipe":        "<strong>📋 Recette + formulaire</strong>: sélection manuelle, contrôle total des paramètres. Mieux quand vous voulez un contrôle exact.",
+    "help.modes.diagnose":      "<strong>🩺 Diagnostic CLI</strong>: génère commande Python pour mesurer γ sur votre machine locale (transformers + numpy). Rapide ≈5 min CPU; complet ≈20–60 min GPU. JSON résultat ré-uploadable via Inspect.",
+    "help.modes.phase":         "<strong>📊 Diagramme de phase</strong>: nuage de 23 modèles du panel dans le plan (log θ, γ). Ligne Hagedorn γ=1 sépare Phase A de Phase B. Cliquer un point pour charger ce modèle dans le formulaire Recette.",
     "help.recipes.title":       "Les 8 recettes disponibles",
     "help.recipe.x1.title":     "<strong>X-1 Entraînement custom vs API</strong> — compare le coût d'entraîner votre propre modèle vs payer l'accès API.",
     "help.recipe.x1.example":   "Essayez: <em>« Dois-je entraîner un 8B custom ou utiliser GPT-4o pour 50M tokens/mois ? »</em><br>Réponses: OUI (custom) / NON (API) avec mois pour break-even.",
@@ -681,6 +693,7 @@ export const TRANSLATIONS = {
   zh: {
     // §33 v0.4 (sesion 31, 2026-04-30) — 新诊断功能
     "v04.title":                  "🆕 v0.4 — 新诊断 (会话 31)",
+    "v04.section.intro":          "会话 31 (2026-04-30) 从公式 cross-of-crosses 游戏 + 苏格拉底质询中得出的四个新诊断函数。在 <code>taf_browser.py</code> §33 中可用。",
     "v04.arch.label":             "架构集中度",
     "v04.arch.desc":              "γ_text ≈ γ_Padé − 0.012·n_kv。跨面板相关性定律（R²=0.30）。警告：不是逐模型预测器。",
     "v04.pdi.label":              "PDI — Padé 偏差指数",
@@ -835,7 +848,7 @@ export const TRANSLATIONS = {
     "common.no":           "否",
 
     // 模式提示
-    "modes.tip":           "<strong>四种使用方式</strong>。<br><strong>📇 画像</strong>: 粘贴模型 id → 一次运行所有 5 个配方 = TAF 卡。<br><strong>🆚 比较</strong>: 2-3 个模型在一个配方上并排比较。<br><strong>💬 提问</strong>: 自由形式问题,浏览器 LLM 选择配方。<br><strong>📋 配方</strong>: 手动选择,完全控制表单。",
+    "modes.tip":           "<strong>七种使用方式</strong>。<br><strong>📇 画像</strong>: 粘贴模型 id → 一次运行所有 8 个配方 = TAF 卡。<br><strong>🆚 比较</strong>: 2-3 个模型在一个配方上并排比较。<br><strong>🔍 检查 config</strong>: 粘贴原始 config.json → 完整画像。<br><strong>💬 提问</strong>: 自由形式问题,浏览器 LLM 选择配方。<br><strong>📋 配方</strong>: 手动选择,完全控制表单。<br><strong>🩺 CLI 诊断</strong>: 生成 Python 命令在本地测量 γ。<br><strong>📊 相图</strong>: 23 个面板模型在 (log θ, γ) 平面上。",
     "profile.tip":         "<strong>一键完整诊断</strong>。粘贴任意 HF 模型 id (或选择预设)。工具运行所有 5 个配方 (长上下文、KV 压缩、自定义 vs API、预算、硬件),生成单个 <strong>TAF 卡</strong>,显示每个维度的判定 + 关键数字 + 架构分类。<br><br><strong>用例</strong>: \"我正在为生产评估 Qwen2.5-32B — 它的完整可行性概况是什么?\" → 粘贴 id → 画像 → 完成。",
     "compare.tip":         "<strong>同一配方,多个模型</strong>。选择 2-3 个候选模型和一个配方。在单个比较表中查看判定。<br><br><strong>用例</strong>: \"我需要在 16K 进行长上下文检索 — 哪个最好: Llama-3-8B、Mistral-7B 或 Qwen-7B?\" → 选择 3 个 + X-2 + 16K → 看赢家。",
 
@@ -843,11 +856,14 @@ export const TRANSLATIONS = {
     "help.title":               "📘 TAF Agent — 用户手册",
     "help.what.title":          "它做什么?",
     "help.what.body":           "在<em>花费 GPU/$ 之前</em>,预测任意 transformer LLM 的<strong>实际可行性</strong>。回答诸如 \"这个模型能在 L=32K 工作吗?\" 或 \"我应该自定义训练还是使用 API?\" 等问题,使用确定性 Python 公式 (TAF — Thermodynamic Attention Framework)。",
-    "help.modes.title":         "如何使用 — 4 种模式",
+    "help.modes.title":         "如何使用 — 7 种模式",
     "help.modes.profile":       "<strong>📇 画像</strong>: 粘贴模型 id → 同时运行所有配方 = TAF 卡。<strong>最佳起点</strong>。",
     "help.modes.compare":       "<strong>🆚 比较</strong>: 2-3 个模型在同一配方上并排。最适合在候选者之间选择。",
+    "help.modes.inspector":     "<strong>🔍 检查 config</strong>: 粘贴原始 <code>config.json</code> → 工具解析并运行完整画像。适用于私有模型、开发中的配置、或尚未在 HF Hub 上的模型。",
     "help.modes.ask":           "<strong>💬 自由提问</strong>: 自然语言问题,浏览器 LLM 选择配方。最适合随意探索。",
     "help.modes.recipe":        "<strong>📋 配方 + 表单</strong>: 手动选择,完全控制参数。最适合需要精确控制时。",
+    "help.modes.diagnose":      "<strong>🩺 CLI 诊断</strong>: 生成 Python 命令在你的本地机器上测量 γ (transformers + numpy)。快速 ≈5 分钟 CPU;完整 ≈20–60 分钟 GPU。结果 JSON 可通过 Inspect 重新上传。",
+    "help.modes.phase":         "<strong>📊 相图</strong>: 23 个面板模型在 (log θ, γ) 平面上的散点图。Hagedorn 线 γ=1 分隔 A 相和 B 相。点击点将该模型加载到配方表单。",
     "help.recipes.title":       "可用的 8 个配方",
     "help.recipe.x1.title":     "<strong>X-1 自定义训练 vs API</strong> — 比较训练自己模型的成本与付费使用 API 的成本。",
     "help.recipe.x1.example":   "尝试: <em>\"我应该训练 8B 自定义模型还是使用 GPT-4o 处理每月 50M tokens?\"</em><br>答案: 是 (自定义) / 否 (API),含损益平衡月数。",
