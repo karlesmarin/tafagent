@@ -1123,6 +1123,17 @@ function renderProfile(p, params) {
       <h3 data-i18n="tafcard.fals_title">🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
       ${falsHtml || '<div class="subtle">No falsifications applicable.</div>'}
 
+      <h3 style="margin-top: 1.5em;" data-i18n="v05.consistency.title">🔬 Algebraic consistency check (Sage + Lean v0.5)</h3>
+      <div style="margin-bottom: 0.6em; opacity: 0.85; font-size: 0.92em;" data-i18n="v05.consistency.desc">
+        Verifies 12 D-SAGE algebraic identities of TAF critical exponents (machine-proof
+        Sage Groebner basis + Lean Mathlib4). Pass = framework intact. Fail = bf16 outlier
+        / quantization artifact.
+      </div>
+      <button class="secondary" id="verify-consistency-btn" data-i18n="v05.consistency.btn">
+        🔬 Verify algebraic consistency
+      </button>
+      <div id="consistency-result" style="margin-top: 0.8em;"></div>
+
       <div class="share-bar">
         <button class="secondary" id="profile-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
         <button class="secondary" id="profile-download-btn" data-i18n="share.download">💾 Download JSON</button>
@@ -1152,6 +1163,54 @@ function renderProfile(p, params) {
     window.open(url, "_blank");
     $("profile-share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
     setTimeout(() => $("profile-share-status").textContent = "", 6000);
+  });
+
+  // v0.5.1: Algebraic consistency check button
+  $("verify-consistency-btn").addEventListener("click", () => {
+    const gammaVal = kn.gamma_decomposed ?? kn.gamma_pade;
+    if (gammaVal === null || gammaVal === undefined) {
+      $("consistency-result").innerHTML = `<div class="subtle">⚠ No γ value available for verification.</div>`;
+      return;
+    }
+    if (gammaVal <= 0 || gammaVal >= 1) {
+      $("consistency-result").innerHTML = `
+        <div style="padding:0.6em; border-left:3px solid #d29922; background:rgba(210,153,34,0.08);">
+          ⚠ <strong>γ = ${gammaVal.toFixed(4)} out of Phase A</strong> — verification requires γ ∈ (0, 1).
+          ${gammaVal >= 1 ? "Hagedorn boundary reached." : "Phase B / negative regime."}
+        </div>`;
+      return;
+    }
+    try {
+      const json = state.pyodide.runPython(`
+import json
+result = verify_algebraic_consistency(${gammaVal})
+json.dumps(result)
+`);
+      const r = JSON.parse(json);
+      const passed = r.n_checks_passed;
+      const total = r.n_checks_total;
+      const allOk = r.all_consistent;
+      const checksRows = Object.entries(r.checks).map(([id, c]) =>
+        `<div class="num-row" style="padding:0.25em 0;">
+          <span class="num-label" style="font-family:monospace;font-size:0.85em;">${escapeHtml(id)}: ${escapeHtml(c.claim)}</span>
+          <span class="num-value" style="color:${c.passes ? "#3fb950" : "#f85149"};">${c.passes ? "✓" : "✗"}</span>
+        </div>`
+      ).join("");
+      $("consistency-result").innerHTML = `
+        <div style="padding:0.7em; border-left:3px solid ${allOk ? "#3fb950" : "#f85149"}; background:rgba(${allOk ? "63,185,80" : "248,81,73"},0.08); margin-bottom:0.5em;">
+          <strong>${allOk ? "✅" : "❌"} ${passed}/${total} D-SAGE identities ${allOk ? "consistent" : "FAILED"}</strong>
+          <div style="font-size:0.9em; opacity:0.85; margin-top:0.3em;">${escapeHtml(r.interpretation)}</div>
+          <div style="font-size:0.82em; opacity:0.75; margin-top:0.3em; font-style:italic;">Verified by: ${escapeHtml(r.framework_verified_by)}</div>
+        </div>
+        <details style="margin-top:0.4em;">
+          <summary style="cursor:pointer; font-size:0.9em;">🔍 Per-identity details (${total} checks)</summary>
+          <div style="padding:0.5em 0;">${checksRows}</div>
+        </details>
+      `;
+    } catch (err) {
+      $("consistency-result").innerHTML = `<div style="color:#f85149;">❌ Error: ${escapeHtml(err.message || String(err))}</div>`;
+      console.error(err);
+    }
   });
 }
 

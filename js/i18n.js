@@ -244,6 +244,11 @@ export const TRANSLATIONS = {
     "v05.erratum.desc":            "Paper 1 originally claimed η = 2γ. Sage Groebner + Lean Mathlib4 proved this fails (residual (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Phase A). Correct value: η = γ−1, satisfying D-SAGE-1.",
     "v05.repro.label":            "Reproducibility",
     "v05.repro.desc":              "All 15 theorems machine-proof in Lean Mathlib4 (1973 jobs build success). Sage script: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Lean code: <code>lean_taf/taf/Taf/Identities.lean</code>.",
+
+    // v0.5.1 — TAF Card consistency check button
+    "v05.consistency.title":      "🔬 Algebraic consistency check (Sage + Lean v0.5)",
+    "v05.consistency.desc":       "Verifies 12 D-SAGE algebraic identities of TAF critical exponents (machine-proof Sage Groebner basis + Lean Mathlib4). Pass = framework intact. Fail = bf16 outlier / quantization artifact.",
+    "v05.consistency.btn":        "🔬 Verify algebraic consistency",
   },
 
   // ────────────────────────────────────────────────────────────────────────
@@ -273,6 +278,11 @@ export const TRANSLATIONS = {
     "v05.erratum.desc":            "Paper 1 afirmaba η = 2γ. Sage Groebner + Lean Mathlib4 demostraron que falla (residual (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Fase A). Valor correcto: η = γ−1, satisface D-SAGE-1.",
     "v05.repro.label":            "Reproducibilidad",
     "v05.repro.desc":              "Los 15 teoremas son machine-proof en Lean Mathlib4 (build exitoso 1973 jobs). Script Sage: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Código Lean: <code>lean_taf/taf/Taf/Identities.lean</code>.",
+
+    // v0.5.1 — TAF Card consistency check button
+    "v05.consistency.title":      "🔬 Comprobación de consistencia algebraica (Sage + Lean v0.5)",
+    "v05.consistency.desc":       "Verifica 12 identidades algebraicas D-SAGE de los exponentes críticos TAF (machine-proof Sage Groebner basis + Lean Mathlib4). Pasa = framework intacto. Falla = bf16 outlier / artefacto de cuantización.",
+    "v05.consistency.btn":        "🔬 Verificar consistencia algebraica",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Prueba <strong>CUALQUIER</strong> LLM transformer antes de gastar GPU/€.",
@@ -513,6 +523,11 @@ export const TRANSLATIONS = {
     "v05.repro.label":            "Reproductibilité",
     "v05.repro.desc":              "Les 15 théorèmes sont machine-proof en Lean Mathlib4 (build réussi 1973 jobs). Script Sage : <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Code Lean : <code>lean_taf/taf/Taf/Identities.lean</code>.",
 
+    // v0.5.1 — TAF Card consistency check button
+    "v05.consistency.title":      "🔬 Vérification de cohérence algébrique (Sage + Lean v0.5)",
+    "v05.consistency.desc":       "Vérifie 12 identités algébriques D-SAGE des exposants critiques TAF (machine-proof Sage Groebner basis + Lean Mathlib4). Passe = framework intact. Échec = outlier bf16 / artefact de quantification.",
+    "v05.consistency.btn":        "🔬 Vérifier cohérence algébrique",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Testez <strong>N'IMPORTE QUEL</strong> LLM transformer avant de dépenser du GPU/€.",
     "hero.subtitle":  "Tout le calcul s'exécute localement dans votre navigateur. Gratuit. Illimité. Auditable.",
@@ -750,6 +765,11 @@ export const TRANSLATIONS = {
     "v05.erratum.desc":            "Paper 1 原本声明 η = 2γ。Sage Groebner + Lean Mathlib4 证明此为失败（残差 (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ A 相）。正确值：η = γ−1，满足 D-SAGE-1。",
     "v05.repro.label":            "可重现性",
     "v05.repro.desc":              "全部 15 个定理在 Lean Mathlib4 中机器证明（build 成功 1973 jobs）。Sage 脚本：<code>analysis/sage_recursive_sweep_2026-04-30.sage</code>。Lean 代码：<code>lean_taf/taf/Taf/Identities.lean</code>。",
+
+    // v0.5.1 — TAF Card consistency check button
+    "v05.consistency.title":      "🔬 代数一致性检查 (Sage + Lean v0.5)",
+    "v05.consistency.desc":       "验证 TAF 临界指数的 12 个 D-SAGE 代数恒等式（Sage Groebner basis + Lean Mathlib4 机器证明）。通过 = 框架完整。失败 = bf16 异常值 / 量化伪影。",
+    "v05.consistency.btn":        "🔬 验证代数一致性",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "在花费 GPU/$ 之前，测试<strong>任意</strong> Transformer LLM。",
