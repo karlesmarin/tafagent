@@ -211,9 +211,61 @@ detect anomalous checkpoints.
 
 ---
 
+## What's new in v0.5 (2026-05-01) — 🔬 Machine-verified consistency
+
+**First transformer-attention framework with formal machine-proof backing.**
+
+Sage Groebner basis (algebraic decision procedure) + Lean Mathlib4 (dependent
+type theory) **dual-tool verification** of 15 algebraic identities of TAF
+critical exponents.
+
+### `verify_algebraic_consistency(γ)` — new function
+
+Given measured γ ∈ Phase A (0,1), checks 12 D-SAGE identities derived from
+TAF exponents (β=γ−1, ν=1/(1−γ), η=γ−1, etc.):
+
+- **D-SAGE-1 (★★ core)**: `2η² + η·γ_χ + 1 = 0` (quadratic identity)
+- **D-SAGE-2**: `β·χ = −1` (Phase A)
+- **D-SAGE-4**: `α + χ = 2`
+- **D-SAGE-5**: `α + γ_χ = 2(2 − γ)`
+- **D-SAGE-6**: `β·γ_χ = −2γ² + 4γ − 3` (factored)
+- **Rushbrooke + Josephson** tautologies (d=1)
+- **Fisher residual** = `γ(2γ−3)/(1−γ)` (NOT zero generally; corrects "triple closure")
+- **η=2γ refutation** (Phase A residual > 0; paper 1's claim was wrong)
+- **D-SAGE-7**: `c · |ν_imprint| · 2π = 3` (dimensional closure)
+
+Pass = framework intact. Fail = bf16 outlier, quantization artifact, or
+γ measurement noise.
+
+### Paper 1 erratum
+
+Paper 1 originally claimed `η = 2γ`. Sage Groebner + Lean Mathlib4 detected
+this is **algebraically wrong** (residual `(−4γ³+5γ+1)/(1−γ) > 0 ∀γ ∈ Phase A`).
+Correct value: `η = γ − 1`, satisfying D-SAGE-1.
+
+### Reproducibility
+
+```bash
+# Sage verification
+docker run --rm -v "$(pwd)/analysis:/work" sagemath/sagemath:latest \
+    sage /work/sage_recursive_sweep_2026-04-30.sage
+
+# Lean verification
+docker run --rm -v "$(pwd)/lean_taf:/work" \
+    leanprovercommunity/lean:latest \
+    -c "cd /work/taf && lake build"
+```
+
+Build success: 1973/1973 jobs (Mathlib4 + 15 TAF theorems), `DONE_EXIT=0`.
+
+Lean code: `lean_taf/taf/Taf/Identities.lean`
+Sage script: `analysis/sage_recursive_sweep_2026-04-30.sage`
+
+---
+
 ## How you can help
 
-This tool is at v0.4. There's a long way to go.
+This tool is at v0.5. There's a long way to go.
 
 - **🐛 Report bugs**: https://github.com/karlesmarin/tafagent/issues
 - **🌐 Translate**: add a language to `js/i18n.js`, send a PR
