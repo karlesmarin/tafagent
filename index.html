@@ -151,6 +151,17 @@
 
       <p><strong data-i18n="v04.crit.label">Critical Exponents Bundle</strong> — <span data-i18n="v04.crit.desc">ν_c, β_c, η_c (=γ−1, CORRECTED), α_C, γ_susc with AM-GM minimum at γ=1−1/√2≈0.293.</span></p>
 
+      <h3 style="margin-top: 1.5em;" data-i18n="v05.title">🔬 v0.5 — Machine-verified consistency (sesion 32)</h3>
+      <p style="opacity: 0.85;"><em data-i18n="v05.section.intro">Sage Groebner basis + Lean Mathlib4 dual-tool verification of <strong>15 algebraic identities</strong> of TAF critical exponents. First transformer-attention framework with formal machine-proof backing.</em></p>
+
+      <p><strong data-i18n="v05.verify.label">Algebraic Consistency Check</strong> — <span data-i18n="v05.verify.desc">Given measured γ, verifies 12 D-SAGE identities (D-SAGE-1: 2η²+η·γ_χ+1=0, β·χ=−1, α+χ=2, etc.). All passing = framework intact. Failures indicate bf16 outliers / quantization artifacts.</span></p>
+
+      <p><strong data-i18n="v05.dsage1.label">D-SAGE-1 (★★ core)</strong> — <span data-i18n="v05.dsage1.desc">Quadratic identity 2η² + η·γ_χ + 1 = 0 (Sage Groebner-discovered, Lean-verified). Replaces incorrect 'triple closure' claim. Refutes paper 1's η=2γ algebraically.</span></p>
+
+      <p><strong data-i18n="v05.erratum.label">Paper 1 erratum — η correction</strong> — <span data-i18n="v05.erratum.desc">Paper 1 originally claimed η = 2γ. Sage Groebner + Lean Mathlib4 proved this fails (residual (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Phase A). Correct value: η = γ−1, satisfying D-SAGE-1.</span></p>
+
+      <p><strong data-i18n="v05.repro.label">Reproducibility</strong> — <span data-i18n="v05.repro.desc">All 15 theorems machine-proof in Lean Mathlib4 (1973 jobs build success). Sage script: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Lean code: <code>lean_taf/taf/Taf/Identities.lean</code>.</span></p>
+
       <h3 data-i18n="help.add_models.title">Adding new models (3 ways)</h3>
       <ul>
         <li data-i18n="help.add_models.preset"><strong>Preset list</strong>: 11 popular models curated. Just select from dropdown.</li>

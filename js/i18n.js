@@ -232,6 +232,18 @@ export const TRANSLATIONS = {
     "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ rises; R²>0.99 → γ drops. GQA: precision-robust regardless.",
     "v04.crit.label":             "Critical Exponents Bundle",
     "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORRECTED), α_C, γ_susc with AM-GM minimum at γ=1−1/√2≈0.293.",
+
+    // §34 v0.5 (sesion 32, 2026-05-01) — Machine-verified framework consistency
+    "v05.title":                  "🔬 v0.5 — Machine-verified consistency (sesion 32)",
+    "v05.section.intro":          "Sage Groebner basis + Lean Mathlib4 dual-tool verification of <strong>15 algebraic identities</strong> of TAF critical exponents. First transformer-attention framework with formal machine-proof backing.",
+    "v05.verify.label":           "Algebraic Consistency Check",
+    "v05.verify.desc":            "Given measured γ, verifies 12 D-SAGE identities (D-SAGE-1: 2η²+η·γ_χ+1=0, β·χ=−1, α+χ=2, etc.). All passing = framework intact. Failures indicate bf16 outliers / quantization artifacts.",
+    "v05.dsage1.label":           "D-SAGE-1 (★★ core)",
+    "v05.dsage1.desc":             "Quadratic identity 2η² + η·γ_χ + 1 = 0 (Sage Groebner-discovered, Lean-verified). Replaces incorrect 'triple closure' claim. Refutes paper 1's η=2γ algebraically.",
+    "v05.erratum.label":          "Paper 1 erratum — η correction",
+    "v05.erratum.desc":            "Paper 1 originally claimed η = 2γ. Sage Groebner + Lean Mathlib4 proved this fails (residual (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Phase A). Correct value: η = γ−1, satisfying D-SAGE-1.",
+    "v05.repro.label":            "Reproducibility",
+    "v05.repro.desc":              "All 15 theorems machine-proof in Lean Mathlib4 (1973 jobs build success). Sage script: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Lean code: <code>lean_taf/taf/Taf/Identities.lean</code>.",
   },
 
   // ────────────────────────────────────────────────────────────────────────
@@ -249,6 +261,18 @@ export const TRANSLATIONS = {
     "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ sube; R²>0.99 → γ baja. GQA: precision-robusto.",
     "v04.crit.label":             "Bundle de Exponentes Críticos",
     "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORREGIDO), α_C, γ_susc con mínimo AM-GM en γ=1−1/√2≈0.293.",
+
+    // §34 v0.5 (sesion 32, 2026-05-01) — Consistencia algebraica verificada por máquina
+    "v05.title":                  "🔬 v0.5 — Consistencia verificada por máquina (sesion 32)",
+    "v05.section.intro":          "Verificación dual con Sage Groebner basis + Lean Mathlib4 de <strong>15 identidades algebraicas</strong> de los exponentes críticos TAF. Primer framework transformer-attention con respaldo formal machine-proof.",
+    "v05.verify.label":           "Comprobación de Consistencia Algebraica",
+    "v05.verify.desc":            "Dado γ medido, verifica 12 identidades D-SAGE (D-SAGE-1: 2η²+η·γ_χ+1=0, β·χ=−1, α+χ=2, etc.). Todas pasando = framework intacto. Fallos indican bf16 outliers / artefactos de cuantización.",
+    "v05.dsage1.label":           "D-SAGE-1 (★★ core)",
+    "v05.dsage1.desc":             "Identidad cuadrática 2η² + η·γ_χ + 1 = 0 (descubierta por Sage Groebner, verificada Lean). Reemplaza claim incorrecto de 'cierre triple'. Refuta η=2γ del paper 1 algebraicamente.",
+    "v05.erratum.label":          "Erratum paper 1 — corrección η",
+    "v05.erratum.desc":            "Paper 1 afirmaba η = 2γ. Sage Groebner + Lean Mathlib4 demostraron que falla (residual (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Fase A). Valor correcto: η = γ−1, satisface D-SAGE-1.",
+    "v05.repro.label":            "Reproducibilidad",
+    "v05.repro.desc":              "Los 15 teoremas son machine-proof en Lean Mathlib4 (build exitoso 1973 jobs). Script Sage: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Código Lean: <code>lean_taf/taf/Taf/Identities.lean</code>.",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Prueba <strong>CUALQUIER</strong> LLM transformer antes de gastar GPU/€.",
@@ -477,6 +501,18 @@ export const TRANSLATIONS = {
     "v04.crit.label":             "Ensemble d'Exposants Critiques",
     "v04.crit.desc":              "ν_c, β_c, η_c (=γ−1, CORRIGÉ), α_C, γ_susc avec minimum AM-GM à γ=1−1/√2≈0.293.",
 
+    // §34 v0.5 (session 32, 2026-05-01) — Cohérence algébrique vérifiée par machine
+    "v05.title":                  "🔬 v0.5 — Cohérence vérifiée par machine (session 32)",
+    "v05.section.intro":          "Vérification duale par Sage Groebner basis + Lean Mathlib4 de <strong>15 identités algébriques</strong> des exposants critiques TAF. Premier framework transformer-attention avec preuve formelle machine.",
+    "v05.verify.label":           "Vérification de Cohérence Algébrique",
+    "v05.verify.desc":            "Étant donné γ mesuré, vérifie 12 identités D-SAGE (D-SAGE-1 : 2η²+η·γ_χ+1=0, β·χ=−1, α+χ=2, etc.). Toutes passantes = framework intact. Échecs = outliers bf16 / artefacts de quantification.",
+    "v05.dsage1.label":           "D-SAGE-1 (★★ core)",
+    "v05.dsage1.desc":             "Identité quadratique 2η² + η·γ_χ + 1 = 0 (découverte par Sage Groebner, vérifiée Lean). Remplace l'affirmation incorrecte de 'fermeture triple'. Réfute η=2γ du paper 1 algébriquement.",
+    "v05.erratum.label":          "Erratum paper 1 — correction η",
+    "v05.erratum.desc":            "Paper 1 affirmait η = 2γ. Sage Groebner + Lean Mathlib4 ont prouvé l'échec (résidu (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ Phase A). Valeur correcte : η = γ−1, satisfaisant D-SAGE-1.",
+    "v05.repro.label":            "Reproductibilité",
+    "v05.repro.desc":              "Les 15 théorèmes sont machine-proof en Lean Mathlib4 (build réussi 1973 jobs). Script Sage : <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Code Lean : <code>lean_taf/taf/Taf/Identities.lean</code>.",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Testez <strong>N'IMPORTE QUEL</strong> LLM transformer avant de dépenser du GPU/€.",
     "hero.subtitle":  "Tout le calcul s'exécute localement dans votre navigateur. Gratuit. Illimité. Auditable.",
@@ -702,6 +738,18 @@ export const TRANSLATIONS = {
     "v04.4bit.desc":              "MHA: R²(bf16)<0.9 → γ 上升；R²>0.99 → γ 下降。GQA: 精度稳健。",
     "v04.crit.label":             "临界指数捆绑",
     "v04.crit.desc":              "ν_c、β_c、η_c (=γ−1, 已修正)、α_C、γ_susc，AM-GM 最小值在 γ=1−1/√2≈0.293。",
+
+    // §34 v0.5 (会话 32, 2026-05-01) — 机器验证的代数一致性
+    "v05.title":                  "🔬 v0.5 — 机器验证一致性 (会话 32)",
+    "v05.section.intro":          "Sage Groebner basis + Lean Mathlib4 双工具验证 TAF 临界指数的<strong>15 个代数恒等式</strong>。首个具有形式化机器证明支持的 transformer-attention 框架。",
+    "v05.verify.label":           "代数一致性检查",
+    "v05.verify.desc":            "给定测得的 γ，验证 12 个 D-SAGE 恒等式（D-SAGE-1：2η²+η·γ_χ+1=0、β·χ=−1、α+χ=2 等）。全部通过 = 框架完整。失败表明 bf16 异常值 / 量化伪影。",
+    "v05.dsage1.label":           "D-SAGE-1 (★★ 核心)",
+    "v05.dsage1.desc":             "二次恒等式 2η² + η·γ_χ + 1 = 0（Sage Groebner 发现, Lean 验证）。取代错误的 '三重闭合' 主张。从代数上反驳 paper 1 的 η=2γ。",
+    "v05.erratum.label":          "Paper 1 勘误 — η 修正",
+    "v05.erratum.desc":            "Paper 1 原本声明 η = 2γ。Sage Groebner + Lean Mathlib4 证明此为失败（残差 (-4γ³+5γ+1)/(1-γ) > 0 ∀γ ∈ A 相）。正确值：η = γ−1，满足 D-SAGE-1。",
+    "v05.repro.label":            "可重现性",
+    "v05.repro.desc":              "全部 15 个定理在 Lean Mathlib4 中机器证明（build 成功 1973 jobs）。Sage 脚本：<code>analysis/sage_recursive_sweep_2026-04-30.sage</code>。Lean 代码：<code>lean_taf/taf/Taf/Identities.lean</code>。",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "在花费 GPU/$ 之前，测试<strong>任意</strong> Transformer LLM。",
