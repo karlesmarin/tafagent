@@ -251,6 +251,23 @@ export const TRANSLATIONS = {
     "v05.consistency.title":      "🔬 Algebraic consistency check (Sage + Lean v0.5)",
     "v05.consistency.desc":       "Verifies 12 D-SAGE algebraic identities of TAF critical exponents (machine-proof Sage Groebner basis + Lean Mathlib4). Pass = framework intact. Fail = bf16 outlier / quantization artifact.",
     "v05.consistency.btn":        "🔬 Verify algebraic consistency",
+
+    // v0.5.2 — Anti-Ising universality class badge
+    "v05.antiising.badge":        "🧲 Anti-Ising class (β=γ−1&lt;0, machine-verified)",
+
+    // v0.5.2 — Per-identity tooltips (plain English explanations)
+    "v05.tooltip.D_SAGE_1":       "Quadratic algebraic identity connecting anomalous dimension η and susceptibility γ_χ. The CORE identity discovered by Sage Groebner basis (machine-proof). Replaces earlier wrong claim of triple closure.",
+    "v05.tooltip.D_SAGE_2":       "In Phase A, β = γ−1 is negative (anti-Ising). Multiplied by χ = 1/(1−γ) gives exactly −1. Signature of TAF's negative-β regime.",
+    "v05.tooltip.D_SAGE_4":       "The specific heat exponent α and susceptibility χ sum to exactly 2 in TAF. Algebraic consequence of Josephson hyperscaling.",
+    "v05.tooltip.D_SAGE_5":       "Linear sum identity: α + γ_χ = 2(2−γ). Means as γ approaches 1 (Hagedorn), the sum approaches 2; at γ=0 it's 4.",
+    "v05.tooltip.D_SAGE_6":       "Order parameter exponent times susceptibility exponent equals a specific quadratic in γ. Factored algebraic relation.",
+    "v05.tooltip.Rushbrooke_tautology": "Standard Rushbrooke hyperscaling 2β + γ_χ = ν·d at d=1. In TAF this is a TAUTOLOGY — γ_χ is defined exactly so this holds. Confirmed by Sage Groebner basis.",
+    "v05.tooltip.Josephson_tautology": "Standard Josephson hyperscaling 2 − α = ν·d at d=1. In TAF this is a TAUTOLOGY — α is defined exactly so this holds.",
+    "v05.tooltip.Fisher_independent": "Fisher relation γ_χ = (2−η)·ν. In TAF this is INDEPENDENT (does NOT close as identity, contrary to triple-closure claim). Residual is γ(2γ−3)/(1−γ).",
+    "v05.tooltip.eta_2gamma_REFUTED": "Paper 1 originally claimed η=2γ. This identity refutes it: residual is positive throughout Phase A. Lean Mathlib4 machine-proof refutation.",
+    "v05.tooltip.D_14_nu_imprint": "The learned imprint slope ν = −1/(2π) times 2π equals −1. Trivial dimensional check from paper 1.",
+    "v05.tooltip.D_SAGE_7":       "The central charge c=3 times |ν_imprint| times 2π equals 3. Dimensional closure connecting CFT and training imprint.",
+    "v05.tooltip.nu_beta_id":     "Correlation length exponent ν times order parameter exponent β equals −1 in Phase A. Variant of D-SAGE-2.",
   },
 
   // ────────────────────────────────────────────────────────────────────────
@@ -285,6 +302,23 @@ export const TRANSLATIONS = {
     "v05.consistency.title":      "🔬 Comprobación de consistencia algebraica (Sage + Lean v0.5)",
     "v05.consistency.desc":       "Verifica 12 identidades algebraicas D-SAGE de los exponentes críticos TAF (machine-proof Sage Groebner basis + Lean Mathlib4). Pasa = framework intacto. Falla = bf16 outlier / artefacto de cuantización.",
     "v05.consistency.btn":        "🔬 Verificar consistencia algebraica",
+
+    // v0.5.2 — Anti-Ising universality class badge
+    "v05.antiising.badge":        "🧲 Clase Anti-Ising (β=γ−1&lt;0, verificado por máquina)",
+
+    // v0.5.2 — Per-identity tooltips (explicaciones en lenguaje claro)
+    "v05.tooltip.D_SAGE_1":       "Identidad algebraica cuadrática que conecta dimensión anómala η con susceptibilidad γ_χ. Identidad CORE descubierta por Sage Groebner basis (machine-proof). Reemplaza claim incorrecto de triple closure.",
+    "v05.tooltip.D_SAGE_2":       "En Fase A, β = γ−1 es negativo (anti-Ising). Multiplicado por χ = 1/(1−γ) da exactamente −1. Signature del régimen negativo-β de TAF.",
+    "v05.tooltip.D_SAGE_4":       "El exponente de calor específico α y la susceptibilidad χ suman exactamente 2 en TAF. Consecuencia algebraica del hiperescalado de Josephson.",
+    "v05.tooltip.D_SAGE_5":       "Identidad lineal: α + γ_χ = 2(2−γ). Significa que cuando γ se acerca a 1 (Hagedorn), la suma se acerca a 2; en γ=0 vale 4.",
+    "v05.tooltip.D_SAGE_6":       "Exponente de parámetro de orden multiplicado por exponente de susceptibilidad da una cuadrática específica en γ. Relación algebraica factorizada.",
+    "v05.tooltip.Rushbrooke_tautology": "Hiperescalado de Rushbrooke estándar 2β + γ_χ = ν·d en d=1. En TAF es TAUTOLOGÍA — γ_χ se define exactamente para que se cumpla. Confirmado por Sage Groebner basis.",
+    "v05.tooltip.Josephson_tautology": "Hiperescalado de Josephson estándar 2 − α = ν·d en d=1. En TAF es TAUTOLOGÍA — α se define exactamente para que se cumpla.",
+    "v05.tooltip.Fisher_independent": "Relación de Fisher γ_χ = (2−η)·ν. En TAF es INDEPENDIENTE (NO cierra como identidad, contrario al claim de triple closure). El residuo es γ(2γ−3)/(1−γ).",
+    "v05.tooltip.eta_2gamma_REFUTED": "Paper 1 afirmaba η=2γ. Esta identidad lo refuta: el residuo es positivo en toda Fase A. Refutación machine-proof por Lean Mathlib4.",
+    "v05.tooltip.D_14_nu_imprint": "La pendiente de imprint aprendido ν = −1/(2π) multiplicada por 2π da −1. Verificación dimensional trivial del paper 1.",
+    "v05.tooltip.D_SAGE_7":       "La carga central c=3 multiplicada por |ν_imprint| multiplicada por 2π da 3. Cierre dimensional conectando CFT con imprint de entrenamiento.",
+    "v05.tooltip.nu_beta_id":     "Exponente de longitud de correlación ν multiplicado por exponente de parámetro de orden β da −1 en Fase A. Variante de D-SAGE-2.",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Prueba <strong>CUALQUIER</strong> LLM transformer antes de gastar GPU/€.",
@@ -532,6 +566,23 @@ export const TRANSLATIONS = {
     "v05.consistency.desc":       "Vérifie 12 identités algébriques D-SAGE des exposants critiques TAF (machine-proof Sage Groebner basis + Lean Mathlib4). Passe = framework intact. Échec = outlier bf16 / artefact de quantification.",
     "v05.consistency.btn":        "🔬 Vérifier cohérence algébrique",
 
+    // v0.5.2 — Anti-Ising universality class badge
+    "v05.antiising.badge":        "🧲 Classe Anti-Ising (β=γ−1&lt;0, vérifié par machine)",
+
+    // v0.5.2 — Tooltips par identité (explications en langage clair)
+    "v05.tooltip.D_SAGE_1":       "Identité algébrique quadratique reliant la dimension anormale η et la susceptibilité γ_χ. Identité CENTRALE découverte par Sage Groebner basis (machine-proof). Remplace l'ancienne affirmation incorrecte de triple closure.",
+    "v05.tooltip.D_SAGE_2":       "En Phase A, β = γ−1 est négatif (anti-Ising). Multiplié par χ = 1/(1−γ) donne exactement −1. Signature du régime négatif-β de TAF.",
+    "v05.tooltip.D_SAGE_4":       "L'exposant de chaleur spécifique α et la susceptibilité χ se somment exactement à 2 en TAF. Conséquence algébrique de l'hyperscaling de Josephson.",
+    "v05.tooltip.D_SAGE_5":       "Identité linéaire : α + γ_χ = 2(2−γ). Signifie que quand γ s'approche de 1 (Hagedorn), la somme s'approche de 2 ; à γ=0 elle vaut 4.",
+    "v05.tooltip.D_SAGE_6":       "Exposant de paramètre d'ordre multiplié par exposant de susceptibilité donne une quadratique spécifique en γ. Relation algébrique factorisée.",
+    "v05.tooltip.Rushbrooke_tautology": "Hyperscaling de Rushbrooke standard 2β + γ_χ = ν·d à d=1. En TAF c'est une TAUTOLOGIE — γ_χ est défini exactement pour que cela soit vrai. Confirmé par Sage Groebner basis.",
+    "v05.tooltip.Josephson_tautology": "Hyperscaling de Josephson standard 2 − α = ν·d à d=1. En TAF c'est une TAUTOLOGIE — α est défini exactement pour que cela soit vrai.",
+    "v05.tooltip.Fisher_independent": "Relation de Fisher γ_χ = (2−η)·ν. En TAF est INDÉPENDANTE (ne ferme PAS comme identité, contrairement à l'affirmation de triple closure). Le résidu est γ(2γ−3)/(1−γ).",
+    "v05.tooltip.eta_2gamma_REFUTED": "Paper 1 affirmait η=2γ. Cette identité le réfute : le résidu est positif dans toute la Phase A. Réfutation machine-proof par Lean Mathlib4.",
+    "v05.tooltip.D_14_nu_imprint": "La pente d'empreinte apprise ν = −1/(2π) multipliée par 2π donne −1. Vérification dimensionnelle triviale du paper 1.",
+    "v05.tooltip.D_SAGE_7":       "La charge centrale c=3 multipliée par |ν_imprint| multipliée par 2π donne 3. Fermeture dimensionnelle reliant CFT à l'empreinte d'entraînement.",
+    "v05.tooltip.nu_beta_id":     "Exposant de longueur de corrélation ν multiplié par exposant de paramètre d'ordre β donne −1 en Phase A. Variante de D-SAGE-2.",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Testez <strong>N'IMPORTE QUEL</strong> LLM transformer avant de dépenser du GPU/€.",
     "hero.subtitle":  "Tout le calcul s'exécute localement dans votre navigateur. Gratuit. Illimité. Auditable.",
@@ -777,6 +828,23 @@ export const TRANSLATIONS = {
     "v05.consistency.title":      "🔬 代数一致性检查 (Sage + Lean v0.5)",
     "v05.consistency.desc":       "验证 TAF 临界指数的 12 个 D-SAGE 代数恒等式（Sage Groebner basis + Lean Mathlib4 机器证明）。通过 = 框架完整。失败 = bf16 异常值 / 量化伪影。",
     "v05.consistency.btn":        "🔬 验证代数一致性",
+
+    // v0.5.2 — Anti-Ising universality class badge
+    "v05.antiising.badge":        "🧲 反 Ising 类 (β=γ−1&lt;0，机器验证)",
+
+    // v0.5.2 — 每个恒等式的工具提示（通俗解释）
+    "v05.tooltip.D_SAGE_1":       "二次代数恒等式，连接异常维度 η 和磁化率 γ_χ。Sage Groebner basis 发现的核心恒等式（机器证明）。取代了之前关于三重闭合的错误声明。",
+    "v05.tooltip.D_SAGE_2":       "在 A 相中，β = γ−1 为负（反 Ising）。乘以 χ = 1/(1−γ) 恰好等于 −1。TAF 负 β 体制的标志。",
+    "v05.tooltip.D_SAGE_4":       "比热指数 α 和磁化率 χ 在 TAF 中精确加和为 2。Josephson 超标度的代数推论。",
+    "v05.tooltip.D_SAGE_5":       "线性恒等式：α + γ_χ = 2(2−γ)。意味着当 γ 接近 1（Hagedorn）时，总和接近 2；在 γ=0 时为 4。",
+    "v05.tooltip.D_SAGE_6":       "序参量指数乘以磁化率指数等于 γ 的特定二次式。因式分解的代数关系。",
+    "v05.tooltip.Rushbrooke_tautology": "标准 Rushbrooke 超标度 2β + γ_χ = ν·d 在 d=1。在 TAF 中这是一个重言式 — γ_χ 的定义就是为了使其成立。Sage Groebner basis 确认。",
+    "v05.tooltip.Josephson_tautology": "标准 Josephson 超标度 2 − α = ν·d 在 d=1。在 TAF 中这是一个重言式 — α 的定义就是为了使其成立。",
+    "v05.tooltip.Fisher_independent": "Fisher 关系 γ_χ = (2−η)·ν。在 TAF 中是独立的（不作为恒等式闭合，与三重闭合声明相反）。残差为 γ(2γ−3)/(1−γ)。",
+    "v05.tooltip.eta_2gamma_REFUTED": "Paper 1 声称 η=2γ。这个恒等式驳斥了它：残差在整个 A 相中为正。Lean Mathlib4 的机器证明驳斥。",
+    "v05.tooltip.D_14_nu_imprint": "学习到的印记斜率 ν = −1/(2π) 乘以 2π 得 −1。来自 paper 1 的简单维度检查。",
+    "v05.tooltip.D_SAGE_7":       "中心电荷 c=3 乘以 |ν_imprint| 乘以 2π 得 3。连接 CFT 和训练印记的维度闭合。",
+    "v05.tooltip.nu_beta_id":     "关联长度指数 ν 乘以序参量指数 β 在 A 相中得 −1。D-SAGE-2 的变体。",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "在花费 GPU/$ 之前，测试<strong>任意</strong> Transformer LLM。",

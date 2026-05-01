@@ -1110,6 +1110,11 @@ function renderProfile(p, params) {
           θ=${formatN(ms.rope_theta)} ·
           ${ms.has_GQA ? "GQA" : "MHA"}${ms.has_SWA ? " + SWA" : ""}
         </div>
+        ${(kn.gamma_decomposed ?? kn.gamma_pade) > 0 && (kn.gamma_decomposed ?? kn.gamma_pade) < 1
+          ? `<div class="taf-anti-ising-badge" style="margin-top:0.4em; display:inline-block; padding:0.25em 0.6em; border-radius:4px; background:rgba(110,80,200,0.15); border:1px solid rgba(110,80,200,0.4); font-size:0.85em;" data-i18n="v05.antiising.badge">
+              🧲 Anti-Ising class (β=γ−1&lt;0, machine-verified)
+            </div>`
+          : ''}
       </div>
 
       <h3 data-i18n="tafcard.recipes_title">📋 Recipes (verdict per dimension)</h3>
@@ -1190,12 +1195,18 @@ json.dumps(result)
       const passed = r.n_checks_passed;
       const total = r.n_checks_total;
       const allOk = r.all_consistent;
-      const checksRows = Object.entries(r.checks).map(([id, c]) =>
-        `<div class="num-row" style="padding:0.25em 0;">
-          <span class="num-label" style="font-family:monospace;font-size:0.85em;">${escapeHtml(id)}: ${escapeHtml(c.claim)}</span>
+      const tooltipText = (id) => {
+        const key = `v05.tooltip.${id.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        const tip = t(key);
+        return (tip === key) ? '' : tip;
+      };
+      const checksRows = Object.entries(r.checks).map(([id, c]) => {
+        const tip = tooltipText(id);
+        return `<div class="num-row" style="padding:0.25em 0;" ${tip ? `title="${escapeHtml(tip)}"` : ''}>
+          <span class="num-label" style="font-family:monospace;font-size:0.85em;${tip ? 'cursor:help;border-bottom:1px dotted rgba(110,180,255,0.5);' : ''}">${escapeHtml(id)}: ${escapeHtml(c.claim)}</span>
           <span class="num-value" style="color:${c.passes ? "#3fb950" : "#f85149"};">${c.passes ? "✓" : "✗"}</span>
-        </div>`
-      ).join("");
+        </div>`;
+      }).join("");
       $("consistency-result").innerHTML = `
         <div style="padding:0.7em; border-left:3px solid ${allOk ? "#3fb950" : "#f85149"}; background:rgba(${allOk ? "63,185,80" : "248,81,73"},0.08); margin-bottom:0.5em;">
           <strong>${allOk ? "✅" : "❌"} ${passed}/${total} D-SAGE identities ${allOk ? "consistent" : "FAILED"}</strong>
