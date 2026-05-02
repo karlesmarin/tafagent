@@ -22,16 +22,34 @@ def gamma_pade(theta: float, T_eval: int) -> float:
 
 
 def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0) -> dict:
-    """§26.10 — 5-axis decomposition (n=23 OLS, paper sesión 28)."""
+    """§26.10 — 5-axis decomposition (n=23 OLS, paper sesión 28).
+
+    Calibration audit (2026-05-02 panel re-check):
+      δ_GQA      = +0.11   ✓ replicates (group-mean +0.115 on n=9/13)
+      δ_SWA      = -0.21   ⚠ ORIGINALLY FIT ON n=1; demoted to None here
+                              (insufficient data; group-mean +0.355 with single yes-case).
+                              Returning δ_SWA = 0 with `delta_SWA_status: 'exploratory_n1'`
+                              instead of applying an unreliable correction.
+      δ_post_IH  = -0.15   ⚠ does NOT replicate (group-mean ≈ 0 on n=16/6);
+                              kept but flagged 'exploratory'.
+      δ_instruct  not in this v1; v2 has -0.10 with n=3, p=0.06 caveat.
+    """
     delta_GQA = +0.11 if has_GQA else 0.0
-    delta_SWA = -0.21 if has_SWA else 0.0
+    # SWA: demoted — original constant rested on n=1.
+    delta_SWA = 0.0
+    delta_SWA_status = "exploratory_n1_disabled" if has_SWA else "not_applicable"
     delta_post_IH = -0.15 if n_params >= 4e8 else 0.0
     return {
-        "pade_centroid":   gamma_pade_val,
-        "delta_GQA":       delta_GQA,
-        "delta_SWA":       delta_SWA,
-        "delta_post_IH":   delta_post_IH,
-        "gamma_corrected": gamma_pade_val + delta_GQA + delta_SWA + delta_post_IH,
+        "pade_centroid":         gamma_pade_val,
+        "delta_GQA":             delta_GQA,
+        "delta_SWA":             delta_SWA,
+        "delta_SWA_status":      delta_SWA_status,
+        "delta_post_IH":         delta_post_IH,
+        "delta_post_IH_status":  "exploratory_no_replication" if delta_post_IH != 0 else "not_applicable",
+        "gamma_corrected":       gamma_pade_val + delta_GQA + delta_SWA + delta_post_IH,
+        "calibration_warning":  ("SWA correction disabled (originally fit on n=1). "
+                                 "post_IH correction marked exploratory (group-mean ≈ 0 in re-audit). "
+                                 "GQA correction replicates."),
     }
 
 
@@ -212,18 +230,21 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
     """§28.3 — 6-axis decomposition (sesión 29 update with imprint axis).
 
     γ_obs = γ_pade
-           + ν·log_10(P/P_0)·𝟙[corpus=random]    ← NEW imprint axis (DERIVED)
+           + ν·log_10(P/P_0)·𝟙[corpus=random]    ← NEW imprint axis (DERIVED, n=22, err 0.3%)
            + Δ_corpus(text-rand)
            + δ_arch(GQA, SWA)
            + δ_circuit(IH phase)
            + δ_train(steps, RLHF, instruct)
            + ε
-    Imprint axis activates only on RANDOM input. TEXT input dominated by corpus.
+
+    Calibration audit 2026-05-02:
+      δ_GQA solid; δ_SWA demoted (n=1); δ_post_IH exploratory; δ_instruct exploratory (n=3).
     """
     delta_imprint = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M) \
                     if corpus == "random" else 0.0
     delta_GQA = +0.11 if has_GQA else 0.0
-    delta_SWA = -0.21 if has_SWA else 0.0
+    # SWA disabled: originally fit on n=1.
+    delta_SWA = 0.0
     delta_post_IH = -0.15 if n_params_M >= 400 else 0.0
     delta_instruct = -0.10 if is_instruct else 0.0  # F9 tentative (n=3, p=0.06)
     return {
@@ -231,12 +252,17 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
         "delta_imprint":       delta_imprint,
         "delta_GQA":           delta_GQA,
         "delta_SWA":           delta_SWA,
+        "delta_SWA_status":    "exploratory_n1_disabled" if has_SWA else "not_applicable",
         "delta_post_IH":       delta_post_IH,
+        "delta_post_IH_status": "exploratory_no_replication" if delta_post_IH != 0 else "not_applicable",
         "delta_instruct":      delta_instruct,
+        "delta_instruct_status": "tentative_n3_p0.06" if delta_instruct != 0 else "not_applicable",
         "gamma_corrected":     gamma_pade_val + delta_imprint + delta_GQA
                                 + delta_SWA + delta_post_IH + delta_instruct,
         "corpus":              corpus,
         "axes":                ["pade", "imprint", "GQA", "SWA", "IH", "instruct"],
+        "calibration_warning":  ("SWA disabled (n=1). post_IH/instruct marked exploratory. "
+                                 "GQA + imprint axes are the most reliable."),
     }
 
 

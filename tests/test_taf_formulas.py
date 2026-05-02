@@ -21,6 +21,7 @@ from diagnose_model import (  # type: ignore
 )
 from taf_browser import (  # type: ignore
     gamma_pade, d_horizon, theta_design, df_window,
+    gamma_decompose, gamma_decompose_v2,
 )
 
 
@@ -241,3 +242,31 @@ def test_theta_eff_pade_definition():
     for theta in (10000, 500000, 1_000_000):
         for T in (1000, 2000):
             assert abs(theta_eff_pade(theta, T) - (theta + T / math.sqrt(2))) < 1e-9
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# gamma_decompose: audit-driven calibration changes
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_decompose_SWA_disabled():
+    """δ_SWA was originally fit on n=1 — must NOT apply correction; status flagged."""
+    result = gamma_decompose(0.75, has_SWA=True)
+    assert result["delta_SWA"] == 0.0
+    assert "n1_disabled" in result["delta_SWA_status"]
+
+
+def test_decompose_GQA_still_active():
+    """δ_GQA replicates in panel re-audit (+0.115 vs +0.11 hardcoded)."""
+    on = gamma_decompose(0.75, has_GQA=True)
+    off = gamma_decompose(0.75, has_GQA=False)
+    assert abs(on["delta_GQA"] - 0.11) < 1e-9
+    assert off["delta_GQA"] == 0.0
+
+
+def test_decompose_v2_warnings_present():
+    """v2 must emit calibration_warning."""
+    r = gamma_decompose_v2(0.75, n_params_M=500, has_SWA=True, is_instruct=True)
+    assert "calibration_warning" in r
+    assert r["delta_SWA"] == 0.0  # disabled
+    assert "exploratory" in r["delta_SWA_status"] or "n1" in r["delta_SWA_status"]
