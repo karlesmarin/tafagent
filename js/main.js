@@ -1123,6 +1123,11 @@ function renderProfile(p, params) {
       <h3 data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h3>
       <div class="taf-key-numbers">${numbersHtml}</div>
 
+      <details class="v053-audit-banner" style="margin:0.8em 0; padding:0.6em 0.8em; border:1px solid rgba(241,196,15,0.5); border-radius:6px; background:rgba(241,196,15,0.07); font-size:0.88em;">
+        <summary style="cursor:pointer; font-weight:600;" data-i18n="v053.calibration.title">🔬 v0.5.3 — Calibration audit (2026-05-02)</summary>
+        <div style="margin-top:0.5em; line-height:1.45;" data-i18n="v053.calibration.note"></div>
+      </details>
+
       <div id="whatif-container" class="whatif-box"></div>
 
       <h3 data-i18n="tafcard.fals_title">🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>

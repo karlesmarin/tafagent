@@ -268,6 +268,10 @@ export const TRANSLATIONS = {
     "v05.tooltip.D_14_nu_imprint": "The learned imprint slope ν = −1/(2π) times 2π equals −1. Trivial dimensional check from paper 1.",
     "v05.tooltip.D_SAGE_7":       "The central charge c=3 times |ν_imprint| times 2π equals 3. Dimensional closure connecting CFT and training imprint.",
     "v05.tooltip.nu_beta_id":     "Correlation length exponent ν times order parameter exponent β equals −1 in Phase A. Variant of D-SAGE-2.",
+
+    "v053.calibration.title":     "🔬 v0.5.3 — Calibration audit (2026-05-02)",
+    "v053.calibration.note":      "<strong>SWA correction disabled</strong> — original δ_SWA = -0.21 was fit on n=1 model (insufficient data; group-mean +0.355 with single yes-case). <strong>post_IH correction marked exploratory</strong> — group-mean ≈ 0 in re-audit (n=22 panel) does not replicate the OLS fit. <strong>GQA correction replicates</strong> (panel +0.115 vs hardcoded +0.11). <strong>D_f formula corrected for Phase B (γ&gt;1)</strong> — uses discrete cumulative sum instead of continuum approximation. LLaMA-3, Mistral, Gemma now report correct compression values.",
+    "v053.release.banner":        "🔧 v0.5.3 — Audit-driven fixes: KV compression D_f now uses discrete sum (correct for all γ); δ_SWA disabled (n=1 calibration); paper §5.2 C_V coefficient erratum (1/4 → 1/12).",
   },
 
   // ────────────────────────────────────────────────────────────────────────
@@ -319,6 +323,10 @@ export const TRANSLATIONS = {
     "v05.tooltip.D_14_nu_imprint": "La pendiente de imprint aprendido ν = −1/(2π) multiplicada por 2π da −1. Verificación dimensional trivial del paper 1.",
     "v05.tooltip.D_SAGE_7":       "La carga central c=3 multiplicada por |ν_imprint| multiplicada por 2π da 3. Cierre dimensional conectando CFT con imprint de entrenamiento.",
     "v05.tooltip.nu_beta_id":     "Exponente de longitud de correlación ν multiplicado por exponente de parámetro de orden β da −1 en Fase A. Variante de D-SAGE-2.",
+
+    "v053.calibration.title":     "🔬 v0.5.3 — Auditoría de calibración (2026-05-02)",
+    "v053.calibration.note":      "<strong>Corrección SWA desactivada</strong> — δ_SWA = -0.21 original se ajustó con n=1 modelo (datos insuficientes; promedio del único caso +0.355). <strong>Corrección post_IH marcada exploratoria</strong> — promedio de grupo ≈ 0 en re-auditoría (panel n=22) no replica el ajuste OLS. <strong>Corrección GQA replica</strong> (panel +0.115 vs hardcoded +0.11). <strong>Fórmula D_f corregida para Fase B (γ&gt;1)</strong> — usa suma cumulativa discreta en lugar de aproximación continua. LLaMA-3, Mistral, Gemma ahora reportan valores correctos de compresión.",
+    "v053.release.banner":        "🔧 v0.5.3 — Correcciones por audit: D_f de compresión KV ahora usa suma discreta (correcto para todo γ); δ_SWA desactivado (calibración n=1); erratum coeficiente C_V paper §5.2 (1/4 → 1/12).",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Prueba <strong>CUALQUIER</strong> LLM transformer antes de gastar GPU/€.",
@@ -583,6 +591,10 @@ export const TRANSLATIONS = {
     "v05.tooltip.D_SAGE_7":       "La charge centrale c=3 multipliée par |ν_imprint| multipliée par 2π donne 3. Fermeture dimensionnelle reliant CFT à l'empreinte d'entraînement.",
     "v05.tooltip.nu_beta_id":     "Exposant de longueur de corrélation ν multiplié par exposant de paramètre d'ordre β donne −1 en Phase A. Variante de D-SAGE-2.",
 
+    "v053.calibration.title":     "🔬 v0.5.3 — Audit de calibrage (2026-05-02)",
+    "v053.calibration.note":      "<strong>Correction SWA désactivée</strong> — δ_SWA = -0.21 d'origine était calibrée sur n=1 modèle (données insuffisantes ; moyenne du cas unique +0.355). <strong>Correction post_IH marquée exploratoire</strong> — moyenne de groupe ≈ 0 en ré-audit (panel n=22) ne réplique pas l'ajustement OLS. <strong>Correction GQA réplique</strong> (panel +0.115 vs hardcoded +0.11). <strong>Formule D_f corrigée pour Phase B (γ&gt;1)</strong> — utilise une somme cumulative discrète au lieu d'une approximation continue. LLaMA-3, Mistral, Gemma rapportent maintenant des valeurs de compression correctes.",
+    "v053.release.banner":        "🔧 v0.5.3 — Corrections issues d'audit : D_f de compression KV utilise maintenant la somme discrète (correct pour tout γ) ; δ_SWA désactivé (calibrage n=1) ; erratum du coefficient C_V paper §5.2 (1/4 → 1/12).",
+
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "Testez <strong>N'IMPORTE QUEL</strong> LLM transformer avant de dépenser du GPU/€.",
     "hero.subtitle":  "Tout le calcul s'exécute localement dans votre navigateur. Gratuit. Illimité. Auditable.",
@@ -845,6 +857,10 @@ export const TRANSLATIONS = {
     "v05.tooltip.D_14_nu_imprint": "学习到的印记斜率 ν = −1/(2π) 乘以 2π 得 −1。来自 paper 1 的简单维度检查。",
     "v05.tooltip.D_SAGE_7":       "中心电荷 c=3 乘以 |ν_imprint| 乘以 2π 得 3。连接 CFT 和训练印记的维度闭合。",
     "v05.tooltip.nu_beta_id":     "关联长度指数 ν 乘以序参量指数 β 在 A 相中得 −1。D-SAGE-2 的变体。",
+
+    "v053.calibration.title":     "🔬 v0.5.3 — 校准审计 (2026-05-02)",
+    "v053.calibration.note":      "<strong>SWA 修正已禁用</strong> — 原 δ_SWA = -0.21 基于 n=1 模型拟合（数据不足；唯一案例的均值为 +0.355）。<strong>post_IH 修正标记为探索性</strong> — 重审中组均值 ≈ 0（n=22 面板）未能复现 OLS 拟合。<strong>GQA 修正可复现</strong>（面板 +0.115 vs 硬编码 +0.11）。<strong>D_f 公式修正 Phase B (γ&gt;1)</strong> — 使用离散累积和代替连续近似。LLaMA-3、Mistral、Gemma 现在报告正确的压缩值。",
+    "v053.release.banner":        "🔧 v0.5.3 — 审计驱动的修复：KV 压缩 D_f 现使用离散和（适用于所有 γ）；δ_SWA 禁用（n=1 校准）；论文 §5.2 C_V 系数勘误 (1/4 → 1/12)。",
 
     "hero.title":     "🔬 TAF Agent",
     "hero.tagline":   "在花费 GPU/$ 之前，测试<strong>任意</strong> Transformer LLM。",
