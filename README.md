@@ -211,6 +211,78 @@ detect anomalous checkpoints.
 
 ---
 
+## What's new in v0.5.3 (2026-05-02) — 🔧 Audit-driven bug fixes
+
+The TAF Agent was **applied to its own author's paper** (recursive Sócrates audit)
+and to the agent's own formula implementations. Several real bugs were detected
+and corrected. **All v0.5.0–v0.5.2 users running diagnostics on Phase B models
+(γ > 1: LLaMA-2/3, Mistral, Gemma, Qwen2.5-7B near-Hagedorn) received
+incorrect KV-compression recommendations.** This release fixes all known issues.
+
+### Critical fixes
+
+- **`D_f_closed` (KV compression window)**: replaced asymptotic / Hagedorn-buffer
+  branches with **discrete cumulative sum**. Old code clamped Phase B (γ>1) to
+  N when truth was ~3 % of N (LLaMA-3-8B at γ=1.046 with N=2000 should compress
+  to ~750 tokens; old code returned 2000). Boundary γ ∈ [0.99, 1.01] was off
+  by factor ~2×. Now exact for any γ.
+
+- **`partition_Z(γ=1, N)`**: was `log(N + 0.5)`, missing Euler-Mascheroni
+  constant γ_E ≈ 0.577 (~7 % underestimate of H_N). Now `log(N) + γ_E`.
+
+- **`free_energy_F`**: returned `−log(Z)` (β·F convention). Now `−log(Z)/γ`,
+  consistent with the Helmholtz definition F = −T·log(Z) and the
+  thermodynamic identity S = γ·(U − F).
+
+- **`γ_pred`**: replaced obsolete `C/lnθ` heuristic with `γ_Padé(θ, T_eval)`
+  (paper §3.3).
+
+### Calibration audit (cross-panel re-check, n=22)
+
+Re-running the empirical δ corrections of `gamma_decompose` against the
+panel revealed:
+
+| Constant | Hardcoded | Panel re-audit | Verdict |
+|---|---|---|---|
+| δ_GQA | +0.11 | +0.115 | ✓ replicates |
+| δ_SWA | −0.21 | originally fit on **n=1 model** | ✗ disabled (insufficient data) |
+| δ_post_IH | −0.15 | group-mean ≈ 0 (n=16 yes / 6 no) | ⚠ flagged exploratory |
+| δ_instruct (v2) | −0.10 | n=3, p=0.06 (already noted) | ⚠ flagged exploratory |
+
+`gamma_decompose` and `gamma_decompose_v2` now return per-axis status fields
+(`delta_SWA_status`, `delta_post_IH_status`, etc.) and a top-level
+`calibration_warning` so consumers can detect which corrections are reliable.
+
+The TAF Card UI now displays a collapsible **"v0.5.3 — Calibration audit"
+banner** in all four supported languages (EN/ES/FR/ZH) explaining this.
+
+### Paper §5.2 erratum
+
+The framework's **own self-audit** found that paper §5.2 Theorem 5.2 claims
+`C_V(γ=1, N) = (log N)²/4`. Sócrates triangulation (numerical Python +
+Sage exact rational + SymPy symbolic integral) confirms the correct
+asymptotic is `(log N)²/12` — a factor-3 error in the paper's truncated
+Z-expansion proof. The agent's `heat_capacity_Cv` already computes the
+correct value via numerical derivative of U; **only the paper's analytic
+formula is wrong, not the tool**. A formal erratum will be published as a
+separate document.
+
+### Tests
+
+22/22 unit tests pass (`tests/test_taf_formulas.py`), including regression
+tests for D_f Phase B, partition_Z γ_E, free_energy_F convention, and
+δ_SWA disabled.
+
+### Why this happened
+
+These bugs survived prior reviews because the affected code paths were
+exercised mainly on Phase A models (γ < 0.95) where the asymptotic
+approximation is close enough. Phase B (γ > 1) and the boundary near
+Hagedorn (|γ−1| < 0.05) were under-tested. The agent now uses direct
+discrete computation, so accuracy is uniform across all γ.
+
+---
+
 ## What's new in v0.5 (2026-05-01) — 🔬 Machine-verified consistency
 
 **First transformer-attention framework with formal machine-proof backing.**
