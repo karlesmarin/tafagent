@@ -77,13 +77,27 @@ def alpha_opt(gamma_target: float, T_eval: int, theta_nominal: float) -> float:
 
 
 def df_window(gamma: float, N: int, f: float = 0.90):
-    """§26.7 — KV compression window. None outside [0.65, 0.85] zone."""
+    """§26.7 — KV compression window via DISCRETE cumulative sum.
+
+    Returns None outside calibrated zone γ ∈ [0.65, 0.85]. Inside, computes
+    the smallest D such that ∑_{d=1}^D d^{-γ} / ∑_{d=1}^N d^{-γ} ≥ f.
+
+    This is exact for the discrete attention distribution and avoids the
+    continuum-approximation error that the paper's closed form has at γ→1.
+    """
     if not (0.65 <= gamma <= 0.85):
         return None
-    if gamma >= 1:
-        return int(f * N)
-    inner = (1 - f) + f * N ** (1 - gamma)
-    return int(math.ceil(inner ** (1 / (1 - gamma))))
+    if N <= 0:
+        return 1
+    weights = [d ** (-gamma) for d in range(1, N + 1)]
+    total = sum(weights)
+    target = f * total
+    cum = 0.0
+    for d, w in enumerate(weights, start=1):
+        cum += w
+        if cum >= target:
+            return d
+    return N
 
 
 def kv_soft_decay_regime(theta: float, gamma: float, T_train: int) -> str:

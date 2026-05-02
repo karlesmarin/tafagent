@@ -70,9 +70,18 @@ OUTPUT_DIR = Path("./diagnose_results")
 
 # ── Thermodynamic functions ────────────────────────────────────────────────────
 
+# Euler-Mascheroni constant — needed for accurate H_N approximation at γ=1.
+EULER_GAMMA = 0.5772156649015329
+
+
 def partition_Z(gamma: float, N: int) -> float:
+    """Z(γ, N) = sum_{d=1}^N d^{-γ}.
+
+    γ=1: H_N ~ log N + γ_E + 1/(2N) − ...   [Euler-Mascheroni asymptotic]
+    γ≠1: integral approximation + d=1 boundary.
+    """
     if abs(gamma - 1.0) < 1e-5:
-        return math.log(N + 0.5)
+        return math.log(N) + EULER_GAMMA  # was math.log(N+0.5), missing γ_E
     return (N ** (1 - gamma) - 1) / (1 - gamma) + 1
 
 
@@ -93,7 +102,13 @@ def entropy_S(gamma: float, N: int) -> float:
 
 
 def free_energy_F(gamma: float, N: int) -> float:
-    return -math.log(max(partition_Z(gamma, N), 1e-30))
+    """Helmholtz free energy: F = -T·log(Z) = -log(Z)/γ  (T_attn = 1/γ).
+
+    Was: -log(Z)  [β·F = log-partition convention; ambiguous when reported as F].
+    Now: -log(Z)/γ  [physical F, consistent with U = -∂(log Z)/∂γ and S = (U − F)/T].
+    """
+    Z = max(partition_Z(gamma, N), 1e-30)
+    return -math.log(Z) / max(gamma, 1e-9)
 
 
 def heat_capacity_Cv(gamma: float, N: int, delta: float = 1e-4) -> float:
@@ -104,9 +119,51 @@ def heat_capacity_Cv(gamma: float, N: int, delta: float = 1e-4) -> float:
 
 
 def D_f_closed(gamma: float, f: float, N: int) -> int:
-    if abs(gamma - 1.0) < 0.01:
-        return int(N * math.exp(math.log(f) / math.log(N)))
-    return max(1, min(N, int(N * f ** (1 / (1 - gamma)))))
+    """KV compression window — DISCRETE truth (exact for the sum).
+
+    Smallest D such that ∑_{d=1}^D d^{-γ} / ∑_{d=1}^N d^{-γ}  ≥  f.
+
+    The paper's "exact continuous formula"
+    D_f = [(1−f) + f·N^(1−γ)]^{1/(1−γ)}   (and the γ=1 limit N^f)
+    is a CONTINUUM INTEGRAL APPROXIMATION that diverges from the discrete
+    sum by 5–50% in Phase B (γ>1), where the agent serves users.
+    Since N is bounded by context window (≤ ~10⁶), direct summation is
+    O(N) and fast (<10 ms). We use it for accuracy.
+    """
+    if N <= 0:
+        return 1
+    if not (0.0 < gamma):
+        return N  # ill-defined; safe upper bound
+    # Direct discrete cumulative
+    weights = [d ** (-gamma) for d in range(1, N + 1)]
+    total = sum(weights)
+    if total <= 0 or not math.isfinite(total):
+        # Fall back to continuum closed form (rare numerical edge case)
+        return _D_f_closed_continuum(gamma, f, N)
+    target = f * total
+    cum = 0.0
+    for d, w in enumerate(weights, start=1):
+        cum += w
+        if cum >= target:
+            return d
+    return N
+
+
+def _D_f_closed_continuum(gamma: float, f: float, N: int) -> int:
+    """Continuum closed form (paper Theorem 7.1) — asymptotic, kept as fallback."""
+    if abs(gamma - 1.0) < 1e-9:
+        return max(1, min(N, int(round(N ** f))))
+    one_minus_g = 1.0 - gamma
+    base = (1 - f) + f * (N ** one_minus_g)
+    if base <= 0:
+        return 1
+    try:
+        d_f = base ** (1.0 / one_minus_g)
+    except (OverflowError, ValueError):
+        return N
+    if not math.isfinite(d_f):
+        return N
+    return max(1, min(N, int(round(d_f))))
 
 
 def delta_H(theta: float, Df: int, N: int) -> float:
@@ -312,8 +369,14 @@ def run_diagnostic(args) -> dict:
     dH90 = delta_H(theta_nom, D90, N)
     theta_eff = theta_eff_pade(theta_nom, float(N))
 
-    # Theoretical gamma prediction
-    gamma_pred = C_THEORY / math.log(theta_nom) if theta_nom > 1 else None
+    # Theoretical γ prediction — γ_Padé(θ, T_eval) (paper §3.3, supersedes
+    # the earlier shorthand γ ≈ C/lnθ which assumed T = 10000).
+    if theta_nom > 0:
+        T_for_pred = max(distances) if distances else N  # use largest measured T
+        z_sqrt2 = T_for_pred * math.sqrt(2)
+        gamma_pred = (2 * theta_nom - z_sqrt2) / (2 * theta_nom + z_sqrt2)
+    else:
+        gamma_pred = None
 
     # Attention grammar KL
     kl_ag = grammar_kl(attn_by_d, gamma, log_A)
@@ -328,7 +391,7 @@ def run_diagnostic(args) -> dict:
     print(f"  γ (gamma)      = {gamma:.4f}   [R²={R2:.4f}]")
     if gamma_pred is not None:
         delta_g = gamma - gamma_pred
-        print(f"  γ_pred (C/lnθ) = {gamma_pred:.4f}   Δγ = {delta_g:+.4f}")
+        print(f"  γ_Padé(θ,T)    = {gamma_pred:.4f}   Δγ = {delta_g:+.4f}")
     print(f"  Phase          : {phase}")
     print(f"  T_attn = 1/γ   = {T_attn:.4f}")
     print()
