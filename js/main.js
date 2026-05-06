@@ -13,6 +13,8 @@ import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
 import { unmaskConfig } from "./swa_unmasker.js";
 import { sniffChatTemplate } from "./chat_template_sniffer.js";
+import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
+import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -188,7 +190,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
      "diagnose-section", "phase-section", "unmask-section",
-     "template-section"].forEach(id => {
+     "template-section", "arena-section", "contam-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -197,7 +199,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
-      template: "template-section",
+      template: "template-section", arena: "arena-section", contam: "contam-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -737,6 +739,245 @@ $("template-fetch-btn")?.addEventListener("click", runTemplateFromId);
 $("template-paste-btn")?.addEventListener("click", runTemplateFromPaste);
 $("template-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runTemplateFromId(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🎯 Arena-Elo CI reconstructor (v0.7.2 anti-bullshit pack #3)
+// ════════════════════════════════════════════════════════════════════
+
+function renderArenaCard(result) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
+
+  const titleRanked     = t("arena.section.ranked")     || "Ranked Elos with 95% CIs";
+  const titleTies       = t("arena.section.ties")       || "Statistical ties (CI overlap)";
+  const titleSummary    = t("arena.section.summary")    || "Summary";
+  const colRank         = t("arena.col.rank")           || "#";
+  const colModel        = t("arena.col.model")          || "Model";
+  const colElo          = t("arena.col.elo")            || "Elo";
+  const colCi           = t("arena.col.ci")             || "95% CI";
+  const colSpread       = t("arena.col.ci_width")       || "CI width";
+  const colMatches      = t("arena.col.matches")        || "Matches";
+  const colWins         = t("arena.col.wins")           || "W / L / T";
+  const noTies          = t("arena.no_ties")            || "No statistical ties — all pairs distinguishable at 95% CI.";
+
+  // Ranked table
+  let tableRows = "";
+  for (const r of result.ratings) {
+    tableRows += `<tr>
+      <td class="arena-rank">#${r.rank}</td>
+      <td class="arena-model"><code>${escapeHtml(r.model)}</code></td>
+      <td class="arena-elo"><strong>${fmtN(r.elo)}</strong></td>
+      <td class="arena-ci">[${fmtN(r.ci_low)}, ${fmtN(r.ci_high)}]</td>
+      <td class="arena-spread">±${fmtN(Math.round(r.ci_width / 2 * 10) / 10)}</td>
+      <td class="arena-matches">${fmtN(r.matches)}</td>
+      <td class="arena-wlt">${fmtN(r.wins)} / ${fmtN(r.losses)} / ${fmtN(r.ties_count)}</td>
+    </tr>`;
+  }
+
+  // Ties section
+  let tiesHtml = "";
+  if (result.ties.length === 0) {
+    tiesHtml = `<p class="unmask-reco">${noTies}</p>`;
+  } else {
+    tiesHtml = `<table class="arena-ties-table">
+      <thead><tr>
+        <th>${t("arena.col.tie_pair") || "Pair"}</th>
+        <th>${t("arena.col.tie_diff") || "Elo gap"}</th>
+        <th>${t("arena.col.tie_overlap") || "CI overlap"}</th>
+      </tr></thead><tbody>`;
+    for (const tieEntry of result.ties) {
+      tiesHtml += `<tr>
+        <td>#${tieEntry.rank_a} <code>${escapeHtml(tieEntry.model_a)}</code> vs #${tieEntry.rank_b} <code>${escapeHtml(tieEntry.model_b)}</code></td>
+        <td>${fmtN(Math.round(tieEntry.elo_diff * 10) / 10)} Elo</td>
+        <td>${fmtN(Math.round(tieEntry.overlap_elo * 10) / 10)} Elo</td>
+      </tr>`;
+    }
+    tiesHtml += `</tbody></table>`;
+  }
+
+  // Summary panel
+  const s = result.summary;
+  const summaryHtml = `
+    <ul>
+      <li><strong>${t("arena.summary.votes") || "Total votes"}:</strong> ${fmtN(s.total_votes)}</li>
+      <li><strong>${t("arena.summary.models") || "Models"}:</strong> ${fmtN(s.n_models)}</li>
+      <li><strong>${t("arena.summary.ties") || "Statistical ties"}:</strong> ${fmtN(s.n_ties)}</li>
+      <li><strong>${t("arena.summary.bootstrap") || "Bootstrap iters"}:</strong> ${fmtN(s.bootstrap_iters)}</li>
+      <li><strong>${t("arena.summary.ci_level") || "CI level"}:</strong> ${(s.ci_level * 100).toFixed(0)}%</li>
+    </ul>
+  `;
+
+  return `
+    <div class="arena-result">
+      <details class="unmask-panel" open>
+        <summary class="unmask-panel-title">${titleRanked}</summary>
+        <div style="overflow-x:auto;">
+          <table class="arena-table">
+            <thead><tr>
+              <th>${colRank}</th><th>${colModel}</th><th>${colElo}</th>
+              <th>${colCi}</th><th>${colSpread}</th>
+              <th>${colMatches}</th><th>${colWins}</th>
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+      </details>
+      <details class="unmask-panel" open>
+        <summary class="unmask-panel-title">${titleTies} <span class="arena-tie-count">(${result.ties.length})</span></summary>
+        ${tiesHtml}
+      </details>
+      <details class="unmask-panel">
+        <summary class="unmask-panel-title">${titleSummary}</summary>
+        ${summaryHtml}
+      </details>
+    </div>
+  `;
+}
+
+function runArenaCompute() {
+  const csv = ($("arena-csv").value || "").trim();
+  if (!csv) {
+    $("arena-status").textContent = t("arena.status.empty") || "⚠ Paste vote CSV or click Load sample.";
+    return;
+  }
+  let votes;
+  try {
+    votes = parseVotesCSV(csv);
+  } catch (e) {
+    $("arena-status").textContent = `❌ ${e.message}`;
+    return;
+  }
+  if (votes.length < 10) {
+    $("arena-status").textContent = tFmt("arena.status.too_few", { n: votes.length });
+    return;
+  }
+  $("arena-status").textContent = tFmt("arena.status.computing", { n: votes.length });
+  // Defer to next tick so the status text actually paints before the heavy bootstrap.
+  setTimeout(() => {
+    const t0 = performance.now();
+    const result = computeArenaCI(votes, { bootstrapN: 200, ciLevel: 0.95 });
+    const ms = Math.round(performance.now() - t0);
+    $("arena-output").innerHTML = renderArenaCard(result);
+    $("arena-status").textContent = tFmt("arena.status.done", {
+      n: votes.length, models: result.summary.n_models,
+      ties: result.summary.n_ties, ms,
+    });
+  }, 30);
+}
+
+$("arena-sample-btn")?.addEventListener("click", () => {
+  $("arena-csv").value = SAMPLE_VOTES_CSV;
+  $("arena-status").textContent = t("arena.status.sample_loaded") || "✅ Sample loaded. Click Compute CIs.";
+});
+$("arena-run-btn")?.addEventListener("click", runArenaCompute);
+$("arena-clear-btn")?.addEventListener("click", () => {
+  $("arena-csv").value = "";
+  $("arena-output").innerHTML = "";
+  $("arena-status").textContent = "";
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🧪 Contamination Prior (v0.7.3 anti-bullshit pack #4)
+// ════════════════════════════════════════════════════════════════════
+
+const CONTAM_LEVEL_COLOR = { high: "#f85149", medium: "#f1c40f", low: "#3fb950" };
+
+function renderContamCard(rows, modelCutoff) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  const titleRanked  = t("contam.section.ranked")  || "Benchmark contamination priors";
+  const titleHigh    = t("contam.section.high")    || "🔴 High-risk benchmarks (treat scores as unreliable)";
+  const titleMed     = t("contam.section.medium")  || "🟡 Medium-risk (verify with alternates)";
+  const titleLow     = t("contam.section.low")     || "🟢 Low-risk (likely clean)";
+  const colBench     = t("contam.col.benchmark")   || "Benchmark";
+  const colReleased  = t("contam.col.released")    || "Released";
+  const colGap       = t("contam.col.gap")         || "Gap (months)";
+  const colPrior     = t("contam.col.prior")       || "P(contam)";
+  const colLevel     = t("contam.col.level")       || "Level";
+  const colCorpora   = t("contam.col.corpora")     || "In corpora";
+  const colCategory  = t("contam.col.category")    || "Category";
+
+  const high = rows.filter(r => r.level === "high");
+  const medium = rows.filter(r => r.level === "medium");
+  const low = rows.filter(r => r.level === "low");
+
+  function tableFor(group) {
+    if (group.length === 0) return `<p class="unmask-reco">${t("contam.no_entries") || "(none in this category)"}</p>`;
+    let body = "";
+    for (const r of group) {
+      body += `<tr>
+        <td><strong>${escapeHtml(r.benchmark)}</strong></td>
+        <td>${escapeHtml(r.benchmark_released)}</td>
+        <td class="arena-spread">${r.gap_months > 0 ? "+" : ""}${r.gap_months}</td>
+        <td class="arena-elo" style="color: ${CONTAM_LEVEL_COLOR[r.level]};"><strong>${(r.prior * 100).toFixed(0)}%</strong></td>
+        <td>${r.benchmark_in_corpora ? "✓" : "✗"}</td>
+        <td class="arena-spread">${escapeHtml(r.benchmark_category)}</td>
+      </tr>`;
+    }
+    return `<table class="arena-table">
+      <thead><tr><th>${colBench}</th><th>${colReleased}</th><th>${colGap}</th><th>${colPrior}</th><th>${colCorpora}</th><th>${colCategory}</th></tr></thead>
+      <tbody>${body}</tbody></table>`;
+  }
+
+  const adviceHigh   = t("contam.advice.high")   || "Treat these scores as unreliable. Replace with newer / private-test alternates (MMLU-Pro, GPQA, MUSR, MATH-500).";
+  const adviceMedium = t("contam.advice.medium") || "Take with caution. Look for replication on a held-out subset or community reproductions.";
+  const adviceLow    = t("contam.advice.low")    || "Score likely uncontaminated, but absence of leak is not proof — still cross-check with alternate test.";
+
+  return `
+    <div class="arena-result">
+      <div class="unmask-hero" style="border-color: #58a6ff;">
+        <div class="unmask-verdict" style="color: #58a6ff;">${tFmt("contam.summary.headline", { cutoff: modelCutoff, n: rows.length })}</div>
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label" style="color:${CONTAM_LEVEL_COLOR.high}">🔴 ${t("contam.label.high") || "High risk"}</span><span class="unmask-num-val">${high.length}</span></div>
+          <div><span class="unmask-num-label" style="color:${CONTAM_LEVEL_COLOR.medium}">🟡 ${t("contam.label.medium") || "Medium"}</span><span class="unmask-num-val">${medium.length}</span></div>
+          <div><span class="unmask-num-label" style="color:${CONTAM_LEVEL_COLOR.low}">🟢 ${t("contam.label.low") || "Low"}</span><span class="unmask-num-val">${low.length}</span></div>
+        </div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${titleHigh} <span class="arena-tie-count">(${high.length})</span></summary>
+          <p class="unmask-reco">${adviceHigh}</p>
+          ${tableFor(high)}
+        </details>
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${titleMed} <span class="arena-tie-count">(${medium.length})</span></summary>
+          <p class="unmask-reco">${adviceMedium}</p>
+          ${tableFor(medium)}
+        </details>
+        <details class="unmask-panel">
+          <summary class="unmask-panel-title">${titleLow} <span class="arena-tie-count">(${low.length})</span></summary>
+          <p class="unmask-reco">${adviceLow}</p>
+          ${tableFor(low)}
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+function runContamCompute() {
+  const cutoff = ($("contam-cutoff").value || "").trim();
+  if (!cutoff) {
+    $("contam-status").textContent = t("contam.status.empty") || "⚠ Enter a model training cutoff date (e.g. 2023-12).";
+    return;
+  }
+  if (!/^\d{4}(-\d{1,2})?(-\d{1,2})?$/.test(cutoff)) {
+    $("contam-status").textContent = t("contam.status.bad_date") || "⚠ Bad date format. Use YYYY-MM or YYYY-MM-DD.";
+    return;
+  }
+  const rows = rateAllBenchmarks(cutoff);
+  $("contam-output").innerHTML = renderContamCard(rows, cutoff);
+  $("contam-status").textContent = tFmt("contam.status.done", {
+    cutoff, n: rows.length,
+    high: rows.filter(r => r.level === "high").length,
+  });
+}
+
+$("contam-run-btn")?.addEventListener("click", runContamCompute);
+$("contam-cutoff")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runContamCompute(); }
 });
 
 function configToPreset(cfg, modelId) {

@@ -33,6 +33,34 @@
   flex: 1;
 }
 
+/* v0.7.2 — Arena-Elo CI reconstructor */
+.arena-result { margin-top: 0.6em; }
+.arena-table, .arena-ties-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+.arena-table th, .arena-ties-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #58a6ff;
+  padding: 0.45em 0.6em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.arena-table td, .arena-ties-table td {
+  padding: 0.45em 0.6em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+.arena-table tr:hover, .arena-ties-table tr:hover { background: rgba(88, 166, 255, 0.04); }
+.arena-rank { color: #8b949e; font-family: monospace; }
+.arena-elo { font-family: monospace; }
+.arena-ci, .arena-spread, .arena-matches, .arena-wlt { font-family: monospace; font-size: 0.9em; opacity: 0.85; }
+.arena-tie-count { font-size: 0.85em; opacity: 0.7; font-weight: normal; }
+
 /* v0.7.1 — Chat-template Sniffer mode */
 .template-cmd-block {
   display: flex;

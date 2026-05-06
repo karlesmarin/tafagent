@@ -189,6 +189,21 @@
         <li data-i18n="help.add_models.manual"><strong>Manual</strong>: fill the form fields directly with values from the model card.</li>
       </ul>
 
+      <h3 style="margin-top: 1.5em;" data-i18n="help.v07.title">🆕 v0.7 — Anti-bullshit pack (4 new modes)</h3>
+      <p style="opacity: 0.85;" data-i18n="help.v07.intro"><em>v0.7 (2026-05-06): four new modes that solve concrete pain points reported by the HuggingFace community. Each one runs in your browser with no inference — pure metadata + math.</em></p>
+
+      <p><strong data-i18n="help.v07.unmask.title">🪟 Context Unmasker</strong></p>
+      <p data-i18n="help.v07.unmask.body">Detects when <code>max_position_embeddings</code> is misleading. Mistral-7B-v0.1 declares 32k but attends within ~4-8k via SWA. Paste an HF model id → 1-second verdict (HONEST / INFLATED / SEVERELY INFLATED / YARN-EXTENDED). Catches SWA, RoPE-scaling (YaRN/linear/dynamic NTK), small-d_head + GQA. <em>Use case</em>: before paying GPU for 32k context, verify the model actually attends that far.</p>
+
+      <p><strong data-i18n="help.v07.template.title">📜 Chat-template Sniffer</strong></p>
+      <p data-i18n="help.v07.template.body">Detects which chat-template family a model uses (Llama-3 / ChatML / Mistral / Gemma / Phi-3 / Alpaca / DeepSeek / custom / none) and gives you the exact CLI flag for lm-evaluation-harness, vLLM, and transformers. Solves issue #1841 in lm-eval-harness: forgetting <code>--apply_chat_template</code> silently halves multi-turn accuracy. <em>Use case</em>: before reporting a benchmark score, confirm you applied the template correctly.</p>
+
+      <p><strong data-i18n="help.v07.arena.title">🎯 Arena-Elo CI Reconstructor</strong></p>
+      <p data-i18n="help.v07.arena.body">Chatbot Arena strips confidence intervals from its public leaderboard — a 5-Elo gap can be statistically meaningless. Paste raw pairwise vote data (model_a, model_b, winner) → Bradley-Terry MLE + 200-iteration bootstrap → ranked Elos with 95% CIs and a "statistical ties" panel listing pairs whose CIs overlap. Try the Load sample button. <em>Use case</em>: before declaring "model A beats model B", verify their CIs don't overlap.</p>
+
+      <p><strong data-i18n="help.v07.contam.title">🧪 Contamination Prior</strong></p>
+      <p data-i18n="help.v07.contam.body">Bayesian-ish prior on whether a benchmark score is contaminated. Enter your model's training cutoff date → tool rates 20+ popular benchmarks (MMLU, HellaSwag, GSM8K, HumanEval, IFEval, MMLU-Pro, GPQA, AIME, MATH-500, BBH, MUSR…) by P(contamination) based on time gap, corpus inclusion, and known leak history. Open LLM Leaderboard v1 was killed in 2024 after MMLU/HellaSwag scores became contaminated. <em>Use case</em>: decide which scores to trust when comparing two models.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -287,6 +302,15 @@
             <li data-i18n="inv.export.registry">Submit to community registry on GitHub</li>
           </ul>
         </details>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.v07.title">🆕 v0.7 anti-bullshit pack</summary>
+          <ul>
+            <li data-i18n="inv.v07.unmask"><strong>🪟 Unmask</strong> — config.json claims 32k? See if it actually attends that far</li>
+            <li data-i18n="inv.v07.template"><strong>📜 Chat-template</strong> — exact CLI flag so lm-eval doesn't silently halve your accuracy</li>
+            <li data-i18n="inv.v07.arena"><strong>🎯 Arena CI</strong> — recover the confidence intervals Chatbot Arena hides</li>
+            <li data-i18n="inv.v07.contam"><strong>🧪 Contamination</strong> — rate 20+ benchmarks for contamination probability</li>
+          </ul>
+        </details>
       </div>
 
       <details class="arch-supported" open>
@@ -336,6 +360,8 @@
         <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
         <button class="mode-btn" data-mode="unmask" role="tab" aria-selected="false" data-i18n="modes.unmask">🪟 Unmask</button>
         <button class="mode-btn" data-mode="template" role="tab" aria-selected="false" data-i18n="modes.template">📜 Chat-template</button>
+        <button class="mode-btn" data-mode="arena" role="tab" aria-selected="false" data-i18n="modes.arena">🎯 Arena CI</button>
+        <button class="mode-btn" data-mode="contam" role="tab" aria-selected="false" data-i18n="modes.contam">🧪 Contamination</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -679,6 +705,51 @@
         <button type="button" id="template-paste-btn" data-i18n="template.paste_btn" style="margin-top:0.4em;">📜 Sniff pasted config</button>
       </details>
       <div id="template-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Arena-Elo CI reconstructor (v0.7.2 anti-bullshit pack #3) -->
+    <section id="arena-section" style="display:none;">
+      <h2><span data-i18n="arena.title">🎯 Arena-Elo CI Reconstructor</span>
+        <span class="info"><span class="tooltip" data-i18n="arena.tip">
+          Chatbot Arena strips confidence intervals from the public leaderboard.
+          A 5-Elo gap can be statistically meaningless. Paste raw vote data
+          (model_a, model_b, winner) — the tool computes Bradley-Terry MLE +
+          bootstrap CIs and lists statistical ties (CI overlap).
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="arena.desc">
+        <strong>Is GPT-4 actually better than Claude — or are they tied?</strong> Paste pairwise vote CSV (or click <em>Load sample</em>). Bradley-Terry MLE + 200-iteration bootstrap → ranked Elos with 95% CIs and statistical-tie detection. All in browser.
+      </p>
+      <div class="form-row">
+        <button type="button" id="arena-sample-btn" data-i18n="arena.sample_btn">📊 Load sample data</button>
+        <button type="button" id="arena-run-btn" data-i18n="arena.run_btn">🎯 Compute CIs</button>
+        <button type="button" id="arena-clear-btn" class="secondary" data-i18n="arena.clear_btn">🗑️ Clear</button>
+      </div>
+      <p id="arena-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <details style="margin: 0.6em 0;" open>
+        <summary style="cursor:pointer; font-size:0.92em;" data-i18n="arena.csv_summary">Vote CSV (header: <code>model_a,model_b,winner</code>; winner ∈ a/b/tie)</summary>
+        <textarea id="arena-csv" rows="10" style="width:100%; font-family:monospace; font-size:0.85em; margin-top:0.4em;" placeholder="model_a,model_b,winner&#10;GPT-4,Claude,a&#10;Llama-3,Mixtral,tie&#10;..."></textarea>
+      </details>
+      <div id="arena-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Contamination prior (v0.7.3 anti-bullshit pack #4) -->
+    <section id="contam-section" style="display:none;">
+      <h2><span data-i18n="contam.title">🧪 Contamination Prior</span>
+        <span class="info"><span class="tooltip" data-i18n="contam.tip">
+          Computes a Bayesian-ish prior on whether a benchmark score is contaminated, based on (model training cutoff date) × (benchmark release date) × (known corpus inclusion + leak history). Open LLM Leaderboard v1 was killed in 2024 after MMLU/HellaSwag scores became contaminated.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="contam.desc">
+        <strong>Should you trust your model's MMLU score?</strong> Enter the model's training cutoff date — the tool rates 20+ popular benchmarks (MMLU, HellaSwag, GSM8K, HumanEval, IFEval, MMLU-Pro, GPQA…) and tells you which scores are likely contaminated.
+      </p>
+      <div class="form-row">
+        <label for="contam-cutoff" data-i18n="contam.cutoff_label">Training cutoff:</label>
+        <input type="text" id="contam-cutoff" placeholder="2023-12 or 2024-01" style="max-width:14em;" />
+        <button type="button" id="contam-run-btn" data-i18n="contam.run_btn">🧪 Rate all benchmarks</button>
+      </div>
+      <p id="contam-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="contam-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->
