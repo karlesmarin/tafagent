@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: 14 browser-only diagnostics for transformer LLMs. Anti-bullshit pack — no GPU, no signup, 4 langs.
+short_description: 14 anti-bullshit LLM diagnostics in browser. 4 langs.
 tags:
   - transformer
   - llm
