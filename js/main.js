@@ -184,6 +184,31 @@ wrapMainSectionsAsFoldable();
 // ════════════════════════════════════════════════════════════════════
 // Mode toggle
 // ════════════════════════════════════════════════════════════════════
+// v0.7.7 — task tiles: clicking a tile-mode-link button triggers the equivalent mode-btn.
+// Reuses the mode switcher entirely (no duplicate state). Smoothly scrolls to the
+// activated section so the user immediately sees the form they expected.
+document.addEventListener("click", (e) => {
+  const linkBtn = e.target.closest("[data-mode-link]");
+  if (!linkBtn) return;
+  const targetMode = linkBtn.dataset.modeLink;
+  const targetTab = document.querySelector(`.mode-btn[data-mode="${targetMode}"]`);
+  if (targetTab) {
+    targetTab.click();
+    // Scroll the activated section into view so the tile click feels responsive.
+    const sectionId = {
+      ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
+      compare: "compare-section", inspector: "inspector-section",
+      diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
+      template: "template-section", arena: "arena-section", contam: "contam-section",
+      quant: "quant-section", drift: "drift-section", niah: "niah-section",
+    }[targetMode];
+    if (sectionId) {
+      const sec = document.getElementById(sectionId);
+      if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+});
+
 document.querySelectorAll(".mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".mode-btn").forEach(b => {

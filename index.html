@@ -349,6 +349,58 @@
       </div>
     </section>
 
+    <!-- v0.7.7 — Task tiles: friendlier entry point, groups 14 modes by user intent. -->
+    <section id="task-tiles" aria-labelledby="tiles-title">
+      <h2 id="tiles-title" data-i18n="tiles.title">🎯 What do you want to do?</h2>
+      <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of 14 modes.</p>
+      <div class="tiles-grid">
+        <div class="task-tile">
+          <h3 data-i18n="tile.diagnose.title">🔬 Diagnose a model</h3>
+          <p class="tile-desc" data-i18n="tile.diagnose.desc">Will this specific model work for my use case?</p>
+          <div class="tile-modes">
+            <button data-mode-link="profile" data-i18n="modes.profile">📇 Profile a model</button>
+            <button data-mode-link="unmask" data-i18n="modes.unmask">🪟 Unmask</button>
+            <button data-mode-link="niah" data-i18n="modes.niah">🔍 NIAH→Reason</button>
+            <button data-mode-link="quant" data-i18n="modes.quant">⚖️ Quant</button>
+            <button data-mode-link="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
+          </div>
+        </div>
+        <div class="task-tile">
+          <h3 data-i18n="tile.trust.title">✓ Trust a benchmark score</h3>
+          <p class="tile-desc" data-i18n="tile.trust.desc">Should I believe this number? Bug or noise?</p>
+          <div class="tile-modes">
+            <button data-mode-link="contam" data-i18n="modes.contam">🧪 Contamination</button>
+            <button data-mode-link="drift" data-i18n="modes.drift">🔀 Drift</button>
+            <button data-mode-link="arena" data-i18n="modes.arena">🎯 Arena CI</button>
+          </div>
+        </div>
+        <div class="task-tile">
+          <h3 data-i18n="tile.eval.title">⚙️ Set up an eval correctly</h3>
+          <p class="tile-desc" data-i18n="tile.eval.desc">Get the exact CLI flag for lm-eval / vLLM / transformers.</p>
+          <div class="tile-modes">
+            <button data-mode-link="template" data-i18n="modes.template">📜 Chat-template</button>
+            <button data-mode-link="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
+          </div>
+        </div>
+        <div class="task-tile">
+          <h3 data-i18n="tile.compare.title">🆚 Compare models</h3>
+          <p class="tile-desc" data-i18n="tile.compare.desc">Side-by-side, or browse the empirical model landscape.</p>
+          <div class="tile-modes">
+            <button data-mode-link="compare" data-i18n="modes.compare">🆚 Compare models</button>
+            <button data-mode-link="phase" data-i18n="modes.phase">📊 Phase diagram</button>
+          </div>
+        </div>
+        <div class="task-tile">
+          <h3 data-i18n="tile.manual.title">📋 Manual / free-form</h3>
+          <p class="tile-desc" data-i18n="tile.manual.desc">Pick a specific recipe by hand, or ask in plain English.</p>
+          <div class="tile-modes">
+            <button data-mode-link="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
+            <button data-mode-link="ask" data-i18n="modes.ask">💬 Ask plain English</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Mode toggle -->
     <section id="mode-section">
       <h2><span data-i18n="modes.title">🎯 Mode</span>

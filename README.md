@@ -132,6 +132,20 @@ nothing is hallucinated.
 
 If 1 user or 1 million users hit it, our cost stays the same: $0.
 
+## Why static HTML+JS+Pyodide instead of Gradio/Streamlit?
+
+A reasonable question. Three TAF Agent USPs are **only possible** with browser-only architecture:
+
+1. **Your inputs never leave the tab.** No server = no privacy compromise. The "anti-bullshit" framing depends on this.
+2. **$0 forever, even at infinite scale.** Static Spaces have unlimited HF bandwidth; there is no cold-start, no queue, no rate limit. Going viral can't bankrupt the project.
+3. **Lean+Mathlib formal verification** ships as a static manifest. The 37 theorem badges link to source lines that anyone can `lake build` themselves — no hidden server logic.
+
+Bonus: in-browser LLM (WebLLM running Qwen2.5-0.5B in your GPU/CPU) for the 💬 Ask mode is only viable in static. Pyodide running deterministic Python in your browser means you can audit every number — no opaque server.
+
+The cost: HuggingFace's "Trending Spaces" algorithm favours Gradio/Streamlit Spaces. We compensate with detailed tags + forum presence + this README. If you'd prefer a Python-API client, that's a planned `gradio_client` companion (v0.9).
+
+---
+
 ## Architecture coverage
 
 Supports any model whose `config.json` is parseable:

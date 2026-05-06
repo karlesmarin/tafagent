@@ -33,6 +33,56 @@
   flex: 1;
 }
 
+/* v0.7.7 — Task tiles: groups 14 modes by user intent, primary entry point */
+#task-tiles { margin-bottom: 1em; }
+#task-tiles h2 { margin-bottom: 0.3em; }
+#task-tiles .recipe-desc { margin-bottom: 0.8em; opacity: 0.85; }
+.tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.8em;
+}
+.task-tile {
+  padding: 0.9em 1em;
+  background: #12181f;
+  border: 1px solid rgba(88, 166, 255, 0.2);
+  border-radius: 10px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.task-tile:hover {
+  border-color: rgba(88, 166, 255, 0.5);
+}
+.task-tile h3 {
+  margin: 0 0 0.3em;
+  font-size: 1.05em;
+  color: #58a6ff;
+}
+.task-tile .tile-desc {
+  font-size: 0.88em;
+  opacity: 0.8;
+  margin: 0 0 0.6em;
+  line-height: 1.4;
+}
+.task-tile .tile-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}
+.task-tile .tile-modes button {
+  font-size: 0.85em;
+  padding: 0.35em 0.7em;
+  background: rgba(88, 166, 255, 0.10);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  color: #c9d1d9;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.task-tile .tile-modes button:hover {
+  background: rgba(88, 166, 255, 0.22);
+  border-color: rgba(88, 166, 255, 0.55);
+}
+
 /* v0.7.5 — Cross-framework drift bound */
 /* Drift section overrides the default 980px main width so the two-column form
    has room without overlapping. Mobile (<800px) collapses to single column. */
