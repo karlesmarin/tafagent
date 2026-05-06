@@ -6,14 +6,27 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: Test any transformer LLM in browser before spending GPU/$.
+short_description: 14 browser-only diagnostics for transformer LLMs. Anti-bullshit pack — no GPU, no signup, 4 langs.
 tags:
   - transformer
   - llm
+  - evaluation
   - diagnostic
+  - anti-bullshit
+  - long-context
+  - sliding-window
+  - yarn
+  - chat-template
+  - arena-elo
+  - contamination
+  - quantization
+  - drift
+  - ruler
+  - niah
+  - lean-mathlib
+  - formal-verification
   - rope
   - kv-cache
-  - long-context
   - viability
   - thermodynamics
   - free
@@ -28,13 +41,33 @@ language:
 
 # 🔬 TAF Agent
 
-> **Test ANY transformer LLM before you spend GPU/$.**
-> Free. Unlimited. Auditable. Runs entirely in your browser.
+> **Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.**
+> 14 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
-**🌐 Live**: https://karlesmarin.github.io/tafagent
-**📦 Source**: https://github.com/karlesmarin/tafagent
+**🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
+**📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
 **📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/19826343)
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
+
+---
+
+## 🆕 v0.7 — Anti-bullshit pack (7 new modes)
+
+Each mode solves a documented HuggingFace community pain. All run in your browser with zero inference — pure metadata + math. **3 of these have no comparable tool publicly available** (validated against existing literature):
+
+| Mode | What it answers | Pain it kills |
+|------|-----------------|---------------|
+| 🪟 **Unmask** | "Is `max_position_embeddings` honest?" | Mistral-7B-v0.1 says 32k, attends ~8k via SWA |
+| 📜 **Chat-template** | "Which CLI flag for lm-eval / vLLM / transformers?" | lm-eval-harness #1841 silently halves multi-turn accuracy |
+| 🎯 **Arena CI** | "Is GPT-4 actually better than Claude — or tied?" | Chatbot Arena strips CIs from public leaderboard |
+| 🧪 **Contamination** | "Should I trust this MMLU score?" | Open LLM Leaderboard v1 killed by MMLU/HellaSwag contamination |
+| ⚖️ **Quant** | "Will NF4 break my model? AWQ better?" | Generic "AWQ ~95%" claims hide model-specific cliffs |
+| 🔀 **Drift** | "lm-eval gives 67.2, vLLM gives 65.1. Bug or noise?" | arxiv 2506.09501 — eval irreproducibility |
+| 🔍 **NIAH→Reason** | "Does my 128k-context model actually reason there?" | RULER paper finding — needle pass ≠ multi-hop reasoning |
+
+Plus a search-as-you-type HF Hub autocomplete on every model-id input (5 minute cache, privacy-noted, gated-license link).
+
+[**▶ Try it now**](https://huggingface.co/spaces/karlexmarin/taf-agent) · [v0.7 release notes](https://github.com/karlesmarin/tafagent/blob/main/README.md#whats-new-in-v07)
 
 ---
 
