@@ -249,8 +249,8 @@
       <button class="help-close" id="inventory-close" aria-label="Close inventory">×</button>
       <h2 id="inv-modal-title" data-i18n="inv.title">🧰 What this tool gives you</h2>
       <div class="inventory-grid">
-        <div class="inv-card">
-          <h3 data-i18n="inv.recipes.title">🎯 8 recipes &mdash; does this model fit your use case?</h3>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.recipes.title">🎯 8 recipes &mdash; does this model fit your use case?</summary>
           <ul>
             <li><strong data-i18n="inv.recipes.x1.title">Custom train vs API</strong>: <span data-i18n="inv.recipes.x1.body">which is cheaper for your traffic?</span></li>
             <li><strong data-i18n="inv.recipes.x2.title">Long context</strong>: <span data-i18n="inv.recipes.x2.body">will it handle 32k / 128k tokens reliably?</span></li>
@@ -261,35 +261,35 @@
             <li><strong data-i18n="inv.recipes.x22.title">Compute-context</strong>: <span data-i18n="inv.recipes.x22.body">does the model fit the empirical band?</span></li>
             <li><strong data-i18n="inv.recipes.x23.title">IH-phase</strong>: <span data-i18n="inv.recipes.x23.body">pre- or post-induction-head?</span></li>
           </ul>
-        </div>
-        <div class="inv-card">
-          <h3 data-i18n="inv.diag.title">🔬 Diagnostics</h3>
+        </details>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.diag.title">🔬 Diagnostics</summary>
           <ul>
             <li data-i18n="inv.diag.gamma"><strong>γ predicted vs observed</strong> &mdash; auto-classifies the model into 5 regimes (normal · fraud / inflated context · compressed · over-Padé · sliding-window)</li>
             <li data-i18n="inv.diag.cardy"><strong>Cardy ΔH</strong> &mdash; entropy shift between observed and nominal context</li>
             <li data-i18n="inv.diag.fals"><strong>Falsification dashboard</strong> &mdash; checks 23 specific predictions (F1–F23)</li>
             <li data-i18n="inv.diag.alg"><strong>Algebraic consistency</strong> &mdash; 8 mathematical identities the model must satisfy</li>
           </ul>
-        </div>
-        <div class="inv-card">
-          <h3 data-i18n="inv.verify.title">✓ Formally verified math</h3>
+        </details>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.verify.title">✓ Formally verified math</summary>
           <ul>
             <li data-i18n="inv.verify.count"><strong>37 theorems</strong> machine-proven in Lean 4 + Mathlib4</li>
             <li data-i18n="inv.verify.click">Click any badge → opens the source line on GitHub</li>
             <li data-i18n="inv.verify.reverify">Verify yourself: <code>lake build</code> (≈5 s after cache fetch)</li>
           </ul>
-        </div>
-        <div class="inv-card">
-          <h3 data-i18n="inv.export.title">📤 Export &amp; share</h3>
+        </details>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.export.title">📤 Export &amp; share</summary>
           <ul>
             <li data-i18n="inv.export.formats"><strong>JSON · Markdown · LaTeX</strong> (paper-ready)</li>
             <li data-i18n="inv.export.share">Reproducible share link (state encoded in URL)</li>
             <li data-i18n="inv.export.registry">Submit to community registry on GitHub</li>
           </ul>
-        </div>
+        </details>
       </div>
 
-      <details class="arch-supported">
+      <details class="arch-supported" open>
         <summary data-i18n="arch.summary">Architectures supported (click to expand)</summary>
         <div class="arch-badges">
           <span class="badge">✓ RoPE-MHA <span class="info"><span class="tooltip" data-i18n="tooltip.mha">Multi-Head Attention: each token position attends through several parallel heads at once.</span></span></span>
@@ -334,6 +334,7 @@
         <button class="mode-btn" data-mode="recipe" role="tab" aria-selected="false" data-i18n="modes.recipe">📋 Pick recipe</button>
         <button class="mode-btn" data-mode="diagnose" role="tab" aria-selected="false" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
         <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
+        <button class="mode-btn" data-mode="unmask" role="tab" aria-selected="false" data-i18n="modes.unmask">🪟 Unmask</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -621,6 +622,34 @@
       </p>
       <canvas id="phase-canvas" width="900" height="500" style="max-width:100%; background: var(--card-bg); border-radius: 6px;"></canvas>
       <div id="phase-info" class="recipe-desc" style="margin-top:0.6em;"></div>
+    </section>
+
+    <!-- Unmask mode: detect misleading max_position_embeddings via SWA / RoPE-scaling -->
+    <section id="unmask-section" style="display:none;">
+      <h2><span data-i18n="unmask.title">🪟 Context Unmasker</span>
+        <span class="info"><span class="tooltip" data-i18n="unmask.tip">
+          Paste a HuggingFace model id (or raw config.json). The tool checks for
+          sliding-window attention, RoPE scaling (YaRN/linear/dynamic NTK), and
+          GQA — anything that makes <code>max_position_embeddings</code> larger
+          than the practical effective context. Mistral-7B-v0.1 is the canonical
+          example: declared 32k, attends within ~4-8k.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="unmask.desc">
+        <strong>Are you about to spend money on a model that won't actually attend that far?</strong> Paste an id and find out in 1 second. No GPU, no inference — just config.json arithmetic.
+      </p>
+      <div class="form-row">
+        <label for="unmask-id" data-i18n="unmask.id_label">HF model id:</label>
+        <input type="text" id="unmask-id" placeholder="e.g. mistralai/Mistral-7B-v0.1" />
+        <button type="button" id="unmask-fetch-btn" data-i18n="unmask.fetch_btn">🔍 Unmask</button>
+      </div>
+      <p id="unmask-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <details style="margin: 0.6em 0;">
+        <summary style="cursor:pointer; font-size:0.92em;" data-i18n="unmask.paste_summary">Or paste raw config.json (private / in-dev models)</summary>
+        <textarea id="unmask-paste" rows="6" style="width:100%; font-family:monospace; font-size:0.85em; margin-top:0.4em;" placeholder='{"max_position_embeddings": 32768, "sliding_window": 4096, ...}'></textarea>
+        <button type="button" id="unmask-paste-btn" data-i18n="unmask.paste_btn" style="margin-top:0.4em;">🔍 Unmask pasted config</button>
+      </details>
+      <div id="unmask-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

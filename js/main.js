@@ -11,6 +11,7 @@ import { initI18n, setLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
 import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
+import { unmaskConfig } from "./swa_unmasker.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -138,6 +139,38 @@ function enableUI() {
 function setStatus(msg) { $("status").textContent = msg; }
 
 // ════════════════════════════════════════════════════════════════════
+// Main-panel wrap: every <main> section gets a foldable details/summary
+// shell at runtime so users can collapse any panel they don't need open.
+// h2 is moved INTO summary so its data-i18n binding survives. Idempotent.
+// ════════════════════════════════════════════════════════════════════
+function wrapMainSectionsAsFoldable() {
+  document.querySelectorAll("main > section").forEach(section => {
+    if (section.id === "status-bar") return;                     // skip loading bar
+    if (section.querySelector(":scope > details.main-panel")) return; // already wrapped
+    const h2 = section.querySelector(":scope > h2");
+    if (!h2) return;
+
+    const details = document.createElement("details");
+    details.className = "main-panel";
+    details.open = true;
+
+    const summary = document.createElement("summary");
+    summary.className = "main-panel-title";
+    summary.appendChild(h2);  // preserve h2 + its data-i18n + all children
+
+    details.appendChild(summary);
+    while (section.firstChild) details.appendChild(section.firstChild);
+    section.appendChild(details);
+  });
+
+  // Stop ⓘ tooltip clicks inside summaries from toggling the panel.
+  document.querySelectorAll(".main-panel > .main-panel-title .info").forEach(el => {
+    el.addEventListener("click", (e) => e.stopPropagation());
+  });
+}
+wrapMainSectionsAsFoldable();
+
+// ════════════════════════════════════════════════════════════════════
 // Mode toggle
 // ════════════════════════════════════════════════════════════════════
 document.querySelectorAll(".mode-btn").forEach(btn => {
@@ -153,41 +186,20 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Hide all mode sections
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
-     "diagnose-section", "phase-section"].forEach(id => {
+     "diagnose-section", "phase-section", "unmask-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
     // Show selected
-    if (mode === "ask") {
-      $("ask-section").style.display = "";
-      $("mode-desc").textContent =
-        "Type a free-form question. The in-browser LLM picks the right recipe and runs it.";
-    } else if (mode === "recipe") {
-      $("recipe-section").style.display = "";
-      $("mode-desc").textContent =
-        "Pick a recipe directly and fill the form. Full manual control.";
-    } else if (mode === "profile") {
-      $("profile-section").style.display = "";
-      $("mode-desc").textContent =
-        "Quickest start: paste any HuggingFace model id, click Profile. See all 5 recipes scored in seconds.";
-    } else if (mode === "compare") {
-      $("compare-section").style.display = "";
-      $("mode-desc").textContent =
-        "Pick 2-3 candidate models + one recipe. See verdicts side-by-side in a comparison table.";
-    } else if (mode === "inspector") {
-      $("inspector-section").style.display = "";
-      $("mode-desc").textContent =
-        "Paste a config.json directly. Useful for private/in-development models not on HF Hub.";
-    } else if (mode === "diagnose") {
-      $("diagnose-section").style.display = "";
-      $("mode-desc").textContent =
-        "Build the diagnose_model.py CLI command to MEASURE γ_obs on real GPU. Browser predicts; CLI measures.";
-    } else if (mode === "phase") {
-      $("phase-section").style.display = "";
-      $("mode-desc").textContent =
-        "γ × θ scatter of the paper's empirical panel. Hover a dot for details, click to load into Diagnose / Recipe forms.";
-      initPhaseDiagram();
-    }
+    const sectionMap = {
+      ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
+      compare: "compare-section", inspector: "inspector-section",
+      diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
+    };
+    const sectionId = sectionMap[mode];
+    if (sectionId) $(sectionId).style.display = "";
+    $("mode-desc").textContent = t(`mode_desc.${mode}`) || "";
+    if (mode === "phase") initPhaseDiagram();
   });
 });
 
@@ -353,8 +365,14 @@ function getRecipeDefaults(recipeId) {
 // ════════════════════════════════════════════════════════════════════
 $("preset").addEventListener("change", (e) => {
   if (!e.target.value) return;
-  state.lastModelId = e.target.value;  // remember for filename/hash
-  const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(e.target.value)})`);
+  const modelId = e.target.value;
+  state.lastModelId = modelId;  // remember for filename/hash
+  // Mirror behavior with profile-preset: also fill HF id input if present.
+  if ($("hf-id")) {
+    $("hf-id").value = modelId;
+    if ($("hf-status")) $("hf-status").textContent = tFmt("profile.preset_loaded", { id: modelId });
+  }
+  const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(modelId)})`);
   const preset = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
   if (!preset || Object.keys(preset).length === 0) return;
   fillRecipeForm(preset);
@@ -415,6 +433,152 @@ $("hf-fetch-btn").addEventListener("click", async () => {
   } finally {
     $("hf-fetch-btn").disabled = false;
   }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🪟 Unmask mode (v0.7.0 anti-bullshit pack #1)
+// ════════════════════════════════════════════════════════════════════
+
+// Tiny string-template helper: t(key) with {placeholder} substitution.
+// Falls back to the raw key when the i18n entry is missing so dev sees the gap.
+function tFmt(key, params = {}) {
+  let s = t(key) || key;
+  for (const [k, v] of Object.entries(params)) {
+    const fmtVal = v === null || v === undefined ? "—"
+      : (typeof v === "number" ? v.toLocaleString() : String(v));
+    s = s.replace(new RegExp(`\\{${k}\\}`, "g"), fmtVal);
+  }
+  return s;
+}
+
+const VERDICT_COLOR = {
+  honest:            "#3fb950",
+  inflated:          "#f1c40f",
+  severely_inflated: "#f85149",
+  yarn_extended:     "#f1c40f",
+  unknown:           "#8b949e",
+};
+
+function renderUnmaskCard(result, modelId = "") {
+  const color = VERDICT_COLOR[result.verdict] || VERDICT_COLOR.unknown;
+  const ratioPct = (result.ratio * 100).toFixed(1);
+  const f = result.flags;
+  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  const verdictLabel = t(`unmask.verdict.${result.verdict}`) || result.verdict;
+  const labelDeclared  = t("unmask.label.declared")  || "Declared context";
+  const labelEffective = t("unmask.label.effective") || "Effective (estimate)";
+  const labelRatio     = t("unmask.label.ratio")     || "Ratio";
+  const sectionFlags   = t("unmask.section.flags")   || "Architecture flags";
+  const sectionWarn    = t("unmask.section.warnings")|| "Warnings";
+  const sectionReco    = t("unmask.section.reco")    || "Recommendation";
+
+  // Architecture flags row labels
+  const flagSwa     = t("unmask.flag.swa")     || "SWA";
+  const flagRope    = t("unmask.flag.rope")    || "RoPE scaling";
+  const flagGqa     = t("unmask.flag.gqa")     || "GQA";
+  const flagLayers  = t("unmask.flag.layers")  || "Layers";
+  const flagDhead   = t("unmask.flag.dhead")   || "d_head";
+  const flagTheta   = t("unmask.flag.theta")   || "RoPE θ";
+  const flagYes     = t("unmask.flag.yes")     || "yes";
+  const flagNo      = t("unmask.flag.no")      || "no";
+
+  const swaText = f.hasSWA
+    ? `${flagYes} (window = ${fmtN(f.swaWindow)})`
+    : flagNo;
+  const ropeText = f.hasYaRN
+    ? `${f.ropeScalingType} (factor = ${f.yarnFactor}, original = ${fmtN(f.yarnOriginal)})`
+    : flagNo;
+  const gqaText = f.hasGQA
+    ? `${flagYes} (${f.n_kv_heads} kv / ${f.n_attn_heads} attn heads)`
+    : (t("unmask.flag.full_mha") || "no (full MHA, {n} heads)").replace("{n}", f.n_attn_heads ?? "?");
+
+  const warningsHtml = result.warnings.length
+    ? `<details class="unmask-panel" open><summary class="unmask-panel-title">${sectionWarn}</summary><ul>${result.warnings.map(w =>
+        `<li>${tFmt("unmask.warn." + w.code, w.params)}</li>`).join("")}</ul></details>`
+    : "";
+
+  const recoHtml = result.recoCode
+    ? `<details class="unmask-panel" open><summary class="unmask-panel-title">${sectionReco}</summary><p class="unmask-reco">${tFmt("unmask.reco." + result.recoCode, result.recoParams)}</p></details>`
+    : "";
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${verdictLabel}</div>
+        ${modelId ? `<div class="unmask-model"><code>${escapeHtml(modelId)}</code></div>` : ""}
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label">${labelDeclared}</span><span class="unmask-num-val">${fmtN(result.declaredContext)}</span></div>
+          <div><span class="unmask-num-label">${labelEffective}</span><span class="unmask-num-val">${fmtN(result.effectiveContext)}</span></div>
+          <div><span class="unmask-num-label">${labelRatio}</span><span class="unmask-num-val">${ratioPct}%</span></div>
+        </div>
+      </div>
+
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${sectionFlags}</summary>
+          <ul>
+            <li><strong>${flagSwa}:</strong> ${swaText}</li>
+            <li><strong>${flagRope}:</strong> ${ropeText}</li>
+            <li><strong>${flagGqa}:</strong> ${gqaText}</li>
+            <li><strong>${flagLayers}:</strong> ${fmtN(f.n_layers)} · <strong>${flagDhead}:</strong> ${fmtN(f.d_head)} · <strong>${flagTheta}:</strong> ${fmtN(f.rope_theta)}</li>
+          </ul>
+        </details>
+        ${warningsHtml}
+        ${recoHtml}
+      </div>
+    </div>
+  `;
+}
+
+async function runUnmaskFromId() {
+  const modelId = ($("unmask-id").value || "").trim();
+  if (!modelId) {
+    $("unmask-status").textContent = t("unmask.status.empty_id") || "⚠ Enter a model id.";
+    return;
+  }
+  $("unmask-status").textContent = tFmt("unmask.status.fetching", { modelId });
+  $("unmask-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(modelId);
+    const result = unmaskConfig(cfg);
+    $("unmask-output").innerHTML = renderUnmaskCard(result, modelId);
+    const verdictLocalized = t(`unmask.verdict.${result.verdict}`) || result.verdict;
+    $("unmask-status").textContent = tFmt("unmask.status.success", { modelId, verdict: verdictLocalized });
+  } catch (err) {
+    $("unmask-status").textContent = `❌ ${err.message}`;
+    $("unmask-output").innerHTML = "";
+  } finally {
+    $("unmask-fetch-btn").disabled = false;
+  }
+}
+
+function runUnmaskFromPaste() {
+  const raw = ($("unmask-paste").value || "").trim();
+  if (!raw) {
+    $("unmask-status").textContent = t("unmask.status.empty_paste") || "⚠ Paste a config.json first.";
+    return;
+  }
+  let cfg;
+  try {
+    cfg = JSON.parse(raw);
+  } catch (e) {
+    $("unmask-status").textContent = tFmt("unmask.status.invalid_json", { error: e.message });
+    return;
+  }
+  const result = unmaskConfig(cfg);
+  const pastedLabel = t("unmask.pasted_label") || "(pasted config)";
+  $("unmask-output").innerHTML = renderUnmaskCard(result, pastedLabel);
+  const verdictLocalized = t(`unmask.verdict.${result.verdict}`) || result.verdict;
+  $("unmask-status").textContent = tFmt("unmask.status.success_paste", { verdict: verdictLocalized });
+}
+
+$("unmask-fetch-btn")?.addEventListener("click", runUnmaskFromId);
+$("unmask-paste-btn")?.addEventListener("click", runUnmaskFromPaste);
+$("unmask-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runUnmaskFromId(); }
 });
 
 function configToPreset(cfg, modelId) {
@@ -988,8 +1152,18 @@ function relativeTime(d) {
 // ════════════════════════════════════════════════════════════════════
 $("profile-preset").addEventListener("change", (e) => {
   if (!e.target.value) return;
-  state.lastModelId = e.target.value;  // remember for filename/hash
-  const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(e.target.value)})`);
+  const modelId = e.target.value;
+  state.lastModelId = modelId;  // remember for filename/hash
+  // Preset keys ARE valid HF model ids (e.g. "meta-llama/Llama-3.2-1B"). Auto-fill
+  // the HF id input so the user can also click 📥 Fetch to refresh from HF Hub
+  // without retyping. Status hint clarifies the dual source of truth.
+  if ($("profile-hf-id")) {
+    $("profile-hf-id").value = modelId;
+    if ($("profile-hf-status")) {
+      $("profile-hf-status").textContent = tFmt("profile.preset_loaded", { id: modelId });
+    }
+  }
+  const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(modelId)})`);
   const p = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
   if (!p || Object.keys(p).length === 0) return;
   $("profile-theta").value = p.theta;

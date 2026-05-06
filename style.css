@@ -1,5 +1,130 @@
 /* TAF Agent — minimal clean styling */
 
+/* v0.7.0 — main panels foldable (every section under <main>) */
+.main-panel { margin: 0; }
+.main-panel > .main-panel-title {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0 0 0.5em;
+  margin-bottom: 0.6em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.main-panel > .main-panel-title::-webkit-details-marker { display: none; }
+.main-panel > .main-panel-title::marker { content: ""; }
+.main-panel > .main-panel-title::before {
+  content: "▼";
+  display: inline-block;
+  font-size: 0.65em;
+  color: #58a6ff;
+  margin-right: 0.3em;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.main-panel:not([open]) > .main-panel-title::before { transform: rotate(-90deg); }
+.main-panel > .main-panel-title:hover { background: rgba(255, 255, 255, 0.02); }
+.main-panel > .main-panel-title h2 {
+  display: inline;
+  margin: 0;
+  vertical-align: baseline;
+  flex: 1;
+}
+
+/* v0.7.0 — Unmask mode (SWA + RoPE-scaling detector) */
+.unmask-result {
+  margin-top: 0.8em;
+}
+.unmask-hero {
+  padding: 1em 1.2em;
+  border: 2px solid #58a6ff;
+  border-radius: 10px;
+  background: #12181f;
+  margin-bottom: 0.8em;
+}
+.unmask-verdict {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin-bottom: 0.2em;
+}
+.unmask-model {
+  font-size: 0.92em;
+  opacity: 0.85;
+  margin-bottom: 0.6em;
+}
+.unmask-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6em;
+  margin-top: 0.5em;
+}
+.unmask-numbers > div {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5em 0.7em;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+.unmask-num-label {
+  font-size: 0.78em;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.unmask-num-val {
+  font-size: 1.3em;
+  font-weight: 600;
+  font-family: monospace;
+  margin-top: 0.15em;
+}
+.unmask-details {
+  padding: 0.8em 1em;
+  background: #12181f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+.unmask-details h4,
+.unmask-panel-title {
+  margin: 0.4em 0 0.3em;
+  color: #58a6ff;
+  font-size: 0.95em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-weight: 600;
+}
+.unmask-panel-title::-webkit-details-marker { display: none; }
+.unmask-panel-title::marker { content: ""; }
+.unmask-panel-title::before {
+  content: "▼";
+  display: inline-block;
+  font-size: 0.75em;
+  margin-right: 0.4em;
+  color: #58a6ff;
+  transition: transform 0.15s ease;
+  width: 0.9em;
+  text-align: center;
+}
+.unmask-panel:not([open]) > .unmask-panel-title::before { transform: rotate(-90deg); }
+.unmask-panel { margin: 0.5em 0; }
+.unmask-details ul {
+  margin: 0.2em 0 0.6em;
+  padding-left: 1.2em;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.unmask-reco {
+  margin: 0.2em 0 0.4em;
+  padding: 0.6em 0.8em;
+  background: rgba(88, 166, 255, 0.08);
+  border-left: 3px solid #58a6ff;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+
 /* v0.6.2 — landing rework: quick-start strip + inventory grid + arch-supported */
 #quickstart-strip {
   margin: 1.5em auto 1em;
@@ -72,18 +197,35 @@
   gap: 0.8em;
 }
 .inv-card {
-  padding: 0.9em 1em;
+  padding: 0.7em 1em;
   background: #12181f;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
-.inv-card h3 {
-  margin: 0 0 0.5em;
+.inv-card-title {
+  cursor: pointer;
   font-size: 1em;
+  font-weight: 600;
   color: #58a6ff;
+  padding: 0.2em 0;
+  list-style: none;       /* hide native marker (Chrome, Safari) */
+  user-select: none;
 }
+.inv-card-title::-webkit-details-marker { display: none; } /* Safari */
+.inv-card-title::marker { content: ""; }                   /* Firefox */
+.inv-card-title::before {
+  content: "▼";
+  display: inline-block;
+  font-size: 0.75em;
+  margin-right: 0.4em;
+  color: #58a6ff;
+  transition: transform 0.15s ease;
+  width: 0.9em;
+  text-align: center;
+}
+.inv-card:not([open]) > .inv-card-title::before { transform: rotate(-90deg); }
 .inv-card ul {
-  margin: 0;
+  margin: 0.4em 0 0;
   padding-left: 1em;
   font-size: 0.92em;
   line-height: 1.5;
