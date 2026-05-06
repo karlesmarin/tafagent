@@ -355,7 +355,10 @@
       <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of 14 modes.</p>
       <div class="tiles-grid">
         <div class="task-tile">
-          <h3 data-i18n="tile.diagnose.title">🔬 Diagnose a model</h3>
+          <h3>
+            <span data-i18n="tile.diagnose.title">🔬 Diagnose a model</span>
+            <span class="info"><span class="tooltip" data-i18n="tile.diagnose.tip">Start here when you have a specific model id and want a full diagnostic: <strong>Profile</strong> runs all 5 recipes at once. <strong>Unmask</strong> checks if max_position_embeddings is honest. <strong>NIAH→Reason</strong> predicts retrieval-vs-reasoning gap. <strong>Quant</strong> predicts whether quantizing will break it. <strong>Inspect</strong> lets you paste raw config.json for private/in-dev models.</span></span>
+          </h3>
           <p class="tile-desc" data-i18n="tile.diagnose.desc">Will this specific model work for my use case?</p>
           <div class="tile-modes">
             <button data-mode-link="profile" data-i18n="modes.profile">📇 Profile a model</button>
@@ -366,7 +369,10 @@
           </div>
         </div>
         <div class="task-tile">
-          <h3 data-i18n="tile.trust.title">✓ Trust a benchmark score</h3>
+          <h3>
+            <span data-i18n="tile.trust.title">✓ Trust a benchmark score</span>
+            <span class="info"><span class="tooltip" data-i18n="tile.trust.tip">When you see a score and want to know if it's real. <strong>Contamination</strong> rates 20+ benchmarks for likelihood the model saw them during training. <strong>Drift</strong> tells you if a gap between two evals is numerical noise or a real bug (chat-template mismatch, KV-cache layout, etc.). <strong>Arena CI</strong> reconstructs the confidence intervals Chatbot Arena hides — many top-Elo "wins" are statistically tied.</span></span>
+          </h3>
           <p class="tile-desc" data-i18n="tile.trust.desc">Should I believe this number? Bug or noise?</p>
           <div class="tile-modes">
             <button data-mode-link="contam" data-i18n="modes.contam">🧪 Contamination</button>
@@ -375,7 +381,10 @@
           </div>
         </div>
         <div class="task-tile">
-          <h3 data-i18n="tile.eval.title">⚙️ Set up an eval correctly</h3>
+          <h3>
+            <span data-i18n="tile.eval.title">⚙️ Set up an eval correctly</span>
+            <span class="info"><span class="tooltip" data-i18n="tile.eval.tip">Before you run lm-eval-harness or vLLM serve, get the right CLI flag. <strong>Chat-template Sniffer</strong> detects the template family (Llama-3 / ChatML / Mistral / Phi-3 / DeepSeek / Alpaca / custom / none) and emits the exact <code>--apply_chat_template</code> / <code>--chat-template</code> invocation. Solves issue #1841 in lm-eval-harness (silent ÷2 accuracy). <strong>Diagnose CLI</strong> generates the Python command to measure γ_obs on your local GPU.</span></span>
+          </h3>
           <p class="tile-desc" data-i18n="tile.eval.desc">Get the exact CLI flag for lm-eval / vLLM / transformers.</p>
           <div class="tile-modes">
             <button data-mode-link="template" data-i18n="modes.template">📜 Chat-template</button>
@@ -383,7 +392,10 @@
           </div>
         </div>
         <div class="task-tile">
-          <h3 data-i18n="tile.compare.title">🆚 Compare models</h3>
+          <h3>
+            <span data-i18n="tile.compare.title">🆚 Compare models</span>
+            <span class="info"><span class="tooltip" data-i18n="tile.compare.tip"><strong>Compare</strong>: pick 2-3 candidate models + one recipe, see verdicts in a side-by-side table (e.g. Llama-3-8B vs Mistral-7B at 32k context). <strong>Phase diagram</strong>: scatter of 23 empirical models on the (log θ, γ) plane, with the Padé curve overlaid. Hover dots for details, click to load that model into the Recipe form.</span></span>
+          </h3>
           <p class="tile-desc" data-i18n="tile.compare.desc">Side-by-side, or browse the empirical model landscape.</p>
           <div class="tile-modes">
             <button data-mode-link="compare" data-i18n="modes.compare">🆚 Compare models</button>
@@ -391,7 +403,10 @@
           </div>
         </div>
         <div class="task-tile">
-          <h3 data-i18n="tile.manual.title">📋 Manual / free-form</h3>
+          <h3>
+            <span data-i18n="tile.manual.title">📋 Manual / free-form</span>
+            <span class="info"><span class="tooltip" data-i18n="tile.manual.tip"><strong>Recipe</strong>: pick a specific X-N recipe (X-1 custom-vs-API, X-2 long context, X-3 budget, X-5 hardware, X-19 KV compression, X-21 imprint, X-22 compute-context invariant, X-23 IH-phase) and fill the form by hand for full control. <strong>Ask</strong>: type a free-form question; an in-browser 0.5B LLM (Qwen2.5) picks the right recipe and runs it. Best for "what would happen if..." exploration.</span></span>
+          </h3>
           <p class="tile-desc" data-i18n="tile.manual.desc">Pick a specific recipe by hand, or ask in plain English.</p>
           <div class="tile-modes">
             <button data-mode-link="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
