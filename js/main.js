@@ -17,6 +17,7 @@ import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
+import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -197,7 +198,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "profile-section", "compare-section", "inspector-section",
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
-     "quant-section"].forEach(id => {
+     "quant-section", "drift-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -207,7 +208,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
-      quant: "quant-section",
+      quant: "quant-section", drift: "drift-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -420,7 +421,11 @@ async function fetchHfConfig(modelId) {
   const resp = await fetch(url);
   if (!resp.ok) {
     if (resp.status === 401 || resp.status === 403) {
-      throw new Error(`Model is gated (${resp.status}). Accept license on HF Hub first, or fill manually.`);
+      // Mark this so callers can render a clickable accept-license link.
+      const err = new Error(`🔒 ${modelId} is gated — accept license at https://huggingface.co/${modelId}`);
+      err.code = "gated";
+      err.modelId = modelId;
+      throw err;
     }
     throw new Error(`HTTP ${resp.status} — config.json not found at ${url}`);
   }
@@ -561,7 +566,11 @@ async function runUnmaskFromId() {
     const verdictLocalized = t(`unmask.verdict.${result.verdict}`) || result.verdict;
     $("unmask-status").textContent = tFmt("unmask.status.success", { modelId, verdict: verdictLocalized });
   } catch (err) {
-    $("unmask-status").textContent = `❌ ${err.message}`;
+    if (err.code === "gated") {
+      $("unmask-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+    } else {
+      $("unmask-status").textContent = `❌ ${err.message}`;
+    }
     $("unmask-output").innerHTML = "";
   } finally {
     $("unmask-fetch-btn").disabled = false;
@@ -611,7 +620,10 @@ async function fetchHfTokenizerConfig(modelId) {
   const resp = await fetch(url);
   if (!resp.ok) {
     if (resp.status === 401 || resp.status === 403) {
-      throw new Error(`Model is gated (${resp.status}). Accept license on HF Hub first.`);
+      const err = new Error(`🔒 ${modelId} is gated — accept license at https://huggingface.co/${modelId}`);
+      err.code = "gated";
+      err.modelId = modelId;
+      throw err;
     }
     throw new Error(`HTTP ${resp.status} — tokenizer_config.json not found at ${url}`);
   }
@@ -716,7 +728,11 @@ async function runTemplateFromId() {
     const verdictLocalized = t(`template.verdict.${result.verdict}`) || result.verdict;
     $("template-status").textContent = tFmt("template.status.success", { modelId, verdict: verdictLocalized });
   } catch (err) {
-    $("template-status").textContent = `❌ ${err.message}`;
+    if (err.code === "gated") {
+      $("template-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+    } else {
+      $("template-status").textContent = `❌ ${err.message}`;
+    }
     $("template-output").innerHTML = "";
   } finally {
     $("template-fetch-btn").disabled = false;
@@ -1030,7 +1046,11 @@ async function quantFetchConfig() {
     $("quant-status").textContent = tFmt("quant.status.fetched", { modelId });
     return cfg;
   } catch (err) {
-    $("quant-status").textContent = `❌ ${err.message}`;
+    if (err.code === "gated") {
+      $("quant-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+    } else {
+      $("quant-status").textContent = `❌ ${err.message}`;
+    }
     return null;
   } finally {
     $("quant-fetch-btn").disabled = false;
@@ -1159,6 +1179,141 @@ $("quant-all-btn")?.addEventListener("click", runQuantAll);
 $("quant-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); quantFetchConfig(); }
 });
+
+// ════════════════════════════════════════════════════════════════════
+// 🔀 Cross-framework drift bound (v0.7.5 anti-bullshit pack #6)
+// ════════════════════════════════════════════════════════════════════
+
+const DRIFT_VERDICT_COLOR = {
+  noise:        "#3fb950",
+  suspicious:   "#f1c40f",
+  bug:          "#f85149",
+  bug_template: "#f85149",
+};
+
+function populateDriftDropdowns() {
+  for (const side of ["a", "b"]) {
+    const fwSel = $(`drift-${side}-framework`);
+    const dtSel = $(`drift-${side}-dtype`);
+    if (fwSel && fwSel.options.length === 0) {
+      for (const f of DRIFT_FRAMEWORKS) {
+        const opt = document.createElement("option");
+        opt.value = f.id; opt.textContent = f.label;
+        fwSel.appendChild(opt);
+      }
+    }
+    if (dtSel && dtSel.options.length === 0) {
+      for (const d of DRIFT_DTYPES) {
+        const opt = document.createElement("option");
+        opt.value = d.id; opt.textContent = d.label;
+        dtSel.appendChild(opt);
+      }
+    }
+  }
+}
+
+function readDriftSetup(side) {
+  return {
+    score: parseFloat($(`drift-${side}-score`).value),
+    framework: $(`drift-${side}-framework`).value,
+    dtype: $(`drift-${side}-dtype`).value,
+    batch: parseInt($(`drift-${side}-batch`).value, 10) || 1,
+    chat_template: $(`drift-${side}-template`).value,
+  };
+}
+
+function renderDriftCard(result) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const color = DRIFT_VERDICT_COLOR[result.verdict] || "#8b949e";
+  const verdictLabel = t(`drift.verdict.${result.verdict}`) || result.verdict;
+  const a = result.setup_a, b = result.setup_b;
+  const fwLabel = (id) => DRIFT_FRAMEWORKS.find(f => f.id === id)?.label || id;
+  const dtLabel = (id) => DRIFT_DTYPES.find(d => d.id === id)?.label || id;
+
+  let causeHtml = "";
+  if (result.dominant_cause) {
+    const causeText = t(`drift.cause.${result.dominant_cause}`) || result.dominant_cause;
+    causeHtml = `<p class="unmask-reco"><strong>${t("drift.dominant_cause") || "Dominant cause"}:</strong> ${causeText}</p>`;
+  }
+
+  const recoText = t(`drift.reco.${result.verdict}`) || "";
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${verdictLabel}</div>
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label">${t("drift.label.observed") || "Observed gap"}</span><span class="unmask-num-val">${result.observed_gap.toFixed(2)}</span></div>
+          <div><span class="unmask-num-label">${t("drift.label.band") || "Numerical band"}</span><span class="unmask-num-val">±${result.numerical_band.toFixed(2)}</span></div>
+          <div><span class="unmask-num-label">${t("drift.label.ratio") || "Gap / band"}</span><span class="unmask-num-val">${result.numerical_band > 0 ? (result.observed_gap / result.numerical_band).toFixed(1) : "∞"}×</span></div>
+        </div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("drift.section.setups") || "Setups"}</summary>
+          <table class="arena-table">
+            <thead><tr><th></th><th>${t("drift.setup_a") || "Setup A"}</th><th>${t("drift.setup_b") || "Setup B"}</th></tr></thead>
+            <tbody>
+              <tr><td>${t("drift.score") || "Score"}</td><td class="arena-elo">${a.score?.toFixed(2)}</td><td class="arena-elo">${b.score?.toFixed(2)}</td></tr>
+              <tr><td>${t("drift.framework") || "Framework"}</td><td>${escapeHtml(fwLabel(a.framework))}</td><td>${escapeHtml(fwLabel(b.framework))}</td></tr>
+              <tr><td>${t("drift.dtype") || "Dtype"}</td><td>${escapeHtml(dtLabel(a.dtype))}</td><td>${escapeHtml(dtLabel(b.dtype))}</td></tr>
+              <tr><td>${t("drift.batch") || "Batch"}</td><td>${a.batch}</td><td>${b.batch}</td></tr>
+              <tr><td>${t("drift.template") || "Chat-template"}</td><td>${escapeHtml(t("drift.template." + a.chat_template) || a.chat_template)}</td><td>${escapeHtml(t("drift.template." + b.chat_template) || b.chat_template)}</td></tr>
+            </tbody>
+          </table>
+        </details>
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("drift.section.breakdown") || "Drift contributors (numerical band)"}</summary>
+          <ul>
+            <li><strong>${t("drift.contrib.dtype") || "Dtype mismatch"}:</strong> ${result.breakdown.dtype.toFixed(2)} pts</li>
+            <li><strong>${t("drift.contrib.framework") || "Framework"}:</strong> ${result.breakdown.framework.toFixed(2)} pts</li>
+            <li><strong>${t("drift.contrib.batch") || "Batch difference"}:</strong> ${result.breakdown.batch.toFixed(2)} pts</li>
+            ${result.breakdown.template_mismatch !== null ? `<li style="color:${color};"><strong>${t("drift.contrib.template") || "Chat-template MISMATCH"}:</strong> ~${result.breakdown.template_mismatch.toFixed(0)} pts (dominant)</li>` : ""}
+          </ul>
+        </details>
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("drift.section.verdict") || "Verdict & recommendation"}</summary>
+          ${causeHtml}
+          ${recoText ? `<p class="unmask-reco">${recoText}</p>` : ""}
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+function runDriftCompute() {
+  const a = readDriftSetup("a");
+  const b = readDriftSetup("b");
+  if (Number.isNaN(a.score) || Number.isNaN(b.score)) {
+    $("drift-status").textContent = t("drift.status.empty_scores") || "⚠ Enter both scores.";
+    return;
+  }
+  const result = computeDriftBound(a, b);
+  $("drift-output").innerHTML = renderDriftCard(result);
+  if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+  $("drift-status").textContent = tFmt("drift.status.done", { verdict: t(`drift.verdict.${result.verdict}`) || result.verdict });
+}
+
+function loadDriftSample() {
+  // Canonical chat-template bug: same model on lm-eval-hf (no template applied)
+  // gets ~50 on multi-turn, vLLM-served (template auto-applied) gets ~75.
+  $("drift-a-score").value = 50.2;
+  $("drift-a-framework").value = "lm-eval-hf";
+  $("drift-a-dtype").value = "bf16";
+  $("drift-a-batch").value = 1;
+  $("drift-a-template").value = "not_applied";
+  $("drift-b-score").value = 74.8;
+  $("drift-b-framework").value = "vllm-served";
+  $("drift-b-dtype").value = "bf16";
+  $("drift-b-batch").value = 8;
+  $("drift-b-template").value = "applied";
+  $("drift-status").textContent = t("drift.status.sample_loaded") || "✅ Sample loaded (canonical chat-template bug). Click Compute drift bound.";
+}
+
+populateDriftDropdowns();
+$("drift-run-btn")?.addEventListener("click", runDriftCompute);
+$("drift-sample-btn")?.addEventListener("click", loadDriftSample);
 
 function configToPreset(cfg, modelId) {
   const n_attn = cfg.num_attention_heads || cfg.n_head || 0;

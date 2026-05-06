@@ -33,6 +33,24 @@
   flex: 1;
 }
 
+/* v0.7.5 — Cross-framework drift bound */
+.drift-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1em;
+  margin: 0.6em 0 0.8em;
+}
+.drift-setup {
+  border: 1px solid rgba(88, 166, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.6em 1em 0.4em;
+}
+.drift-setup legend {
+  padding: 0 0.5em;
+  font-weight: 600;
+  color: #58a6ff;
+}
+
 /* v0.7.4 — HF Hub autocomplete dropdown (attached to body) */
 .hf-autocomplete-dropdown {
   background: #12181f;
@@ -63,6 +81,20 @@
   font-size: 0.8em;
   opacity: 0.65;
   margin-top: 0.15em;
+}
+.hf-autocomplete-dropdown .hf-notice {
+  padding: 0.5em 0.7em;
+  font-size: 0.82em;
+  color: #f1c40f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.hf-autocomplete-dropdown .hf-privacy {
+  padding: 0.4em 0.7em;
+  font-size: 0.72em;
+  opacity: 0.55;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* v0.7.2 — Arena-Elo CI reconstructor */

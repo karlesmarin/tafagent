@@ -12,6 +12,24 @@
 
 const ATTACHED = new WeakSet();
 
+// LRU-ish cache: same query within 5 min → no extra fetch. Reduces HF API
+// pressure by ~50% for users who delete/retype, and shields us from rate limits.
+const CACHE = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_MAX = 50;
+
+function cacheGet(q) {
+  const e = CACHE.get(q);
+  if (!e) return null;
+  if (Date.now() - e.t > CACHE_TTL_MS) { CACHE.delete(q); return null; }
+  CACHE.delete(q); CACHE.set(q, e); // re-insert = LRU bump
+  return e.r;
+}
+function cacheSet(q, r) {
+  if (CACHE.size >= CACHE_MAX) CACHE.delete(CACHE.keys().next().value);
+  CACHE.set(q, { r, t: Date.now() });
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -57,14 +75,20 @@ export function attachHfAutocomplete(inputEl, options = {}) {
     dropdown.style.zIndex = "10000";
   }
 
-  function render() {
-    if (!results.length) { dropdown.style.display = "none"; return; }
-    dropdown.innerHTML = results.map((r, i) => `
+  function render(notice = null) {
+    if (!results.length && !notice) { dropdown.style.display = "none"; return; }
+    const rows = results.map((r, i) => `
       <div class="hf-result ${i === activeIndex ? "active" : ""}" data-id="${escapeHtml(r.id)}">
         <span class="hf-result-id">${escapeHtml(r.id)}</span>
         <span class="hf-result-meta">⬇ ${formatDownloads(r.downloads)} · ❤ ${formatDownloads(r.likes)}${r.library_name ? " · " + escapeHtml(r.library_name) : ""}</span>
       </div>
     `).join("");
+    const noticeHtml = notice ? `<div class="hf-notice">${escapeHtml(notice)}</div>` : "";
+    // Privacy footer (always visible when dropdown is showing).
+    const t = (window.__taf_t || (k => null));
+    const privacyText = t("hf_auto.privacy") || "🔒 Queries sent to huggingface.co/api · cached locally 5 min";
+    const privacyHtml = `<div class="hf-privacy">${escapeHtml(privacyText)}</div>`;
+    dropdown.innerHTML = rows + noticeHtml + privacyHtml;
     positionDropdown();
     dropdown.style.display = "block";
   }
@@ -82,24 +106,39 @@ export function attachHfAutocomplete(inputEl, options = {}) {
   }
 
   async function search(q) {
-    if (q.length < minChars) { results = []; render(); return; }
-    if (q === lastQuery) return; // dedupe rapid typing
-    lastQuery = q;
+    // Empty q is allowed: returns top-N most-downloaded models so a focused-but-empty
+    // input still shows a useful initial dropdown ("desplegable" UX), not just
+    // search-as-you-type. Below minChars but non-empty → wait for more chars.
+    if (q && q.length < minChars) { results = []; render(); return; }
+    const cacheKey = q || "__top__";
+    if (cacheKey === lastQuery) return; // dedupe rapid typing
+    lastQuery = cacheKey;
+
+    // Cache hit → skip network entirely
+    const cached = cacheGet(cacheKey);
+    if (cached) { results = cached; activeIndex = -1; render(); return; }
+
     const params = new URLSearchParams({
-      search: q,
       limit: String(limit),
       sort: "downloads",
       direction: "-1",
     });
+    if (q) params.set("search", q);
     if (pipeline) params.set("filter", pipeline);
     try {
       const resp = await fetch(`https://huggingface.co/api/models?${params}`);
+      if (resp.status === 429) {
+        const t = (window.__taf_t || (k => null));
+        results = [];
+        render(t("hf_auto.rate_limited") || "⚠ HuggingFace rate limit — try again in a moment");
+        return;
+      }
       if (!resp.ok) { results = []; render(); return; }
       const data = await resp.json();
-      // Filter out odd entries (gated/private won't appear publicly anyway)
       results = (Array.isArray(data) ? data : [])
         .filter(r => r.id && typeof r.id === "string")
         .slice(0, limit);
+      cacheSet(cacheKey, results);
       activeIndex = -1;
       render();
     } catch (e) {
@@ -114,8 +153,10 @@ export function attachHfAutocomplete(inputEl, options = {}) {
   });
 
   inputEl.addEventListener("focus", (e) => {
+    // Always show dropdown on focus: either filtered (if user already typed)
+    // or the global top-most-downloaded models (empty query).
     const v = e.target.value.trim();
-    if (v.length >= minChars) search(v);
+    search(v);
   });
 
   // Click on a result picks it. Use mousedown to fire before input loses focus.
