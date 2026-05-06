@@ -33,6 +33,38 @@
   flex: 1;
 }
 
+/* v0.7.4 — HF Hub autocomplete dropdown (attached to body) */
+.hf-autocomplete-dropdown {
+  background: #12181f;
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  font-size: 0.92em;
+}
+.hf-autocomplete-dropdown .hf-result {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5em 0.7em;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.hf-autocomplete-dropdown .hf-result:last-child { border-bottom: none; }
+.hf-autocomplete-dropdown .hf-result:hover,
+.hf-autocomplete-dropdown .hf-result.active {
+  background: rgba(88, 166, 255, 0.15);
+}
+.hf-autocomplete-dropdown .hf-result-id {
+  font-family: monospace;
+  color: #c9d1d9;
+}
+.hf-autocomplete-dropdown .hf-result-meta {
+  font-size: 0.8em;
+  opacity: 0.65;
+  margin-top: 0.15em;
+}
+
 /* v0.7.2 — Arena-Elo CI reconstructor */
 .arena-result { margin-top: 0.6em; }
 .arena-table, .arena-ties-table {

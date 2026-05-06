@@ -16,6 +16,11 @@ import { sniffChatTemplate } from "./chat_template_sniffer.js";
 import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
+import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
+
+// Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
+// Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
+attachAllHfAutocompletes();
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
