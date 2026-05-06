@@ -142,8 +142,12 @@ function setStatus(msg) { $("status").textContent = msg; }
 // ════════════════════════════════════════════════════════════════════
 document.querySelectorAll(".mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".mode-btn").forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
     btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
     const mode = btn.dataset.mode;
     state.currentMode = mode;
     // Hide all mode sections
@@ -1227,6 +1231,8 @@ function renderProfile(p, params) {
           <div class="share-bar">
             <button class="secondary" id="profile-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
             <button class="secondary" id="profile-download-btn" data-i18n="share.download">💾 Download JSON</button>
+            <button class="secondary" id="profile-download-md-btn" data-i18n="share.download_md">📝 Markdown</button>
+            <button class="secondary" id="profile-download-tex-btn" data-i18n="share.download_tex">📜 LaTeX</button>
             <button class="secondary" id="profile-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
             <span id="profile-share-status" class="subtle"></span>
           </div>
@@ -1268,11 +1274,23 @@ function renderProfile(p, params) {
     $("profile-share-status").textContent = `✅ Downloaded ${filename}`;
     setTimeout(() => $("profile-share-status").textContent = "", 5000);
   });
+  $("profile-download-md-btn").addEventListener("click", async () => {
+    const hash = await inputHash("profile", p);
+    const base = (await makeFilename("profile", p)).replace(/\.json$/, "");
+    downloadText(`${base}.md`, profileToMarkdown(p, hash), "text/markdown;charset=utf-8");
+    $("profile-share-status").textContent = `✅ Downloaded ${base}.md`;
+    setTimeout(() => $("profile-share-status").textContent = "", 5000);
+  });
+  $("profile-download-tex-btn").addEventListener("click", async () => {
+    const hash = await inputHash("profile", p);
+    const base = (await makeFilename("profile", p)).replace(/\.json$/, "");
+    downloadText(`${base}.tex`, profileToLatex(p, hash), "application/x-tex;charset=utf-8");
+    $("profile-share-status").textContent = `✅ Downloaded ${base}.tex`;
+    setTimeout(() => $("profile-share-status").textContent = "", 5000);
+  });
   $("profile-submit-btn").addEventListener("click", async () => {
-    const url = await buildIssueUrl("profile", p);
-    window.open(url, "_blank");
-    $("profile-share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
-    setTimeout(() => $("profile-share-status").textContent = "", 6000);
+    await submitToRegistry("profile", p, $("profile-share-status"));
+    setTimeout(() => $("profile-share-status").textContent = "", 8000);
   });
 
   // v0.6: γ predicted-vs-observed panel — interactive
@@ -1487,6 +1505,8 @@ function renderCompare(cmp) {
     <div class="share-bar">
       <button class="secondary" id="compare-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
       <button class="secondary" id="compare-download-btn" data-i18n="share.download">💾 Download JSON</button>
+      <button class="secondary" id="compare-download-md-btn" data-i18n="share.download_md">📝 Markdown</button>
+      <button class="secondary" id="compare-download-tex-btn" data-i18n="share.download_tex">📜 LaTeX</button>
       <button class="secondary" id="compare-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
       <span id="compare-share-status" class="subtle"></span>
     </div>
@@ -1505,11 +1525,23 @@ function renderCompare(cmp) {
     $("compare-share-status").textContent = `✅ Downloaded ${filename}`;
     setTimeout(() => $("compare-share-status").textContent = "", 5000);
   });
+  $("compare-download-md-btn").addEventListener("click", async () => {
+    const hash = await inputHash("compare", cmp);
+    const base = (await makeFilename("compare", cmp)).replace(/\.json$/, "");
+    downloadText(`${base}.md`, compareToMarkdown(cmp, hash), "text/markdown;charset=utf-8");
+    $("compare-share-status").textContent = `✅ Downloaded ${base}.md`;
+    setTimeout(() => $("compare-share-status").textContent = "", 5000);
+  });
+  $("compare-download-tex-btn").addEventListener("click", async () => {
+    const hash = await inputHash("compare", cmp);
+    const base = (await makeFilename("compare", cmp)).replace(/\.json$/, "");
+    downloadText(`${base}.tex`, compareToLatex(cmp, hash), "application/x-tex;charset=utf-8");
+    $("compare-share-status").textContent = `✅ Downloaded ${base}.tex`;
+    setTimeout(() => $("compare-share-status").textContent = "", 5000);
+  });
   $("compare-submit-btn").addEventListener("click", async () => {
-    const url = await buildIssueUrl("compare", cmp);
-    window.open(url, "_blank");
-    $("compare-share-status").textContent = "↗ Opened GitHub registry";
-    setTimeout(() => $("compare-share-status").textContent = "", 6000);
+    await submitToRegistry("compare", cmp, $("compare-share-status"));
+    setTimeout(() => $("compare-share-status").textContent = "", 8000);
   });
 }
 
@@ -1576,21 +1608,71 @@ $("recipe-download-btn").addEventListener("click", async () => {
   $("share-status").textContent = `✅ Downloaded ${filename}`;
   setTimeout(() => $("share-status").textContent = "", 5000);
 });
+$("recipe-download-md-btn").addEventListener("click", async () => {
+  if (!state.lastFullResult) return;
+  const r = state.lastFullResult;
+  const hash = await inputHash("recipe", r);
+  const base = (await makeFilename("recipe", r)).replace(/\.json$/, "");
+  downloadText(`${base}.md`, recipeToMarkdown(r, hash), "text/markdown;charset=utf-8");
+  $("share-status").textContent = `✅ Downloaded ${base}.md`;
+  setTimeout(() => $("share-status").textContent = "", 5000);
+});
+$("recipe-download-tex-btn").addEventListener("click", async () => {
+  if (!state.lastFullResult) return;
+  const r = state.lastFullResult;
+  const hash = await inputHash("recipe", r);
+  const base = (await makeFilename("recipe", r)).replace(/\.json$/, "");
+  downloadText(`${base}.tex`, recipeToLatex(r, hash), "application/x-tex;charset=utf-8");
+  $("share-status").textContent = `✅ Downloaded ${base}.tex`;
+  setTimeout(() => $("share-status").textContent = "", 5000);
+});
 $("recipe-submit-btn").addEventListener("click", async () => {
   if (!state.lastFullResult) return;
-  const url = await buildIssueUrl("recipe", state.lastFullResult);
-  window.open(url, "_blank");
-  $("share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
-  setTimeout(() => $("share-status").textContent = "", 6000);
+  await submitToRegistry("recipe", state.lastFullResult, $("share-status"));
+  setTimeout(() => $("share-status").textContent = "", 8000);
 });
 
 // ════════════════════════════════════════════════════════════════════
 // Help modal
 // ════════════════════════════════════════════════════════════════════
-$("help-btn").addEventListener("click", () => $("help-modal").classList.add("open"));
-$("help-close").addEventListener("click", () => $("help-modal").classList.remove("open"));
+// a11y: focus trap + restore + Esc handling for the help modal.
+let __helpModalReturnFocus = null;
+function openHelpModal() {
+  const modal = $("help-modal");
+  __helpModalReturnFocus = document.activeElement;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  // Defer focus shift so the click that opened the modal isn't swallowed.
+  setTimeout(() => $("help-close")?.focus(), 0);
+}
+function closeHelpModal() {
+  const modal = $("help-modal");
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  if (__helpModalReturnFocus && typeof __helpModalReturnFocus.focus === "function") {
+    __helpModalReturnFocus.focus();
+  }
+  __helpModalReturnFocus = null;
+}
+$("help-btn").addEventListener("click", openHelpModal);
+$("help-close").addEventListener("click", closeHelpModal);
 $("help-modal").addEventListener("click", (e) => {
-  if (e.target.id === "help-modal") $("help-modal").classList.remove("open");
+  if (e.target.id === "help-modal") closeHelpModal();
+});
+// Esc closes; Tab cycles within modal when open.
+document.addEventListener("keydown", (e) => {
+  const modal = $("help-modal");
+  if (!modal.classList.contains("open")) return;
+  if (e.key === "Escape") { e.preventDefault(); closeHelpModal(); return; }
+  if (e.key !== "Tab") return;
+  const focusables = modal.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -1607,6 +1689,75 @@ function downloadJSON(filename, data) {
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+function downloadText(filename, text, mime = "text/plain;charset=utf-8") {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+// LaTeX-escape a plain string for inclusion in a tabular cell.
+function latexEscape(s) {
+  return String(s ?? "")
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/[#$%&_{}]/g, m => "\\" + m)
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}")
+    .replace(/</g, "\\textless{}")
+    .replace(/>/g, "\\textgreater{}");
+}
+
+function profileToLatex(p, hash = "") {
+  const ms = p.model_summary || {};
+  const kn = p.key_numbers || {};
+  let tex = `% TAF Profile — auto-generated by TAF Agent\n`;
+  if (hash) tex += `% input hash: #${hash}\n`;
+  tex += `\\begin{table}[ht]\n\\centering\n`;
+  tex += `\\caption{TAF Profile — ${latexEscape(ms.architecture_class || "?")}${hash ? ` (\\#${latexEscape(hash)})` : ""}}\n`;
+  tex += `\\begin{tabular}{lll}\n\\toprule\nRecipe & Verdict & Reason \\\\\n\\midrule\n`;
+  Object.entries(p.recipes || {}).forEach(([rid, r]) => {
+    tex += `${latexEscape(rid)} & ${latexEscape(r.verdict || "")} & ${latexEscape((r.reason || "").slice(0, 80))} \\\\\n`;
+  });
+  tex += `\\bottomrule\n\\end{tabular}\n\\end{table}\n\n`;
+  tex += `% Key numbers (JSON):\n`;
+  for (const [k, v] of Object.entries(kn)) {
+    tex += `% ${k} = ${typeof v === "object" ? JSON.stringify(v) : v}\n`;
+  }
+  return tex;
+}
+
+function compareToLatex(c, hash = "") {
+  let tex = `% TAF Comparison — ${c.recipe_id} (${c.recipe_name})\n`;
+  if (hash) tex += `% input hash: #${hash}\n`;
+  tex += `\\begin{table}[ht]\n\\centering\n`;
+  tex += `\\caption{TAF Comparison — ${latexEscape(c.recipe_id)} ${latexEscape(c.recipe_name || "")}${hash ? ` (\\#${latexEscape(hash)})` : ""}}\n`;
+  tex += `\\begin{tabular}{lll}\n\\toprule\nModel & Verdict & Reason \\\\\n\\midrule\n`;
+  c.rows.forEach(r => {
+    tex += `${latexEscape(r.label)} & ${latexEscape(r.verdict)} & ${latexEscape((r.reason || "").slice(0, 80))} \\\\\n`;
+  });
+  tex += `\\bottomrule\n\\end{tabular}\n\\end{table}\n`;
+  return tex;
+}
+
+function recipeToLatex(r, hash = "") {
+  let tex = `% TAF Recipe ${r.recipe_id} — ${r.recipe_name}\n`;
+  if (hash) tex += `% input hash: #${hash}\n`;
+  tex += `\\begin{table}[ht]\n\\centering\n`;
+  tex += `\\caption{TAF Recipe \\texttt{${latexEscape(r.recipe_id)}} — verdict: ${latexEscape(r.verdict)}${hash ? ` (\\#${latexEscape(hash)})` : ""}}\n`;
+  tex += `\\begin{tabular}{rll}\n\\toprule\nStep & Formula & Result \\\\\n\\midrule\n`;
+  (r.chain || []).forEach(s => {
+    tex += `${latexEscape(s.step)} & \\texttt{${latexEscape(s.formula || "")}} & ${latexEscape(formatResultPlain(s.result))} \\\\\n`;
+  });
+  tex += `\\bottomrule\n\\end{tabular}\n\\end{table}\n\n`;
+  tex += `% Reason: ${latexEscape(r.reason || "")}\n`;
+  if (r.mitigation) tex += `% Mitigation: ${latexEscape(r.mitigation)}\n`;
+  return tex;
 }
 
 // Sort object keys recursively for deterministic JSON
@@ -1698,7 +1849,11 @@ async function makeFilename(type, data) {
   return `taf-${type}-${name}-${suffix}-${hash}.json`;
 }
 
-async function buildIssueUrl(type, data) {
+// v0.6 privacy fix: previously placed full JSON body in URL params → GH server logs +
+// referer headers captured user data. Now copy body to clipboard, open issue page
+// with title only, user pastes body manually. Title is non-sensitive (model name +
+// hash). On clipboard failure, fall back to console log so user can grab body.
+async function submitToRegistry(type, data, statusEl) {
   const hash = await inputHash(type, data);
   const modelName = modelShortName(data, "model");
   let title, body;
@@ -1714,11 +1869,26 @@ async function buildIssueUrl(type, data) {
     body = recipeToMarkdown(data, hash);
   }
   const dedupNote = `\n\n> **Input hash**: \`#${hash}\` — search this hash in registry issues to find independent verifications. Same inputs always produce the same hash.`;
-  const params = new URLSearchParams({
-    title: title,
-    body: body + dedupNote + "\n\n---\n*Submitted via [TAF Agent](https://karlesmarin.github.io/tafagent)*",
-  });
-  return `https://github.com/${REGISTRY_REPO}/issues/new?${params.toString()}`;
+  const fullBody = body + dedupNote + "\n\n---\n*Submitted via [TAF Agent](https://karlesmarin.github.io/tafagent)*";
+
+  let clipboardOk = false;
+  try {
+    await navigator.clipboard.writeText(fullBody);
+    clipboardOk = true;
+  } catch (e) {
+    console.warn("Clipboard write failed; body logged below:", e);
+    console.log("[TAF Agent] Issue body to paste:\n\n" + fullBody);
+  }
+
+  // Title-only URL — body intentionally omitted to avoid leaking via GH server logs / referer.
+  const params = new URLSearchParams({ title });
+  window.open(`https://github.com/${REGISTRY_REPO}/issues/new?${params.toString()}`, "_blank");
+
+  if (statusEl) {
+    statusEl.textContent = clipboardOk
+      ? (t("share.submit_clip_ok") || "↗ Opened GitHub. Body copied to clipboard — paste it into the issue body.")
+      : (t("share.submit_clip_fail") || "↗ Opened GitHub. Clipboard blocked — body logged in browser console (F12).");
+  }
 }
 
 function profileToMarkdown(p, hash="") {

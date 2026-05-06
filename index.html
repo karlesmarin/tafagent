@@ -12,13 +12,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://karlesmarin.github.io/tafagent/" />
   <meta property="og:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
-  <meta property="og:description" content="Free, auditable transformer LLM diagnostic. 5 recipes, 5 modes, 4 languages. Runs in your browser. No server, no auth, $0/month forever." />
+  <meta property="og:description" content="Free, auditable transformer LLM diagnostic. 8 recipes, 5 modes, 4 languages. Runs in your browser. No server, no auth, $0/month forever." />
   <meta property="og:site_name" content="TAF Agent" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
-  <meta name="twitter:description" content="Free, auditable transformer LLM diagnostic. 5 recipes, 5 modes, 4 languages. Runs in your browser. $0 forever." />
+  <meta name="twitter:description" content="Free, auditable transformer LLM diagnostic. 8 recipes, 5 modes, 4 languages. Runs in your browser. $0 forever." />
 
   <!-- Theme color for browser UI -->
   <meta name="theme-color" content="#0a0e14" />
@@ -27,13 +27,14 @@
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
+  <a href="#mode-section" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
   <header>
     <!-- Language switcher (top-right, round flags) -->
     <div class="lang-switcher">
-      <button class="lang-btn" data-lang="en" data-label="English" title="English">🇬🇧</button>
-      <button class="lang-btn" data-lang="es" data-label="Español" title="Español">🇪🇸</button>
-      <button class="lang-btn" data-lang="fr" data-label="Français" title="Français">🇫🇷</button>
-      <button class="lang-btn" data-lang="zh" data-label="中文" title="中文">🇨🇳</button>
+      <button class="lang-btn" data-lang="en" data-label="English" title="English" aria-label="Switch language to English">🇬🇧</button>
+      <button class="lang-btn" data-lang="es" data-label="Español" title="Español" aria-label="Cambiar idioma a Español">🇪🇸</button>
+      <button class="lang-btn" data-lang="fr" data-label="Français" title="Français" aria-label="Changer la langue en Français">🇫🇷</button>
+      <button class="lang-btn" data-lang="zh" data-label="中文" title="中文" aria-label="切换语言至中文">🇨🇳</button>
     </div>
 
     <h1 data-i18n="hero.title">🔬 TAF Agent</h1>
@@ -61,10 +62,10 @@
   </header>
 
   <!-- Help modal -->
-  <div id="help-modal">
+  <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" aria-hidden="true">
     <div class="help-content">
-      <button class="help-close" id="help-close">×</button>
-      <h2 data-i18n="help.title">📘 TAF Agent — User Manual</h2>
+      <button class="help-close" id="help-close" aria-label="Close help">×</button>
+      <h2 id="help-modal-title" data-i18n="help.title">📘 TAF Agent — User Manual</h2>
 
       <h3 data-i18n="help.what.title">What does it do?</h3>
       <p data-i18n="help.what.body">Predicts <strong>practical viability</strong> of any transformer LLM
@@ -252,14 +253,14 @@
         <strong>📋 Recipe</strong>: manual selection with full form control.
         </span></span>
       </h2>
-      <div class="mode-tabs">
-        <button class="mode-btn active" data-mode="profile" data-i18n="modes.profile">📇 Profile a model</button>
-        <button class="mode-btn" data-mode="compare" data-i18n="modes.compare">🆚 Compare models</button>
-        <button class="mode-btn" data-mode="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
-        <button class="mode-btn" data-mode="ask" data-i18n="modes.ask">💬 Ask plain English</button>
-        <button class="mode-btn" data-mode="recipe" data-i18n="modes.recipe">📋 Pick recipe</button>
-        <button class="mode-btn" data-mode="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
-        <button class="mode-btn" data-mode="phase" data-i18n="modes.phase">📊 Phase diagram</button>
+      <div class="mode-tabs" role="tablist" aria-label="View modes">
+        <button class="mode-btn active" data-mode="profile" role="tab" aria-selected="true" data-i18n="modes.profile">📇 Profile a model</button>
+        <button class="mode-btn" data-mode="compare" role="tab" aria-selected="false" data-i18n="modes.compare">🆚 Compare models</button>
+        <button class="mode-btn" data-mode="inspector" role="tab" aria-selected="false" data-i18n="modes.inspector">🔍 Inspect config</button>
+        <button class="mode-btn" data-mode="ask" role="tab" aria-selected="false" data-i18n="modes.ask">💬 Ask plain English</button>
+        <button class="mode-btn" data-mode="recipe" role="tab" aria-selected="false" data-i18n="modes.recipe">📋 Pick recipe</button>
+        <button class="mode-btn" data-mode="diagnose" role="tab" aria-selected="false" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
+        <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -591,6 +592,8 @@
       <div class="share-bar">
         <button id="share-btn" class="secondary" type="button" data-i18n="share.btn">🔗 Copy share link</button>
         <button id="recipe-download-btn" class="secondary" type="button" data-i18n="share.download">💾 Download JSON</button>
+        <button id="recipe-download-md-btn" class="secondary" type="button" data-i18n="share.download_md">📝 Markdown</button>
+        <button id="recipe-download-tex-btn" class="secondary" type="button" data-i18n="share.download_tex">📜 LaTeX</button>
         <button id="recipe-submit-btn" class="secondary" type="button" data-i18n="share.submit">📤 Submit to registry</button>
         <span id="share-status" class="subtle"></span>
       </div>
