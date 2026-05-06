@@ -73,7 +73,12 @@ function archPressureFromConfig(config) {
 }
 
 export function predictNIAHReasoning(config, T_eval) {
-  const theta = config.rope_theta ?? 10000;
+  const baseTheta = config.rope_theta ?? 10000;
+  // YaRN / linear / dynamic NTK rope-scaling effectively widens d_horizon.
+  // Use scaled theta when present so YaRN-extended models aren't false-broken.
+  const rs = config.rope_scaling;
+  const yarnFactor = rs && (rs.factor ?? 1);
+  const theta = (rs && yarnFactor > 1) ? baseTheta * yarnFactor : baseTheta;
   const T_train = config.max_position_embeddings ?? T_eval;
   const gPade = gammaPade(theta, T_eval);
   const dh = dHorizon(theta, gPade);
