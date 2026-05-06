@@ -39,25 +39,18 @@
 
     <h1 data-i18n="hero.title">🔬 TAF Agent</h1>
     <p class="tagline" data-i18n="hero.tagline">
-      Test <strong>ANY</strong> transformer LLM before you spend GPU/$.
+      Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.
     </p>
-    <div class="arch-badges">
-      <span class="badge">✓ RoPE-MHA</span>
-      <span class="badge">✓ RoPE-GQA</span>
-      <span class="badge">✓ ALiBi</span>
-      <span class="badge">✓ AbsPE</span>
-      <span class="badge">✓ SWA</span>
-      <span class="badge">✓ SSM (Mamba)</span>
-      <span class="badge">✓ Any HuggingFace public model</span>
-    </div>
-    <p class="subtle" style="margin-top:0.75rem;" data-i18n="hero.subtitle">
-      All computation runs locally in your browser. Free. Unlimited. Auditable.
+    <p class="subtle" data-i18n="hero.subtitle">
+      Predicts whether a model will work for your use case <em>before</em> you spend money or time. Everything runs in your browser &mdash; your inputs never leave this tab.
     </p>
     <p class="subtle" style="margin-top:0.25rem; font-size:0.85rem;" data-i18n="hero.about">
       Built by an independent researcher. Open source. Not affiliated with any model vendor.
     </p>
-    <p style="margin-top:0.75rem;">
-      <button id="help-btn" type="button" data-i18n="hero.help">📘 Help & examples</button>
+    <p class="hero-buttons">
+      <button id="quickstart-btn" type="button" data-i18n="hero.quickstart_btn">⚡ Quick start</button>
+      <button id="inventory-btn" type="button" data-i18n="hero.inventory_btn">🧰 What it gives you</button>
+      <button id="help-btn" type="button" data-i18n="hero.help">📘 Manual &amp; examples</button>
     </p>
   </header>
 
@@ -234,6 +227,83 @@
     </div>
   </div>
 
+  <!-- Quick start modal (3 steps) -->
+  <div id="quickstart-modal" role="dialog" aria-modal="true" aria-labelledby="qs-modal-title" aria-hidden="true">
+    <div class="help-content">
+      <button class="help-close" id="quickstart-close" aria-label="Close quick start">×</button>
+      <h2 id="qs-modal-title" data-i18n="qs.title">⚡ Quick start</h2>
+      <ol class="qs-steps">
+        <li data-i18n="qs.step1">Paste a HuggingFace model ID (e.g. <code>meta-llama/Meta-Llama-3-8B</code>)</li>
+        <li data-i18n="qs.step2">Click <strong>📇 Profile a model</strong></li>
+        <li data-i18n="qs.step3">Read your TAF Card &mdash; verdict per use case + key numbers + math verified by Lean+Mathlib</li>
+      </ol>
+      <p class="qs-cta">
+        <a href="#mode-section" class="btn-primary" id="qs-start-link" data-i18n="qs.cta">↓ Start now</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Inventory modal: what you get -->
+  <div id="inventory-modal" role="dialog" aria-modal="true" aria-labelledby="inv-modal-title" aria-hidden="true">
+    <div class="help-content">
+      <button class="help-close" id="inventory-close" aria-label="Close inventory">×</button>
+      <h2 id="inv-modal-title" data-i18n="inv.title">🧰 What this tool gives you</h2>
+      <div class="inventory-grid">
+        <div class="inv-card">
+          <h3 data-i18n="inv.recipes.title">🎯 8 recipes &mdash; does this model fit your use case?</h3>
+          <ul>
+            <li><strong data-i18n="inv.recipes.x1.title">Custom train vs API</strong>: <span data-i18n="inv.recipes.x1.body">which is cheaper for your traffic?</span></li>
+            <li><strong data-i18n="inv.recipes.x2.title">Long context</strong>: <span data-i18n="inv.recipes.x2.body">will it handle 32k / 128k tokens reliably?</span></li>
+            <li><strong data-i18n="inv.recipes.x3.title">Budget</strong>: <span data-i18n="inv.recipes.x3.body">with $X, what model can you train from scratch?</span></li>
+            <li><strong data-i18n="inv.recipes.x5.title">Hardware</strong>: <span data-i18n="inv.recipes.x5.body">which GPU to serve N tokens/day?</span></li>
+            <li><strong data-i18n="inv.recipes.x19.title">KV cache</strong>: <span data-i18n="inv.recipes.x19.body">how to compress without breaking quality?</span></li>
+            <li><strong data-i18n="inv.recipes.x21.title">Imprint purity</strong>: <span data-i18n="inv.recipes.x21.body">how clean is the model's positional encoding?</span></li>
+            <li><strong data-i18n="inv.recipes.x22.title">Compute-context</strong>: <span data-i18n="inv.recipes.x22.body">does the model fit the empirical band?</span></li>
+            <li><strong data-i18n="inv.recipes.x23.title">IH-phase</strong>: <span data-i18n="inv.recipes.x23.body">pre- or post-induction-head?</span></li>
+          </ul>
+        </div>
+        <div class="inv-card">
+          <h3 data-i18n="inv.diag.title">🔬 Diagnostics</h3>
+          <ul>
+            <li data-i18n="inv.diag.gamma"><strong>γ predicted vs observed</strong> &mdash; auto-classifies the model into 5 regimes (normal · fraud / inflated context · compressed · over-Padé · sliding-window)</li>
+            <li data-i18n="inv.diag.cardy"><strong>Cardy ΔH</strong> &mdash; entropy shift between observed and nominal context</li>
+            <li data-i18n="inv.diag.fals"><strong>Falsification dashboard</strong> &mdash; checks 23 specific predictions (F1–F23)</li>
+            <li data-i18n="inv.diag.alg"><strong>Algebraic consistency</strong> &mdash; 8 mathematical identities the model must satisfy</li>
+          </ul>
+        </div>
+        <div class="inv-card">
+          <h3 data-i18n="inv.verify.title">✓ Formally verified math</h3>
+          <ul>
+            <li data-i18n="inv.verify.count"><strong>37 theorems</strong> machine-proven in Lean 4 + Mathlib4</li>
+            <li data-i18n="inv.verify.click">Click any badge → opens the source line on GitHub</li>
+            <li data-i18n="inv.verify.reverify">Verify yourself: <code>lake build</code> (≈5 s after cache fetch)</li>
+          </ul>
+        </div>
+        <div class="inv-card">
+          <h3 data-i18n="inv.export.title">📤 Export &amp; share</h3>
+          <ul>
+            <li data-i18n="inv.export.formats"><strong>JSON · Markdown · LaTeX</strong> (paper-ready)</li>
+            <li data-i18n="inv.export.share">Reproducible share link (state encoded in URL)</li>
+            <li data-i18n="inv.export.registry">Submit to community registry on GitHub</li>
+          </ul>
+        </div>
+      </div>
+
+      <details class="arch-supported">
+        <summary data-i18n="arch.summary">Architectures supported (click to expand)</summary>
+        <div class="arch-badges">
+          <span class="badge">✓ RoPE-MHA <span class="info"><span class="tooltip" data-i18n="tooltip.mha">Multi-Head Attention: each token position attends through several parallel heads at once.</span></span></span>
+          <span class="badge">✓ RoPE-GQA <span class="info"><span class="tooltip" data-i18n="tooltip.gqa">Grouped Query Attention: queries share fewer keys/values than heads (saves memory but pushes γ toward Hagedorn).</span></span></span>
+          <span class="badge">✓ ALiBi <span class="info"><span class="tooltip" data-i18n="tooltip.alibi">Attention with Linear Biases: position info is a learned slope added to attention scores, no rotation.</span></span></span>
+          <span class="badge">✓ AbsPE <span class="info"><span class="tooltip" data-i18n="tooltip.abspe">Absolute Position Embeddings: each position has a fixed learned vector added to the token embedding.</span></span></span>
+          <span class="badge">✓ SWA <span class="info"><span class="tooltip" data-i18n="tooltip.swa">Sliding Window Attention: each token only attends within a fixed local window (Mistral, gemma-2 use this).</span></span></span>
+          <span class="badge">✓ SSM (Mamba) <span class="info"><span class="tooltip" data-i18n="tooltip.ssm">State Space Model: a sequence layer that maintains internal state instead of attention (Mamba, Jamba use this).</span></span></span>
+          <span class="badge" data-i18n="arch.anyhf">✓ Any HuggingFace public model</span>
+        </div>
+      </details>
+    </div>
+  </div>
+
   <main>
     <!-- Status with loading bar -->
     <section id="status-bar">
@@ -246,11 +316,14 @@
     <!-- Mode toggle -->
     <section id="mode-section">
       <h2><span data-i18n="modes.title">🎯 Mode</span>
-        <span class="info"><span class="tooltip" data-i18n="modes.tip"><strong>Four ways to use the tool</strong>.<br>
-        <strong>📇 Profile</strong>: paste a model id → all 5 recipes at once = TAF Card.<br>
+        <span class="info"><span class="tooltip" data-i18n="modes.tip"><strong>7 modes available.</strong> Most users want 📇 Profile (one-click full diagnosis).<br>
+        <strong>📇 Profile</strong>: paste a model id → 5-recipe TAF Card.<br>
         <strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br>
+        <strong>🔍 Inspect</strong>: paste raw config.json to debug parameters.<br>
         <strong>💬 Ask</strong>: free-form question, browser LLM picks the recipe.<br>
-        <strong>📋 Recipe</strong>: manual selection with full form control.
+        <strong>📋 Recipe</strong>: manual selection with full form control.<br>
+        <strong>🩺 Diagnose CLI</strong>: generate Python command to measure γ on real weights.<br>
+        <strong>📊 Phase diagram</strong>: explore 23 panel models on (log θ, γ) plane.
         </span></span>
       </h2>
       <div class="mode-tabs" role="tablist" aria-label="View modes">

@@ -1,5 +1,110 @@
 /* TAF Agent — minimal clean styling */
 
+/* v0.6.2 — landing rework: quick-start strip + inventory grid + arch-supported */
+#quickstart-strip {
+  margin: 1.5em auto 1em;
+  padding: 1em 1.2em;
+  max-width: 980px;
+  background: #12181f;
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  border-radius: 8px;
+}
+#quickstart-strip h2 {
+  margin: 0 0 0.6em;
+  font-size: 1.25em;
+  color: #58a6ff;
+}
+.qs-steps {
+  margin: 0 0 0.8em;
+  padding: 0;
+  list-style: none;
+  counter-reset: qs;
+}
+.qs-steps li {
+  counter-increment: qs;
+  margin: 0.5em 0;
+  padding-left: 2.4em;
+  position: relative;
+  line-height: 1.5;
+}
+.qs-steps li::before {
+  content: counter(qs);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: #58a6ff;
+  color: #0a0e14;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.7em;
+  font-size: 0.9em;
+}
+.qs-cta {
+  margin: 0.6em 0 0;
+}
+.btn-primary {
+  display: inline-block;
+  padding: 0.55em 1.1em;
+  background: #58a6ff;
+  color: #0a0e14;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+}
+.btn-primary:hover { background: #1f6feb; color: #fff; }
+
+#inventory-strip {
+  margin: 1em auto 1.5em;
+  max-width: 980px;
+}
+#inventory-strip h2 {
+  margin: 0 0 0.8em;
+  font-size: 1.2em;
+  color: #58a6ff;
+}
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.8em;
+}
+.inv-card {
+  padding: 0.9em 1em;
+  background: #12181f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+.inv-card h3 {
+  margin: 0 0 0.5em;
+  font-size: 1em;
+  color: #58a6ff;
+}
+.inv-card ul {
+  margin: 0;
+  padding-left: 1em;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.inv-card li { margin: 0.3em 0; }
+
+.arch-supported {
+  margin: 1em auto 0;
+  max-width: 980px;
+  font-size: 0.92em;
+}
+.arch-supported summary {
+  cursor: pointer;
+  padding: 0.4em 0;
+  opacity: 0.8;
+}
+.arch-supported summary:hover { opacity: 1; }
+.arch-supported .arch-badges {
+  margin-top: 0.4em;
+}
+
 /* a11y: skip-to-main link, visible only on keyboard focus */
 .skip-link {
   position: absolute;
@@ -335,12 +440,26 @@ button:disabled { background: #444; cursor: not-allowed; }
   padding: 0.3rem 0.7rem; font-size: 0.85rem;
 }
 #help-btn:hover { background: var(--accent); color: white; }
-#help-modal {
+/* Modals (help / quickstart / inventory) share the same overlay + content frame */
+#help-modal,
+#quickstart-modal,
+#inventory-modal {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.7); z-index: 1000;
   padding: 2rem; overflow-y: auto;
 }
-#help-modal.open { display: flex; align-items: flex-start; justify-content: center; }
+#help-modal.open,
+#quickstart-modal.open,
+#inventory-modal.open { display: flex; align-items: flex-start; justify-content: center; }
+
+.hero-buttons {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+.hero-buttons button { white-space: nowrap; }
 .help-content {
   background: var(--bg-card); color: var(--fg);
   max-width: 800px; width: 100%;

@@ -1635,37 +1635,51 @@ $("recipe-submit-btn").addEventListener("click", async () => {
 // ════════════════════════════════════════════════════════════════════
 // Help modal
 // ════════════════════════════════════════════════════════════════════
-// a11y: focus trap + restore + Esc handling for the help modal.
-let __helpModalReturnFocus = null;
-function openHelpModal() {
-  const modal = $("help-modal");
-  __helpModalReturnFocus = document.activeElement;
-  modal.classList.add("open");
-  modal.setAttribute("aria-hidden", "false");
-  // Defer focus shift so the click that opened the modal isn't swallowed.
-  setTimeout(() => $("help-close")?.focus(), 0);
+// a11y: focus trap + restore + Esc handling, generalized to any modal that follows
+// the [role="dialog"] + .open pattern. Each call to wireModal() returns { open, close }
+// and registers the modal so the global keyboard handler can find the active one.
+const __modalCloseFns = new Map();
+function wireModal(modalId, btnId, closeId) {
+  const modal = $(modalId);
+  if (!modal) return null;
+  let returnFocus = null;
+  const open = () => {
+    returnFocus = document.activeElement;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(() => $(closeId)?.focus(), 0);
+  };
+  const close = () => {
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    if (returnFocus && typeof returnFocus.focus === "function") returnFocus.focus();
+    returnFocus = null;
+  };
+  $(btnId)?.addEventListener("click", open);
+  $(closeId)?.addEventListener("click", close);
+  modal.addEventListener("click", (e) => { if (e.target.id === modalId) close(); });
+  __modalCloseFns.set(modalId, close);
+  return { open, close };
 }
-function closeHelpModal() {
-  const modal = $("help-modal");
-  modal.classList.remove("open");
-  modal.setAttribute("aria-hidden", "true");
-  if (__helpModalReturnFocus && typeof __helpModalReturnFocus.focus === "function") {
-    __helpModalReturnFocus.focus();
-  }
-  __helpModalReturnFocus = null;
-}
-$("help-btn").addEventListener("click", openHelpModal);
-$("help-close").addEventListener("click", closeHelpModal);
-$("help-modal").addEventListener("click", (e) => {
-  if (e.target.id === "help-modal") closeHelpModal();
-});
-// Esc closes; Tab cycles within modal when open.
+
+wireModal("help-modal", "help-btn", "help-close");
+wireModal("quickstart-modal", "quickstart-btn", "quickstart-close");
+wireModal("inventory-modal", "inventory-btn", "inventory-close");
+
+// Quick-start modal "↓ Start now" link should also close the modal so user lands on mode-section.
+$("qs-start-link")?.addEventListener("click", () => __modalCloseFns.get("quickstart-modal")?.());
+
+// Esc closes whichever modal is open; Tab cycles within it.
 document.addEventListener("keydown", (e) => {
-  const modal = $("help-modal");
-  if (!modal.classList.contains("open")) return;
-  if (e.key === "Escape") { e.preventDefault(); closeHelpModal(); return; }
+  const openModal = document.querySelector('[role="dialog"].open');
+  if (!openModal) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    __modalCloseFns.get(openModal.id)?.();
+    return;
+  }
   if (e.key !== "Tab") return;
-  const focusables = modal.querySelectorAll(
+  const focusables = openModal.querySelectorAll(
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
   );
   if (!focusables.length) return;
