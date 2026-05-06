@@ -197,9 +197,10 @@ export function attachHfAutocomplete(inputEl, options = {}) {
   });
 }
 
-// Convenience: attach to all 5 known HF-id inputs in TAF Agent.
+// Convenience: attach to all known HF-id inputs in TAF Agent.
+// NIAH was added in v0.7.6 — keep this list in sync when adding new modes.
 export function attachAllHfAutocompletes() {
-  const ids = ["hf-id", "profile-hf-id", "unmask-id", "template-id", "quant-id"];
+  const ids = ["hf-id", "profile-hf-id", "unmask-id", "template-id", "quant-id", "niah-id"];
   for (const id of ids) {
     const el = document.getElementById(id);
     if (el) attachHfAutocomplete(el);
