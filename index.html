@@ -210,6 +210,9 @@
       <p><strong data-i18n="help.v07.drift.title">🔀 Cross-framework Drift Bound</strong></p>
       <p data-i18n="help.v07.drift.body">Same model, different scores on different setups. Tool predicts the maximum drift admissible from numerical noise alone (dtype, framework, batch). If the observed gap exceeds it → real bug, typically chat-template mismatch (lm-eval-harness issue #1841) or KV-cache layout. Try the &quot;Load sample&quot; button for the canonical chat-template bug. <em>Use case</em>: before reporting a regression or claiming reproducibility, verify whether the gap between two evals is bigger than what numerical noise can explain.</p>
 
+      <p><strong data-i18n="help.v07.niah.title">🔍 NIAH → Reasoning Gap</strong></p>
+      <p data-i18n="help.v07.niah.body">RULER paper (NVIDIA 2024) shows that long-context models often pass NIAH (needle retrieval) but fail multi-hop reasoning at the same context. Tool predicts both pass rates from architecture (γ_Padé + d_horizon + arch pressure: small d_head, GQA, SWA), reports the gap, and finds your model's "safe reasoning context" where reasoning stays ≥65%. Sweep mode shows the curve across 1k/4k/16k/64k/T_train. <em>Use case</em>: before deploying at the claimed context, find out whether the model will actually reason there or just retrieve.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -317,6 +320,7 @@
             <li data-i18n="inv.v07.contam"><strong>🧪 Contamination</strong> — rate 20+ benchmarks for contamination probability</li>
             <li data-i18n="inv.v07.quant"><strong>⚖️ Quant</strong> — predict γ shift + ΔPPL for any (model × quant scheme) combo</li>
             <li data-i18n="inv.v07.drift"><strong>🔀 Drift</strong> — bug or noise? Predict max admissible gap between two evals</li>
+            <li data-i18n="inv.v07.niah"><strong>🔍 NIAH→Reason</strong> — does your "128k context" actually reason there, or just retrieve?</li>
           </ul>
         </details>
       </div>
@@ -372,6 +376,7 @@
         <button class="mode-btn" data-mode="contam" role="tab" aria-selected="false" data-i18n="modes.contam">🧪 Contamination</button>
         <button class="mode-btn" data-mode="quant" role="tab" aria-selected="false" data-i18n="modes.quant">⚖️ Quant</button>
         <button class="mode-btn" data-mode="drift" role="tab" aria-selected="false" data-i18n="modes.drift">🔀 Drift</button>
+        <button class="mode-btn" data-mode="niah" role="tab" aria-selected="false" data-i18n="modes.niah">🔍 NIAH→Reason</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -869,6 +874,31 @@
       </div>
       <p id="drift-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="drift-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- NIAH → reasoning gap predictor (v0.7.6 anti-bullshit pack #7) -->
+    <section id="niah-section" style="display:none;">
+      <h2><span data-i18n="niah.title">🔍 NIAH → Reasoning Gap</span>
+        <span class="info"><span class="tooltip" data-i18n="niah.tip">
+          NIAH (Needle in a Haystack) tests retrieval: "find this fact in long text". Multi-hop reasoning tests inference: "combine facts X+Y at the start with fact Z at the end". RULER paper (NVIDIA 2024) shows long-context models often pass NIAH but fail reasoning at the same context. This tool predicts both pass rates from architecture alone.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="niah.desc">
+        <strong>Your model claims 128k context. Will it actually reason at 64k, or just retrieve?</strong> Paste an HF model id and a target eval context — tool predicts NIAH and multi-hop reasoning pass rates, the gap, and a "safe context" where reasoning stays ≥65%.
+      </p>
+      <div class="form-row">
+        <label for="niah-id" data-i18n="niah.id_label">HF model id:</label>
+        <input type="text" id="niah-id" placeholder="e.g. meta-llama/Llama-3.1-8B-Instruct" />
+        <button type="button" id="niah-fetch-btn" data-i18n="niah.fetch_btn">📥 Fetch config</button>
+      </div>
+      <div class="form-row">
+        <label for="niah-teval" data-i18n="niah.teval_label">Target context (T_eval):</label>
+        <input type="number" id="niah-teval" min="512" step="1024" value="32768" />
+        <button type="button" id="niah-run-btn" data-i18n="niah.run_btn">🔍 Predict</button>
+        <button type="button" id="niah-sweep-btn" class="secondary" data-i18n="niah.sweep_btn">📊 Sweep contexts</button>
+      </div>
+      <p id="niah-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="niah-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

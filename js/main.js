@@ -18,6 +18,7 @@ import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
+import { predictNIAHReasoning, sweepContextLengths } from "./niah_reasoning.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -198,7 +199,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "profile-section", "compare-section", "inspector-section",
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
-     "quant-section", "drift-section"].forEach(id => {
+     "quant-section", "drift-section", "niah-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -208,7 +209,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
-      quant: "quant-section", drift: "drift-section",
+      quant: "quant-section", drift: "drift-section", niah: "niah-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -1314,6 +1315,163 @@ function loadDriftSample() {
 populateDriftDropdowns();
 $("drift-run-btn")?.addEventListener("click", runDriftCompute);
 $("drift-sample-btn")?.addEventListener("click", loadDriftSample);
+
+// ════════════════════════════════════════════════════════════════════
+// 🔍 NIAH → reasoning gap predictor (v0.7.6 anti-bullshit pack #7)
+// ════════════════════════════════════════════════════════════════════
+
+const NIAH_VERDICT_COLOR = {
+  robust:         "#3fb950",
+  marginal:       "#f1c40f",
+  degraded:       "#f1c40f",
+  retrieval_only: "#f85149",
+  broken:         "#f85149",
+};
+
+let __niahLastConfig = null;
+let __niahLastModelId = null;
+
+async function niahFetchConfig() {
+  const modelId = ($("niah-id").value || "").trim();
+  if (!modelId) {
+    $("niah-status").textContent = t("niah.status.empty_id") || "⚠ Enter a model id.";
+    return null;
+  }
+  $("niah-status").textContent = tFmt("niah.status.fetching", { modelId });
+  $("niah-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(modelId);
+    __niahLastConfig = cfg;
+    __niahLastModelId = modelId;
+    $("niah-status").textContent = tFmt("niah.status.fetched", { modelId });
+    return cfg;
+  } catch (err) {
+    if (err.code === "gated") {
+      $("niah-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+    } else {
+      $("niah-status").textContent = `❌ ${err.message}`;
+    }
+    return null;
+  } finally {
+    $("niah-fetch-btn").disabled = false;
+  }
+}
+
+function renderNIAHCard(result, modelId) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
+  const color = NIAH_VERDICT_COLOR[result.verdict] || "#8b949e";
+  const verdictLabel = t(`niah.verdict.${result.verdict}`) || result.verdict;
+  const reco = t(`niah.reco.${result.verdict}`) || "";
+  const safeText = result.safe_context
+    ? tFmt("niah.safe_context", { ctx: result.safe_context })
+    : (t("niah.safe_context_none") || "No safe context found below your target — model fails reasoning even at small contexts.");
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${verdictLabel}</div>
+        <div class="unmask-model"><code>${escapeHtml(modelId)}</code> @ <code>${fmtN(result.T_eval)}</code> tokens</div>
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label">${t("niah.label.niah") || "NIAH pass rate"}</span><span class="unmask-num-val">${(result.niah_rate * 100).toFixed(0)}%</span></div>
+          <div><span class="unmask-num-label">${t("niah.label.reasoning") || "Reasoning pass rate"}</span><span class="unmask-num-val">${(result.reasoning_rate * 100).toFixed(0)}%</span></div>
+          <div><span class="unmask-num-label">${t("niah.label.gap") || "Gap"}</span><span class="unmask-num-val">${(result.gap * 100).toFixed(0)} pts</span></div>
+        </div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("niah.section.breakdown") || "Architecture breakdown"}</summary>
+          <ul>
+            <li><strong>γ_Padé @ T_eval:</strong> ${result.gamma_pade}</li>
+            <li><strong>${t("niah.field.dhorizon") || "d_horizon (effective)"}:</strong> ${fmtN(result.d_horizon)} tokens</li>
+            <li><strong>${t("niah.field.ratio") || "T_eval / d_horizon"}:</strong> ${result.horizon_ratio}×</li>
+            <li><strong>${t("niah.field.arch_pressure") || "Arch pressure (small d_head + GQA + SWA)"}:</strong> ×${result.arch_pressure}</li>
+            <li><strong>${t("niah.field.theta") || "RoPE θ"}:</strong> ${fmtN(result.theta)}</li>
+            <li><strong>${t("niah.field.t_train") || "T_train (claimed)"}:</strong> ${fmtN(result.T_train)}</li>
+          </ul>
+        </details>
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("niah.section.reco") || "Recommendation"}</summary>
+          <p class="unmask-reco">${reco}</p>
+          <p class="unmask-reco"><strong>${t("niah.label.safe_ctx") || "Safe reasoning context"}:</strong> ${safeText}</p>
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+function renderNIAHSweep(rows, modelId) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
+  let body = "";
+  for (const r of rows) {
+    const color = NIAH_VERDICT_COLOR[r.verdict] || "#8b949e";
+    const label = t(`niah.verdict.${r.verdict}`) || r.verdict;
+    body += `<tr>
+      <td><strong>${fmtN(r.T_eval)}</strong></td>
+      <td class="arena-elo">${(r.niah_rate * 100).toFixed(0)}%</td>
+      <td class="arena-elo">${(r.reasoning_rate * 100).toFixed(0)}%</td>
+      <td class="arena-spread">${(r.gap * 100).toFixed(0)} pts</td>
+      <td style="color: ${color};"><strong>${label}</strong></td>
+    </tr>`;
+  }
+  return `
+    <div class="arena-result">
+      <div class="unmask-hero" style="border-color: #58a6ff;">
+        <div class="unmask-verdict" style="color: #58a6ff;">${tFmt("niah.summary.sweep", { modelId })}</div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("niah.section.sweep") || "Pass rate sweep across context lengths"}</summary>
+          <table class="arena-table">
+            <thead><tr>
+              <th>${t("niah.col.context") || "T_eval"}</th>
+              <th>${t("niah.col.niah") || "NIAH"}</th>
+              <th>${t("niah.col.reasoning") || "Reasoning"}</th>
+              <th>${t("niah.col.gap") || "Gap"}</th>
+              <th>${t("niah.col.verdict") || "Verdict"}</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+async function runNIAHPredict() {
+  const cfg = __niahLastConfig || await niahFetchConfig();
+  if (!cfg) return;
+  const T_eval = parseInt($("niah-teval").value, 10);
+  if (Number.isNaN(T_eval) || T_eval < 512) {
+    $("niah-status").textContent = t("niah.status.bad_teval") || "⚠ Enter a target context (≥512).";
+    return;
+  }
+  const result = predictNIAHReasoning(cfg, T_eval);
+  $("niah-output").innerHTML = renderNIAHCard(result, __niahLastModelId);
+  $("niah-status").textContent = tFmt("niah.status.done", {
+    verdict: t(`niah.verdict.${result.verdict}`) || result.verdict,
+    niah: (result.niah_rate * 100).toFixed(0),
+    reasoning: (result.reasoning_rate * 100).toFixed(0),
+  });
+}
+
+async function runNIAHSweep() {
+  const cfg = __niahLastConfig || await niahFetchConfig();
+  if (!cfg) return;
+  const rows = sweepContextLengths(cfg);
+  $("niah-output").innerHTML = renderNIAHSweep(rows, __niahLastModelId);
+  $("niah-status").textContent = tFmt("niah.status.sweep_done", { n: rows.length });
+}
+
+$("niah-fetch-btn")?.addEventListener("click", niahFetchConfig);
+$("niah-run-btn")?.addEventListener("click", runNIAHPredict);
+$("niah-sweep-btn")?.addEventListener("click", runNIAHSweep);
+$("niah-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); niahFetchConfig(); }
+});
 
 function configToPreset(cfg, modelId) {
   const n_attn = cfg.num_attention_heads || cfg.n_head || 0;
