@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-06",
+  "lean_repo": {
+    "name": "karlesmarin/lean-taf",
+    "url": "https://github.com/karlesmarin/lean-taf",
+    "default_branch": "master",
+    "commit": "25c77fd2180b8e0d6bc9a634de36667f11597cae",
+    "commit_short": "25c77fd",
+    "commit_date": "2026-05-05T22:50:58+02:00",
+    "build_status": "ok",
+    "build_jobs": 1973,
+    "compile_time_seconds": 5,
+    "lean_toolchain": "leanprover/lean4:v4.30.0-rc2",
+    "mathlib_imports": [
+      "Mathlib.Data.Real.Basic",
+      "Mathlib.Analysis.SpecialFunctions.Pow.Real",
+      "Mathlib.Analysis.Calculus.Deriv.Pow",
+      "Mathlib.Analysis.Calculus.Deriv.Add",
+      "Mathlib.Tactic"
+    ],
+    "verification_report": "tmp/FORMULAS_LEAN_VERIFICATION_2026-05-05.md"
+  },
+  "summary": {
+    "theorems_total": 37,
+    "lean_verified": 37,
+    "lean_rejected": 0,
+    "skipped_sorry": 0,
+    "substantive_findings": 1
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "title": "V/β factor-of-2 inconsistency in paper formula tables",
+      "severity": "substantive",
+      "detected_by": "V_derivative_ne_RG_beta",
+      "fixed_by": ["V_correct_derivative", "V_correct_matches_RG_beta"],
+      "summary": "Paper tables jointly state V(γ)=γ−γ³/3 + β=−V' + β(γ)=−(1−γ²)/2. Lean proves these inconsistent ∀γ∉{−1,+1} (residual factor 2). Corrected V_correct(γ)=γ/2−γ³/6 *does* integrate to the RG β.",
+      "recommendation": "Restate V as γ/2 − γ³/6, or rescale β to −(1−γ²), or document the Lagrangian-normalization convention."
+    }
+  ],
+  "groups": [
+    {
+      "id": "pade",
+      "title": "Padé approximant identities",
+      "theorems": [
+        {
+          "name": "pade_22_minus_pade_11",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 31,
+          "claim": "Padé[2,2](z) − Padé[1,1](z) = 2z³ / ((z+2)(z²+6z+12))",
+          "preconditions": ["z + 2 ≠ 0", "z² + 6z + 12 ≠ 0"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["pade", "exact"],
+          "source": { "doc": "FORMULA_TABLE.md", "line": 13, "label": "G-15 ★ EXACT" }
+        },
+        {
+          "name": "one_minus_pade_11",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 50,
+          "claim": "1 − (2−z)/(2+z) = 2z/(2+z)",
+          "preconditions": ["2 + z ≠ 0"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["pade", "exact"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "section": "§4.4", "line": 572, "label": "★ EXACT" }
+        },
+        {
+          "name": "pade_z_substitution",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 207,
+          "claim": "γ_Padé canonical form: with z = T√2/θ, (2−z)/(2+z) = (2θ − T√2) / (2θ + T√2)",
+          "preconditions": ["θ ≠ 0", "2θ + T√2 ≠ 0"],
+          "tactic": "field_simp",
+          "status": "ok",
+          "tags": ["pade", "exact", "core"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "section": "§4.1", "line": 456, "label": "★ EXACT" }
+        },
+        {
+          "name": "theta_eff_pade",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 61,
+          "claim": "θ_eff_Padé: T√2 / (1 − γ_Padé(T√2/θ)) = θ + T/√2",
+          "preconditions": ["θ ≠ 0", "T ≠ 0", "2θ + T√2 ≠ 0"],
+          "tactic": "field_simp; ring_nf + manual rewrite √2³ = √2·2",
+          "status": "ok",
+          "tags": ["pade", "exact", "core"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 572, "label": "★ EXACT" }
+        },
+        {
+          "name": "pade_saturation_leading_coefficient",
+          "kind": "theorem",
+          "file": "Taf/AmGmPade.lean",
+          "line": 100,
+          "claim": "Padé[2,2] − Padé[1,1] leading coefficient at z=0 is 1/12",
+          "tactic": "norm_num + field_simp",
+          "status": "ok",
+          "tags": ["pade", "audit_finding"],
+          "source": { "doc": "FORMULA_TABLE.md", "label": "★ EXACT (Padé saturation, paper §sec:gamma_decomposition)" }
+        }
+      ]
+    },
+    {
+      "id": "rg_flow",
+      "title": "RG flow / β-function (with V/β factor-2 finding)",
+      "theorems": [
+        {
+          "name": "logistic_to_beta_algebraic",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 91,
+          "claim": "Substitution x = (1−γ)/2 ⇒ x(1−x) = (1−γ²)/4",
+          "tactic": "ring",
+          "status": "ok",
+          "tags": ["rg", "exact"],
+          "source": { "doc": "FORMULA_TABLE.md", "line": 90, "label": "§23 ✅ ALGEBRAIC EXACT" }
+        },
+        {
+          "name": "V_derivative",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 111,
+          "claim": "d/dγ (γ − γ³/3) = 1 − γ²",
+          "tactic": "HasDerivAt chain (id, pow, div_const, sub)",
+          "status": "ok",
+          "tags": ["rg", "exact"],
+          "source": { "doc": "FORMULA_TABLE.md", "line": 91, "label": "§23 ✅ ALGEBRAIC EXACT" }
+        },
+        {
+          "name": "V_derivative_ne_RG_beta",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 122,
+          "claim": "−V'(γ) ≠ −(1 − γ²)/2 for all γ ∉ {−1, +1}",
+          "preconditions": ["γ ≠ 1", "γ ≠ −1"],
+          "tactic": "linarith after expanding V'(γ) = 1 − γ²",
+          "status": "ok",
+          "tags": ["rg", "audit_finding", "substantive"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "section": "§19", "line": 191, "label": "FINDING — factor-2 inconsistency" }
+        },
+        {
+          "name": "V_correct_derivative",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 238,
+          "claim": "d/dγ (γ/2 − γ³/6) = (1 − γ²)/2",
+          "tactic": "HasDerivAt chain",
+          "status": "ok",
+          "tags": ["rg", "fix"],
+          "source": { "doc": "FORMULAS_LEAN_VERIFICATION_2026-05-05.md", "label": "Corrected V" }
+        },
+        {
+          "name": "V_correct_matches_RG_beta",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 256,
+          "claim": "−d/dγ (γ/2 − γ³/6) = −(1 − γ²)/2 = β(γ)",
+          "tactic": "rw [V_correct_derivative]; ring",
+          "status": "ok",
+          "tags": ["rg", "fix"],
+          "source": { "doc": "FORMULAS_LEAN_VERIFICATION_2026-05-05.md", "label": "V_correct integrates to RG β" }
+        },
+        {
+          "name": "trajectory_sign_inversion",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 344,
+          "claim": "Trajectory tanh sign convention check (paper used +t/2; correct is −t/2 from dγ/dt = −(1−γ²)/2)",
+          "tactic": "deriv computation + sign analysis",
+          "status": "ok",
+          "tags": ["rg", "audit_finding"]
+        }
+      ]
+    },
+    {
+      "id": "cayley",
+      "title": "Cayley fixed-point + χ susceptibility roots",
+      "theorems": [
+        {
+          "name": "cayley_fixed_point_iff",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 139,
+          "claim": "−(z − 2)/(z + 2) = z ⟺ z² + 3z − 2 = 0",
+          "preconditions": ["z + 2 ≠ 0"],
+          "tactic": "nlinarith after clearing denominator",
+          "status": "ok",
+          "tags": ["cayley"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 173 }
+        },
+        {
+          "name": "cayley_root",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 151,
+          "claim": "z* = (√17 − 3)/2 satisfies z*² + 3z* − 2 = 0",
+          "tactic": "explicit Real.sq_sqrt expansion",
+          "status": "ok",
+          "tags": ["cayley", "exact"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 174, "label": "Physical fixed point z*" }
+        },
+        {
+          "name": "chi_root",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 170,
+          "claim": "χ = (5 + √17)/4 satisfies 2χ² − 5χ + 1 = 0",
+          "tactic": "explicit Real.sq_sqrt expansion",
+          "status": "ok",
+          "tags": ["cayley", "exact"],
+          "source": { "doc": "FORMULA_TABLE.md", "line": 92, "label": "§26 ✅ ALGEBRAIC EXACT" }
+        },
+        {
+          "name": "cayley_floquet_form_equivalence",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 310,
+          "claim": "−4(√17+1)/(5√17+13) = (√17 − 9)/8  (equivalent forms; both ≈ −0.6096)",
+          "tactic": "nlinarith via div_eq_div_iff",
+          "status": "ok",
+          "tags": ["cayley", "exact"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 177 }
+        },
+        {
+          "name": "cayley_floquet_stable",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 290,
+          "claim": "|(√17 − 9)/8| < 1  (stable attractor, |μ| < 1)",
+          "tactic": "abs_of_neg + linarith with √17 < 5",
+          "status": "ok",
+          "tags": ["cayley", "stability"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 178, "label": "STABLE attractor" }
+        }
+      ]
+    },
+    {
+      "id": "dsage",
+      "title": "D-SAGE algebraic identities (Sage Groebner + Lean)",
+      "theorems": [
+        {
+          "name": "D_SAGE_1",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 47,
+          "claim": "2η² + η·γ_χ + 1 = 0  (★★ CORE quadratic identity)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "core"],
+          "source": { "doc": "analysis/sage_recursive_sweep_2026-04-30.sage", "label": "Groebner-discovered" }
+        },
+        {
+          "name": "D_SAGE_2",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 56,
+          "claim": "β·χ = −1  (Phase A signature, Anti-Ising marker)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "anti_ising", "core"]
+        },
+        {
+          "name": "D_SAGE_4",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 65,
+          "claim": "α + χ = 2  (Josephson hyperscaling consequence)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage"]
+        },
+        {
+          "name": "D_SAGE_5",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 74,
+          "claim": "α + γ_χ = 2(2 − γ)  (linear sum identity)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage"]
+        },
+        {
+          "name": "D_SAGE_7",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 182,
+          "claim": "c · |ν_imprint| · 2π = 3  (CFT central charge × imprint slope dimensional closure)",
+          "tactic": "ring",
+          "status": "ok",
+          "tags": ["dsage", "imprint"]
+        },
+        {
+          "name": "rushbrooke_tautology",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 92,
+          "claim": "2β + γ_χ = ν · d  at d=1  (Rushbrooke hyperscaling, holds as TAUTOLOGY in TAF since γ_χ defined to satisfy)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "tautology"]
+        },
+        {
+          "name": "josephson_tautology",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 101,
+          "claim": "2 − α = ν · d  at d=1  (Josephson hyperscaling, TAUTOLOGY in TAF)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "tautology"]
+        },
+        {
+          "name": "fisher_zero_iff",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 119,
+          "claim": "Fisher relation γ_χ = (2 − η)·ν holds iff residual γ(2γ−3)/(1−γ) = 0  (i.e. NEVER in Phase A)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "independent"]
+        },
+        {
+          "name": "beta_chi_closure",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 188,
+          "claim": "β · χ = −1  (Anti-Ising β=γ−1<0 closure, machine-verified)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "anti_ising", "core"],
+          "ui_badge": "anti_ising"
+        },
+        {
+          "name": "nu_beta_id",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 197,
+          "claim": "ν · β = −1  in Phase A (variant of D-SAGE-2)",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["dsage", "anti_ising"]
+        }
+      ]
+    },
+    {
+      "id": "audit_findings",
+      "title": "Paper-1 audit findings (refutations + erratums)",
+      "theorems": [
+        {
+          "name": "eta_2gamma_residual",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 148,
+          "claim": "Paper 1 claim η = 2γ has residual (−4γ³ + 5γ + 1)/(1−γ) — NOT identically zero",
+          "preconditions": ["γ ≠ 1"],
+          "tactic": "field_simp; ring",
+          "status": "ok",
+          "tags": ["audit_finding", "refutation"]
+        },
+        {
+          "name": "eta_2gamma_fails_phase_A",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 156,
+          "claim": "η = 2γ fails throughout Phase A (residual > 0 ∀γ ∈ (0,1))  — paper 1 claim formally refuted",
+          "preconditions": ["0 < γ", "γ < 1"],
+          "tactic": "nlinarith with Phase A bounds",
+          "status": "ok",
+          "tags": ["audit_finding", "refutation", "substantive"]
+        },
+        {
+          "name": "AM_GM_gamma_chi",
+          "kind": "theorem",
+          "file": "Taf/AmGmPade.lean",
+          "line": 45,
+          "claim": "γ_χ = 1/(1−γ) + 2(1−γ) ≥ 2√2 with minimum at γ = 1 − 1/√2 ≈ 0.293",
+          "preconditions": ["0 < γ", "γ < 1"],
+          "tactic": "AM-GM on positive reals",
+          "status": "ok",
+          "tags": ["audit_finding", "amgm"]
+        }
+      ]
+    },
+    {
+      "id": "erratum_cv",
+      "title": "C_V coefficient erratum (paper §5.2 — 1/4 → 1/12)",
+      "theorems": [
+        {
+          "name": "log_one_plus_x_coefficient_24",
+          "kind": "theorem",
+          "file": "Taf/ErratumCV.lean",
+          "line": 55,
+          "claim": "log(1+x) Taylor coefficient at x²/2: 1/24 in cumulant expansion",
+          "tactic": "norm_num",
+          "status": "ok",
+          "tags": ["erratum"]
+        },
+        {
+          "name": "cv_corrected_at_hagedorn",
+          "kind": "theorem",
+          "file": "Taf/ErratumCV.lean",
+          "line": 93,
+          "claim": "C_V at Hagedorn limit = (log L)²/12  (CORRECTED — paper §5.2 had 1/4)",
+          "tactic": "field_simp; ring after cumulant identity",
+          "status": "ok",
+          "tags": ["erratum", "core"]
+        },
+        {
+          "name": "original_is_three_times_corrected",
+          "kind": "theorem",
+          "file": "Taf/ErratumCV.lean",
+          "line": 103,
+          "claim": "Paper's original (log L)²/4 = 3 × corrected (log L)²/12  (factor-3 quantification)",
+          "tactic": "ring",
+          "status": "ok",
+          "tags": ["erratum"]
+        },
+        {
+          "name": "original_ne_corrected",
+          "kind": "theorem",
+          "file": "Taf/ErratumCV.lean",
+          "line": 107,
+          "claim": "Original ≠ corrected for L ≠ 0 (formal statement of disagreement)",
+          "preconditions": ["L ≠ 0"],
+          "tactic": "linarith after factor-3 expansion",
+          "status": "ok",
+          "tags": ["erratum"]
+        },
+        {
+          "name": "cv_hagedorn_correct_coefficient",
+          "kind": "theorem",
+          "file": "Taf/CvHagedornCorrection.lean",
+          "line": 51,
+          "claim": "∫(log x)²/x dx from 1 to N = (log N)³ / 3  ⟹ C_V coefficient 1/12 (not 1/4)",
+          "preconditions": ["1 ≤ N"],
+          "tactic": "integral derivation via log_sq_half + integral_log_div_x",
+          "status": "ok",
+          "tags": ["erratum", "integral"]
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "Misc identities + dimensional checks",
+      "theorems": [
+        {
+          "name": "rope_beta_form",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 189,
+          "claim": "RoPE β-form: √3/6 = 1/√12",
+          "tactic": "field_simp; nlinarith with √12 = 2√3",
+          "status": "ok",
+          "tags": ["misc"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "line": 411 }
+        },
+        {
+          "name": "cft_nu_identity",
+          "kind": "theorem",
+          "file": "Taf/RGFlow.lean",
+          "line": 220,
+          "claim": "ν · (1 − γ) = 1  for ν = 1/(1−γ)",
+          "preconditions": ["1 − γ ≠ 0"],
+          "tactic": "field_simp",
+          "status": "ok",
+          "tags": ["misc", "cft"],
+          "source": { "doc": "FORMULAS_TOOLKIT.md", "section": "§15", "line": 265 }
+        },
+        {
+          "name": "D_14_nu_imprint",
+          "kind": "theorem",
+          "file": "Taf/Identities.lean",
+          "line": 176,
+          "claim": "ν_imprint × 2π = −1  (RoPE rotation period × imprint slope dimensional check)",
+          "preconditions": ["π > 0"],
+          "tactic": "ring",
+          "status": "ok",
+          "tags": ["imprint", "misc"]
+        }
+      ]
+    }
+  ],
+  "ui_bindings": {
+    "anti_ising_pill":          "beta_chi_closure",
+    "gamma_pade_panel":         "pade_z_substitution",
+    "theta_eff_panel":          "theta_eff_pade",
+    "cardy_delta_h":            null,
+    "algebraic_consistency_check": ["D_SAGE_1", "D_SAGE_2", "D_SAGE_4", "D_SAGE_5", "rushbrooke_tautology", "josephson_tautology", "beta_chi_closure", "nu_beta_id"],
+    "audit_findings_section":   ["V_derivative_ne_RG_beta", "eta_2gamma_fails_phase_A", "cv_corrected_at_hagedorn", "trajectory_sign_inversion"],
+    "padé_saturation_diagnose": "pade_saturation_leading_coefficient"
+  }
+}

@@ -9,6 +9,8 @@
 
 import { initI18n, setLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
+import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
+import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -1087,74 +1089,172 @@ function renderProfile(p, params) {
     </div>
   `).join("");
 
+  // Reusable tooltip helper — keeps tooltip pattern uniform across the card
+  const ttip = (key, fallback) =>
+    `<span class="info"><span class="tooltip" data-i18n="${key}">${fallback}</span></span>`;
+
   const numbersHtml = `
-    <div class="num-row"><span class="num-label">γ_Padé(T_eval)</span><span class="num-value">${formatN(kn.gamma_pade)}</span></div>
-    <div class="num-row"><span class="num-label">γ_decomposed</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
-    <div class="num-row"><span class="num-label">d_horizon</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
-    <div class="num-row"><span class="num-label">L_NIAH ceiling</span><span class="num-value">${formatN(kn.L_NIAH_ceiling)}</span></div>
-    <div class="num-row"><span class="num-label">χ susceptibility</span><span class="num-value">${formatN(kn.chi_susceptibility)}</span></div>
-    <div class="num-row"><span class="num-label">KV memory @ T_eval (BF16)</span><span class="num-value">${formatN(kn.kv_memory_per_request_GB)} GB</span></div>
+    <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.")}</span><span class="num-value">${formatN(kn.gamma_pade)}</span></div>
+    <div class="num-row"><span class="num-label">γ_decomposed ${ttip("tooltip.gamma_decomposed", "γ from full architectural decomposition: Padé baseline + GQA shift + SWA shift + post-IH shift.")}</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
+    <div class="num-row"><span class="num-label">d_horizon ${ttip("tooltip.d_horizon", "Effective attention horizon at T_eval. Beyond this, attention scores fall below the noise floor (paper §26).")}</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
+    <div class="num-row"><span class="num-label">L_NIAH ceiling ${ttip("tooltip.L_NIAH", "Predicted ceiling for needle-in-a-haystack retrieval reliability at the current d_horizon.")}</span><span class="num-value">${formatN(kn.L_NIAH_ceiling)}</span></div>
+    <div class="num-row"><span class="num-label">χ susceptibility ${ttip("tooltip.chi", "Susceptibility exponent χ = 1/(1−γ). Diverges at the Hagedorn line γ=1.")}</span><span class="num-value">${formatN(kn.chi_susceptibility)}</span></div>
+    <div class="num-row"><span class="num-label">KV memory @ T_eval (BF16) ${ttip("tooltip.kv_memory", "Per-request KV cache memory at T_eval in BF16 = 2 · n_layers · n_kv_heads · d_head · T_eval bytes.")}</span><span class="num-value">${formatN(kn.kv_memory_per_request_GB)} GB</span></div>
   `;
 
   const falsHtml = (p.falsification_status || []).map(f =>
     `<div class="taf-falsification"><strong>${escapeHtml(f.id)}</strong> — ${escapeHtml(f.claim)}: ${escapeHtml(f.status)}</div>`
   ).join("");
 
+  // Per-verdict count breakdown — recipes test orthogonal axes (long-context,
+  // budget, hardware, custom-vs-API, KV-compression). Worst-of-N would conflate
+  // a "use API" recommendation with a long-context failure, so we show counts.
+  const verdictCounts = Object.values(p.recipes).reduce((acc, r) => {
+    const c = verdictClass(r.verdict);
+    acc[c] = (acc[c] || 0) + 1;
+    return acc;
+  }, {});
+  const nYes = verdictCounts["v-yes"] || 0;
+  const nDeg = verdictCounts["v-deg"] || 0;
+  const nNo  = verdictCounts["v-no"]  || 0;
+  const breakdownCls = nNo ? "v-no" : nDeg ? "v-deg" : "v-yes";
+  const gammaForPill = kn.gamma_decomposed ?? kn.gamma_pade;
+  const recipeCount = Object.keys(p.recipes).length;
+
   $("profile-box").innerHTML = `
     <div class="taf-card">
-      <div class="taf-card-summary">
-        <div style="font-size:1.2rem; font-weight:700;">${escapeHtml(ms.architecture_class)}</div>
-        <div class="subtle">
+      <div class="taf-hero">
+        <div class="hero-arch">${escapeHtml(ms.architecture_class)}</div>
+        <div class="hero-meta">
           n_params=${formatN(ms.n_params)} ·
           T_train=${ms.T_train} · T_eval=${ms.T_eval} ·
           θ=${formatN(ms.rope_theta)} ·
           ${ms.has_GQA ? "GQA" : "MHA"}${ms.has_SWA ? " + SWA" : ""}
         </div>
-        ${(kn.gamma_decomposed ?? kn.gamma_pade) > 0 && (kn.gamma_decomposed ?? kn.gamma_pade) < 1
-          ? `<div class="taf-anti-ising-badge" style="margin-top:0.4em; display:inline-block; padding:0.25em 0.6em; border-radius:4px; background:rgba(110,80,200,0.15); border:1px solid rgba(110,80,200,0.4); font-size:0.85em;" data-i18n="v05.antiising.badge">
-              🧲 Anti-Ising class (β=γ−1&lt;0, machine-verified)
-            </div>`
-          : ''}
+        <div class="hero-row">
+          <span class="hero-pill ${breakdownCls}">✅ ${nYes} · ⚠ ${nDeg} · ❌ ${nNo} ${ttip("tooltip.verdict_breakdown", "Per-recipe breakdown across the orthogonal axes (long-context, budget, hardware, custom-vs-API, KV-compression). Recipes are independent decisions — a ❌ on X-1 means \"use API\" not \"model fails\". Open the Recipes section for per-axis verdict.")}</span>
+          ${gammaForPill !== null && gammaForPill !== undefined
+            ? `<span class="hero-pill">γ = ${formatN(gammaForPill)} ${ttip("tooltip.gamma_pill", "γ_decomposed (full architectural decomposition) or γ_Padé as fallback. Range (0,1) = Phase A (anti-Ising). γ ≥ 1 = Hagedorn / Phase B.")}</span>`
+            : ''}
+          ${gammaForPill > 0 && gammaForPill < 1
+            ? `<span class="hero-pill" style="background:rgba(110,80,200,0.15); border-color:rgba(110,80,200,0.45);"><span data-i18n="v05.antiising.badge">🧲 Anti-Ising (β=γ−1&lt;0, machine-verified)</span> ${ttip("tooltip.anti_ising", "Phase A class: β = γ−1 &lt; 0 (anti-Ising). Machine-verified by Sage Groebner basis + Lean Mathlib4. See §35 v0.5.")} ${badgesForUiBinding("anti_ising_pill")}</span>`
+            : ''}
+        </div>
       </div>
 
-      <h3 data-i18n="tafcard.recipes_title">📋 Recipes (verdict per dimension)</h3>
-      <div class="taf-recipes-grid">${recipesHtml}</div>
-
-      <h3 data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h3>
-      <div class="taf-key-numbers">${numbersHtml}</div>
-
-      <details class="v053-audit-banner" style="margin:0.8em 0; padding:0.6em 0.8em; border:1px solid rgba(241,196,15,0.5); border-radius:6px; background:rgba(241,196,15,0.07); font-size:0.88em;">
-        <summary style="cursor:pointer; font-weight:600;" data-i18n="v053.calibration.title">🔬 v0.5.3 — Calibration audit (2026-05-02)</summary>
-        <div style="margin-top:0.5em; line-height:1.45;" data-i18n="v053.calibration.note"></div>
+      <details class="taf-section" open>
+        <summary>
+          <span data-i18n="tafcard.recipes_title">📋 Recipes — verdict per dimension</span>
+          <span class="section-count">${recipeCount} ${t("tafcard.recipes_count_label", "dimensions")}</span>
+        </summary>
+        <div class="taf-section-body">
+          <div class="taf-recipes-grid">${recipesHtml}</div>
+        </div>
       </details>
 
-      <div id="whatif-container" class="whatif-box"></div>
+      <details class="taf-section">
+        <summary>
+          <span data-i18n="tafcard.diag_title">🔬 Diagnostics — numbers + γ check + what-if</span>
+        </summary>
+        <div class="taf-section-body">
+          <h4 style="margin-top:0.3em;" data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h4>
+          <div class="taf-key-numbers">${numbersHtml}</div>
 
-      <h3 data-i18n="tafcard.fals_title">🔬 Falsification status (FALSIFICATION.md F1-F23)</h3>
-      ${falsHtml || '<div class="subtle">No falsifications applicable.</div>'}
+          <h4 style="margin-top:1.2em;" data-i18n="gamma_check.title">🔍 γ predicted vs observed</h4>
+          <div class="recipe-desc" data-i18n="gamma_check.desc">
+            Enter your empirically measured γ. Tool detects regime: fraud (θ inflated) / compressed / over-Padé / SWA-random / normal.
+          </div>
+          <div class="form-grid" style="margin:0.5em 0 0.6em;">
+            <div class="form-field">
+              <label><span data-i18n="gamma_check.gobs_label">γ_observed</span>
+                <span class="info"><span class="tooltip" data-i18n="gamma_check.gobs_tip">Empirically measured γ from your model's attention scores. Use the Diagnose CLI to obtain this from real weights.</span></span>
+              </label>
+              <input type="number" id="gc-gobs" step="0.0001" value="${formatN(kn.gamma_decomposed ?? kn.gamma_pade)}" />
+            </div>
+            <div class="form-field">
+              <label><span data-i18n="gamma_check.random_label">Random corpus?</span>
+                <span class="info"><span class="tooltip" data-i18n="gamma_check.random_tip">Tick if γ_observed was measured on random/unstructured tokens. Distinguishes SWA signature (γ_obs &gt; 1) from anomaly.</span></span>
+              </label>
+              <select id="gc-random">
+                <option value="false" selected data-i18n="common.no">No</option>
+                <option value="true" data-i18n="common.yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          <div id="gamma-check-results"></div>
 
-      <h3 style="margin-top: 1.5em;" data-i18n="v05.consistency.title">🔬 Algebraic consistency check (Sage + Lean v0.5)</h3>
-      <div style="margin-bottom: 0.6em; opacity: 0.85; font-size: 0.92em;" data-i18n="v05.consistency.desc">
-        Verifies 12 D-SAGE algebraic identities of TAF critical exponents (machine-proof
-        Sage Groebner basis + Lean Mathlib4). Pass = framework intact. Fail = bf16 outlier
-        / quantization artifact.
-      </div>
-      <button class="secondary" id="verify-consistency-btn" data-i18n="v05.consistency.btn">
-        🔬 Verify algebraic consistency
-      </button>
-      <div id="consistency-result" style="margin-top: 0.8em;"></div>
+          <h4 style="margin-top:1.2em;" data-i18n="tafcard.whatif_title">🎚️ What-if explorer</h4>
+          <div id="whatif-container" class="whatif-box"></div>
+        </div>
+      </details>
 
-      <div class="share-bar">
-        <button class="secondary" id="profile-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
-        <button class="secondary" id="profile-download-btn" data-i18n="share.download">💾 Download JSON</button>
-        <button class="secondary" id="profile-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
-        <span id="profile-share-status" class="subtle"></span>
-      </div>
+      <details class="taf-section">
+        <summary>
+          <span data-i18n="tafcard.verify_title">✓ Verification — Lean + Sage + falsification</span>
+        </summary>
+        <div class="taf-section-body">
+          <h4 style="margin-top:0.3em;" data-i18n="lean.table.title">📑 Lean+Mathlib theorem table</h4>
+          <div style="margin-bottom: 0.6em; opacity: 0.85; font-size: 0.92em;" data-i18n="lean.table.desc">
+            Every entry below is machine-proven against Lean 4 + Mathlib4. Click any L# link to jump to the source line on GitHub. The table is grouped by topic; click a header to expand.
+          </div>
+          <div id="lean-table-host"></div>
+
+          <h4 style="margin-top:1.2em;" data-i18n="v05.consistency.title">🔬 Algebraic consistency (Sage + Lean v0.5)</h4>
+          <div style="margin-bottom: 0.6em; opacity: 0.85; font-size: 0.92em;" data-i18n="v05.consistency.desc">
+            Verifies 12 D-SAGE algebraic identities of TAF critical exponents (machine-proof Sage Groebner basis + Lean Mathlib4). Pass = framework intact. Fail = bf16 outlier / quantization artifact.
+          </div>
+          <div class="lean-badges-row">${badgesForUiBinding("algebraic_consistency_check")}</div>
+          <button class="secondary" id="verify-consistency-btn" data-i18n="v05.consistency.btn">
+            🔬 Verify algebraic consistency
+          </button>
+          <div id="consistency-result" style="margin-top: 0.8em;"></div>
+
+          <h4 style="margin-top:1.2em;" data-i18n="tafcard.fals_title">🔬 Falsification status (F1-F23)</h4>
+          ${falsHtml || '<div class="subtle" data-i18n="tafcard.fals_none">No falsifications applicable.</div>'}
+        </div>
+      </details>
+
+      <details class="taf-section">
+        <summary>
+          <span data-i18n="tafcard.share_title">📂 Provenance & share</span>
+        </summary>
+        <div class="taf-section-body">
+          <details style="margin:0.4em 0 0.8em; padding:0.6em 0.8em; border:1px solid rgba(241,196,15,0.5); border-radius:6px; background:rgba(241,196,15,0.07); font-size:0.88em;">
+            <summary style="cursor:pointer; font-weight:600;" data-i18n="v053.calibration.title">🔬 v0.5.3 — Calibration audit (2026-05-02)</summary>
+            <div style="margin-top:0.5em; line-height:1.45;" data-i18n="v053.calibration.note"></div>
+          </details>
+
+          <div class="share-bar">
+            <button class="secondary" id="profile-share-btn" data-i18n="share.btn">🔗 Copy share link</button>
+            <button class="secondary" id="profile-download-btn" data-i18n="share.download">💾 Download JSON</button>
+            <button class="secondary" id="profile-submit-btn" data-i18n="share.submit">📤 Submit to registry</button>
+            <span id="profile-share-status" class="subtle"></span>
+          </div>
+        </div>
+      </details>
     </div>
   `;
 
   // Render the what-if slider for interactive exploration
   renderWhatIfSlider(p, params, $("whatif-container"));
+
+  // Render Lean+Mathlib theorem table (graceful no-op if manifest missed).
+  // Loaded async at bootstrap; if Profile clicked before fetch resolves we
+  // wait once and then render.
+  const renderLeanTable = () => {
+    const host = $("lean-table-host");
+    if (!host) return;
+    if (getManifest()) {
+      host.innerHTML = renderTheoremTable();
+      if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+    } else {
+      host.innerHTML = `<div class="subtle" data-i18n="lean.manifest.loading">Loading Lean manifest…</div>`;
+      loadLeanManifest()
+        .then(() => { host.innerHTML = renderTheoremTable(); if (window.__taf_applyTranslations) window.__taf_applyTranslations(); })
+        .catch(err => { host.innerHTML = `<div class="subtle" data-i18n="lean.manifest.error">Lean manifest unavailable: ${err.message}</div>`; });
+    }
+  };
+  renderLeanTable();
 
   // Re-apply translations to dynamically inserted buttons
   if (window.__taf_applyTranslations) window.__taf_applyTranslations();
@@ -1174,6 +1274,49 @@ function renderProfile(p, params) {
     $("profile-share-status").textContent = "↗ Opened GitHub registry (search hash before submitting to avoid duplicate)";
     setTimeout(() => $("profile-share-status").textContent = "", 6000);
   });
+
+  // v0.6: γ predicted-vs-observed panel — interactive
+  const updateGammaCheck = () => {
+    const gObs = parseFloat($("gc-gobs").value);
+    const isRandom = $("gc-random").value === "true";
+    const r = gammaCheckAll({ theta: params.theta, T: params.T_eval, gObs, isRandom });
+    const meta = REGIME_META[r.regime] || REGIME_META.unknown;
+    const fmt = (x, d=4) => (x === null || x === undefined || Number.isNaN(x))
+      ? "n/a"
+      : (!Number.isFinite(x) ? "∞" : Number(x).toLocaleString(undefined, { maximumFractionDigits: d }));
+    $("gamma-check-results").innerHTML = `
+      <div class="taf-key-numbers">
+        <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ.")}</span><span class="num-value">${fmt(r.gammaPade)}</span></div>
+        <div class="num-row"><span class="num-label">θ_eff (observed) ${ttip("tooltip.theta_eff_obs", "Effective θ implied by your γ_observed: T√2 / (1 − γ_obs).")}</span><span class="num-value">${fmt(r.thetaEffObs, 1)}</span></div>
+        <div class="num-row"><span class="num-label">θ_eff (Padé) ${ttip("tooltip.theta_eff_pade", "Effective θ predicted by closed-form: θ + T/√2.")}</span><span class="num-value">${fmt(r.thetaEffPade, 1)}</span></div>
+        <div class="num-row"><span class="num-label">η = θ_eff_obs / θ_eff_Padé ${ttip("tooltip.efficiency", "Efficiency ratio. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.")}</span><span class="num-value">${fmt(r.efficiency)}</span></div>
+        <div class="num-row"><span class="num-label">ΔH_Cardy = log(θ_eff_obs / θ_nominal) ${ttip("tooltip.delta_h_cardy", "Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.")}</span><span class="num-value">${fmt(r.deltaHCardy)}</span></div>
+      </div>
+      <div class="taf-recipe-tile ${meta.cls}" style="margin-top:0.6em;">
+        <div class="tile-header">
+          <span data-i18n="gamma_check.regime">Regime</span>
+          <span class="tile-verdict">${meta.emoji} <span data-i18n="gamma_check.regime.${r.regime}">${r.regime}</span></span>
+        </div>
+        <div class="tile-reason" data-i18n="gamma_check.regime.${r.regime}.desc"></div>
+      </div>
+      <details style="margin-top:0.6em;">
+        <summary style="cursor:pointer; font-weight:600;" data-i18n="gamma_check.glossary.title">ⓘ What do these mean?</summary>
+        <ul class="gc-glossary" style="margin:0.5em 0 0 1.2em; line-height:1.55;">
+          <li data-i18n="gamma_check.glossary.gamma_pade"></li>
+          <li data-i18n="gamma_check.glossary.gamma_obs"></li>
+          <li data-i18n="gamma_check.glossary.theta_eff_obs"></li>
+          <li data-i18n="gamma_check.glossary.theta_eff_pade"></li>
+          <li data-i18n="gamma_check.glossary.efficiency"></li>
+          <li data-i18n="gamma_check.glossary.delta_h"></li>
+          <li data-i18n="gamma_check.glossary.regime"></li>
+        </ul>
+      </details>
+    `;
+    if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+  };
+  $("gc-gobs").addEventListener("input", updateGammaCheck);
+  $("gc-random").addEventListener("change", updateGammaCheck);
+  updateGammaCheck();
 
   // v0.5.1: Algebraic consistency check button
   $("verify-consistency-btn").addEventListener("click", () => {
@@ -1667,6 +1810,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (file) importJSON(file, document.getElementById("import-status"));
     });
   }
+  // Lean+Mathlib manifest — load in parallel with everything else; badges
+  // appear once it resolves, but app stays usable if it fails.
+  loadLeanManifest().catch(err => console.warn("Lean manifest unavailable:", err));
 });
 
 // ════════════════════════════════════════════════════════════════════

@@ -162,6 +162,31 @@
 
       <p><strong data-i18n="v05.repro.label">Reproducibility</strong> — <span data-i18n="v05.repro.desc">All 15 theorems machine-proof in Lean Mathlib4 (1973 jobs build success). Sage script: <code>analysis/sage_recursive_sweep_2026-04-30.sage</code>. Lean code: <code>lean_taf/taf/Taf/Identities.lean</code>.</span></p>
 
+      <h3 style="margin-top: 1.5em;" data-i18n="help.v06.title">🆕 v0.6 — γ predicted-vs-observed + Cardy ΔH + Lean badges</h3>
+      <p style="opacity: 0.85;" data-i18n="help.v06.intro"><em>v0.6 (2026-05-06): three new diagnostics live in the TAF Card under <strong>🔬 Diagnostics</strong>. All run in your browser; γ_observed comes from the Diagnose CLI on real weights.</em></p>
+
+      <p><strong data-i18n="help.v06.layout.title">TAF Card layout (new in v0.6)</strong></p>
+      <p data-i18n="help.v06.layout.body">After clicking <strong>🚀 Generate full profile</strong> the card shows: a <strong>hero strip</strong> on top (architecture class + meta + 3 pills: aggregate verdict ✅/⚠/❌, γ headline, 🧲 Anti-Ising if Phase A) and four <strong>expandable sections</strong>: <strong>📋 Recipes</strong> (open by default — verdict per dimension), <strong>🔬 Diagnostics</strong> (key numbers, γ predicted vs observed, what-if explorer), <strong>✓ Verification</strong> (Sage+Lean algebraic consistency, falsification F1-F23), <strong>📂 Provenance &amp; share</strong> (calibration audit + JSON download / share link / registry submit). Click any header to expand. Every variable has an inline <strong>ⓘ</strong> tooltip.</p>
+
+      <p><strong data-i18n="help.v06.gamma_check.title">γ predicted vs observed</strong></p>
+      <p data-i18n="help.v06.gamma_check.body">Enter the empirically-measured γ from your model and the tool computes <strong>η = θ_eff_obs / θ_eff_Padé</strong> and classifies into one of 5 regimes:</p>
+      <ul style="font-size: 0.92em;">
+        <li data-i18n="help.v06.case.normal"><strong>Normal</strong> (η ∈ [0.85, 1.15]) — model uses its full nominal context. <em>Use case</em>: validate a new release before adopting it.</li>
+        <li data-i18n="help.v06.case.fraud"><strong>Fraud</strong> (η &lt; 0.01) — nominal θ inflated; model behaves as if θ ≪ advertised. <em>Use case</em>: detect YaRN/marketing inflation (CodeLlama / Mistral-Nemo pattern).</li>
+        <li data-i18n="help.v06.case.compressed"><strong>Compressed</strong> (η &lt; 0.5) — context compressed; model attends shorter than nominal θ. <em>Use case</em>: spot RLHF/instruction-tuning compression (LLaMA-2 pattern).</li>
+        <li data-i18n="help.v06.case.overpade"><strong>Over-Padé</strong> (η &gt; 1.5) — model attends farther than Padé predicts. <em>Use case</em>: identify Lerch-corrected regime or undertrained early checkpoints (pythia-1b pattern).</li>
+        <li data-i18n="help.v06.case.swa"><strong>SWA random-corpus</strong> (γ_obs &gt; 1.05 with random_corpus=Yes) — sliding-window attention signature. <em>Use case</em>: confirm Mistral / Gemma SWA on random tokens.</li>
+      </ul>
+
+      <p><strong data-i18n="help.v06.cardy.title">Cardy ΔH diagnostic</strong></p>
+      <p data-i18n="help.v06.cardy.body"><strong>ΔH_Cardy = log(θ_eff_obs / θ_nominal)</strong>. Entropy shift between observed effective θ and nominal θ. Strong negative = compression entropy; near zero = nominal match. Complements η for borderline cases.</p>
+
+      <p><strong data-i18n="help.v06.lean.title">Lean + Mathlib verification badges</strong></p>
+      <p data-i18n="help.v06.lean.body">TAF identities (Anti-Ising, D-SAGE-1 quadratic, Padé z-substitution, etc.) are formally machine-proven in Lean Mathlib4. Source: <a href="https://github.com/karlesmarin/lean-taf" target="_blank">github.com/karlesmarin/lean-taf</a>. Anyone can clone + <code>lake build</code> to re-verify. The 🧲 Anti-Ising pill in the hero strip is one such badge.</p>
+
+      <p><strong data-i18n="help.v06.glossary.title">Variable glossary (also embedded in TAF Card)</strong></p>
+      <p data-i18n="help.v06.glossary.body">Every variable in the TAF Card has an inline ⓘ tooltip. The complete list: γ, γ_Padé, γ_decomposed, γ_observed, θ, θ_eff_obs, θ_eff_Padé, η, ΔH_Cardy, χ, d_horizon, L_NIAH, KV memory, regime. Hover any ⓘ for the definition + paper section.</p>
+
       <h3 data-i18n="help.add_models.title">Adding new models (3 ways)</h3>
       <ul>
         <li data-i18n="help.add_models.preset"><strong>Preset list</strong>: 11 popular models curated. Just select from dropdown.</li>
@@ -292,27 +317,27 @@
           <input type="number" id="profile-T_eval" value="32000" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.n_attn">n_attention_heads</label>
+          <label><span data-i18n="param.n_attn">n_attention_heads</span> <span class="info"><span class="tooltip" data-i18n="param.n_attn.tip">Number of attention heads per layer. From <code>num_attention_heads</code>.</span></span></label>
           <input type="number" id="profile-n_attn" value="32" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.n_kv">n_kv_heads</label>
+          <label><span data-i18n="param.n_kv">n_kv_heads</span> <span class="info"><span class="tooltip" data-i18n="param.n_kv.tip">KV heads. If &lt; n_attention_heads → GQA (Grouped Query Attention). Reduces KV memory but pushes γ toward Hagedorn.</span></span></label>
           <input type="number" id="profile-n_kv" value="8" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.d_head">head_dim</label>
+          <label><span data-i18n="param.d_head">head_dim</span> <span class="info"><span class="tooltip" data-i18n="param.d_head.tip">Per-head dimension. Typical 64, 96, 128. From <code>head_dim</code> or <code>hidden_size / num_attention_heads</code>.</span></span></label>
           <input type="number" id="profile-d_head" value="128" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.n_layers">n_layers</label>
+          <label><span data-i18n="param.n_layers">n_layers</span> <span class="info"><span class="tooltip" data-i18n="param.n_layers.tip">Number of transformer blocks. From <code>num_hidden_layers</code>.</span></span></label>
           <input type="number" id="profile-n_layers" value="32" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.n_params">n_params (e.g. 8e9)</label>
+          <label><span data-i18n="param.n_params">n_params (e.g. 8e9)</span> <span class="info"><span class="tooltip" data-i18n="param.n_params.tip">Total parameter count. Threshold ~400M for induction-head emergence. Affects KV memory and budget recipes.</span></span></label>
           <input type="text" id="profile-n_params" value="8e9" />
         </div>
         <div class="form-field">
-          <label data-i18n="param.has_swa">Has SWA?</label>
+          <label><span data-i18n="param.has_swa">Has SWA?</span> <span class="info"><span class="tooltip" data-i18n="param.has_swa.tip">Sliding Window Attention. <code>true</code> for Mistral, gemma-2, phi-3. Calibration audit (v0.5.3) disabled the historical δ_SWA correction (n=1 fit).</span></span></label>
           <select id="profile-has_swa">
             <option value="false" selected data-i18n="common.no">No</option>
             <option value="true" data-i18n="common.yes">Yes</option>

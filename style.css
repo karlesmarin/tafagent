@@ -590,3 +590,182 @@ footer a:hover { text-decoration: underline; }
   margin: 0.6em 0;
   overflow-x: auto;
 }
+
+/* ─── TAF Card accordion sections (v0.6 — UX restructuring) ─── */
+.taf-section {
+  margin: 0.7em 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.018);
+  overflow: hidden;
+}
+.taf-section > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.7em 0.95em;
+  font-weight: 600;
+  font-size: 1.02em;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  transition: background 0.12s;
+}
+.taf-section > summary:hover { background: rgba(255,255,255,0.04); }
+.taf-section > summary::-webkit-details-marker { display: none; }
+.taf-section > summary::before {
+  content: "▶";
+  display: inline-block;
+  font-size: 0.7em;
+  color: var(--fg-dim);
+  transition: transform 0.15s ease;
+  width: 0.8em;
+  text-align: center;
+}
+.taf-section[open] > summary::before { transform: rotate(90deg); }
+.taf-section > summary .section-count {
+  margin-left: auto;
+  font-size: 0.82em;
+  color: var(--fg-dim);
+  font-weight: 500;
+}
+.taf-section-body {
+  padding: 0.4em 1em 1em 1em;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+/* Hero strip — always-visible top-line summary */
+.taf-hero {
+  padding: 0.9em 1em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(110,80,200,0.06), rgba(255,255,255,0.02));
+  margin-bottom: 0.4em;
+}
+.taf-hero .hero-arch { font-size: 1.15rem; font-weight: 700; }
+.taf-hero .hero-meta { color: var(--fg-dim); font-size: 0.88em; margin-top: 0.25em; }
+.taf-hero .hero-row {
+  display: flex; flex-wrap: wrap; gap: 0.5em 1em;
+  align-items: center; margin-top: 0.5em;
+}
+.taf-hero .hero-pill {
+  display: inline-flex; align-items: center; gap: 0.35em;
+  padding: 0.2em 0.6em; border-radius: 999px;
+  font-size: 0.85em; font-weight: 600;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+.taf-hero .hero-pill.v-yes { color: var(--success); border-color: var(--success); }
+.taf-hero .hero-pill.v-no  { color: var(--danger);  border-color: var(--danger); }
+.taf-hero .hero-pill.v-deg { color: var(--warning); border-color: var(--warning); }
+
+/* ─── Lean+Mathlib provenance (v0.6) ─── */
+.lean-badge {
+  display: inline-block;
+  padding: 0.08em 0.45em;
+  margin: 0 0.15em;
+  border: 1px solid rgba(110,80,200,0.45);
+  background: rgba(110,80,200,0.10);
+  border-radius: 4px;
+  color: var(--accent, #b48cff);
+  text-decoration: none;
+  font-size: 0.78em;
+  font-family: monospace;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.lean-badge:hover {
+  background: rgba(110,80,200,0.22);
+  text-decoration: none;
+}
+.lean-badges-row {
+  margin: 0.4em 0 0.6em;
+  line-height: 1.9;
+}
+.lean-meta {
+  font-size: 0.88em;
+  margin-bottom: 0.6em;
+  padding: 0.5em 0.7em;
+  background: rgba(255,255,255,0.02);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+.lean-meta a { color: var(--accent); }
+.lean-findings {
+  margin: 0.6em 0 0.8em;
+  padding: 0.5em 0.7em;
+  border: 1px solid rgba(241,196,15,0.4);
+  background: rgba(241,196,15,0.06);
+  border-radius: 6px;
+}
+.lean-findings > summary {
+  cursor: pointer;
+  font-size: 1em;
+}
+.lean-finding {
+  margin: 0.6em 0;
+  padding: 0.6em 0.7em;
+  border-left: 3px solid var(--warning);
+  background: rgba(255,255,255,0.025);
+  border-radius: 0 4px 4px 0;
+}
+.lean-pill {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0.05em 0.45em;
+  font-size: 0.75em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lean-pill.v-deg { color: var(--warning); border-color: var(--warning); }
+.lean-groups .lean-group {
+  margin: 0.4em 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.lean-group > summary {
+  cursor: pointer;
+  padding: 0.5em 0.7em;
+  user-select: none;
+  font-weight: 600;
+  list-style: none;
+}
+.lean-group > summary::-webkit-details-marker { display: none; }
+.lean-group > summary::before {
+  content: "▶ ";
+  font-size: 0.7em;
+  color: var(--fg-dim);
+  transition: transform 0.15s;
+}
+.lean-group[open] > summary::before {
+  content: "▼ ";
+}
+.lean-table-wrap {
+  max-height: 380px;
+  overflow: auto;
+  border-top: 1px solid var(--border);
+}
+.lean-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+}
+.lean-table th, .lean-table td {
+  padding: 0.4em 0.6em;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.lean-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-input);
+  color: var(--accent);
+  font-family: monospace;
+  z-index: 1;
+}
+.lean-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.lean-table code { font-size: 0.95em; }
