@@ -15,6 +15,7 @@ import { unmaskConfig } from "./swa_unmasker.js";
 import { sniffChatTemplate } from "./chat_template_sniffer.js";
 import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
+import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -190,7 +191,8 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
      "diagnose-section", "phase-section", "unmask-section",
-     "template-section", "arena-section", "contam-section"].forEach(id => {
+     "template-section", "arena-section", "contam-section",
+     "quant-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -200,6 +202,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
+      quant: "quant-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -978,6 +981,178 @@ function runContamCompute() {
 $("contam-run-btn")?.addEventListener("click", runContamCompute);
 $("contam-cutoff")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runContamCompute(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// ⚖️ Quant-regime classifier (v0.7.3 anti-bullshit pack #5)
+// ════════════════════════════════════════════════════════════════════
+
+const QUANT_REGIME_COLOR = {
+  safe:        "#3fb950",
+  mild:        "#3fb950",
+  significant: "#f1c40f",
+  cliff:       "#f85149",
+};
+
+// Populate scheme dropdown from QUANT_SCHEMES on first render. Idempotent.
+function populateQuantSchemes() {
+  const sel = $("quant-scheme");
+  if (!sel || sel.options.length > 1) return;
+  for (const s of QUANT_SCHEMES) {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
+  }
+}
+
+// Cache config across "Fetch" + "Predict" / "Compare" actions on the same id.
+let __quantLastConfig = null;
+let __quantLastModelId = null;
+
+async function quantFetchConfig() {
+  const modelId = ($("quant-id").value || "").trim();
+  if (!modelId) {
+    $("quant-status").textContent = t("quant.status.empty_id") || "⚠ Enter a model id.";
+    return null;
+  }
+  $("quant-status").textContent = tFmt("quant.status.fetching", { modelId });
+  $("quant-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(modelId);
+    __quantLastConfig = cfg;
+    __quantLastModelId = modelId;
+    $("quant-status").textContent = tFmt("quant.status.fetched", { modelId });
+    return cfg;
+  } catch (err) {
+    $("quant-status").textContent = `❌ ${err.message}`;
+    return null;
+  } finally {
+    $("quant-fetch-btn").disabled = false;
+  }
+}
+
+function renderQuantSingle(result, modelId) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
+  const color = QUANT_REGIME_COLOR[result.regime] || "#8b949e";
+  const regimeLabel = t(`quant.regime.${result.regime}`) || result.regime;
+
+  let recoHtml = "";
+  if (result.recommend_code) {
+    const recoText = result.recommend_scheme
+      ? tFmt("quant.reco." + result.recommend_code, {
+          scheme: QUANT_SCHEMES.find(s => s.id === result.recommend_scheme)?.label || result.recommend_scheme,
+        })
+      : (t("quant.reco." + result.recommend_code) || result.recommend_code);
+    recoHtml = `<p class="unmask-reco">${recoText}</p>`;
+  } else {
+    recoHtml = `<p class="unmask-reco">${t("quant.reco.no_action") || "No action needed — quantization is safe for this architecture."}</p>`;
+  }
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${regimeLabel}</div>
+        <div class="unmask-model"><code>${escapeHtml(modelId)}</code> + <code>${escapeHtml(result.scheme_label)}</code></div>
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label">${t("quant.label.gamma_shift") || "γ shift"}</span><span class="unmask-num-val">+${result.gamma_shift.toFixed(3)}</span></div>
+          <div><span class="unmask-num-label">${t("quant.label.delta_ppl") || "ΔPPL (est.)"}</span><span class="unmask-num-val">+${result.delta_ppl.mid.toFixed(2)}</span></div>
+          <div><span class="unmask-num-label">${t("quant.label.arch_mult") || "Arch multiplier"}</span><span class="unmask-num-val">×${result.arch_multiplier}</span></div>
+        </div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("quant.section.breakdown") || "Breakdown"}</summary>
+          <ul>
+            <li><strong>${t("quant.field.scheme") || "Scheme"}:</strong> ${escapeHtml(result.scheme_label)} (${result.scheme_bits}-bit, ${result.scheme_calibrated ? (t("quant.field.calibrated") || "calibrated") : (t("quant.field.uncalibrated") || "uncalibrated")})</li>
+            <li><strong>${t("quant.field.base_penalty") || "Base penalty"}:</strong> ${result.base_penalty.toFixed(3)}</li>
+            <li><strong>${t("quant.field.arch_mult_full") || "Architecture multiplier"}:</strong> ×${result.arch_multiplier} (d_head, GQA, SWA, params)</li>
+            <li><strong>${t("quant.field.gamma_shift") || "Predicted γ shift"}:</strong> +${result.gamma_shift.toFixed(3)}</li>
+            <li><strong>${t("quant.field.ppl_band") || "ΔPPL band (est.)"}:</strong> ${result.delta_ppl.low.toFixed(2)} – ${result.delta_ppl.high.toFixed(2)}</li>
+            <li><strong>${t("quant.field.params") || "Parameters"}:</strong> ${fmtN(result.n_params)}</li>
+          </ul>
+        </details>
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("quant.section.reco") || "Recommendation"}</summary>
+          ${recoHtml}
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuantAll(rows, modelId) {
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  let body = "";
+  for (const r of rows) {
+    const color = QUANT_REGIME_COLOR[r.regime] || "#8b949e";
+    const regimeLabel = t(`quant.regime.${r.regime}`) || r.regime;
+    body += `<tr>
+      <td><strong>${escapeHtml(r.scheme_label)}</strong></td>
+      <td class="arena-spread">${r.scheme_bits}-bit ${r.scheme_calibrated ? "✓" : ""}</td>
+      <td class="arena-elo">+${r.gamma_shift.toFixed(3)}</td>
+      <td class="arena-spread">${r.delta_ppl.low.toFixed(2)}–${r.delta_ppl.high.toFixed(2)}</td>
+      <td style="color: ${color};"><strong>${regimeLabel}</strong></td>
+    </tr>`;
+  }
+  return `
+    <div class="arena-result">
+      <div class="unmask-hero" style="border-color: #58a6ff;">
+        <div class="unmask-verdict" style="color: #58a6ff;">${tFmt("quant.summary.headline_all", { modelId })}</div>
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("quant.section.compare") || "All schemes (sorted by safety)"}</summary>
+          <table class="arena-table">
+            <thead><tr>
+              <th>${t("quant.col.scheme") || "Scheme"}</th>
+              <th>${t("quant.col.bits") || "Bits"}</th>
+              <th>${t("quant.col.gamma_shift") || "γ shift"}</th>
+              <th>${t("quant.col.ppl_band") || "ΔPPL band"}</th>
+              <th>${t("quant.col.regime") || "Regime"}</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+async function runQuantPredict() {
+  const cfg = __quantLastConfig || await quantFetchConfig();
+  if (!cfg) return;
+  const schemeId = $("quant-scheme").value;
+  if (!schemeId) {
+    $("quant-status").textContent = t("quant.status.no_scheme") || "⚠ Pick a quant scheme.";
+    return;
+  }
+  const result = predictQuantShift(cfg, schemeId);
+  if (!result) {
+    $("quant-status").textContent = "❌ Unknown scheme.";
+    return;
+  }
+  $("quant-output").innerHTML = renderQuantSingle(result, __quantLastModelId);
+  $("quant-status").textContent = tFmt("quant.status.done", { regime: t(`quant.regime.${result.regime}`) || result.regime });
+}
+
+async function runQuantAll() {
+  const cfg = __quantLastConfig || await quantFetchConfig();
+  if (!cfg) return;
+  const rows = predictAllSchemes(cfg);
+  $("quant-output").innerHTML = renderQuantAll(rows, __quantLastModelId);
+  $("quant-status").textContent = tFmt("quant.status.done_all", { n: rows.length });
+}
+
+populateQuantSchemes();
+$("quant-fetch-btn")?.addEventListener("click", quantFetchConfig);
+$("quant-run-btn")?.addEventListener("click", runQuantPredict);
+$("quant-all-btn")?.addEventListener("click", runQuantAll);
+$("quant-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); quantFetchConfig(); }
 });
 
 function configToPreset(cfg, modelId) {

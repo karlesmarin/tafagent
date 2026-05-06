@@ -204,6 +204,9 @@
       <p><strong data-i18n="help.v07.contam.title">🧪 Contamination Prior</strong></p>
       <p data-i18n="help.v07.contam.body">Bayesian-ish prior on whether a benchmark score is contaminated. Enter your model's training cutoff date → tool rates 20+ popular benchmarks (MMLU, HellaSwag, GSM8K, HumanEval, IFEval, MMLU-Pro, GPQA, AIME, MATH-500, BBH, MUSR…) by P(contamination) based on time gap, corpus inclusion, and known leak history. Open LLM Leaderboard v1 was killed in 2024 after MMLU/HellaSwag scores became contaminated. <em>Use case</em>: decide which scores to trust when comparing two models.</p>
 
+      <p><strong data-i18n="help.v07.quant.title">⚖️ Quant-regime Classifier</strong></p>
+      <p data-i18n="help.v07.quant.body">Predicts γ-shift and ΔPPL for any (model × quant scheme: NF4, AWQ, GPTQ, GGUF Q4_K_M / Q5_K_M / Q8_0, int8, FP8, …). Architecture-aware: small d_head + aggressive GQA → more sensitive; calibrated schemes (AWQ) absorb shift better than uncalibrated (NF4). Recommends safer alternatives if a cliff is detected. <em>Use case</em>: before quantizing, predict whether your specific architecture × scheme combo will keep PPL acceptable, with a concrete switch-to suggestion otherwise.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -309,6 +312,7 @@
             <li data-i18n="inv.v07.template"><strong>📜 Chat-template</strong> — exact CLI flag so lm-eval doesn't silently halve your accuracy</li>
             <li data-i18n="inv.v07.arena"><strong>🎯 Arena CI</strong> — recover the confidence intervals Chatbot Arena hides</li>
             <li data-i18n="inv.v07.contam"><strong>🧪 Contamination</strong> — rate 20+ benchmarks for contamination probability</li>
+            <li data-i18n="inv.v07.quant"><strong>⚖️ Quant</strong> — predict γ shift + ΔPPL for any (model × quant scheme) combo</li>
           </ul>
         </details>
       </div>
@@ -362,6 +366,7 @@
         <button class="mode-btn" data-mode="template" role="tab" aria-selected="false" data-i18n="modes.template">📜 Chat-template</button>
         <button class="mode-btn" data-mode="arena" role="tab" aria-selected="false" data-i18n="modes.arena">🎯 Arena CI</button>
         <button class="mode-btn" data-mode="contam" role="tab" aria-selected="false" data-i18n="modes.contam">🧪 Contamination</button>
+        <button class="mode-btn" data-mode="quant" role="tab" aria-selected="false" data-i18n="modes.quant">⚖️ Quant</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -750,6 +755,37 @@
       </div>
       <p id="contam-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="contam-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Quant-regime classifier (v0.7.3 anti-bullshit pack #5) -->
+    <section id="quant-section" style="display:none;">
+      <h2><span data-i18n="quant.title">⚖️ Quant-regime Classifier</span>
+        <span class="info"><span class="tooltip" data-i18n="quant.tip">
+          Predicts γ-shift (and downstream ΔPPL) for a given (model × quant scheme).
+          Generic claims like "AWQ ~95% retention" are too vague — TAF uses
+          d_head, GQA ratio, SWA flag, and model size to give an architecture-specific
+          verdict. Solves: HF community widely reports unpredictable quant cliffs
+          (NF4 -2 PPL on Phi-3 but fine on Llama-3-8B).
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="quant.desc">
+        <strong>Will quantizing your model break it?</strong> Paste an HF model id, pick a quant scheme — get predicted γ-shift, expected ΔPPL band, and a recommended alternative if it's a cliff. Browser-only, no GPU, no calibration set required.
+      </p>
+      <div class="form-row">
+        <label for="quant-id" data-i18n="quant.id_label">HF model id:</label>
+        <input type="text" id="quant-id" placeholder="e.g. meta-llama/Llama-3.2-1B" />
+        <button type="button" id="quant-fetch-btn" data-i18n="quant.fetch_btn">📥 Fetch config</button>
+      </div>
+      <div class="form-row">
+        <label for="quant-scheme" data-i18n="quant.scheme_label">Quant scheme:</label>
+        <select id="quant-scheme">
+          <option value="">— select scheme —</option>
+        </select>
+        <button type="button" id="quant-run-btn" data-i18n="quant.run_btn">⚖️ Predict</button>
+        <button type="button" id="quant-all-btn" class="secondary" data-i18n="quant.all_btn">📊 Compare all schemes</button>
+      </div>
+      <p id="quant-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="quant-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->
