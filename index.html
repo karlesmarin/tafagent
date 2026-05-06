@@ -335,6 +335,7 @@
         <button class="mode-btn" data-mode="diagnose" role="tab" aria-selected="false" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
         <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
         <button class="mode-btn" data-mode="unmask" role="tab" aria-selected="false" data-i18n="modes.unmask">🪟 Unmask</button>
+        <button class="mode-btn" data-mode="template" role="tab" aria-selected="false" data-i18n="modes.template">📜 Chat-template</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -650,6 +651,34 @@
         <button type="button" id="unmask-paste-btn" data-i18n="unmask.paste_btn" style="margin-top:0.4em;">🔍 Unmask pasted config</button>
       </details>
       <div id="unmask-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Chat-template sniffer mode (v0.7.1 anti-bullshit pack #2) -->
+    <section id="template-section" style="display:none;">
+      <h2><span data-i18n="template.title">📜 Chat-template Sniffer</span>
+        <span class="info"><span class="tooltip" data-i18n="template.tip">
+          Paste an HF model id (or raw tokenizer_config.json). Detects the
+          chat-template family (Llama-3, ChatML, Mistral, Gemma, Phi-3,
+          Alpaca, DeepSeek, custom) and gives you the exact framework command
+          to use it correctly. lm-eval-harness silently halves accuracy if you
+          forget to apply it (issue #1841).
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="template.desc">
+        <strong>Did you forget <code>--apply_chat_template</code>?</strong> Most multi-turn evals fail by ~50% because the chat template wasn't applied. Paste a model id, get the exact CLI flag for your stack.
+      </p>
+      <div class="form-row">
+        <label for="template-id" data-i18n="template.id_label">HF model id:</label>
+        <input type="text" id="template-id" placeholder="e.g. mistralai/Mistral-7B-Instruct-v0.3" />
+        <button type="button" id="template-fetch-btn" data-i18n="template.fetch_btn">📜 Sniff</button>
+      </div>
+      <p id="template-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <details style="margin: 0.6em 0;">
+        <summary style="cursor:pointer; font-size:0.92em;" data-i18n="template.paste_summary">Or paste raw tokenizer_config.json (private models)</summary>
+        <textarea id="template-paste" rows="6" style="width:100%; font-family:monospace; font-size:0.85em; margin-top:0.4em;" placeholder='{"chat_template": "...", ...}'></textarea>
+        <button type="button" id="template-paste-btn" data-i18n="template.paste_btn" style="margin-top:0.4em;">📜 Sniff pasted config</button>
+      </details>
+      <div id="template-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

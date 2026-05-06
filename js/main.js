@@ -12,6 +12,7 @@ import { initPhaseDiagram } from "./phase_diagram.js";
 import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
 import { unmaskConfig } from "./swa_unmasker.js";
+import { sniffChatTemplate } from "./chat_template_sniffer.js";
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -186,7 +187,8 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Hide all mode sections
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
-     "diagnose-section", "phase-section", "unmask-section"].forEach(id => {
+     "diagnose-section", "phase-section", "unmask-section",
+     "template-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -195,6 +197,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
+      template: "template-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -579,6 +582,161 @@ $("unmask-fetch-btn")?.addEventListener("click", runUnmaskFromId);
 $("unmask-paste-btn")?.addEventListener("click", runUnmaskFromPaste);
 $("unmask-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runUnmaskFromId(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 📜 Chat-template Sniffer (v0.7.1 anti-bullshit pack #2)
+// ════════════════════════════════════════════════════════════════════
+
+const TEMPLATE_VERDICT_COLOR = {
+  ok:          "#3fb950",
+  custom:      "#f1c40f",
+  missing:     "#f85149",
+  base_model:  "#8b949e",
+  unknown:     "#8b949e",
+};
+
+async function fetchHfTokenizerConfig(modelId) {
+  const url = `https://huggingface.co/${modelId}/raw/main/tokenizer_config.json`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error(`Model is gated (${resp.status}). Accept license on HF Hub first.`);
+    }
+    throw new Error(`HTTP ${resp.status} — tokenizer_config.json not found at ${url}`);
+  }
+  return await resp.json();
+}
+
+function renderTemplateCard(result, modelId = "") {
+  const color = TEMPLATE_VERDICT_COLOR[result.verdict] || TEMPLATE_VERDICT_COLOR.unknown;
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  const verdictLabel = t(`template.verdict.${result.verdict}`) || result.verdict;
+  const labelFamily   = t("template.label.family")   || "Detected family";
+  const labelMarkers  = t("template.label.markers")  || "Matched markers";
+  const labelTplLen   = t("template.label.tpl_len")  || "Template length";
+  const sectionWarn   = t("template.section.warnings") || "Warnings";
+  const sectionCmd    = t("template.section.commands") || "Commands by framework";
+  const sectionRaw    = t("template.section.raw")      || "Raw template (preview)";
+
+  // Human-readable family name
+  const familyName = result.detectedLabel
+    ? result.detectedLabel
+    : (result.detectedFamily === "custom" ? (t("template.family.custom") || "custom (unknown family)")
+       : (t("template.family.none") || "(no chat_template)"));
+
+  const warningsHtml = result.warnings.length
+    ? `<details class="unmask-panel" open>
+         <summary class="unmask-panel-title">${sectionWarn}</summary>
+         <ul>${result.warnings.map(w => `<li>${tFmt("template.warn." + w.code, w.params)}</li>`).join("")}</ul>
+       </details>`
+    : "";
+
+  // Framework commands — only show when we have a chat_template to apply.
+  let cmdHtml = "";
+  if (result.hasChatTemplate) {
+    const lmEvalCmd = "lm_eval --model hf --model_args pretrained=" + (modelId || "MODEL_ID") +
+      " --tasks gsm8k --apply_chat_template --batch_size 8";
+    const vllmCmd = result.vllmTemplate
+      ? `vllm serve ${modelId || "MODEL_ID"} --chat-template ${result.vllmTemplate}`
+      : `vllm serve ${modelId || "MODEL_ID"}  # template auto-detected from tokenizer_config`;
+    const transformersCmd =
+      `from transformers import AutoTokenizer\n` +
+      `tok = AutoTokenizer.from_pretrained("${modelId || "MODEL_ID"}")\n` +
+      `prompt = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)`;
+
+    cmdHtml = `
+      <details class="unmask-panel" open>
+        <summary class="unmask-panel-title">${sectionCmd}</summary>
+        <div class="template-cmd-block">
+          <div class="template-cmd-label">lm-evaluation-harness</div>
+          <pre class="template-cmd"><code>${escapeHtml(lmEvalCmd)}</code></pre>
+          <div class="template-cmd-label">vLLM serve</div>
+          <pre class="template-cmd"><code>${escapeHtml(vllmCmd)}</code></pre>
+          <div class="template-cmd-label">transformers (Python)</div>
+          <pre class="template-cmd"><code>${escapeHtml(transformersCmd)}</code></pre>
+        </div>
+      </details>
+    `;
+  }
+
+  // Raw preview only when present
+  const rawHtml = result.rawTemplate
+    ? `<details class="unmask-panel">
+         <summary class="unmask-panel-title">${sectionRaw}</summary>
+         <pre class="template-cmd"><code>${escapeHtml(result.rawTemplate)}</code></pre>
+       </details>`
+    : "";
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${verdictLabel}</div>
+        ${modelId ? `<div class="unmask-model"><code>${escapeHtml(modelId)}</code></div>` : ""}
+        <div class="unmask-numbers">
+          <div><span class="unmask-num-label">${labelFamily}</span><span class="unmask-num-val">${escapeHtml(familyName)}</span></div>
+          <div><span class="unmask-num-label">${labelMarkers}</span><span class="unmask-num-val">${result.matchedMarkers.length}</span></div>
+          <div><span class="unmask-num-label">${labelTplLen}</span><span class="unmask-num-val">${result.rawTemplateLength.toLocaleString()}</span></div>
+        </div>
+      </div>
+
+      <div class="unmask-details">
+        ${warningsHtml}
+        ${cmdHtml}
+        ${rawHtml}
+      </div>
+    </div>
+  `;
+}
+
+async function runTemplateFromId() {
+  const modelId = ($("template-id").value || "").trim();
+  if (!modelId) {
+    $("template-status").textContent = t("template.status.empty_id") || "⚠ Enter a model id.";
+    return;
+  }
+  $("template-status").textContent = tFmt("template.status.fetching", { modelId });
+  $("template-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfTokenizerConfig(modelId);
+    const result = sniffChatTemplate(cfg);
+    $("template-output").innerHTML = renderTemplateCard(result, modelId);
+    const verdictLocalized = t(`template.verdict.${result.verdict}`) || result.verdict;
+    $("template-status").textContent = tFmt("template.status.success", { modelId, verdict: verdictLocalized });
+  } catch (err) {
+    $("template-status").textContent = `❌ ${err.message}`;
+    $("template-output").innerHTML = "";
+  } finally {
+    $("template-fetch-btn").disabled = false;
+  }
+}
+
+function runTemplateFromPaste() {
+  const raw = ($("template-paste").value || "").trim();
+  if (!raw) {
+    $("template-status").textContent = t("template.status.empty_paste") || "⚠ Paste a tokenizer_config.json first.";
+    return;
+  }
+  let cfg;
+  try {
+    cfg = JSON.parse(raw);
+  } catch (e) {
+    $("template-status").textContent = tFmt("template.status.invalid_json", { error: e.message });
+    return;
+  }
+  const result = sniffChatTemplate(cfg);
+  const pastedLabel = t("template.pasted_label") || "(pasted config)";
+  $("template-output").innerHTML = renderTemplateCard(result, pastedLabel);
+  const verdictLocalized = t(`template.verdict.${result.verdict}`) || result.verdict;
+  $("template-status").textContent = tFmt("template.status.success_paste", { verdict: verdictLocalized });
+}
+
+$("template-fetch-btn")?.addEventListener("click", runTemplateFromId);
+$("template-paste-btn")?.addEventListener("click", runTemplateFromPaste);
+$("template-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runTemplateFromId(); }
 });
 
 function configToPreset(cfg, modelId) {

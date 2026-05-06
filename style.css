@@ -33,6 +33,33 @@
   flex: 1;
 }
 
+/* v0.7.1 — Chat-template Sniffer mode */
+.template-cmd-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.template-cmd-label {
+  font-size: 0.78em;
+  font-weight: 600;
+  color: #58a6ff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.4em;
+}
+.template-cmd {
+  margin: 0;
+  padding: 0.6em 0.8em;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.85em;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
 /* v0.7.0 — Unmask mode (SWA + RoPE-scaling detector) */
 .unmask-result {
   margin-top: 0.8em;
