@@ -181,6 +181,12 @@ function wrapMainSectionsAsFoldable() {
 }
 wrapMainSectionsAsFoldable();
 
+// v0.7.7 — task-tiles is the primary entry point; collapse the legacy 14-tab
+// strip by default so users don't see duplicated navigation. Power users can
+// still expand it with one click.
+const __modeDetails = document.querySelector("#mode-section > details.main-panel");
+if (__modeDetails) __modeDetails.open = false;
+
 // ════════════════════════════════════════════════════════════════════
 // Mode toggle
 // ════════════════════════════════════════════════════════════════════
