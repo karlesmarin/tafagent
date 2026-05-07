@@ -183,7 +183,7 @@
       "id": "structured_outputs",
       "category": "setup",
       "pain": "JSON schema engines fail silently; CoT models commit to answer before reasoning.",
-      "tafagent_mode": null,
+      "tafagent_mode": "📋 JSON CoT-aware Linter",
       "external_tools": [
         {"name": "llguidance (constrained decoding)", "url": "https://github.com/guidance-ai/llguidance", "type": "tool"},
         {"name": "Outlines", "url": "https://github.com/dottxt-ai/outlines", "type": "tool"},

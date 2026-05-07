@@ -27,6 +27,7 @@ import {
   loadHub, listCategories, listEntries, searchEntries,
   hubStats, getCategoryMeta,
 } from "./solutions_hub.js";
+import { lintJsonCot, reorderJsonText, classifyFieldName } from "./json_cot_linter.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -216,6 +217,7 @@ document.addEventListener("click", (e) => {
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
+      cot: "cot-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -241,7 +243,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -253,6 +255,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
+      cot: "cot-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -260,6 +263,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     $("mode-desc").textContent = t(`mode_desc.${mode}`) || "";
     if (mode === "phase") initPhaseDiagram();
     if (mode === "saturation") initSaturation();
+    if (mode === "cot") initCot();
     if (mode === "hub") initHub();
   });
 });
@@ -3382,6 +3386,173 @@ $("hub-search")?.addEventListener("input", (e) => {
 $("hub-clear-btn")?.addEventListener("click", () => {
   $("hub-search").value = "";
   renderHubAll();
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 📋 JSON CoT-aware Linter (v0.8.2 anti-bullshit pack #8)
+// ════════════════════════════════════════════════════════════════════
+const COT_FIELD_TYPE_BADGE = {
+  reasoning: "🧠",
+  answer: "🎯",
+  other: "·",
+};
+
+const COT_VERDICT_BADGE_BG = {
+  good_order: "#3fb950",          // green
+  anti_pattern: "#f85149",        // red
+  missing_reasoning: "#d29922",   // amber
+  missing_answer: "#d29922",      // amber
+  no_cot_fields: "#8b949e",       // gray
+  non_object: "#8b949e",
+  empty_fields: "#8b949e",
+  invalid_json: "#f85149",        // red
+};
+
+let __cotInited = false;
+
+function initCot() {
+  if (__cotInited) return;
+  __cotInited = true;
+  // No-op (no async data); placeholder kept for symmetry with other modes.
+}
+
+function renderCotResult(result, originalText) {
+  const verdict = t(`cot.verdict.${result.code}`) || result.code;
+  const verdictBg = COT_VERDICT_BADGE_BG[result.code] || "#8b949e";
+  const verdictBadge = `<span class="badge" style="background:${verdictBg};">${verdict}</span>`;
+
+  // Failure cases short-circuit: just show the verdict + reason.
+  if (result.code === "invalid_json") {
+    const reason = result.params?.error || "";
+    return `<div class="arena-result">
+      <p style="font-size:1.1em;">${verdictBadge}</p>
+      <pre style="background:#21262d;padding:0.75em;border-radius:4px;color:#f0883e;">${escapeHtml(reason)}</pre>
+    </div>`;
+  }
+  if (result.code === "empty_fields" || result.code === "non_object") {
+    return `<div class="arena-result">
+      <p style="font-size:1.1em;">${verdictBadge}</p>
+      <p class="recipe-desc">${t(`cot.hint.${result.code}`) || ""}</p>
+    </div>`;
+  }
+
+  const fields = result.params?.fields || [];
+  const fieldRows = fields.map(f => {
+    const icon = COT_FIELD_TYPE_BADGE[f.type] || "·";
+    const typeLabel = t(`cot.field.${f.type}`) || f.type;
+    const color = f.type === "reasoning" ? "#3fb950"
+                : f.type === "answer"    ? "#f0883e"
+                : "#8b949e";
+    return `<tr>
+      <td style="text-align:right;color:#8b949e;">${f.idx}</td>
+      <td><code>${escapeHtml(f.name)}</code></td>
+      <td><span style="color:${color};">${icon} ${typeLabel}</span></td>
+    </tr>`;
+  }).join("");
+  const fieldTable = `
+    <table class="lean-table" style="margin-top:0.5em;">
+      <thead><tr>
+        <th>#</th>
+        <th data-i18n="cot.col.field">Field</th>
+        <th data-i18n="cot.col.type">Type</th>
+      </tr></thead>
+      <tbody>${fieldRows}</tbody>
+    </table>
+  `;
+
+  // Suggested-fix block — only when there's a meaningful reorder.
+  let fixBlock = "";
+  if (result.code === "anti_pattern") {
+    const suggested = result.params?.suggested_order || [];
+    const fixed = reorderJsonText(originalText, suggested);
+    if (fixed) {
+      fixBlock = `
+        <details open style="margin-top:1em;">
+          <summary style="cursor:pointer;color:#3fb950;">
+            <strong>${t("cot.suggested_fix.title") || "✓ Suggested fix"}</strong>
+          </summary>
+          <p class="recipe-desc">${t("cot.suggested_fix.desc") || ""}</p>
+          <pre style="background:#0d1117;padding:0.75em;border-radius:4px;overflow-x:auto;"><code>${escapeHtml(fixed)}</code></pre>
+          <button type="button" class="secondary" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>{this.textContent='${t("cot.suggested_fix.copied") || "✓ Copied"}';setTimeout(()=>{this.textContent='${t("cot.suggested_fix.copy") || "📋 Copy"}';},1500);})">${t("cot.suggested_fix.copy") || "📋 Copy"}</button>
+        </details>
+      `;
+    }
+  }
+
+  // Verdict explainer
+  const explainer = t(`cot.explain.${result.code}`) || "";
+  const explainerBlock = explainer
+    ? `<p class="recipe-desc">${explainer}</p>`
+    : "";
+
+  // Source attribution footer
+  const attribution = `
+    <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+      ${t("cot.attribution") || ""}
+      <a href="https://collinwilkins.com/articles/structured-output" target="_blank" rel="noopener noreferrer">collinwilkins.com</a> ·
+      <a href="https://github.com/guidance-ai/jsonschemabench" target="_blank" rel="noopener noreferrer">JSONSchemaBench</a> ·
+      <a href="https://github.com/guidance-ai/llguidance" target="_blank" rel="noopener noreferrer">llguidance</a>
+    </p>
+  `;
+
+  return `<div class="arena-result">
+    <p style="font-size:1.1em;">${verdictBadge}
+      <span class="subtle" style="font-size:0.9em;">(${tFmt("cot.field_count", { n: result.params.field_count }) || `${result.params.field_count} fields`})</span>
+    </p>
+    ${explainerBlock}
+    ${fieldTable}
+    ${fixBlock}
+    ${attribution}
+  </div>`;
+}
+
+function runCotLint() {
+  const text = $("cot-input")?.value || "";
+  const result = lintJsonCot(text);
+  $("cot-output").innerHTML = renderCotResult(result, text);
+  $("cot-status").textContent = tFmt("cot.status.done", {
+    verdict: t(`cot.verdict.${result.code}`) || result.code,
+  });
+}
+
+const COT_EXAMPLE_GOOD = JSON.stringify({
+  type: "object",
+  properties: {
+    reasoning: {
+      type: "string",
+      description: "Step-by-step rationale before committing to an answer.",
+    },
+    answer: {
+      type: "string",
+      description: "Final answer, derived from the reasoning above.",
+    },
+  },
+  required: ["reasoning", "answer"],
+}, null, 2);
+
+const COT_EXAMPLE_BAD = JSON.stringify({
+  type: "object",
+  properties: {
+    final_answer: {
+      type: "string",
+      description: "The model's final answer.",
+    },
+    chain_of_thought: {
+      type: "string",
+      description: "Justification for the answer above.",
+    },
+  },
+  required: ["final_answer", "chain_of_thought"],
+}, null, 2);
+
+$("cot-lint-btn")?.addEventListener("click", runCotLint);
+$("cot-example-good-btn")?.addEventListener("click", () => {
+  $("cot-input").value = COT_EXAMPLE_GOOD;
+  runCotLint();
+});
+$("cot-example-bad-btn")?.addEventListener("click", () => {
+  $("cot-input").value = COT_EXAMPLE_BAD;
+  runCotLint();
 });
 
 // ════════════════════════════════════════════════════════════════════

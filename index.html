@@ -216,6 +216,9 @@
       <p><strong data-i18n="help.v08.saturation.title">📈 Benchmark Saturation Detector</strong></p>
       <p data-i18n="help.v08.saturation.body">MMLU is saturated (top 88-94%), AIME 2025 saturated within months of release, HumanEval near-saturated. Pick any benchmark and the tool returns top-3 frontier scores, spread, mean, and a verdict — saturated / near-saturated / discriminative — plus a recommended replacement (e.g. MMLU → MMLU-Pro / GPQA / HLE). Live fetch from DemandSphere AI Frontier Tracker (CC BY-NC 4.0) when reachable; baked 2026-05-05 snapshot when not. <em>Use case</em>: before you cite '92% on MMLU' or design an eval, check whether the benchmark still discriminates anything.</p>
 
+      <p><strong data-i18n="help.v082.cot.title">📋 JSON CoT-aware Linter</strong></p>
+      <p data-i18n="help.v082.cot.body">Constrained-decoding engines (llguidance, Outlines, SGLang grammars) emit JSON properties in the order your schema declares them. If you write <code>{ answer, reasoning }</code> the model commits to <code>answer</code> first and CoT collapses into post-hoc justification. Paste any schema (or example response) — the linter classifies each field as <em>reasoning</em>, <em>answer</em>, or <em>other</em>, flags the ordering, and emits a reordered fix you can copy back. <em>Use case</em>: 'My CoT prompt works in plaintext but degrades under JSON mode' → run linter, find the inverted order, fix.</p>
+
       <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
       <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
 
@@ -328,6 +331,7 @@
             <li data-i18n="inv.v07.drift"><strong>🔀 Drift</strong> — bug or noise? Predict max admissible gap between two evals</li>
             <li data-i18n="inv.v07.niah"><strong>🔍 NIAH→Reason</strong> — does your "128k context" actually reason there, or just retrieve?</li>
             <li data-i18n="inv.v08.saturation"><strong>📈 Saturation</strong> — is your benchmark still useful, or are all frontier models tied at the top?</li>
+            <li data-i18n="inv.v082.cot"><strong>📋 JSON CoT</strong> — lints structured-output schemas for the answer-before-reasoning anti-pattern that silently breaks Chain-of-Thought.</li>
             <li data-i18n="inv.v081.hub"><strong>🧭 Solutions Hub</strong> — every documented pain mapped to a tafagent mode or curated external tool. Don't reinvent — find.</li>
           </ul>
         </details>
@@ -399,6 +403,7 @@
           <div class="tile-modes">
             <button data-mode-link="template" data-i18n="modes.template">📜 Chat-template</button>
             <button data-mode-link="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
+            <button data-mode-link="cot" data-i18n="modes.cot">📋 JSON CoT</button>
           </div>
         </div>
         <div class="task-tile">
@@ -455,6 +460,7 @@
         <button class="mode-btn" data-mode="drift" role="tab" aria-selected="false" data-i18n="modes.drift">🔀 Drift</button>
         <button class="mode-btn" data-mode="niah" role="tab" aria-selected="false" data-i18n="modes.niah">🔍 NIAH→Reason</button>
         <button class="mode-btn" data-mode="saturation" role="tab" aria-selected="false" data-i18n="modes.saturation">📈 Saturation</button>
+        <button class="mode-btn" data-mode="cot" role="tab" aria-selected="false" data-i18n="modes.cot">📋 JSON CoT</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
@@ -1004,6 +1010,28 @@
     </section>
 
     <!-- Solutions Hub — integrator portal (v0.8.1) -->
+    <!-- JSON CoT-aware Linter (mode=cot, v0.8.2 anti-bullshit pack #8) -->
+    <section id="cot-section" style="display:none;">
+      <h2><span data-i18n="cot.title">📋 JSON CoT-aware Linter</span>
+        <span class="info"><span class="tooltip" data-i18n="cot.tip">
+          <strong>Why this matters</strong>: constrained-decoding engines (llguidance, Outlines, SGLang grammars) emit JSON properties in schema order. If your schema places <code>answer</code> before <code>reasoning</code>, the model commits to a final answer first and only then writes the rationale to justify it — defeating Chain-of-Thought entirely. Paste a JSON Schema (or example object) and the linter flags the ordering.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="cot.desc">
+        <strong>Reasoning before answer, always.</strong> Paste a JSON Schema or example response object — the linter reports whether reasoning fields come before answer fields and suggests a fix.
+      </p>
+      <div class="form-row">
+        <textarea id="cot-input" rows="10" style="width:100%;font-family:monospace;font-size:0.9em;" data-i18n-placeholder="cot.input.placeholder" placeholder='{ "type": "object", "properties": { "answer": {"type": "string"}, "reasoning": {"type": "string"} } }'></textarea>
+      </div>
+      <div class="form-row">
+        <button type="button" id="cot-lint-btn" data-i18n="cot.lint_btn">🔍 Lint</button>
+        <button type="button" id="cot-example-good-btn" class="secondary" data-i18n="cot.example_good_btn">↳ Example: good order</button>
+        <button type="button" id="cot-example-bad-btn" class="secondary" data-i18n="cot.example_bad_btn">↳ Example: anti-pattern</button>
+      </div>
+      <p id="cot-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="cot-output" style="margin-top: 1em;"></div>
+    </section>
+
     <section id="hub-section" style="display:none;">
       <h2><span data-i18n="hub.title">🧭 Solutions Hub</span>
         <span class="info"><span class="tooltip" data-i18n="hub.tip">
