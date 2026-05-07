@@ -141,3 +141,148 @@ export function sweepContextLengths(config, lengths = null) {
   );
   return defaults.map(T => predictNIAHReasoning(config, T));
 }
+
+
+// =============================================================================
+// RULER calibration (v0.8.6 anti-bullshit pack #12)
+// =============================================================================
+//
+// The heuristic predictor above is a Padé-canonical extrapolation from
+// architectural inputs. It's calibrated against ROUGH RULER bands, but
+// for any specific (model, context) pair where NVIDIA published a
+// measurement, the published number is GROUND TRUTH. This block layers
+// calibration on top: when the user's model id matches a row in
+// data/ruler_kb.json, we interpolate the published RULER aggregate at
+// the requested T_eval and back out per-task estimates via the paper's
+// retrieval-vs-reasoning factor band.
+//
+// Anti-bullshit principle: if measured data exists, USE the measured
+// data, don't ship a heuristic guess that contradicts it. Surface the
+// heuristic-vs-calibrated delta so users see when our predictor was
+// over- or under-confident vs the published ground truth.
+
+let _rulerKb = null;
+
+export async function loadRulerKB(url = "./data/ruler_kb.json") {
+  if (_rulerKb) return _rulerKb;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`RULER KB fetch failed: ${res.status}`);
+    _rulerKb = await res.json();
+    // Build alias→canonical reverse index for fast lookup. Lowercase
+    // for case-insensitive matching of user-pasted ids.
+    _rulerKb._aliasIndex = {};
+    for (const [canon, m] of Object.entries(_rulerKb.models)) {
+      _rulerKb._aliasIndex[canon.toLowerCase()] = canon;
+      for (const a of m.id_aliases || []) {
+        _rulerKb._aliasIndex[a.toLowerCase()] = canon;
+      }
+    }
+    return _rulerKb;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function getRulerKB() { return _rulerKb; }
+
+// Lookup a model in the KB. Tolerates: bare canonical key, any listed
+// alias, or HF "{org}/{name}" form. Returns the model entry or null.
+export function lookupRulerModel(modelId) {
+  if (!_rulerKb || !modelId) return null;
+  const k = String(modelId).trim().toLowerCase();
+  const canon = _rulerKb._aliasIndex[k];
+  if (canon) return { canonical: canon, ..._rulerKb.models[canon] };
+  // Try the post-`/` segment too (e.g. "meta-llama/Llama-3.1-70B-Instruct"
+  // → "Llama-3.1-70B-Instruct")
+  const tail = k.includes("/") ? k.split("/").pop() : null;
+  if (tail) {
+    const c2 = _rulerKb._aliasIndex[tail];
+    if (c2) return { canonical: c2, ..._rulerKb.models[c2] };
+  }
+  return null;
+}
+
+// Linear-interpolate RULER aggregate score between bracketing context
+// samples. Returns null when T_eval is outside the bracketed range
+// (we extrapolate cautiously: clamp at the nearest endpoint).
+function interpolateRulerAvg(rulerEntry, T_eval) {
+  const levels = [4096, 8192, 16384, 32768, 65536, 131072];
+  const keys   = ["4k", "8k", "16k", "32k", "64k", "128k"];
+  const vals = keys.map(k => rulerEntry.ruler_avg[k]).filter(v => typeof v === "number");
+  if (vals.length === 0) return null;
+  // Below smallest sample → clamp at first
+  if (T_eval <= levels[0]) {
+    return { value: rulerEntry.ruler_avg[keys[0]], extrapolated: T_eval < levels[0], anchor: keys[0] };
+  }
+  // Above largest sample → clamp at last (extrapolation flag set)
+  if (T_eval >= levels[levels.length - 1]) {
+    return { value: rulerEntry.ruler_avg[keys[keys.length - 1]], extrapolated: T_eval > levels[levels.length - 1], anchor: keys[keys.length - 1] };
+  }
+  // Find bracketing pair
+  for (let i = 0; i < levels.length - 1; i++) {
+    if (T_eval >= levels[i] && T_eval <= levels[i + 1]) {
+      const a = rulerEntry.ruler_avg[keys[i]];
+      const b = rulerEntry.ruler_avg[keys[i + 1]];
+      // Linear in log-context (RULER scores degrade roughly linearly
+      // in log T near the effective-length boundary)
+      const t = (Math.log2(T_eval) - Math.log2(levels[i])) /
+                (Math.log2(levels[i + 1]) - Math.log2(levels[i]));
+      return { value: a + (b - a) * t, extrapolated: false, anchor: `${keys[i]}↔${keys[i + 1]}` };
+    }
+  }
+  return null;
+}
+
+// Calibrate a heuristic prediction against the published RULER
+// aggregate. Returns null if the model isn't in the KB. Returns a
+// calibration object otherwise: measured aggregate, derived NIAH and
+// reasoning rates, and the delta vs heuristic.
+export function calibrateNIAH(modelId, T_eval, heuristicResult) {
+  const entry = lookupRulerModel(modelId);
+  if (!entry || !_rulerKb) return null;
+
+  const interp = interpolateRulerAvg(entry, T_eval);
+  if (!interp) return null;
+
+  const aggregate = interp.value;     // 0-100 scale per RULER convention
+  const priors = _rulerKb.task_breakdown_priors || {
+    retrieval_factor: 1.04,
+    reasoning_factor: 0.78,
+  };
+  const niahCalibrated      = Math.min(1.0, (aggregate * priors.retrieval_factor) / 100);
+  const reasoningCalibrated = Math.min(1.0, (aggregate * priors.reasoning_factor) / 100);
+
+  return {
+    canonical_id: entry.canonical,
+    matched_alias: modelId,
+    ruler_avg_pct: Math.round(aggregate * 10) / 10,
+    interp_anchor: interp.anchor,
+    extrapolated: interp.extrapolated,
+    claimed_context: entry.claimed_context,
+    effective_context: entry.effective_context,
+    niah_calibrated: Math.round(niahCalibrated * 100) / 100,
+    reasoning_calibrated: Math.round(reasoningCalibrated * 100) / 100,
+    delta_niah: heuristicResult
+      ? Math.round((niahCalibrated - heuristicResult.niah_rate) * 100) / 100
+      : null,
+    delta_reasoning: heuristicResult
+      ? Math.round((reasoningCalibrated - heuristicResult.reasoning_rate) * 100) / 100
+      : null,
+    retrieval_factor: priors.retrieval_factor,
+    reasoning_factor: priors.reasoning_factor,
+    source_url: _rulerKb.source?.primary || "",
+  };
+}
+
+// List all models in the KB (for UI dropdown / "did you mean" hint).
+export function listRulerModels() {
+  if (!_rulerKb) return [];
+  return Object.entries(_rulerKb.models).map(([k, v]) => ({
+    canonical: k,
+    aliases: v.id_aliases || [],
+    claimed_context: v.claimed_context,
+    effective_context: v.effective_context,
+    category: v.category,
+  }));
+}

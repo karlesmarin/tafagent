@@ -1,0 +1,116 @@
+{
+  "version": "1.0",
+  "compiled": "2026-05-07",
+  "source": {
+    "primary": "RULER paper Table 3 (Hsieh et al., COLM 2024) — arxiv.org/abs/2404.06654",
+    "secondary": "DeepWiki/NVIDIA/RULER aggregated leaderboard (~34 models)",
+    "license": "Numbers reproduced for review/calibration; see paper for evaluation methodology."
+  },
+  "task_breakdown_priors": {
+    "comment": "RULER aggregate score is the mean of 13 tasks across 4 categories. Per the paper's Appendix Tables 13-16, top-tier models (GPT-4) score: retrieval 95-100%, variable-tracking 99%, aggregation 93%, QA 70%. The ~25pp gap between retrieval and QA is the canonical 'retrieval-vs-reasoning' finding. We use these ratios to back out per-task estimates from the published aggregate.",
+    "retrieval_factor": 1.04,
+    "reasoning_factor": 0.78,
+    "retrieval_factor_caveat": "NIAH-single typically scores 95-99% for top models even when aggregate drops; this multiplier underestimates NIAH on small-model regimes. Honest range: 0.95×–1.10× aggregate.",
+    "reasoning_factor_caveat": "Multi-hop QA degrades faster than aggregate. At long context (>64K) the ratio can drop below 0.6×. Honest range: 0.60×–0.85× aggregate."
+  },
+  "models": {
+    "gpt-4-1106-preview": {
+      "ruler_avg": {"4k": 96.6, "8k": 96.3, "16k": 95.2, "32k": 93.2, "64k": 87.0, "128k": 81.2},
+      "claimed_context": 128000,
+      "effective_context": 64000,
+      "params_b": null,
+      "id_aliases": ["openai/gpt-4-1106-preview", "gpt-4-1106-preview", "gpt-4-turbo"],
+      "category": "frontier_api"
+    },
+    "command-r-35b": {
+      "ruler_avg": {"4k": 93.8, "8k": 93.3, "16k": 92.4, "32k": 89.5, "64k": 84.9, "128k": 76.0},
+      "claimed_context": 128000,
+      "effective_context": 32000,
+      "params_b": 35,
+      "id_aliases": ["CohereForAI/c4ai-command-r-v01", "command-r-35b", "c4ai-command-r-v01"],
+      "category": "open"
+    },
+    "yi-34b-200k": {
+      "ruler_avg": {"4k": 93.3, "8k": 92.2, "16k": 91.3, "32k": 87.5, "64k": 83.2, "128k": 77.3},
+      "claimed_context": 200000,
+      "effective_context": 32000,
+      "params_b": 34,
+      "id_aliases": ["01-ai/Yi-34B-200K", "yi-34b-200k", "Yi-34B-200K"],
+      "category": "open"
+    },
+    "mixtral-8x7b": {
+      "ruler_avg": {"4k": 94.9, "8k": 92.1, "16k": 92.5, "32k": 85.9, "64k": 72.4, "128k": 44.5},
+      "claimed_context": 32000,
+      "effective_context": 32000,
+      "params_b": 47,
+      "id_aliases": ["mistralai/Mixtral-8x7B-Instruct-v0.1", "mixtral-8x7b-instruct", "Mixtral-8x7B-Instruct-v0.1"],
+      "category": "open_moe"
+    },
+    "mistral-7b-v0.2": {
+      "ruler_avg": {"4k": 93.6, "8k": 91.2, "16k": 87.2, "32k": 75.4, "64k": 49.0, "128k": 13.8},
+      "claimed_context": 32000,
+      "effective_context": 16000,
+      "params_b": 7,
+      "id_aliases": ["mistralai/Mistral-7B-Instruct-v0.2", "mistral-7b-v0.2", "Mistral-7B-Instruct-v0.2"],
+      "category": "open"
+    },
+    "chatglm3-6b-128k": {
+      "ruler_avg": {"4k": 87.8, "8k": 83.4, "16k": 78.6, "32k": 69.9, "64k": 56.0, "128k": 42.0},
+      "claimed_context": 128000,
+      "effective_context": 4000,
+      "params_b": 6,
+      "id_aliases": ["THUDM/chatglm3-6b-128k", "chatglm3-6b-128k"],
+      "category": "open"
+    },
+    "lwm-7b": {
+      "ruler_avg": {"4k": 82.3, "8k": 78.4, "16k": 73.7, "32k": 69.1, "64k": 68.1, "128k": 65.0},
+      "claimed_context": 1000000,
+      "effective_context": 4000,
+      "params_b": 7,
+      "id_aliases": ["LargeWorldModel/LWM-Text-Chat-1M", "lwm-7b", "LWM-Text-Chat-1M"],
+      "category": "open"
+    },
+    "llama3.1-70b-instruct": {
+      "ruler_avg": {"4k": 96.5, "8k": 95.8, "16k": 95.4, "32k": 94.8, "64k": 88.4, "128k": 66.6},
+      "claimed_context": 128000,
+      "effective_context": 64000,
+      "params_b": 70,
+      "id_aliases": ["meta-llama/Llama-3.1-70B-Instruct", "llama-3.1-70b", "llama3.1-70b-instruct", "Meta-Llama-3.1-70B-Instruct", "Llama-3.1-70B-Instruct", "unsloth/Meta-Llama-3.1-70B-Instruct", "unsloth/Llama-3.1-70B-Instruct"],
+      "category": "open_frontier"
+    },
+    "mixtral-8x22b-instruct": {
+      "ruler_avg": {"4k": 95.6, "8k": 94.9, "16k": 93.4, "32k": 90.9, "64k": 84.7, "128k": 31.7},
+      "claimed_context": 64000,
+      "effective_context": 32000,
+      "params_b": 141,
+      "id_aliases": ["mistralai/Mixtral-8x22B-Instruct-v0.1", "mixtral-8x22b-instruct", "Mixtral-8x22B-Instruct-v0.1"],
+      "category": "open_moe"
+    },
+    "gemini-1.5-pro": {
+      "ruler_avg": {"4k": 96.7, "8k": 95.8, "16k": 96.0, "32k": 95.9, "64k": 95.9, "128k": 94.4},
+      "claimed_context": 1000000,
+      "effective_context": 128000,
+      "params_b": null,
+      "id_aliases": ["google/gemini-1.5-pro", "gemini-1.5-pro"],
+      "category": "frontier_api"
+    },
+    "jamba-1.5-large": {
+      "ruler_avg": {"4k": 96.3, "8k": 96.2, "16k": 96.0, "32k": 96.0, "64k": 96.0, "128k": 96.0},
+      "claimed_context": 256000,
+      "effective_context": 128000,
+      "params_b": 94,
+      "id_aliases": ["ai21labs/AI21-Jamba-1.5-Large", "jamba-1.5-large", "AI21-Jamba-1.5-Large"],
+      "category": "open_hybrid_ssm"
+    },
+    "qwen2.5-14b-instruct-1m": {
+      "ruler_avg": {"4k": 97.5, "8k": 96.8, "16k": 95.5, "32k": 94.0, "64k": 92.5, "128k": 92.2},
+      "claimed_context": 1000000,
+      "effective_context": 128000,
+      "params_b": 14,
+      "id_aliases": ["Qwen/Qwen2.5-14B-Instruct-1M", "qwen2.5-14b-1m", "Qwen2.5-14B-Instruct-1M", "qwen2.5-14b-instruct-1m"],
+      "category": "open_frontier"
+    }
+  },
+  "context_levels": [4096, 8192, 16384, 32768, 65536, 131072],
+  "context_level_keys": ["4k", "8k", "16k", "32k", "64k", "128k"]
+}

@@ -18,7 +18,7 @@ import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
-import { predictNIAHReasoning, sweepContextLengths } from "./niah_reasoning.js";
+import { predictNIAHReasoning, sweepContextLengths, loadRulerKB, calibrateNIAH, listRulerModels } from "./niah_reasoning.js";
 import {
   loadSaturationKB, classifyAll, classifyBenchmark,
   listBenchmarks, attribution as saturationAttribution, tryFetchLive,
@@ -1419,7 +1419,7 @@ async function niahFetchConfig() {
   }
 }
 
-function renderNIAHCard(result, modelId) {
+function renderNIAHCard(result, modelId, calib = null) {
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
@@ -1429,6 +1429,80 @@ function renderNIAHCard(result, modelId) {
   const safeText = result.safe_context
     ? tFmt("niah.safe_context", { ctx: result.safe_context })
     : (t("niah.safe_context_none") || "No safe context found below your target — model fails reasoning even at small contexts.");
+
+  // RULER calibration block — appears only when KB lookup hits.
+  // Shows measured RULER aggregate, derived NIAH/reasoning, and the
+  // delta vs the heuristic so users see when the predictor was off.
+  let calibBlock = "";
+  if (calib) {
+    const fmtPct = (v) => `${(v * 100).toFixed(0)}%`;
+    const fmtDelta = (d) => {
+      if (d == null) return "—";
+      const pp = Math.round(d * 100);
+      const sign = pp > 0 ? "+" : "";
+      const col = Math.abs(pp) >= 10 ? "#f0883e" : Math.abs(pp) >= 5 ? "#d29922" : "#8b949e";
+      return `<span style="color:${col};">${sign}${pp} pp</span>`;
+    };
+    const extrapNote = calib.extrapolated
+      ? `<span class="subtle" style="color:#d29922;font-size:0.85em;"> ⚠ ${t("niah.calib.extrapolated") || "extrapolated outside RULER's measured range"}</span>`
+      : "";
+    calibBlock = `
+      <details class="unmask-panel" open style="border-left:3px solid #3fb950;">
+        <summary class="unmask-panel-title">📊 ${t("niah.calib.heading") || "RULER-calibrated (NVIDIA published data)"}</summary>
+        <p>${tFmt("niah.calib.matched", {
+          alias: escapeHtml(calib.matched_alias),
+          canonical: escapeHtml(calib.canonical_id),
+        }) || `Matched <code>${escapeHtml(calib.matched_alias)}</code> → KB row <code>${escapeHtml(calib.canonical_id)}</code>.`}</p>
+        <p>
+          <strong>${t("niah.calib.aggregate") || "RULER aggregate"} @ ${fmtN(result.T_eval)}:</strong>
+          <code>${calib.ruler_avg_pct}%</code>
+          <span class="subtle">(${t("niah.calib.interp") || "interpolated between"} ${calib.interp_anchor})</span>${extrapNote}
+        </p>
+        <table class="arena-table" style="margin-top:0.5em;">
+          <thead><tr>
+            <th></th>
+            <th>${t("niah.calib.col.heuristic") || "Heuristic"}</th>
+            <th>${t("niah.calib.col.calibrated") || "RULER-calibrated"}</th>
+            <th>${t("niah.calib.col.delta") || "Δ"}</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>NIAH</strong></td>
+              <td>${fmtPct(result.niah_rate)}</td>
+              <td><strong>${fmtPct(calib.niah_calibrated)}</strong></td>
+              <td>${fmtDelta(calib.delta_niah)}</td>
+            </tr>
+            <tr>
+              <td><strong>${t("niah.label.reasoning") || "Reasoning"}</strong></td>
+              <td>${fmtPct(result.reasoning_rate)}</td>
+              <td><strong>${fmtPct(calib.reasoning_calibrated)}</strong></td>
+              <td>${fmtDelta(calib.delta_reasoning)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="recipe-desc subtle" style="font-size:0.82em;">
+          ${t("niah.calib.factors") || "Per-task factors from RULER paper Appendix Tables 13-16:"}
+          retrieval = ${calib.retrieval_factor}× aggregate,
+          reasoning = ${calib.reasoning_factor}× aggregate
+          (${t("niah.calib.factors_caveat") || "honest range: retrieval 0.95-1.10×, reasoning 0.60-0.85×"}).
+        </p>
+        <p class="recipe-desc subtle" style="font-size:0.82em;">
+          ${t("niah.calib.claimed_vs_effective") || "Paper-reported"}:
+          ${t("niah.calib.claimed") || "claimed"} ${fmtN(calib.claimed_context)} /
+          ${t("niah.calib.effective") || "effective"} ${fmtN(calib.effective_context)}.
+          ${t("niah.calib.source") || "Source"}:
+          <a href="${calib.source_url}" target="_blank" rel="noopener noreferrer">RULER paper (Hsieh et al., COLM 2024)</a>
+        </p>
+      </details>
+    `;
+  } else if (modelId) {
+    // KB miss — explicitly state we're heuristic-only.
+    calibBlock = `
+      <p class="recipe-desc subtle" style="font-size:0.85em;margin-top:0.5em;">
+        💡 ${t("niah.calib.miss") || "RULER calibration unavailable for this model — using architectural heuristic only. Add to data/ruler_kb.json if you have measured numbers."}
+      </p>
+    `;
+  }
 
   return `
     <div class="unmask-result">
@@ -1442,6 +1516,7 @@ function renderNIAHCard(result, modelId) {
         </div>
       </div>
       <div class="unmask-details">
+        ${calibBlock}
         <details class="unmask-panel" open>
           <summary class="unmask-panel-title">${t("niah.section.breakdown") || "Architecture breakdown"}</summary>
           <ul>
@@ -1512,7 +1587,11 @@ async function runNIAHPredict() {
     return;
   }
   const result = predictNIAHReasoning(cfg, T_eval);
-  $("niah-output").innerHTML = renderNIAHCard(result, __niahLastModelId);
+  // Ensure RULER KB is loaded once; idempotent. No-op if already loaded.
+  await loadRulerKB();
+  // Calibrate against published RULER measurements if available.
+  const calib = calibrateNIAH(__niahLastModelId, T_eval, result);
+  $("niah-output").innerHTML = renderNIAHCard(result, __niahLastModelId, calib);
   $("niah-status").textContent = tFmt("niah.status.done", {
     verdict: t(`niah.verdict.${result.verdict}`) || result.verdict,
     niah: (result.niah_rate * 100).toFixed(0),
