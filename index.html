@@ -216,6 +216,9 @@
       <p><strong data-i18n="help.v08.saturation.title">📈 Benchmark Saturation Detector</strong></p>
       <p data-i18n="help.v08.saturation.body">MMLU is saturated (top 88-94%), AIME 2025 saturated within months of release, HumanEval near-saturated. Pick any benchmark and the tool returns top-3 frontier scores, spread, mean, and a verdict — saturated / near-saturated / discriminative — plus a recommended replacement (e.g. MMLU → MMLU-Pro / GPQA / HLE). Live fetch from DemandSphere AI Frontier Tracker (CC BY-NC 4.0) when reachable; baked 2026-05-05 snapshot when not. <em>Use case</em>: before you cite '92% on MMLU' or design an eval, check whether the benchmark still discriminates anything.</p>
 
+      <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
+      <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -325,6 +328,7 @@
             <li data-i18n="inv.v07.drift"><strong>🔀 Drift</strong> — bug or noise? Predict max admissible gap between two evals</li>
             <li data-i18n="inv.v07.niah"><strong>🔍 NIAH→Reason</strong> — does your "128k context" actually reason there, or just retrieve?</li>
             <li data-i18n="inv.v08.saturation"><strong>📈 Saturation</strong> — is your benchmark still useful, or are all frontier models tied at the top?</li>
+            <li data-i18n="inv.v081.hub"><strong>🧭 Solutions Hub</strong> — every documented pain mapped to a tafagent mode or curated external tool. Don't reinvent — find.</li>
           </ul>
         </details>
       </div>
@@ -383,6 +387,7 @@
             <button data-mode-link="drift" data-i18n="modes.drift">🔀 Drift</button>
             <button data-mode-link="arena" data-i18n="modes.arena">🎯 Arena CI</button>
             <button data-mode-link="saturation" data-i18n="modes.saturation">📈 Saturation</button>
+            <button data-mode-link="hub" data-i18n="modes.hub">🧭 Solutions</button>
           </div>
         </div>
         <div class="task-tile">
@@ -450,6 +455,7 @@
         <button class="mode-btn" data-mode="drift" role="tab" aria-selected="false" data-i18n="modes.drift">🔀 Drift</button>
         <button class="mode-btn" data-mode="niah" role="tab" aria-selected="false" data-i18n="modes.niah">🔍 NIAH→Reason</button>
         <button class="mode-btn" data-mode="saturation" role="tab" aria-selected="false" data-i18n="modes.saturation">📈 Saturation</button>
+        <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -995,6 +1001,24 @@
       <p class="subtle" style="font-size:0.82em; margin-top:1em;" data-i18n="saturation.attribution">
         Data: DemandSphere AI Frontier Model Tracker (CC BY-NC 4.0) · HF Open LLM Leaderboard v3 (open-weight historical) · last fetch 2026-05-05.
       </p>
+    </section>
+
+    <!-- Solutions Hub — integrator portal (v0.8.1) -->
+    <section id="hub-section" style="display:none;">
+      <h2><span data-i18n="hub.title">🧭 Solutions Hub</span>
+        <span class="info"><span class="tooltip" data-i18n="hub.tip">
+          Map of every documented LLM-eval pain we know about: which tafagent mode addresses it (if any), and the best-of-breed external tools the community already trusts. Goal: full coverage. If a canonical tool exists elsewhere, we link rather than rebuild.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="hub.desc">
+        <strong>Don't reinvent — find.</strong> 30+ pains mapped to tafagent modes + curated external tools. Browse by category, search by keyword, or see the gaps where new modes would help most.
+      </p>
+      <div class="form-row">
+        <input type="text" id="hub-search" placeholder="search: e.g. 'forgetting' or 'vendor' or 'RAG'…" style="flex:1;" />
+        <button type="button" id="hub-clear-btn" class="secondary" data-i18n="hub.clear_btn">✕ Clear</button>
+      </div>
+      <p id="hub-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="hub-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

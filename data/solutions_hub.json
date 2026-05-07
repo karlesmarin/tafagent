@@ -1,0 +1,407 @@
+{
+  "version": "0.8.1",
+  "compiled": "2026-05-07",
+  "philosophy": "tafagent as integrator, not silo. For each documented LLM-eval pain we surface: (a) the tafagent mode that addresses it, if any; (b) the best-of-breed external tools the community already trusts; (c) when to use which. Goal: complete coverage, not feature lock-in. If the canonical tool exists elsewhere we link, not rebuild.",
+  "verification_note": "All external URLs were fetched and confirmed alive on the compiled date. Treat older entries with skepticism — link rot is real. Report dead links via the GitHub issue tracker.",
+  "categories": {
+    "eval_reliability": {
+      "label": "Trust a benchmark score",
+      "icon": "✓",
+      "description": "Should I believe this number?"
+    },
+    "diagnostic": {
+      "label": "Diagnose a model",
+      "icon": "🔬",
+      "description": "Will this model work for my use case?"
+    },
+    "setup": {
+      "label": "Set up an eval correctly",
+      "icon": "⚙️",
+      "description": "Avoid silent failures before running."
+    },
+    "training": {
+      "label": "Train / fine-tune safely",
+      "icon": "🛠️",
+      "description": "Don't waste GPU time on broken setups."
+    },
+    "retrieval": {
+      "label": "RAG & retrieval quality",
+      "icon": "📚",
+      "description": "Is my retrieval actually retrieving?"
+    },
+    "multimodal": {
+      "label": "Multimodal models",
+      "icon": "🖼️",
+      "description": "Vision-language and beyond."
+    },
+    "observability": {
+      "label": "Observe & debug agents",
+      "icon": "🔭",
+      "description": "What is my agent actually doing?"
+    }
+  },
+  "entries": [
+    {
+      "id": "saturation",
+      "category": "eval_reliability",
+      "pain": "Benchmark saturation — top models all tied at 90%+, score no longer informative.",
+      "tafagent_mode": "📈 Saturation",
+      "external_tools": [
+        {"name": "DemandSphere AI Frontier Tracker", "url": "https://www.demandsphere.com/research/demandsphere-radar/ai-frontier-model-tracker/", "type": "leaderboard"},
+        {"name": "BenchLM.ai", "url": "https://benchlm.ai/", "type": "leaderboard"},
+        {"name": "LLM Stats", "url": "https://llm-stats.com/", "type": "leaderboard"}
+      ],
+      "best_for": "Quick check whether MMLU / AIME / HumanEval still discriminate frontier models in 2026.",
+      "not_for": "Predicting which model will win on a non-standard benchmark."
+    },
+    {
+      "id": "contamination",
+      "category": "eval_reliability",
+      "pain": "Benchmark contamination — model trained on the test set.",
+      "tafagent_mode": "🧪 Contamination",
+      "external_tools": [
+        {"name": "LiveBench (contamination-resistant)", "url": "https://livebench.ai/", "type": "leaderboard"},
+        {"name": "GSM8K-Platinum / contamination studies", "url": "https://thegrigorian.medium.com/when-benchmarks-lie-why-contamination-breaks-llm-evaluation-1fa335706f32", "type": "article"}
+      ],
+      "best_for": "Estimating contamination probability across 20+ public benchmarks per architecture.",
+      "not_for": "Definitive proof — needs trace inspection. Treat as prior, not certainty."
+    },
+    {
+      "id": "vendor_self_reported",
+      "category": "eval_reliability",
+      "pain": "Vendor-reported scores untrustworthy (Llama 4 mixed-quality reports).",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "llm-stats verified vs self-reported tags", "url": "https://llm-stats.com/benchmarks/swe-bench-verified", "type": "leaderboard"},
+        {"name": "BenchLM.ai confidence indicator", "url": "https://benchlm.ai/", "type": "leaderboard"},
+        {"name": "Vellum independent leaderboard", "url": "https://www.vellum.ai/llm-leaderboard", "type": "leaderboard"}
+      ],
+      "best_for": "Cross-checking vendor blog claims against community-verified runs before quoting.",
+      "not_for": "Models that have never been independently verified — assume vendor optimism."
+    },
+    {
+      "id": "arena_ci",
+      "category": "eval_reliability",
+      "pain": "Chatbot Arena hides confidence intervals — many top-Elo wins are statistically tied.",
+      "tafagent_mode": "🎯 Arena CI",
+      "external_tools": [
+        {"name": "LMArena leaderboard (raw)", "url": "https://lmarena.ai/", "type": "leaderboard"},
+        {"name": "Bradley-Terry methodology paper", "url": "https://arxiv.org/abs/2403.04132", "type": "paper"}
+      ],
+      "best_for": "Reconstructing 95% CIs from raw vote CSVs to flag statistical ties.",
+      "not_for": "Inferring true skill — Arena measures preference, not capability."
+    },
+    {
+      "id": "cross_drift",
+      "category": "eval_reliability",
+      "pain": "Same model, different scores on different setups — bug or noise?",
+      "tafagent_mode": "🔀 Drift",
+      "external_tools": [
+        {"name": "vLLM vs HF transformers consistency study", "url": "https://github.com/vllm-project/vllm/issues/12343", "type": "issue"}
+      ],
+      "best_for": "Predicting maximum admissible numerical gap between two evaluation frameworks.",
+      "not_for": "Identifying the exact root cause — narrows down candidates only."
+    },
+    {
+      "id": "sandbagging",
+      "category": "eval_reliability",
+      "pain": "Models can strategically underperform on capability evaluations.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "AI Sandbagging paper", "url": "https://arxiv.org/abs/2406.07358", "type": "paper"},
+        {"name": "Covert sandbagging vs CoT monitoring", "url": "https://www.alphaxiv.org/overview/2508.00943", "type": "paper"}
+      ],
+      "best_for": "Awareness — knowing CoT monitoring can have up to 36% false-negative rate.",
+      "not_for": "Live detection — requires running the model and adversarial probes."
+    },
+    {
+      "id": "max_pos_embeddings_unmask",
+      "category": "diagnostic",
+      "pain": "Config claims 32k/128k context but model attends way less (SWA, YaRN).",
+      "tafagent_mode": "🪟 Unmask",
+      "external_tools": [
+        {"name": "vLLM long-context handling thread", "url": "https://github.com/vllm-project/vllm/issues/16757", "type": "issue"}
+      ],
+      "best_for": "1-second verdict (HONEST / INFLATED / SEVERELY INFLATED / YARN-EXTENDED) before paying GPU.",
+      "not_for": "Validating that the model reasons (vs. just retrieves) at the effective context — use NIAH→Reason."
+    },
+    {
+      "id": "niah_reasoning",
+      "category": "diagnostic",
+      "pain": "Long-context models pass NIAH but fail multi-hop reasoning.",
+      "tafagent_mode": "🔍 NIAH→Reason",
+      "external_tools": [
+        {"name": "NVIDIA RULER benchmark", "url": "https://github.com/NVIDIA/RULER", "type": "tool"},
+        {"name": "RULER paper / leaderboard", "url": "https://llm-stats.com/benchmarks/ruler", "type": "leaderboard"}
+      ],
+      "best_for": "Predicting NIAH and reasoning pass rates from architecture alone — no inference needed.",
+      "not_for": "Final go/no-go decision — re-test on your domain after architectural screening passes."
+    },
+    {
+      "id": "tokenizer_glitch",
+      "category": "diagnostic",
+      "pain": "Glitch tokens / merge residues break inference silently.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "GlitchMiner (AAAI 2026)", "url": "https://arxiv.org/html/2601.14658v1", "type": "paper"},
+        {"name": "Tiktokenizer (browser visualization)", "url": "https://tiktokenizer.vercel.app/", "type": "tool"}
+      ],
+      "best_for": "Spotting weird tokens. ~4.3% of vocab in Llama-2 / Mistral / DeepSeek-V3 are glitches.",
+      "not_for": "Fixing them — requires finetuning or vocab patching."
+    },
+    {
+      "id": "phase_diagram",
+      "category": "diagnostic",
+      "pain": "Where does my model sit in the architecture phase space (γ × θ)?",
+      "tafagent_mode": "📊 Phase diagram",
+      "external_tools": [],
+      "best_for": "Visualizing 23 reference models and locating yours by Hagedorn line / Padé curve.",
+      "not_for": "Quantitative recipe scoring — use Profile mode instead."
+    },
+    {
+      "id": "profile",
+      "category": "diagnostic",
+      "pain": "Will this model fit my use case across all 5 recipes?",
+      "tafagent_mode": "📇 Profile",
+      "external_tools": [],
+      "best_for": "Scoring all 5 recipes (custom train vs API · long context · budget · hardware · KV cache · etc.) in one pass.",
+      "not_for": "Production deployment readiness — Profile is screening, not certification."
+    },
+    {
+      "id": "chat_template",
+      "category": "setup",
+      "pain": "Forgetting `--apply_chat_template` silently halves multi-turn accuracy.",
+      "tafagent_mode": "📜 Chat-template",
+      "external_tools": [
+        {"name": "lm-eval-harness #1841 (canonical issue)", "url": "https://github.com/EleutherAI/lm-evaluation-harness/issues/1841", "type": "issue"},
+        {"name": "HF chat-template docs", "url": "https://huggingface.co/docs/transformers/main/en/chat_templating", "type": "docs"}
+      ],
+      "best_for": "Detecting which family (Llama-3 / ChatML / Mistral / Gemma / Phi-3 / DeepSeek / Alpaca) and getting the exact CLI flag.",
+      "not_for": "Custom templates outside the 7 detected families — verify manually."
+    },
+    {
+      "id": "structured_outputs",
+      "category": "setup",
+      "pain": "JSON schema engines fail silently; CoT models commit to answer before reasoning.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "llguidance (constrained decoding)", "url": "https://github.com/guidance-ai/llguidance", "type": "tool"},
+        {"name": "Outlines", "url": "https://github.com/dottxt-ai/outlines", "type": "tool"},
+        {"name": "JSONLint validator (browser)", "url": "https://jsonlint.com/json-schema", "type": "tool"},
+        {"name": "JSONSchemaBench (10K real schemas)", "url": "https://github.com/guidance-ai/jsonschemabench", "type": "benchmark"},
+        {"name": "Schema field-ordering anti-patterns explained", "url": "https://collinwilkins.com/articles/structured-output", "type": "article"}
+      ],
+      "best_for": "Constrained decoding for production. Use llguidance / Outlines / SGLang grammars for 100% schema-valid output.",
+      "not_for": "Quick prototypes — function calling is sufficient (95-99% reliable)."
+    },
+    {
+      "id": "mcp_conformance",
+      "category": "setup",
+      "pain": "MCP server schema doesn't conform to spec — clients silently break.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "MCP Schema Validator (free, browser-based)", "url": "https://www.mcpserverspot.com/tools/validator", "type": "tool"},
+        {"name": "Official MCP spec", "url": "https://github.com/modelcontextprotocol/modelcontextprotocol", "type": "spec"},
+        {"name": "FastMCP 3.0 (Jan 2026)", "url": "https://github.com/jlowin/fastmcp", "type": "tool"}
+      ],
+      "best_for": "One-shot validation of tool/resource/prompt schemas before publishing an MCP server.",
+      "not_for": "Runtime testing — use the official inspector for live calls."
+    },
+    {
+      "id": "diagnose_cli",
+      "category": "setup",
+      "pain": "Need to measure γ_obs on real weights, not just predict from config.",
+      "tafagent_mode": "🩺 Diagnose CLI",
+      "external_tools": [
+        {"name": "TAF paper (Triangulum/karlesmarin)", "url": "https://github.com/karlesmarin/NeurIPS", "type": "paper"}
+      ],
+      "best_for": "Generating the exact `python cli/diagnose_model.py` command for your model.",
+      "not_for": "Browser-only diagnosis — this mode is a builder, not an executor."
+    },
+    {
+      "id": "peft_loading",
+      "category": "training",
+      "pain": "`get_peft_model()` before `PeftModel.from_pretrained()` silently loads base model — LoRA weights ignored.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "HF PEFT troubleshooting (canonical)", "url": "https://huggingface.co/docs/peft/main/en/developer_guides/troubleshooting", "type": "docs"},
+        {"name": "peft #2115 — original bug report", "url": "https://github.com/huggingface/peft/issues/2115", "type": "issue"},
+        {"name": "PEFT get_layer_status() / get_model_status()", "url": "https://huggingface.co/docs/peft/main/en/package_reference/peft_model", "type": "docs"}
+      ],
+      "best_for": "If you suspect your LoRA isn't being applied, call `model.get_layer_status()` and check `active_adapters` is non-empty.",
+      "not_for": null,
+      "tafagent_planned_mode": "🔧 PEFT Anti-Pattern Checker (v0.8.2)"
+    },
+    {
+      "id": "intruder_dimensions",
+      "category": "training",
+      "pain": "LoRA introduces 'intruder dimensions' that contribute to forgetting.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "PEFT reduce_intruder_dimension utility", "url": "https://huggingface.co/docs/peft/main/en/developer_guides/troubleshooting", "type": "docs"}
+      ],
+      "best_for": "Post-training cleanup if forgetting metrics regress after LoRA finetune.",
+      "not_for": "Heavy domain shift — intruder dim removal won't fix structural forgetting."
+    },
+    {
+      "id": "quant_regime",
+      "category": "training",
+      "pain": "Will quantization break my model? Which scheme for which arch?",
+      "tafagent_mode": "⚖️ Quant",
+      "external_tools": [
+        {"name": "Maarten Grootendorst quantization newsletter", "url": "https://newsletter.maartengrootendorst.com/p/which-quantization-method-is-right", "type": "article"},
+        {"name": "Jarvis Labs vLLM quantization benchmarks", "url": "https://jarvislabs.ai/blog/vllm-quantization-complete-guide-benchmarks", "type": "article"},
+        {"name": "oobabooga quant comparison (GPTQ/AWQ/EXL2/GGUF)", "url": "https://oobabooga.github.io/blog/posts/gptq-awq-exl2-llamacpp/", "type": "article"},
+        {"name": "Which Quantization (arxiv)", "url": "https://arxiv.org/pdf/2601.14277", "type": "paper"}
+      ],
+      "best_for": "Predict γ shift + ΔPPL for any (model × scheme) combo. AWQ ~95% / GGUF ~92% / GPTQ ~90% retention.",
+      "not_for": "Production quality cert — run a 10-prompt holdout eval after quantization."
+    },
+    {
+      "id": "forgetting",
+      "category": "training",
+      "pain": "Will my LoRA fine-tune destroy MMLU performance?",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "Scaling Laws for Forgetting (Kleiman et al.)", "url": "https://arxiv.org/html/2401.05605v1", "type": "paper"},
+        {"name": "LoRA Learns Less and Forgets Less (Biderman et al., TMLR)", "url": "https://arxiv.org/abs/2405.09673", "type": "paper"},
+        {"name": "How Much is Too Much? (LoRA Rank Trade-offs)", "url": "https://arxiv.org/html/2512.15634v1", "type": "paper"}
+      ],
+      "best_for": "Reading before any new fine-tune. Same (arch, rank) yields Δ from -10pp to +35pp on MMLU.",
+      "not_for": "A predictor — variance is too high for a closed-form heuristic. Measure your own holdout."
+    },
+    {
+      "id": "rag_eval",
+      "category": "retrieval",
+      "pain": "Is my RAG retrieval actually retrieving?",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "RAGAS — automated RAG eval (13.8k★)", "url": "https://github.com/explodinggradients/ragas", "type": "tool"},
+        {"name": "TruLens — feedback functions + tracing", "url": "https://www.trulens.org/", "type": "tool"},
+        {"name": "DeepEval — 50+ metrics, CI/CD ready", "url": "https://github.com/confident-ai/deepeval", "type": "tool"},
+        {"name": "RAG eval frameworks comparison", "url": "https://atlan.com/know/llm-evaluation-frameworks-compared/", "type": "article"}
+      ],
+      "best_for": "Production RAG monitoring. RAGAS for metric exploration, DeepEval for CI/CD gates, TruLens for dashboards.",
+      "not_for": "Browser-only — all three need Python + your retrieval pipeline."
+    },
+    {
+      "id": "embeddings",
+      "category": "retrieval",
+      "pain": "Which embedding model for my corpus?",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "MTEB Leaderboard (HF official)", "url": "https://huggingface.co/spaces/mteb/leaderboard", "type": "leaderboard"},
+        {"name": "MMTEB — 250+ langs", "url": "https://github.com/embeddings-benchmark/mteb", "type": "tool"},
+        {"name": "Best embedding models for RAG (2026)", "url": "https://blog.premai.io/best-embedding-models-for-rag-2026-ranked-by-mteb-score-cost-and-self-hosting/", "type": "article"}
+      ],
+      "best_for": "Cross-comparison of 100+ embedding models on 56 English tasks / 250+ multilingual.",
+      "not_for": "Predicting performance on your specific corpus — 'leaderboard ≠ your data'."
+    },
+    {
+      "id": "vlm_eval",
+      "category": "multimodal",
+      "pain": "Which VLM benchmark, and is my VLM actually seeing?",
+      "tafagent_mode": "📈 Saturation (covers MMMU/MMMU-Pro/VisScience)",
+      "external_tools": [
+        {"name": "MMMU benchmark", "url": "https://mmmu-benchmark.github.io/", "type": "leaderboard"},
+        {"name": "VisScience (K-12 science)", "url": "https://arxiv.org/abs/2409.13730", "type": "paper"},
+        {"name": "VLM survey 2025", "url": "https://arxiv.org/abs/2501.02189", "type": "paper"}
+      ],
+      "best_for": "MMMU near-saturated (top-3 ~85.6%); VisScience still discriminative (~46% mean) — pick the harder one.",
+      "not_for": "Visual hallucination detection — needs running the VLM with your images."
+    },
+    {
+      "id": "agent_observability",
+      "category": "observability",
+      "pain": "Why did my agent fail / loop? Can't tell from logs.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "LangSmith (LangChain ecosystem)", "url": "https://www.langchain.com/langsmith/observability", "type": "tool"},
+        {"name": "LangGraph Studio v2 (May 2025)", "url": "https://www.langchain.com/", "type": "tool"},
+        {"name": "TruLens (RAG + agent traces)", "url": "https://www.trulens.org/", "type": "tool"},
+        {"name": "OpenLLMetry — OTLP-based tracing", "url": "https://github.com/traceloop/openllmetry", "type": "tool"}
+      ],
+      "best_for": "Visual trace viewer per LLM call / tool invocation / retrieval step. Token + cost tracking.",
+      "not_for": "Browser-only — all need integration into your stack."
+    },
+    {
+      "id": "instruction_following",
+      "category": "observability",
+      "pain": "Best agentic models follow <30% of instructions perfectly on real-world tasks.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "AGENTIF benchmark", "url": "https://keg.cs.tsinghua.edu.cn/persons/xubin/papers/AgentIF.pdf", "type": "paper"},
+        {"name": "Tool output processing benchmark", "url": "https://arxiv.org/html/2510.15955v1", "type": "paper"}
+      ],
+      "best_for": "Calibrating expectations — performance falls with instruction length and tool constraints.",
+      "not_for": "Live testing — needs running the agent on your task suite."
+    },
+    {
+      "id": "saturation_meta_resources",
+      "category": "eval_reliability",
+      "pain": "I want to read the full state of LLM evaluation 2026.",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "Survey: A Survey on LLM Benchmarks (2508.15361)", "url": "https://arxiv.org/abs/2508.15361", "type": "paper"},
+        {"name": "Survey: LLMs-as-Judges (2412.05579)", "url": "https://arxiv.org/abs/2412.05579", "type": "paper"},
+        {"name": "Holistic Evaluation of Language Models (HELM)", "url": "https://crfm.stanford.edu/helm/latest/", "type": "tool"},
+        {"name": "Open LLM Leaderboard v3", "url": "https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard", "type": "leaderboard"}
+      ],
+      "best_for": "Comprehensive context on contamination, judge bias, saturation, methodology open problems.",
+      "not_for": "Quick decisions — these are surveys, not tools."
+    },
+    {
+      "id": "config_inspector",
+      "category": "diagnostic",
+      "pain": "What's actually in this model's config.json?",
+      "tafagent_mode": "🔍 Inspect config",
+      "external_tools": [
+        {"name": "LLM Config Comparer", "url": "https://huggingface.co/spaces/gojiteji/LLM-Comparer", "type": "tool"},
+        {"name": "HF Hub model card / config viewer", "url": "https://huggingface.co/", "type": "tool"}
+      ],
+      "best_for": "Paste config JSON → full TAF analysis without re-fetching.",
+      "not_for": "Comparing across N models — use 🆚 Compare or open-llm-leaderboard/comparator."
+    },
+    {
+      "id": "compare_models",
+      "category": "diagnostic",
+      "pain": "Side-by-side comparison of multiple models on multiple recipes.",
+      "tafagent_mode": "🆚 Compare models",
+      "external_tools": [
+        {"name": "Open LLM Leaderboard Comparator (HF official)", "url": "https://huggingface.co/spaces/open-llm-leaderboard/comparator", "type": "tool"}
+      ],
+      "best_for": "Quick recipe-by-recipe comparison up to 5 models.",
+      "not_for": "Production benchmark scores — use the HF comparator for benchmark results."
+    },
+    {
+      "id": "ask_plain_english",
+      "category": "diagnostic",
+      "pain": "I just want to ask a question in plain English.",
+      "tafagent_mode": "💬 Ask plain English",
+      "external_tools": [],
+      "best_for": "'Will Mistral-7B handle 16K NIAH retrieval?' → answer with the right recipe + chain.",
+      "not_for": "Open-ended chat — this is a routing front-end, not a chatbot."
+    },
+    {
+      "id": "recipe_picker",
+      "category": "diagnostic",
+      "pain": "I know my use case but not which recipe to apply.",
+      "tafagent_mode": "📋 Pick recipe",
+      "external_tools": [],
+      "best_for": "Browsing the 8 recipes (custom train vs API · long context · budget · hardware · etc.) when you don't know which fits.",
+      "not_for": "Running all of them at once — use Profile mode."
+    },
+    {
+      "id": "verified_math",
+      "category": "diagnostic",
+      "pain": "Can I trust the math behind the diagnostic?",
+      "tafagent_mode": null,
+      "external_tools": [
+        {"name": "Lean theorems (Triangulum/karlesmarin/lean-taf)", "url": "https://github.com/karlesmarin/lean-taf", "type": "spec"},
+        {"name": "TAF paper (NeurIPS)", "url": "https://github.com/karlesmarin/NeurIPS", "type": "paper"}
+      ],
+      "best_for": "37 theorems machine-proven in Lean 4 + Mathlib. Click any badge in the UI to open the source line.",
+      "not_for": "Empirical claims — Lean covers algebraic identities, not measurement protocols."
+    }
+  ]
+}

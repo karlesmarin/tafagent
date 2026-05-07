@@ -23,6 +23,10 @@ import {
   loadSaturationKB, classifyAll, classifyBenchmark,
   listBenchmarks, attribution as saturationAttribution, tryFetchLive,
 } from "./saturation_detector.js";
+import {
+  loadHub, listCategories, listEntries, searchEntries,
+  hubStats, getCategoryMeta,
+} from "./solutions_hub.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -212,6 +216,7 @@ document.addEventListener("click", (e) => {
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
+      hub: "hub-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -236,7 +241,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section"].forEach(id => {
+     "saturation-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -248,12 +253,14 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
+      hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
     $("mode-desc").textContent = t(`mode_desc.${mode}`) || "";
     if (mode === "phase") initPhaseDiagram();
     if (mode === "saturation") initSaturation();
+    if (mode === "hub") initHub();
   });
 });
 
@@ -3276,6 +3283,106 @@ function runSaturationAll() {
 
 $("saturation-run-btn")?.addEventListener("click", runSaturationOne);
 $("saturation-all-btn")?.addEventListener("click", runSaturationAll);
+
+// ════════════════════════════════════════════════════════════════════
+// 🧭 Solutions Hub (v0.8.1) — integrator portal
+// ════════════════════════════════════════════════════════════════════
+const HUB_TYPE_BADGE = {
+  tool: "🔧",
+  leaderboard: "📊",
+  paper: "📄",
+  article: "📝",
+  docs: "📘",
+  issue: "🐛",
+  spec: "📐",
+  benchmark: "🧪",
+};
+
+let __hubInited = false;
+
+async function initHub() {
+  if (__hubInited) return;
+  __hubInited = true;
+  try {
+    await loadHub();
+  } catch (e) {
+    $("hub-status").textContent = (t("hub.status.fail") || "⚠ Could not load Solutions Hub.") + " " + (e.message || e);
+    return;
+  }
+  const stats = hubStats();
+  $("hub-status").textContent = tFmt("hub.status.loaded", stats);
+  renderHubAll();
+}
+
+function renderEntry(e) {
+  const modeBadge = e.tafagent_mode
+    ? `<span class="badge" style="background:#3fb950;">${e.tafagent_mode}</span>`
+    : (e.tafagent_planned_mode
+        ? `<span class="badge" style="background:#d29922;">${t("hub.planned") || "planned:"} ${e.tafagent_planned_mode}</span>`
+        : `<span class="badge" style="background:#6e7781;">${t("hub.no_mode") || "external"}</span>`);
+  const tools = (e.external_tools || [])
+    .map(tl => {
+      const icon = HUB_TYPE_BADGE[tl.type] || "🔗";
+      return `<li>${icon} <a href="${tl.url}" target="_blank" rel="noopener noreferrer">${tl.name}</a> <span class="subtle" style="font-size:0.82em;">(${tl.type})</span></li>`;
+    })
+    .join("");
+  const bestFor = e.best_for ? `<p><strong>${t("hub.best_for") || "Best for"}:</strong> ${e.best_for}</p>` : "";
+  const notFor = e.not_for ? `<p><strong>${t("hub.not_for") || "Not for"}:</strong> ${e.not_for}</p>` : "";
+  return `
+    <details class="unmask-panel" style="margin: 0.5em 0;">
+      <summary class="unmask-panel-title">${e.pain} ${modeBadge}</summary>
+      ${bestFor}
+      ${notFor}
+      ${tools ? `<p><strong>${t("hub.tools") || "External tools"}:</strong></p><ul>${tools}</ul>` : ""}
+    </details>
+  `;
+}
+
+function renderHubAll() {
+  const cats = listCategories();
+  const html = cats.map(c => {
+    const entries = listEntries(c.key);
+    if (entries.length === 0) return "";
+    const inner = entries.map(renderEntry).join("");
+    return `
+      <details class="unmask-panel" open style="margin-top: 1em;">
+        <summary class="unmask-panel-title" style="font-size:1.05em;">
+          ${c.icon} ${c.label} <span class="subtle" style="font-size:0.85em;">(${c.count})</span>
+        </summary>
+        <p class="recipe-desc" style="font-style:italic;">${c.description}</p>
+        ${inner}
+      </details>
+    `;
+  }).join("");
+  $("hub-output").innerHTML = `<div class="arena-result">${html}</div>`;
+}
+
+function renderHubSearch(query) {
+  const matches = searchEntries(query);
+  if (matches.length === 0) {
+    $("hub-output").innerHTML = `<p class="recipe-desc">${tFmt("hub.search.empty", { query })}</p>`;
+    return;
+  }
+  const html = matches.map(renderEntry).join("");
+  $("hub-output").innerHTML = `<div class="arena-result">
+    <p class="recipe-desc">${tFmt("hub.search.results", { n: matches.length, query })}</p>
+    ${html}
+  </div>`;
+}
+
+let __hubSearchTimer = null;
+$("hub-search")?.addEventListener("input", (e) => {
+  clearTimeout(__hubSearchTimer);
+  const q = e.target.value;
+  __hubSearchTimer = setTimeout(() => {
+    if (!q.trim()) renderHubAll();
+    else renderHubSearch(q);
+  }, 200);
+});
+$("hub-clear-btn")?.addEventListener("click", () => {
+  $("hub-search").value = "";
+  renderHubAll();
+});
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap
