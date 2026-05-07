@@ -32,13 +32,23 @@
 // the UI doesn't hang on gated/private/missing models.
 
 const HF_BASE = "https://huggingface.co";
-const FETCH_TIMEOUT_MS = 8000;
+// 15s timeout — Llama-3.x tokenizer.json is ~17 MB via LFS-CDN and the
+// fetch can take 3-8s on first hit (cold cache). 8s was too tight.
+const FETCH_TIMEOUT_MS = 15000;
 
 async function fetchHfJson(modelId, fileName) {
   if (typeof modelId !== "string" || !modelId.trim()) {
     return { ok: false, error: "missing_model_id" };
   }
-  const url = `${HF_BASE}/${encodeURI(modelId.trim())}/raw/main/${fileName}`;
+  // Use `/resolve/main/` (NOT `/raw/main/`) so we get the actual content
+  // for LFS-tracked artifacts. Llama-3.x tokenizer.json is ~17 MB and
+  // stored via Git-LFS — `/raw/main/` returns the LFS POINTER text
+  // ("version https://git-lfs.github.com/spec/v1\noid sha256:..."),
+  // which JSON.parse rejects, leaving the linter with empty vocabs and
+  // a silent false-fail. `/resolve/main/` redirects through HF's CDN
+  // for LFS files and serves small files (config.json) unchanged. CORS
+  // is granted for both via Access-Control-Allow-Origin headers.
+  const url = `${HF_BASE}/${encodeURI(modelId.trim())}/resolve/main/${fileName}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
