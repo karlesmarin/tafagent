@@ -31,6 +31,10 @@ import { lintJsonCot, reorderJsonText, classifyFieldName } from "./json_cot_lint
 import { lintPeftCode, ARCH_TARGET_MODULES } from "./peft_anti_pattern.js";
 import { diffPromptCache, PROVIDERS as CACHE_PROVIDERS } from "./prompt_cache_diff.js";
 import { checkCompatibility as specCheckCompat, parseParamHint } from "./spec_decode_compat.js";
+import {
+  tokenizeAll, detectLanguageBlocks,
+  PRESET_TOKENIZERS as TAX_PRESETS, SAMPLE_TEXTS as TAX_SAMPLES,
+} from "./tokenizer_tax.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -224,6 +228,7 @@ document.addEventListener("click", (e) => {
       peft: "peft-section",
       cache: "cache-section",
       speculative: "speculative-section",
+      tax: "tax-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -249,7 +254,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -265,6 +270,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       peft: "peft-section",
       cache: "cache-section",
       speculative: "speculative-section",
+      tax: "tax-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -276,6 +282,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "peft") initPeft();
     if (mode === "cache") initCacheDiff();
     if (mode === "speculative") initSpeculative();
+    if (mode === "tax") initTax();
     if (mode === "hub") initHub();
   });
 });
@@ -4247,6 +4254,161 @@ $("spec-example-bad-btn")?.addEventListener("click", () => {
 
 // (HF autocomplete on spec-target-id / spec-draft-id is registered via
 // the known-id list in hf_autocomplete.js; no extra wiring needed here.)
+
+// ════════════════════════════════════════════════════════════════════
+// 🌍 Multilingual Tokenizer Tax (v0.8.7 anti-bullshit pack #13)
+// ════════════════════════════════════════════════════════════════════
+let __taxInited = false;
+
+function initTax() {
+  if (__taxInited) return;
+  __taxInited = true;
+  // No async preload — transformers.js + tokenizer.json are lazy-loaded
+  // on the first Tokenize click so users don't pay download cost just
+  // for opening the tab. Status string explains the wait.
+}
+
+function fmtBlocks(blocks) {
+  // Build a compact "60% latin · 35% cjk · 5% other" string from the
+  // detector output. Drops zero-counts and orders by descending size.
+  if (!blocks || !blocks.blocks || !blocks.total_chars) return "";
+  const total = blocks.total_chars;
+  const entries = Object.entries(blocks.blocks)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) return "";
+  const parts = entries.map(([name, n]) => {
+    const pct = Math.round((n / total) * 100);
+    return `${pct}% ${name}`;
+  });
+  return parts.join(" · ");
+}
+
+function renderTaxResult(res, presetMeta) {
+  if (res.code === "empty_input") {
+    return `<div class="arena-result"><p>${t("tax.hint.empty") || "Paste some text and click Tokenize."}</p></div>`;
+  }
+  if (res.code === "all_failed") {
+    const errLines = res.results.map(r => {
+      const meta = presetMeta.find(p => p.id === r.modelId);
+      return `<li><code>${escapeHtml(r.modelId)}</code> ${meta ? `<span class="subtle">(${escapeHtml(meta.label)})</span>` : ""}: ${t(`tax.error.${r.error}`) || r.error}</li>`;
+    }).join("");
+    return `<div class="arena-result"><p style="color:#f85149;"><strong>❌ ${t("tax.all_failed") || "All tokenizers failed to load."}</strong></p><ul>${errLines}</ul></div>`;
+  }
+
+  const baselineCount = res.baseline_count;
+  const blocks = detectLanguageBlocks($("tax-input").value);
+  const ratioColor = (r) => {
+    if (r == null) return "#8b949e";
+    if (r >= 1.5)  return "#f85149";          // big tax — red
+    if (r >= 1.15) return "#f0883e";          // moderate
+    if (r >= 0.85) return "#3fb950";          // about same
+    return "#58a6ff";                         // BETTER than baseline (rare)
+  };
+  const fmtRatio = (r) => r == null ? "—" : `${r.toFixed(2)}×`;
+
+  const rows = res.results.map(r => {
+    const meta = presetMeta.find(p => p.id === r.modelId) || { label: r.modelId, family: "" };
+    if (!r.ok) {
+      return `<tr style="opacity:0.5;">
+        <td><strong>${escapeHtml(meta.label)}</strong><br><span class="subtle" style="font-size:0.8em;">${escapeHtml(meta.family)}</span></td>
+        <td colspan="3" style="color:#f0883e;">${t(`tax.error.${r.error}`) || r.error}</td>
+      </tr>`;
+    }
+    const isBaseline = r.modelId === res.baseline_id;
+    const baselineMark = isBaseline ? `<span class="subtle" style="font-size:0.8em;"> (baseline)</span>` : "";
+    return `<tr ${isBaseline ? 'style="background:#1f2933;"' : ""}>
+      <td><strong>${escapeHtml(meta.label)}</strong>${baselineMark}<br><span class="subtle" style="font-size:0.8em;">${escapeHtml(meta.family)}</span></td>
+      <td style="text-align:right;font-family:monospace;"><strong>${r.token_count.toLocaleString()}</strong></td>
+      <td style="text-align:right;font-family:monospace;">${r.chars_per_token != null ? r.chars_per_token.toFixed(2) : "—"}</td>
+      <td style="text-align:right;font-family:monospace;color:${ratioColor(r.ratio_vs_baseline)};"><strong>${fmtRatio(r.ratio_vs_baseline)}</strong></td>
+    </tr>`;
+  }).join("");
+
+  // Worst-tax explanation — find the tokenizer that scored ≥1.5× baseline.
+  const worst = res.results
+    .filter(r => r.ok && r.ratio_vs_baseline != null)
+    .sort((a, b) => b.ratio_vs_baseline - a.ratio_vs_baseline)[0];
+  let interpretation = "";
+  if (worst && worst.ratio_vs_baseline >= 1.3) {
+    const meta = presetMeta.find(p => p.id === worst.modelId);
+    const pct = Math.round((worst.ratio_vs_baseline - 1) * 100);
+    interpretation = `<p style="color:#f0883e;margin-top:0.5em;">⚠ <strong>${tFmt("tax.interp.worst", {
+      label: meta?.label || worst.modelId,
+      pct,
+    }) || `${meta?.label || worst.modelId} costs ${pct}% more tokens than baseline for this text.`}</strong></p>`;
+  } else if (worst && worst.ratio_vs_baseline <= 1.05) {
+    interpretation = `<p style="color:#3fb950;margin-top:0.5em;">${t("tax.interp.uniform") || "✓ All tokenizers within ±5% — text is well-handled across vendors."}</p>`;
+  }
+
+  return `<div class="arena-result">
+    <p>
+      <strong>${tFmt("tax.summary.input", { chars: res.chars.toLocaleString(), bytes: res.bytes.toLocaleString() }) || `Input: ${res.chars.toLocaleString()} chars, ${res.bytes.toLocaleString()} bytes`}</strong>
+      ${blocks.dominant ? `<span class="subtle"> · ${t("tax.script_breakdown") || "scripts"}: ${fmtBlocks(blocks)}</span>` : ""}
+    </p>
+    ${interpretation}
+    <table class="lean-table" style="margin-top:0.5em;width:100%;">
+      <thead><tr>
+        <th style="text-align:left;">${t("tax.col.tokenizer") || "Tokenizer"}</th>
+        <th style="text-align:right;">${t("tax.col.tokens") || "Tokens"}</th>
+        <th style="text-align:right;">${t("tax.col.cpt") || "Chars/tok"}</th>
+        <th style="text-align:right;">${t("tax.col.ratio") || "Ratio"}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+      ${t("tax.attribution") || "Tokenizers via"}
+      <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener noreferrer">@huggingface/transformers</a>
+      (browser BPE runtime).
+      ${t("tax.attribution.privacy") || "Text is tokenized locally — never leaves the browser."}
+    </p>
+  </div>`;
+}
+
+async function runTaxTokenize() {
+  const text = $("tax-input")?.value || "";
+  if (!text) {
+    $("tax-status").textContent = t("tax.hint.empty") || "⚠ Paste some text first.";
+    return;
+  }
+  $("tax-status").textContent = t("tax.status.loading") || "⏳ Loading transformers.js + tokenizers (first run can take 5-15s)…";
+  $("tax-output").innerHTML = "";
+  const ids = TAX_PRESETS.map(p => p.id);
+  try {
+    const t0 = Date.now();
+    const res = await tokenizeAll(ids, text);
+    const ms = Date.now() - t0;
+    $("tax-output").innerHTML = renderTaxResult(res, TAX_PRESETS);
+    const okN = res.results.filter(r => r.ok).length;
+    $("tax-status").textContent = tFmt("tax.status.done", {
+      n: okN, total: ids.length, ms,
+    }) || `✅ ${okN}/${ids.length} tokenizers ran in ${ms}ms`;
+  } catch (e) {
+    $("tax-status").textContent = `❌ ${e.message || e}`;
+  }
+}
+
+$("tax-tokenize-btn")?.addEventListener("click", runTaxTokenize);
+$("tax-sample-en-btn")?.addEventListener("click", () => {
+  $("tax-input").value = TAX_SAMPLES.english;
+  runTaxTokenize();
+});
+$("tax-sample-zh-btn")?.addEventListener("click", () => {
+  $("tax-input").value = TAX_SAMPLES.chinese;
+  runTaxTokenize();
+});
+$("tax-sample-ar-btn")?.addEventListener("click", () => {
+  $("tax-input").value = TAX_SAMPLES.arabic;
+  runTaxTokenize();
+});
+$("tax-sample-mixed-btn")?.addEventListener("click", () => {
+  $("tax-input").value = TAX_SAMPLES.mixed;
+  runTaxTokenize();
+});
+$("tax-sample-code-btn")?.addEventListener("click", () => {
+  $("tax-input").value = TAX_SAMPLES.code;
+  runTaxTokenize();
+});
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap
