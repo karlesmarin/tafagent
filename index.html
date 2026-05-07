@@ -213,6 +213,9 @@
       <p><strong data-i18n="help.v07.niah.title">🔍 NIAH → Reasoning Gap</strong></p>
       <p data-i18n="help.v07.niah.body">RULER paper (NVIDIA 2024) shows that long-context models often pass NIAH (needle retrieval) but fail multi-hop reasoning at the same context. Tool predicts both pass rates from architecture (γ_Padé + d_horizon + arch pressure: small d_head, GQA, SWA), reports the gap, and finds your model's "safe reasoning context" where reasoning stays ≥65%. Sweep mode shows the curve across 1k/4k/16k/64k/T_train. <em>Use case</em>: before deploying at the claimed context, find out whether the model will actually reason there or just retrieve.</p>
 
+      <p><strong data-i18n="help.v08.saturation.title">📈 Benchmark Saturation Detector</strong></p>
+      <p data-i18n="help.v08.saturation.body">MMLU is saturated (top 88-94%), AIME 2025 saturated within months of release, HumanEval near-saturated. Pick any benchmark and the tool returns top-3 frontier scores, spread, mean, and a verdict — saturated / near-saturated / discriminative — plus a recommended replacement (e.g. MMLU → MMLU-Pro / GPQA / HLE). Live fetch from DemandSphere AI Frontier Tracker (CC BY-NC 4.0) when reachable; baked 2026-05-05 snapshot when not. <em>Use case</em>: before you cite '92% on MMLU' or design an eval, check whether the benchmark still discriminates anything.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -321,6 +324,7 @@
             <li data-i18n="inv.v07.quant"><strong>⚖️ Quant</strong> — predict γ shift + ΔPPL for any (model × quant scheme) combo</li>
             <li data-i18n="inv.v07.drift"><strong>🔀 Drift</strong> — bug or noise? Predict max admissible gap between two evals</li>
             <li data-i18n="inv.v07.niah"><strong>🔍 NIAH→Reason</strong> — does your "128k context" actually reason there, or just retrieve?</li>
+            <li data-i18n="inv.v08.saturation"><strong>📈 Saturation</strong> — is your benchmark still useful, or are all frontier models tied at the top?</li>
           </ul>
         </details>
       </div>
@@ -378,6 +382,7 @@
             <button data-mode-link="contam" data-i18n="modes.contam">🧪 Contamination</button>
             <button data-mode-link="drift" data-i18n="modes.drift">🔀 Drift</button>
             <button data-mode-link="arena" data-i18n="modes.arena">🎯 Arena CI</button>
+            <button data-mode-link="saturation" data-i18n="modes.saturation">📈 Saturation</button>
           </div>
         </div>
         <div class="task-tile">
@@ -444,6 +449,7 @@
         <button class="mode-btn" data-mode="quant" role="tab" aria-selected="false" data-i18n="modes.quant">⚖️ Quant</button>
         <button class="mode-btn" data-mode="drift" role="tab" aria-selected="false" data-i18n="modes.drift">🔀 Drift</button>
         <button class="mode-btn" data-mode="niah" role="tab" aria-selected="false" data-i18n="modes.niah">🔍 NIAH→Reason</button>
+        <button class="mode-btn" data-mode="saturation" role="tab" aria-selected="false" data-i18n="modes.saturation">📈 Saturation</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -966,6 +972,29 @@
       </div>
       <p id="niah-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="niah-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Benchmark Saturation Detector (v0.8.0 anti-bullshit pack #6) -->
+    <section id="saturation-section" style="display:none;">
+      <h2><span data-i18n="saturation.title">📈 Benchmark Saturation Detector</span>
+        <span class="info"><span class="tooltip" data-i18n="saturation.tip">
+          MMLU is saturated (88-94% all frontier models). Reporting "92% on MMLU" is now meaningless. This tool tells you which benchmarks still discriminate frontier models, which are saturated, and what to use instead. Data: DemandSphere AI Frontier Tracker (CC BY-NC 4.0) refreshed 2026-05.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="saturation.desc">
+        <strong>Is your benchmark still useful?</strong> Pick a benchmark to see top-3 frontier scores, spread, and a verdict (saturated / near-saturated / discriminative) plus recommended replacements.
+      </p>
+      <div class="form-row">
+        <label for="saturation-select" data-i18n="saturation.select_label">Benchmark:</label>
+        <select id="saturation-select"></select>
+        <button type="button" id="saturation-run-btn" data-i18n="saturation.run_btn">📈 Classify</button>
+        <button type="button" id="saturation-all-btn" class="secondary" data-i18n="saturation.all_btn">📊 Show all</button>
+      </div>
+      <p id="saturation-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="saturation-output" style="margin-top: 1em;"></div>
+      <p class="subtle" style="font-size:0.82em; margin-top:1em;" data-i18n="saturation.attribution">
+        Data: DemandSphere AI Frontier Model Tracker (CC BY-NC 4.0) · HF Open LLM Leaderboard v3 (open-weight historical) · last fetch 2026-05-05.
+      </p>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

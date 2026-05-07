@@ -19,6 +19,10 @@ import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_reg
 import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
 import { predictNIAHReasoning, sweepContextLengths } from "./niah_reasoning.js";
+import {
+  loadSaturationKB, classifyAll, classifyBenchmark,
+  listBenchmarks, attribution as saturationAttribution, tryFetchLive,
+} from "./saturation_detector.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -207,6 +211,7 @@ document.addEventListener("click", (e) => {
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
+      saturation: "saturation-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -230,7 +235,8 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "profile-section", "compare-section", "inspector-section",
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
-     "quant-section", "drift-section", "niah-section"].forEach(id => {
+     "quant-section", "drift-section", "niah-section",
+     "saturation-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -241,11 +247,13 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
+      saturation: "saturation-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
     $("mode-desc").textContent = t(`mode_desc.${mode}`) || "";
     if (mode === "phase") initPhaseDiagram();
+    if (mode === "saturation") initSaturation();
   });
 });
 
@@ -3102,6 +3110,172 @@ document.addEventListener("DOMContentLoaded", () => {
 document.querySelectorAll(".lang-btn").forEach(btn => {
   btn.addEventListener("click", () => setLang(btn.dataset.lang));
 });
+
+// ════════════════════════════════════════════════════════════════════
+// 📈 Benchmark Saturation Detector (v0.8.0 anti-bullshit pack #6)
+// ════════════════════════════════════════════════════════════════════
+const SATURATION_VERDICT_COLOR = {
+  saturated: "#f85149",
+  near_saturated: "#d29922",
+  discriminative: "#3fb950",
+  sparse_data: "#8b949e",
+  unknown_benchmark: "#8b949e",
+};
+
+let __saturationInited = false;
+
+async function initSaturation() {
+  if (__saturationInited) return;
+  __saturationInited = true;
+  try {
+    await loadSaturationKB();
+  } catch (e) {
+    $("saturation-status").textContent = (t("saturation.status.kb_fail") || "⚠ Could not load saturation KB.") + " " + (e.message || e);
+    return;
+  }
+  const sel = $("saturation-select");
+  if (sel) {
+    sel.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = "__all__";
+    allOpt.textContent = t("saturation.select.all") || "— show all benchmarks —";
+    sel.appendChild(allOpt);
+    listBenchmarks().forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+  // Try live fetch in the background; results that come back update _liveData.
+  // If CORS / network fails the tool transparently uses the baked snapshot.
+  tryFetchLive().then(live => {
+    if (live) {
+      $("saturation-status").textContent = tFmt("saturation.status.live", { count: live.model_count || (live.models?.length ?? 0) });
+    } else {
+      $("saturation-status").textContent = t("saturation.status.baked") || "ℹ Using baked snapshot (live fetch unavailable).";
+    }
+  });
+}
+
+function renderSaturationCard(result) {
+  if (result.code === "unknown_benchmark") {
+    return `<div class="recipe-desc">${t("saturation.unknown") || "Unknown benchmark."}</div>`;
+  }
+  const color = SATURATION_VERDICT_COLOR[result.code] || "#8b949e";
+  const verdictLabel = t(`saturation.verdict.${result.code}`) || result.code;
+  const top3Rows = (result.top3 || [])
+    .filter(x => typeof x.score === "number")
+    .map((x, i) => `<tr><td>${i + 1}</td><td>${x.model}</td><td class="arena-elo">${x.score.toFixed(1)}</td></tr>`)
+    .join("");
+  const recoItems = (result.recommendations || [])
+    .map(r => `<li>${r}</li>`)
+    .join("");
+  const borderlineNote = result.borderline
+    ? `<p class="recipe-desc" style="color:#d29922; font-size:0.9em;">⚠ ${t("saturation.borderline") || "Borderline — within ±1pp of a threshold cutoff. Treat verdict as 'check carefully'."}</p>`
+    : "";
+  const sourceTag = result.source === "live"
+    ? `<span class="badge" style="background:#0969da;">live</span>`
+    : (result.source === "baked_consensus"
+      ? `<span class="badge" style="background:#6e7781;">consensus</span>`
+      : `<span class="badge" style="background:#8b949e;">baked</span>`);
+  const spreadStr = result.params.spread != null ? `${result.params.spread.toFixed(1)} pp` : "n/a";
+  const meanStr = result.params.mean != null ? `${result.params.mean.toFixed(1)}%` : "n/a";
+
+  return `
+    <div class="arena-result">
+      <div class="unmask-hero" style="border-color: ${color};">
+        <div class="unmask-verdict" style="color: ${color};">${result.params.name} — ${verdictLabel} ${sourceTag}</div>
+        <div class="unmask-num-grid">
+          <div><span class="unmask-num-label">${t("saturation.col.spread") || "Top-3 spread"}</span><span class="unmask-num-val">${spreadStr}</span></div>
+          <div><span class="unmask-num-label">${t("saturation.col.mean") || "Top-3 mean"}</span><span class="unmask-num-val">${meanStr}</span></div>
+          <div><span class="unmask-num-label">${t("saturation.col.n") || "Models"}</span><span class="unmask-num-val">${result.params.n || 0}</span></div>
+        </div>
+      </div>
+      ${borderlineNote}
+      <div class="unmask-details">
+        ${top3Rows ? `<details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("saturation.section.top3") || "Top-3 frontier scores"}</summary>
+          <table class="arena-table">
+            <thead><tr>
+              <th>#</th>
+              <th>${t("saturation.col.model") || "Model"}</th>
+              <th>${t("saturation.col.score") || "Score"}</th>
+            </tr></thead>
+            <tbody>${top3Rows}</tbody>
+          </table>
+        </details>` : ""}
+        ${recoItems ? `<details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("saturation.section.recommendations") || "Recommended alternatives"}</summary>
+          <ul>${recoItems}</ul>
+        </details>` : ""}
+        ${result.note ? `<details class="unmask-panel">
+          <summary class="unmask-panel-title">${t("saturation.section.note") || "Notes"}</summary>
+          <p class="recipe-desc">${result.note}</p>
+        </details>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderSaturationAll(results) {
+  const rows = results.map(r => {
+    if (r.code === "unknown_benchmark") return "";
+    const color = SATURATION_VERDICT_COLOR[r.code] || "#8b949e";
+    const verdictLabel = t(`saturation.verdict.${r.code}`) || r.code;
+    const spread = r.params.spread != null ? r.params.spread.toFixed(1) + " pp" : "—";
+    const mean = r.params.mean != null ? r.params.mean.toFixed(1) + "%" : "—";
+    const reco = (r.recommendations || []).slice(0, 2).join(", ") || "—";
+    const borderlineMark = r.borderline ? " ⚠" : "";
+    return `<tr>
+      <td><strong>${r.params.name}</strong></td>
+      <td>${spread}</td>
+      <td>${mean}</td>
+      <td style="color:${color};"><strong>${verdictLabel}${borderlineMark}</strong></td>
+      <td>${reco}</td>
+    </tr>`;
+  }).join("");
+  return `
+    <div class="arena-result">
+      <div class="unmask-details">
+        <details class="unmask-panel" open>
+          <summary class="unmask-panel-title">${t("saturation.section.all") || "All tracked benchmarks"}</summary>
+          <table class="arena-table">
+            <thead><tr>
+              <th>${t("saturation.col.bench") || "Benchmark"}</th>
+              <th>${t("saturation.col.spread") || "Spread"}</th>
+              <th>${t("saturation.col.mean") || "Mean"}</th>
+              <th>${t("saturation.col.verdict") || "Verdict"}</th>
+              <th>${t("saturation.col.reco") || "Top reco"}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  `;
+}
+
+function runSaturationOne() {
+  const sel = $("saturation-select");
+  const name = sel?.value;
+  if (!name || name === "__all__") { runSaturationAll(); return; }
+  const result = classifyBenchmark(name);
+  $("saturation-output").innerHTML = renderSaturationCard(result);
+  $("saturation-status").textContent = tFmt("saturation.status.done", {
+    name,
+    verdict: t(`saturation.verdict.${result.code}`) || result.code,
+  });
+}
+
+function runSaturationAll() {
+  const results = classifyAll();
+  $("saturation-output").innerHTML = renderSaturationAll(results);
+  $("saturation-status").textContent = tFmt("saturation.status.all_done", { n: results.length });
+}
+
+$("saturation-run-btn")?.addEventListener("click", runSaturationOne);
+$("saturation-all-btn")?.addEventListener("click", runSaturationAll);
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap

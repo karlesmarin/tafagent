@@ -1,0 +1,285 @@
+{
+  "version": "0.8.0",
+  "fetched_at": "2026-05-05",
+  "compiled_at": "2026-05-07",
+  "primary_source": {
+    "name": "DemandSphere AI Frontier Model Tracker",
+    "url": "https://www.demandsphere.com/research/demandsphere-radar/ai-frontier-model-tracker/",
+    "api": "https://www.demandsphere.com/research/demandsphere-radar/ai-frontier-model-tracker/api.json",
+    "license": "CC BY-NC 4.0",
+    "attribution_required": true,
+    "model_count": 66,
+    "last_updated": "2026-05-05"
+  },
+  "secondary_sources": [
+    {
+      "name": "HuggingFace Open LLM Leaderboard v3",
+      "url": "https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard",
+      "use": "Open-weight historical baseline; dataset open-llm-leaderboard/contents (4580 models, 6 benchmarks)"
+    },
+    {
+      "name": "Public benchmark consensus (2026 community)",
+      "use": "MMLU/HellaSwag/GSM8K saturation status from survey arxiv 2508.15361 + multiple leaderboards"
+    }
+  ],
+  "classification_rule": {
+    "saturated": "top-3 spread ≤ 2pp AND mean(top-3) ≥ 90%",
+    "near_saturated": "top-3 spread ≤ 5pp AND mean(top-3) ≥ 80% (and not saturated)",
+    "discriminative": "top-3 spread > 5pp OR mean(top-3) < 80%",
+    "sparse_data": "fewer than 3 frontier models report this benchmark publicly"
+  },
+  "honest_disclaimer": "Threshold-sensitive: a benchmark with spread 5.0pp classifies as near_saturated; 5.1pp classifies as discriminative. Verdicts within ±1pp of cutoffs should be read as 'borderline'. Pre-registered validation 2026-05-07 against 7 benchmarks: 3 clean pass, 3 borderline, 1 falsified (AIME 2025 saturated faster than expected). Tool is descriptive of public scores at fetch date — not predictive of future. Always cross-check before strategic decisions.",
+  "benchmarks": {
+    "MMLU": {
+      "key": "mmlu",
+      "category": "general_knowledge",
+      "description": "Massive Multitask Language Understanding — 57 subjects, 4-way multiple choice.",
+      "year_introduced": 2020,
+      "top_3": [
+        {"model": "GPT-5.5", "score": 92.4},
+        {"model": "(other frontier models no longer report — DemandSphere lists N/A)", "score": null},
+        {"model": "(historically all 88-94% range)", "score": null}
+      ],
+      "spread_pp": null,
+      "mean_top3": null,
+      "classification": "saturated",
+      "classification_basis": "consensus + DemandSphere stopped tracking N/A for many frontier models, plus survey 2508.15361 confirms 88-94% top range cluster.",
+      "recommendations": ["MMLU-Pro", "GPQA Diamond", "HLE"],
+      "note": "MMLU was useful 2020-2023. By 2024 it stopped discriminating frontier models. Many leaderboards have dropped it. Use MMLU-Pro for general 7B-70B; GPQA/HLE for frontier."
+    },
+    "MMLU-Pro": {
+      "key": "mmlu_pro",
+      "category": "general_knowledge",
+      "description": "Harder, 10-way multiple choice version of MMLU. Reasoning-heavier.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "(top frontier 2026)", "score": 88.0, "approximate": true},
+        {"model": "(rank-2)", "score": 86.0, "approximate": true},
+        {"model": "(rank-3)", "score": 83.0, "approximate": true}
+      ],
+      "spread_pp": 5.0,
+      "mean_top3": 85.7,
+      "classification": "near_saturated",
+      "classification_basis": "Survey + leaderboard consensus 'near-saturated 83-90%' as of 2026.",
+      "recommendations": ["GPQA Diamond", "HLE", "ARC-AGI 2"],
+      "note": "Approximate top-3 — not in DemandSphere primary set. Confirm via HF Open LLM Leaderboard v3 for current numbers."
+    },
+    "GPQA-Diamond": {
+      "key": "gpqa",
+      "category": "scientific_reasoning",
+      "description": "Graduate-level Google-Proof Q&A — PhD-level science questions designed to be uncontaminable by web search.",
+      "year_introduced": 2023,
+      "top_3": [
+        {"model": "Claude Opus 4.7", "score": 94.2},
+        {"model": "DeepSeek V4 Pro", "score": 90.1},
+        {"model": "Qwen3.5", "score": 88.4}
+      ],
+      "spread_pp": 5.8,
+      "mean_top3": 90.9,
+      "classification": "discriminative",
+      "classification_basis": "spread 5.8pp > 5pp cutoff. Borderline near-saturated. Trend: tightening; will likely cross into near-saturated in 2026 H2.",
+      "recommendations": ["HLE", "ARC-AGI 2"],
+      "note": "Borderline. Still useful for 2026, but watch top-3 cluster — when spread drops below 3pp, switch up."
+    },
+    "SWE-bench-Verified": {
+      "key": "swe",
+      "category": "coding_agentic",
+      "description": "Real GitHub issues + tests. Agent must produce a patch that passes the project's tests.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "GPT-5.5", "score": 88.7},
+        {"model": "Claude Opus 4.7", "score": 87.6},
+        {"model": "Qwen3.6-Plus", "score": 78.8}
+      ],
+      "spread_pp": 9.9,
+      "mean_top3": 85.0,
+      "classification": "discriminative",
+      "classification_basis": "spread 9.9pp >> 5pp. Strong differentiation between top-2 and rank-3.",
+      "recommendations": ["SWE-bench-Verified (still useful)", "SWE-bench-Pro for harder split"],
+      "note": "Vendor self-report risk: many SWE-bench scores are vendor-published; cross-check with [SWE-bench Verified leaderboard](https://llm-stats.com/benchmarks/swe-bench-verified) which lists 89 self-reported vs 0 verified."
+    },
+    "HumanEval": {
+      "key": "he",
+      "category": "coding_basic",
+      "description": "164 Python programming problems with unit tests. Standard since 2021.",
+      "year_introduced": 2021,
+      "top_3": [
+        {"model": "xAI Grok 4.1", "score": 97.0},
+        {"model": "Claude Opus 4.6", "score": 96.0},
+        {"model": "Claude Opus 4.5", "score": 93.5}
+      ],
+      "spread_pp": 3.5,
+      "mean_top3": 95.5,
+      "classification": "near_saturated",
+      "classification_basis": "spread 3.5pp ≤ 5pp, mean ≥ 90%. Multiple frontier models 95%+.",
+      "recommendations": ["LiveCodeBench Pro", "SWE-bench Verified", "HumanEval+ (extended)"],
+      "note": "HumanEval has been considered effectively saturated since 2024. Heavy contamination risk: original problems are in many crawls."
+    },
+    "LiveCodeBench-Pro": {
+      "key": "lcb",
+      "category": "coding_contamination_resistant",
+      "description": "Continuously refreshed competitive programming problems — designed against contamination.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "DeepSeek V4 Pro", "score": 93.5},
+        {"model": "Claude Opus 4.6", "score": 76.0},
+        {"model": "(rank-3 sparse)", "score": null}
+      ],
+      "spread_pp": null,
+      "mean_top3": null,
+      "classification": "sparse_data",
+      "classification_basis": "Only 2 frontier models report in DemandSphere set. More data needed.",
+      "recommendations": ["Use this benchmark; few alternatives at this contamination resistance"],
+      "note": "Top-1 (DeepSeek V4 Pro 93.5) suspiciously high vs rank-2 (76.0) — possible chat-template or test-set version mismatch. Verify reproducibility before quoting."
+    },
+    "MATH": {
+      "key": "math",
+      "category": "math_reasoning",
+      "description": "Competition-style math problems (algebra, geometry, prealgebra, etc).",
+      "year_introduced": 2021,
+      "top_3": [
+        {"model": "o4-mini", "score": 97.4},
+        {"model": "o3", "score": 97.3},
+        {"model": "DeepSeek R1", "score": 97.3}
+      ],
+      "spread_pp": 0.1,
+      "mean_top3": 97.3,
+      "classification": "saturated",
+      "classification_basis": "spread 0.1pp ≤ 2pp, mean 97.3 ≥ 90%. Reasoning models cluster at top.",
+      "recommendations": ["AIME (was harder, now also saturating)", "PutnamBench", "FrontierMath", "Math Olympiad benchmarks"],
+      "note": "MATH was the harder math benchmark for years. Saturated by reasoning models in 2024-2025."
+    },
+    "AIME-2025": {
+      "key": "aime",
+      "category": "math_reasoning",
+      "description": "American Invitational Math Examination 2025 problems — 15 short-answer integer problems.",
+      "year_introduced": 2025,
+      "top_3": [
+        {"model": "GPT-5.4", "score": 100.0},
+        {"model": "Gemini 3.1 Flash Lite", "score": 99.7},
+        {"model": "Llama 4 Maverick", "score": 96.1}
+      ],
+      "spread_pp": 3.9,
+      "mean_top3": 98.6,
+      "classification": "near_saturated",
+      "classification_basis": "spread 3.9pp ≤ 5pp, mean 98.6 ≥ 90%. Frontier perfect or near-perfect.",
+      "recommendations": ["FrontierMath", "PutnamBench", "Math Olympiad 2026", "HLE"],
+      "note": "🚨 AIME 2025 saturated FASTER than expected (within ~6 months of release). This was the falsified pre-registered case in 2026-05-07 validation. Use as cautionary tale for any newly-released math bench."
+    },
+    "HLE": {
+      "key": "hle",
+      "category": "frontier_reasoning",
+      "description": "Humanity's Last Exam — designed by Center for AI Safety + Scale AI as the hardest standardized eval. Multidomain, expert-curated.",
+      "year_introduced": 2025,
+      "top_3": [
+        {"model": "Muse Spark", "score": 50.2},
+        {"model": "Gemini 3.1 Pro", "score": 41.0},
+        {"model": "DeepSeek V4 Pro", "score": 37.7}
+      ],
+      "spread_pp": 12.5,
+      "mean_top3": 43.0,
+      "classification": "discriminative",
+      "classification_basis": "spread 12.5pp >> 5pp, mean 43.0 << 80%. Top model only at 50% — large headroom.",
+      "recommendations": ["HLE is currently the strongest frontier discriminator. Use it."],
+      "note": "Released specifically to address saturation. As of 2026-05, no model has cracked 60%. Expected useful lifespan: 2-3 years."
+    },
+    "ARC-AGI-2": {
+      "key": "arc_agi_2",
+      "category": "abstract_reasoning",
+      "description": "Abstraction and Reasoning Corpus v2 — visual pattern puzzles designed against pretraining contamination.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "(top frontier 2026)", "score": 30.0, "approximate": true},
+        {"model": "(rank-2)", "score": 28.0, "approximate": true},
+        {"model": "(rank-3)", "score": 25.0, "approximate": true}
+      ],
+      "spread_pp": 5.0,
+      "mean_top3": 27.7,
+      "classification": "discriminative",
+      "classification_basis": "Mean << 80%. Massive headroom. (Approximate — not in DemandSphere primary set.)",
+      "recommendations": ["ARC-AGI 2 itself remains discriminative for years to come."],
+      "note": "Approximate scores — confirm via official ARC-AGI leaderboard. Tool should display 'approximate' badge."
+    },
+    "HellaSwag": {
+      "key": "hellaswag",
+      "category": "commonsense_reasoning",
+      "description": "Sentence-completion commonsense benchmark.",
+      "year_introduced": 2019,
+      "top_3": [
+        {"model": "(historically all 95%+)", "score": null}
+      ],
+      "spread_pp": null,
+      "mean_top3": null,
+      "classification": "saturated",
+      "classification_basis": "Saturated since 2023; most frontier leaderboards have dropped tracking it.",
+      "recommendations": ["WinoGrande-Hard", "BIG-Bench Hard (BBH)", "PIQA-extended"],
+      "note": "Useful only as a regression check on small models (<3B)."
+    },
+    "GSM8K": {
+      "key": "gsm8k",
+      "category": "math_grade_school",
+      "description": "Grade-school word problems requiring multi-step arithmetic.",
+      "year_introduced": 2021,
+      "top_3": [
+        {"model": "(historically all 95%+)", "score": null}
+      ],
+      "spread_pp": null,
+      "mean_top3": null,
+      "classification": "saturated",
+      "classification_basis": "Most frontier models 95%+ since 2024. Heavy contamination evidence.",
+      "recommendations": ["MATH (also saturating)", "AIME (now also saturated)", "FrontierMath"],
+      "note": "Contaminated. Top scores reflect memorization more than reasoning."
+    },
+    "MMMU": {
+      "key": "mmmu_vlm",
+      "category": "multimodal_reasoning",
+      "description": "Massive Multi-discipline Multimodal Understanding & Reasoning — expert-level cross-domain VLM benchmark.",
+      "year_introduced": 2023,
+      "top_3": [
+        {"model": "Qwen3.6 Plus", "score": 86.0},
+        {"model": "GPT-5.1", "score": 85.4},
+        {"model": "GPT-5.1 Instant", "score": 85.4}
+      ],
+      "spread_pp": 0.6,
+      "mean_top3": 85.6,
+      "classification": "near_saturated",
+      "classification_basis": "spread 0.6pp ≤ 2pp; mean 85.6% < 90% but ≥ 80% → near_saturated. Approaching human expert 88.6% (Apr 2026 data).",
+      "recommendations": ["MMMU-Pro", "VisScience", "ARC-AGI 2 (multimodal extension when available)"],
+      "note": "VLM-only. Source: llm-stats.com MMMU leaderboard 2026-04. Top models within 0.3pp of human expert performance — expect full saturation by 2026-Q4."
+    },
+    "MMMU-Pro": {
+      "key": "mmmu_pro",
+      "category": "multimodal_reasoning",
+      "description": "Harder MMMU variant with 10-way MC + augmented questions to resist contamination.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "GPT-5.4 Pro", "score": 94.0},
+        {"model": "Claude Mythos Preview", "score": 92.7},
+        {"model": "Gemini 3.1 Pro", "score": 83.9}
+      ],
+      "spread_pp": 10.1,
+      "mean_top3": 90.2,
+      "classification": "discriminative",
+      "classification_basis": "spread 10.1pp >> 5pp → discriminative. NOTE: alternate llm-stats reading (GPT-5.5 88.3 / Gemini 3.1 Pro 88.2 / Gemini 3 Flash 87.6) gives spread 0.7pp → near_saturated. Methodology variance is real.",
+      "recommendations": ["VisScience", "ARC-AGI 2", "(measure your own holdout)"],
+      "note": "Two public leaderboards disagree by ~6pp on top model — chat-template / sampling differences likely. Cross-check before quoting."
+    },
+    "VisScience": {
+      "key": "visscience",
+      "category": "multimodal_reasoning",
+      "description": "K-12 science multimodal benchmark — 3000 questions across math, physics, chemistry; 5 difficulty levels.",
+      "year_introduced": 2024,
+      "top_3": [
+        {"model": "Claude 3.5 Sonnet (math)", "score": 53.4},
+        {"model": "Gemini-1.5-Pro (chemistry)", "score": 47.0},
+        {"model": "GPT-4o (physics)", "score": 38.2}
+      ],
+      "spread_pp": 15.2,
+      "mean_top3": 46.2,
+      "classification": "discriminative",
+      "classification_basis": "spread 15.2pp >> 5pp; mean 46.2% << 80%. Massive headroom; subject-specific leaders differ. 25 MLLMs evaluated.",
+      "recommendations": ["VisScience itself remains discriminative for years."],
+      "note": "Top-3 here picks BEST model per subject (math/chem/physics). Composite leaderboard not published — subject splits more informative. Closed-source MLLMs generally outperform open-source."
+    }
+  }
+}
