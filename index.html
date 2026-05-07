@@ -219,6 +219,9 @@
       <p><strong data-i18n="help.v082.cot.title">📋 JSON CoT-aware Linter</strong></p>
       <p data-i18n="help.v082.cot.body">Constrained-decoding engines (llguidance, Outlines, SGLang grammars) emit JSON properties in the order your schema declares them. If you write <code>{ answer, reasoning }</code> the model commits to <code>answer</code> first and CoT collapses into post-hoc justification. Paste any schema (or example response) — the linter classifies each field as <em>reasoning</em>, <em>answer</em>, or <em>other</em>, flags the ordering, and emits a reordered fix you can copy back. <em>Use case</em>: 'My CoT prompt works in plaintext but degrades under JSON mode' → run linter, find the inverted order, fix.</p>
 
+      <p><strong data-i18n="help.v083.peft.title">🔧 PEFT Anti-Pattern Checker</strong></p>
+      <p data-i18n="help.v083.peft.body">PEFT's <code>get_peft_model(base, config)</code> creates a FRESH adapter — it does not load saved weights from a path. Users who paste tutorial code and try to resume from a checkpoint silently throw away their training. peft #2115 has the canonical bug report. This linter scans your training script for the pattern + 3 related issues (QLoRA ordering, target_modules/arch mismatch, lora_alpha ratio) and reports findings with line numbers and suggested fixes. <em>Use case</em>: before you launch a 10-hour LoRA fine-tune, paste your script — catch the silent bugs in 200ms.</p>
+
       <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
       <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
 
@@ -332,6 +335,7 @@
             <li data-i18n="inv.v07.niah"><strong>🔍 NIAH→Reason</strong> — does your "128k context" actually reason there, or just retrieve?</li>
             <li data-i18n="inv.v08.saturation"><strong>📈 Saturation</strong> — is your benchmark still useful, or are all frontier models tied at the top?</li>
             <li data-i18n="inv.v082.cot"><strong>📋 JSON CoT</strong> — lints structured-output schemas for the answer-before-reasoning anti-pattern that silently breaks Chain-of-Thought.</li>
+            <li data-i18n="inv.v083.peft"><strong>🔧 PEFT Lint</strong> — catches the silent <code>get_peft_model</code> base-load (peft #2115) + QLoRA order + target_modules / arch mismatch.</li>
             <li data-i18n="inv.v081.hub"><strong>🧭 Solutions Hub</strong> — every documented pain mapped to a tafagent mode or curated external tool. Don't reinvent — find.</li>
           </ul>
         </details>
@@ -404,6 +408,7 @@
             <button data-mode-link="template" data-i18n="modes.template">📜 Chat-template</button>
             <button data-mode-link="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
             <button data-mode-link="cot" data-i18n="modes.cot">📋 JSON CoT</button>
+            <button data-mode-link="peft" data-i18n="modes.peft">🔧 PEFT Lint</button>
           </div>
         </div>
         <div class="task-tile">
@@ -461,6 +466,7 @@
         <button class="mode-btn" data-mode="niah" role="tab" aria-selected="false" data-i18n="modes.niah">🔍 NIAH→Reason</button>
         <button class="mode-btn" data-mode="saturation" role="tab" aria-selected="false" data-i18n="modes.saturation">📈 Saturation</button>
         <button class="mode-btn" data-mode="cot" role="tab" aria-selected="false" data-i18n="modes.cot">📋 JSON CoT</button>
+        <button class="mode-btn" data-mode="peft" role="tab" aria-selected="false" data-i18n="modes.peft">🔧 PEFT Lint</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
@@ -1030,6 +1036,29 @@
       </div>
       <p id="cot-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="cot-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- PEFT Anti-Pattern Checker (mode=peft, v0.8.3 anti-bullshit pack #9) -->
+    <section id="peft-section" style="display:none;">
+      <h2><span data-i18n="peft.title">🔧 PEFT Anti-Pattern Checker</span>
+        <span class="info"><span class="tooltip" data-i18n="peft.tip">
+          <strong>Why this matters</strong>: <code>get_peft_model(base, config)</code> creates a FRESH adapter — it does NOT load saved weights. Users who want to resume from a checkpoint must call <code>PeftModel.from_pretrained(base, path)</code>. peft #2115 documents the silent base-model bug. This linter scans your training script for that pattern (and 3 others: QLoRA ordering, target_modules/arch mismatch, lora_alpha ratio).
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="peft.desc">
+        <strong>Don't burn 10 hours of training on a base model.</strong> Paste your PEFT setup code — the linter flags silent base-model loads, QLoRA ordering bugs, target_modules/arch mismatches, and lora_alpha conventions.
+      </p>
+      <div class="form-row">
+        <textarea id="peft-input" rows="14" style="width:100%;font-family:monospace;font-size:0.9em;" data-i18n-placeholder="peft.input.placeholder" placeholder="from peft import LoraConfig, get_peft_model&#10;base = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-3-8B')&#10;config = LoraConfig(r=16, lora_alpha=32, target_modules=['q_proj','v_proj'])&#10;model = get_peft_model(base, config)&#10;# resume from saved adapter:&#10;model.load_state_dict('./outputs/checkpoint-1000/adapter_model.bin')"></textarea>
+      </div>
+      <div class="form-row">
+        <button type="button" id="peft-lint-btn" data-i18n="peft.lint_btn">🔍 Lint</button>
+        <button type="button" id="peft-example-bug-btn" class="secondary" data-i18n="peft.example_bug_btn">↳ Example: silent base-load</button>
+        <button type="button" id="peft-example-qlora-btn" class="secondary" data-i18n="peft.example_qlora_btn">↳ Example: QLoRA order bug</button>
+        <button type="button" id="peft-example-clean-btn" class="secondary" data-i18n="peft.example_clean_btn">↳ Example: clean</button>
+      </div>
+      <p id="peft-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="peft-output" style="margin-top: 1em;"></div>
     </section>
 
     <section id="hub-section" style="display:none;">

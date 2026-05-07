@@ -222,15 +222,14 @@
       "id": "peft_loading",
       "category": "training",
       "pain": "`get_peft_model()` before `PeftModel.from_pretrained()` silently loads base model — LoRA weights ignored.",
-      "tafagent_mode": null,
+      "tafagent_mode": "🔧 PEFT Anti-Pattern Checker",
       "external_tools": [
         {"name": "HF PEFT troubleshooting (canonical)", "url": "https://huggingface.co/docs/peft/main/en/developer_guides/troubleshooting", "type": "docs"},
         {"name": "peft #2115 — original bug report", "url": "https://github.com/huggingface/peft/issues/2115", "type": "issue"},
         {"name": "PEFT get_layer_status() / get_model_status()", "url": "https://huggingface.co/docs/peft/main/en/package_reference/peft_model", "type": "docs"}
       ],
       "best_for": "If you suspect your LoRA isn't being applied, call `model.get_layer_status()` and check `active_adapters` is non-empty.",
-      "not_for": null,
-      "tafagent_planned_mode": "🔧 PEFT Anti-Pattern Checker (v0.8.2)"
+      "not_for": null
     },
     {
       "id": "intruder_dimensions",

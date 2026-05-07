@@ -28,6 +28,7 @@ import {
   hubStats, getCategoryMeta,
 } from "./solutions_hub.js";
 import { lintJsonCot, reorderJsonText, classifyFieldName } from "./json_cot_linter.js";
+import { lintPeftCode, ARCH_TARGET_MODULES } from "./peft_anti_pattern.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -218,6 +219,7 @@ document.addEventListener("click", (e) => {
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
       cot: "cot-section",
+      peft: "peft-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -243,7 +245,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -256,6 +258,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
       cot: "cot-section",
+      peft: "peft-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -264,6 +267,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "phase") initPhaseDiagram();
     if (mode === "saturation") initSaturation();
     if (mode === "cot") initCot();
+    if (mode === "peft") initPeft();
     if (mode === "hub") initHub();
   });
 });
@@ -3553,6 +3557,159 @@ $("cot-example-good-btn")?.addEventListener("click", () => {
 $("cot-example-bad-btn")?.addEventListener("click", () => {
   $("cot-input").value = COT_EXAMPLE_BAD;
   runCotLint();
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🔧 PEFT Anti-Pattern Checker (v0.8.3 anti-bullshit pack #9)
+// ════════════════════════════════════════════════════════════════════
+const PEFT_SEVERITY_BG = {
+  error:   "#f85149",
+  warning: "#d29922",
+  info:    "#58a6ff",
+};
+const PEFT_VERDICT_BG = {
+  errors_found:   "#f85149",
+  warnings_only:  "#d29922",
+  info_only:      "#58a6ff",
+  clean:          "#3fb950",
+  no_peft_calls:  "#8b949e",
+  empty_input:    "#8b949e",
+};
+
+let __peftInited = false;
+
+function initPeft() {
+  if (__peftInited) return;
+  __peftInited = true;
+  // No-op (no async data); placeholder kept for symmetry with other modes.
+}
+
+function renderPeftFinding(f) {
+  const sevBg = PEFT_SEVERITY_BG[f.severity] || "#8b949e";
+  const sevBadge = `<span class="badge" style="background:${sevBg};">${f.severity.toUpperCase()}</span>`;
+  const ruleLabel = t(`peft.rule.${f.rule}.label`) || f.rule;
+  const lineLabel = f.line != null
+    ? `<span class="subtle" style="font-size:0.85em;">${tFmt("peft.line", { n: f.line }) || `line ${f.line}`}</span>`
+    : "";
+  const explainer = t(`peft.rule.${f.rule}.explain`) || "";
+  const fixHint = t(`peft.rule.${f.rule}.fix`) || "";
+  // Per-rule rendering details
+  let detail = "";
+  if (f.rule === "silent_base_load") {
+    detail = `<p><code>${escapeHtml(f.params.checkpoint_hint)}</code> ${t("peft.detected_at_line") || "appears at line"} ${f.params.checkpoint_line}</p>
+              <p><strong>${t("peft.suggested_fix") || "Suggested:"}</strong> <code>${escapeHtml(f.params.fix)}</code></p>`;
+  } else if (f.rule === "qlora_order") {
+    detail = `<p>${tFmt("peft.qlora_order.detail", f.params) || `prepare_model_for_kbit_training (line ${f.params.prepare_line}) runs AFTER get_peft_model (line ${f.params.get_peft_model_line}). Reverse the order.`}</p>`;
+  } else if (f.rule === "target_modules_mismatch") {
+    detail = `
+      <p><strong>${t("peft.detected_arch") || "Detected arch"}:</strong> <code>${escapeHtml(f.params.detected_arch)}</code> ${t("peft.from_model_id") || "(from model id"} <code>${escapeHtml(f.params.detected_from)}</code>)</p>
+      <p><strong>${t("peft.your_modules") || "Your target_modules"}:</strong> <code>${escapeHtml(f.params.user_modules.join(", "))}</code></p>
+      <p><strong>${t("peft.expected_modules") || "Expected for this arch"}:</strong> <code>${escapeHtml(f.params.expected_modules.join(", "))}</code></p>
+      <p class="subtle" style="font-size:0.85em;">${tFmt("peft.match_ratio", f.params) || `${f.params.hits} of ${f.params.total} match.`}</p>
+    `;
+  } else if (f.rule === "alpha_not_2r") {
+    detail = `<p><code>r=${f.params.r}, lora_alpha=${f.params.lora_alpha}</code> → ${t("peft.ratio") || "ratio"} ${f.params.ratio}× (${t("peft.alpha.convention") || "convention is α=2r or α=r"})</p>`;
+  } else if (f.rule === "no_peft_calls") {
+    detail = `<p>${t("peft.no_peft_calls.detail") || "No get_peft_model / PeftModel.from_pretrained / LoraConfig calls detected. Paste a PEFT/LoRA setup snippet."}</p>`;
+  }
+  return `
+    <details open class="unmask-panel" style="margin: 0.5em 0;">
+      <summary class="unmask-panel-title">
+        ${sevBadge} <strong>${ruleLabel}</strong> ${lineLabel}
+      </summary>
+      ${explainer ? `<p>${explainer}</p>` : ""}
+      ${detail}
+      ${fixHint ? `<p class="recipe-desc" style="margin-top:0.5em;">${fixHint}</p>` : ""}
+    </details>
+  `;
+}
+
+function renderPeftResult(result) {
+  const verdict = t(`peft.verdict.${result.code}`) || result.code;
+  const verdictBg = PEFT_VERDICT_BG[result.code] || "#8b949e";
+  const verdictBadge = `<span class="badge" style="background:${verdictBg};">${verdict}</span>`;
+  const findings = result.findings || [];
+  const findingsHtml = findings.map(renderPeftFinding).join("");
+  const summary = result.summary
+    ? `<p class="subtle" style="font-size:0.9em;">${tFmt("peft.summary", result.summary) || `${result.summary.total} finding(s)`}</p>`
+    : "";
+
+  // Source attribution
+  const attribution = `
+    <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+      ${t("peft.attribution") || "Refs:"}
+      <a href="https://github.com/huggingface/peft/issues/2115" target="_blank" rel="noopener noreferrer">peft #2115</a> ·
+      <a href="https://huggingface.co/docs/peft/main/en/developer_guides/troubleshooting" target="_blank" rel="noopener noreferrer">PEFT troubleshooting</a> ·
+      <a href="https://huggingface.co/docs/peft/main/en/package_reference/peft_model" target="_blank" rel="noopener noreferrer">get_layer_status / get_model_status</a>
+    </p>
+  `;
+
+  return `<div class="arena-result">
+    <p style="font-size:1.1em;">${verdictBadge}</p>
+    ${summary}
+    ${findingsHtml}
+    ${attribution}
+  </div>`;
+}
+
+function runPeftLint() {
+  const text = $("peft-input")?.value || "";
+  const result = lintPeftCode(text);
+  $("peft-output").innerHTML = renderPeftResult(result);
+  $("peft-status").textContent = tFmt("peft.status.done", {
+    verdict: t(`peft.verdict.${result.code}`) || result.code,
+    n: result.findings?.length || 0,
+  });
+}
+
+const PEFT_EXAMPLE_BUG = `from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM
+
+base = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3-8B")
+config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "v_proj"],
+)
+model = get_peft_model(base, config)
+# resume from saved checkpoint?
+model.load_state_dict("./outputs/checkpoint-1000/adapter_model.bin")
+`;
+
+const PEFT_EXAMPLE_QLORA = `from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+
+bnb = BitsAndBytesConfig(load_in_4bit=True)
+base = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3-8B",
+    quantization_config=bnb,
+)
+config = LoraConfig(r=16, lora_alpha=32, target_modules=["q_proj", "v_proj"])
+model = get_peft_model(base, config)
+# WRONG ORDER: prepare_model_for_kbit_training must come BEFORE get_peft_model
+model = prepare_model_for_kbit_training(model)
+`;
+
+const PEFT_EXAMPLE_CLEAN = `from peft import PeftModel
+from transformers import AutoModelForCausalLM
+
+base = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3-8B")
+# Resume from saved adapter — correct PEFT pattern.
+model = PeftModel.from_pretrained(base, "./outputs/checkpoint-1000")
+`;
+
+$("peft-lint-btn")?.addEventListener("click", runPeftLint);
+$("peft-example-bug-btn")?.addEventListener("click", () => {
+  $("peft-input").value = PEFT_EXAMPLE_BUG;
+  runPeftLint();
+});
+$("peft-example-qlora-btn")?.addEventListener("click", () => {
+  $("peft-input").value = PEFT_EXAMPLE_QLORA;
+  runPeftLint();
+});
+$("peft-example-clean-btn")?.addEventListener("click", () => {
+  $("peft-input").value = PEFT_EXAMPLE_CLEAN;
+  runPeftLint();
 });
 
 // ════════════════════════════════════════════════════════════════════
