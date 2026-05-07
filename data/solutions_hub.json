@@ -219,6 +219,20 @@
       "not_for": "Browser-only diagnosis — this mode is a builder, not an executor."
     },
     {
+      "id": "speculative_decode_mismatch",
+      "category": "setup",
+      "pain": "Speculative decoding silently rejects all draft tokens when target+draft tokenizer vocabs differ — worse throughput than baseline, no error.",
+      "tafagent_mode": "🔬 Speculative-Decode Compatibility",
+      "external_tools": [
+        {"name": "vLLM speculative decoding docs", "url": "https://docs.vllm.ai/en/latest/serving/speculative_decoding.html", "type": "docs"},
+        {"name": "vLLM #4570 — vocab mismatch report", "url": "https://github.com/vllm-project/vllm/issues/4570", "type": "issue"},
+        {"name": "transformers assistant_model docs", "url": "https://huggingface.co/docs/transformers/main/en/llm_optims#speculative-decoding", "type": "docs"},
+        {"name": "Leviathan et al. 2022 — speculative-decoding paper", "url": "https://arxiv.org/abs/2211.17192", "type": "paper"}
+      ],
+      "best_for": "Verifying a (target, draft) pair before launching a vLLM/SGLang cluster with spec-dec enabled. Surfaces vocab-size, type, and special-token mismatches.",
+      "not_for": "Measuring real-world acceptance rate α — that requires running both models on your domain. The tool only predicts a band based on param ratio."
+    },
+    {
       "id": "peft_loading",
       "category": "training",
       "pain": "`get_peft_model()` before `PeftModel.from_pretrained()` silently loads base model — LoRA weights ignored.",

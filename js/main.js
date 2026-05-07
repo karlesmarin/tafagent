@@ -30,6 +30,7 @@ import {
 import { lintJsonCot, reorderJsonText, classifyFieldName } from "./json_cot_linter.js";
 import { lintPeftCode, ARCH_TARGET_MODULES } from "./peft_anti_pattern.js";
 import { diffPromptCache, PROVIDERS as CACHE_PROVIDERS } from "./prompt_cache_diff.js";
+import { checkCompatibility as specCheckCompat, parseParamHint } from "./spec_decode_compat.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -222,6 +223,7 @@ document.addEventListener("click", (e) => {
       cot: "cot-section",
       peft: "peft-section",
       cache: "cache-section",
+      speculative: "speculative-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -247,7 +249,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -262,6 +264,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       cot: "cot-section",
       peft: "peft-section",
       cache: "cache-section",
+      speculative: "speculative-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -272,6 +275,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "cot") initCot();
     if (mode === "peft") initPeft();
     if (mode === "cache") initCacheDiff();
+    if (mode === "speculative") initSpeculative();
     if (mode === "hub") initHub();
   });
 });
@@ -3909,6 +3913,178 @@ $("cache-example-belowmin-btn")?.addEventListener("click", () => {
   $("cache-new").value = CACHE_EXAMPLE_BELOWMIN_NEW;
   runCacheDiff();
 });
+
+// ════════════════════════════════════════════════════════════════════
+// 🔬 Speculative-Decode Compatibility (v0.8.5 anti-bullshit pack #11)
+// ════════════════════════════════════════════════════════════════════
+const SPEC_VERDICT_BG = {
+  compatible:                 "#3fb950",
+  compatible_with_caveats:    "#3fb950",
+  partial_compatible:         "#d29922",
+  type_mismatch:              "#f85149",
+  vocab_size_mismatch:        "#f85149",
+  incompatible:               "#f85149",
+  fetch_failed:               "#8b949e",
+  identical_models:           "#58a6ff",
+  missing_input:              "#8b949e",
+};
+
+let __specInited = false;
+
+function initSpeculative() {
+  if (__specInited) return;
+  __specInited = true;
+  // No-op (no async preload); placeholder kept for symmetry.
+}
+
+function fmtParams(p) {
+  if (!p) return "—";
+  if (p >= 1e9) return `${(p / 1e9).toFixed(1)}B`;
+  if (p >= 1e6) return `${(p / 1e6).toFixed(1)}M`;
+  return p.toLocaleString();
+}
+
+function renderSpecResult(result) {
+  const verdict = t(`speculative.verdict.${result.code}`) || result.code;
+  const verdictBg = SPEC_VERDICT_BG[result.code] || "#8b949e";
+  const verdictBadge = `<span class="badge" style="background:${verdictBg};">${verdict}</span>`;
+
+  // Failure-mode short-circuits
+  if (result.code === "missing_input" || result.code === "identical_models") {
+    return `<div class="arena-result">
+      <p style="font-size:1.1em;">${verdictBadge}</p>
+      <p class="recipe-desc">${t(`speculative.hint.${result.code}`) || ""}</p>
+    </div>`;
+  }
+  if (result.code === "fetch_failed") {
+    const errs = (result.errors || []).map(e => {
+      const sideLabel = e.side === "target" ? (t("speculative.side.target") || "Target") : (t("speculative.side.draft") || "Draft");
+      const reason = t(`speculative.fetch_error.${e.error}`) || e.error;
+      return `<li><strong>${sideLabel}</strong>: ${reason}${e.status ? ` (HTTP ${e.status})` : ""}</li>`;
+    }).join("");
+    return `<div class="arena-result">
+      <p style="font-size:1.1em;">${verdictBadge}</p>
+      <ul>${errs}</ul>
+      <p class="recipe-desc subtle">${t("speculative.fetch_error.hint") || "Check the model id spelling. For gated models you'll need to view the tokenizer file via your HF account — this tool can't auth."}</p>
+    </div>`;
+  }
+
+  const p = result.params;
+
+  // Section 1 — vocab summary
+  const typeBadge = (label, val, bg) =>
+    `<span class="badge" style="background:${bg};">${label}: <code>${val ?? "—"}</code></span>`;
+  const typeRow = `
+    ${typeBadge(t("speculative.target_label_short") || "target", p.target_type, p.type_match ? "#3fb950" : "#f85149")}
+    ${typeBadge(t("speculative.draft_label_short") || "draft",  p.draft_type,  p.type_match ? "#3fb950" : "#f85149")}
+    ${p.type_match ? "" : `<span class="subtle"> ← ${t("speculative.type_mismatch_note") || "tokenizer types differ; spec-dec impossible"}</span>`}
+  `;
+
+  const sizeRow = `
+    <strong>${t("speculative.vocab_size") || "Vocab size"}:</strong>
+    target = <code>${p.target_vocab_size.toLocaleString()}</code>,
+    draft = <code>${p.draft_vocab_size.toLocaleString()}</code>
+    ${p.vocab_size_match ? "" : `<span style="color:#f85149;"> ← ${t("speculative.size_diff") || "differ — every reused id is a misalignment"}</span>`}
+  `;
+
+  // Sampled match
+  const matchPct = p.sampled_total > 0 ? Math.round(p.sampled_match_ratio * 100) : 0;
+  const matchColor = matchPct >= 99.9 ? "#3fb950" : matchPct >= 95 ? "#d29922" : "#f85149";
+  const sampleRow = `
+    <strong>${t("speculative.sampled") || "Token-id sample match"}:</strong>
+    <span style="color:${matchColor};font-weight:600;">${matchPct}%</span>
+    <span class="subtle">(${p.sampled_match_count.toLocaleString()} / ${p.sampled_total.toLocaleString()} tokens)</span>
+    ${p.first_mismatch ? `<br><span class="subtle">${t("speculative.first_mismatch") || "First mismatch"}: <code>${escapeHtml(p.first_mismatch.token).slice(0, 40)}</code> → target id ${p.first_mismatch.target_id ?? "—"}, draft id ${p.first_mismatch.draft_id ?? "—"}</span>` : ""}
+  `;
+
+  // Special / added token diffs
+  const specDiffRows = (p.special_tokens_diff || []).map(d =>
+    `<li><code>${d.name}</code>: target=<code>${escapeHtml(String(d.target ?? "—"))}</code>, draft=<code>${escapeHtml(String(d.draft ?? "—"))}</code></li>`
+  ).join("");
+  const specDiffBlock = specDiffRows
+    ? `<details style="margin-top:0.5em;"><summary>${t("speculative.special_diff") || "Special-token differences"} (${p.special_tokens_diff.length})</summary><ul>${specDiffRows}</ul></details>`
+    : "";
+
+  const addedDiffPreview = (p.added_tokens_diff || []).slice(0, 12).map(d =>
+    `<li><span class="subtle">${d.side === "target_only" ? "target only" : "draft only"}:</span> <code>${escapeHtml(d.token).slice(0, 40)}</code></li>`
+  ).join("");
+  const addedDiffBlock = addedDiffPreview
+    ? `<details style="margin-top:0.5em;"><summary>${t("speculative.added_diff") || "Added-token differences"} (${(p.added_tokens_diff||[]).length})</summary><ul>${addedDiffPreview}${p.added_tokens_diff.length > 12 ? `<li class="subtle">${t("speculative.added_diff_more") || "+ more …"}</li>` : ""}</ul></details>`
+    : "";
+
+  // Section 2 — speedup band (only when compatible-ish)
+  let speedupBlock = "";
+  if (p.speedup_expected != null) {
+    const ratio = p.param_ratio ? `${(p.param_ratio * 100).toFixed(1)}%` : "—";
+    speedupBlock = `
+      <div style="margin-top:1em;padding:0.75em;background:#161b22;border-left:3px solid #3fb950;border-radius:4px;">
+        <strong>${t("speculative.speedup.title") || "Estimated speedup band"}</strong><br>
+        <span class="subtle" style="font-size:0.85em;">${tFmt("speculative.speedup.params", { target: fmtParams(p.target_params), draft: fmtParams(p.draft_params), ratio }) || `target ${fmtParams(p.target_params)} / draft ${fmtParams(p.draft_params)} (param ratio ${ratio})`}</span>
+        <div style="margin-top:0.5em;display:flex;gap:1em;flex-wrap:wrap;">
+          <div>${t("speculative.speedup.low") || "Low (α=0.50)"}:<br><strong style="font-size:1.2em;">${p.speedup_low}×</strong></div>
+          <div>${t("speculative.speedup.expected") || "Expected (α=0.70)"}:<br><strong style="font-size:1.4em;color:#3fb950;">${p.speedup_expected}×</strong></div>
+          <div>${t("speculative.speedup.high") || "High (α=0.85)"}:<br><strong style="font-size:1.2em;">${p.speedup_high}×</strong></div>
+        </div>
+        <p class="subtle" style="font-size:0.78em;margin-top:0.5em;">${t("speculative.speedup.disclaimer") || "α = draft acceptance rate. Real speedup depends on prompt domain, lookahead K, and engine overhead. Bands assume ideal verifier batching."}</p>
+      </div>
+    `;
+  } else if (p.target_params && p.draft_params && p.param_ratio >= 1) {
+    speedupBlock = `<p class="recipe-desc" style="color:#f85149;margin-top:1em;">${t("speculative.speedup.draft_not_smaller") || "Draft is not smaller than target — spec-dec is misuse here."}</p>`;
+  }
+
+  // Attribution
+  const attribution = `
+    <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+      ${t("speculative.attribution") || "Refs:"}
+      <a href="https://docs.vllm.ai/en/latest/serving/speculative_decoding.html" target="_blank" rel="noopener noreferrer">vLLM spec-dec docs</a> ·
+      <a href="https://docs.sglang.ai/router/router.html" target="_blank" rel="noopener noreferrer">SGLang</a> ·
+      <a href="https://huggingface.co/docs/transformers/main/en/llm_optims#speculative-decoding" target="_blank" rel="noopener noreferrer">transformers assistant_model</a> ·
+      <a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener noreferrer">Leviathan et al. 2022</a>
+    </p>
+  `;
+
+  return `<div class="arena-result">
+    <p style="font-size:1.1em;">${verdictBadge}</p>
+    <p>${typeRow}</p>
+    <p>${sizeRow}</p>
+    <p>${sampleRow}</p>
+    ${specDiffBlock}
+    ${addedDiffBlock}
+    ${speedupBlock}
+    ${attribution}
+  </div>`;
+}
+
+async function runSpecCheck() {
+  const targetId = $("spec-target-id")?.value?.trim() || "";
+  const draftId  = $("spec-draft-id")?.value?.trim() || "";
+  $("spec-status").textContent = t("speculative.status.fetching") || "🔄 Fetching tokenizer.json from HF Hub for both models…";
+  $("spec-output").innerHTML = "";
+  try {
+    const result = await specCheckCompat(targetId, draftId);
+    $("spec-output").innerHTML = renderSpecResult(result);
+    $("spec-status").textContent = tFmt("speculative.status.done", {
+      verdict: t(`speculative.verdict.${result.code}`) || result.code,
+    });
+  } catch (e) {
+    $("spec-status").textContent = (t("speculative.status.error") || "❌ Error") + " " + (e.message || e);
+  }
+}
+
+$("spec-check-btn")?.addEventListener("click", runSpecCheck);
+$("spec-example-good-btn")?.addEventListener("click", () => {
+  $("spec-target-id").value = "meta-llama/Llama-3.1-70B-Instruct";
+  $("spec-draft-id").value  = "meta-llama/Llama-3.1-8B-Instruct";
+  runSpecCheck();
+});
+$("spec-example-bad-btn")?.addEventListener("click", () => {
+  $("spec-target-id").value = "meta-llama/Llama-3.1-8B-Instruct";
+  $("spec-draft-id").value  = "mistralai/Mistral-7B-Instruct-v0.3";
+  runSpecCheck();
+});
+
+// (HF autocomplete on spec-target-id / spec-draft-id is registered via
+// the known-id list in hf_autocomplete.js; no extra wiring needed here.)
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap
