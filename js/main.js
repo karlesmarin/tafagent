@@ -3971,6 +3971,31 @@ function renderSpecResult(result) {
 
   const p = result.params;
 
+  // Mirror banner — when a gated model was fetched via an open mirror.
+  let mirrorBanner = "";
+  if (p.target_via_mirror || p.draft_via_mirror) {
+    const lines = [];
+    if (p.target_via_mirror) {
+      lines.push(tFmt("speculative.mirror.target_used", {
+        original: escapeHtml(p.targetId),
+        mirror: escapeHtml(p.target_via_mirror),
+      }) || `Target was gated; used mirror <code>${escapeHtml(p.target_via_mirror)}</code>.`);
+    }
+    if (p.draft_via_mirror) {
+      lines.push(tFmt("speculative.mirror.draft_used", {
+        original: escapeHtml(p.draftId),
+        mirror: escapeHtml(p.draft_via_mirror),
+      }) || `Draft was gated; used mirror <code>${escapeHtml(p.draft_via_mirror)}</code>.`);
+    }
+    mirrorBanner = `
+      <div style="margin-bottom:0.75em;padding:0.6em;background:#332b00;border-left:3px solid #d29922;border-radius:4px;font-size:0.92em;">
+        <strong>ℹ ${t("speculative.mirror.heading") || "Open-mirror fallback"}</strong>
+        ${lines.map(l => `<br>${l}`).join("")}
+        <br><span class="subtle" style="font-size:0.85em;">${t("speculative.mirror.warn") || "Mirror tokenizers (e.g. unsloth/) are usually byte-identical to the gated original because quantization touches weights, not tokens. Verify chat-template if exact match is required."}</span>
+      </div>
+    `;
+  }
+
   // Section 1 — vocab summary
   const typeBadge = (label, val, bg) =>
     `<span class="badge" style="background:${bg};">${label}: <code>${val ?? "—"}</code></span>`;
@@ -4045,6 +4070,7 @@ function renderSpecResult(result) {
 
   return `<div class="arena-result">
     <p style="font-size:1.1em;">${verdictBadge}</p>
+    ${mirrorBanner}
     <p>${typeRow}</p>
     <p>${sizeRow}</p>
     <p>${sampleRow}</p>
@@ -4072,16 +4098,18 @@ async function runSpecCheck() {
 }
 
 $("spec-check-btn")?.addEventListener("click", runSpecCheck);
-// Examples use OPEN-WEIGHT models (no HF gating). Llama / Mistral /
-// Gemma require license acceptance — they 401 from a public browser
-// fetch. Qwen2.5 + Phi-3.5 ship under permissive licenses so the
-// in-app demo Just Works without the user having to log in to HF.
+// Examples mix gated + open: gated ids (Llama) trigger the open-mirror
+// fallback (unsloth/...) so the user sees both the demo result AND the
+// mirror-resolution mechanism. Pure open-weight pairs (Qwen + Phi)
+// stay as the "no fallback needed" path for the second example.
 $("spec-example-good-btn")?.addEventListener("click", () => {
-  $("spec-target-id").value = "Qwen/Qwen2.5-72B-Instruct";
-  $("spec-draft-id").value  = "Qwen/Qwen2.5-7B-Instruct";
+  // Gated → triggers unsloth mirror fallback for both sides.
+  $("spec-target-id").value = "meta-llama/Llama-3.1-70B-Instruct";
+  $("spec-draft-id").value  = "meta-llama/Llama-3.1-8B-Instruct";
   runSpecCheck();
 });
 $("spec-example-bad-btn")?.addEventListener("click", () => {
+  // Open-weight cross-family → no fallback, plain incompatibility demo.
   $("spec-target-id").value = "Qwen/Qwen2.5-7B-Instruct";
   $("spec-draft-id").value  = "microsoft/Phi-3.5-mini-instruct";
   runSpecCheck();

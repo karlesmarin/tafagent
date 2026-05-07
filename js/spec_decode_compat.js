@@ -85,6 +85,77 @@ export async function fetchConfig(modelId) {
 }
 
 // =============================================================================
+// Open-mirror fallback for gated models
+// =============================================================================
+//
+// HF officially DISCOURAGES browser-side tokens (their own transformers.js
+// docs: "we only support accessing private/gated models from server-side
+// environments"). For client-only tools, the practical workaround for
+// gated families (Llama, Mistral, Gemma) is to fall back to public mirrors
+// that re-host the same tokenizer:
+//   - unsloth/{name}            ← unsloth's open redistributions
+//   - unsloth/Meta-{name}       ← Meta-prefixed Llama mirrors
+//   - unsloth/{name}-bnb-4bit   ← quantized variants (tokenizer preserved)
+//
+// Tokenizer (BPE merges + vocab) is text — quantization touches weights,
+// not the tokenizer artifact, so the mirror's tokenizer.json is usually
+// byte-identical to the gated original. Caveat: some unsloth releases
+// patch chat-template tokens (issue #880); we surface that in the UI
+// with a "verify chat-template if exact match required" note.
+
+const MIRROR_PATTERN_BUILDERS = [
+  (id) => {
+    const last = id.split("/").slice(-1)[0];
+    return `unsloth/${last}`;
+  },
+  (id) => {
+    const last = id.split("/").slice(-1)[0];
+    return last.startsWith("Meta-") ? `unsloth/${last}` : `unsloth/Meta-${last}`;
+  },
+  (id) => {
+    const last = id.split("/").slice(-1)[0];
+    return `unsloth/${last}-bnb-4bit`;
+  },
+  (id) => {
+    const last = id.split("/").slice(-1)[0];
+    return last.startsWith("Meta-") ? `unsloth/${last}-bnb-4bit` : `unsloth/Meta-${last}-bnb-4bit`;
+  },
+];
+
+export async function fetchTokenizerWithMirrorFallback(modelId) {
+  const original = await fetchTokenizer(modelId);
+  if (original.ok) return { ...original, viaMirror: null };
+  // Only attempt mirror fallback when the failure is gated/private.
+  // 404 / network / parse errors aren't fixable by trying a mirror.
+  if (original.error !== "gated_or_private") {
+    return { ...original, viaMirror: null };
+  }
+  const tried = new Set([modelId]);
+  for (const build of MIRROR_PATTERN_BUILDERS) {
+    let candidate;
+    try { candidate = build(modelId); }
+    catch { continue; }
+    if (!candidate || tried.has(candidate)) continue;
+    tried.add(candidate);
+    const r = await fetchTokenizer(candidate);
+    if (r.ok) return { ...r, viaMirror: candidate, mirrorOf: modelId };
+  }
+  return { ...original, viaMirror: null, triedMirrors: [...tried].slice(1) };
+}
+
+export async function fetchConfigWithMirrorFallback(modelId, mirrorId) {
+  // Prefer the mirror's config when one was used (param counts come from
+  // there), but also try the ORIGINAL config — some unsloth mirrors omit
+  // it. Falls back gracefully.
+  if (mirrorId) {
+    const m = await fetchConfig(mirrorId);
+    if (m.ok) return { ...m, viaMirror: mirrorId };
+  }
+  const o = await fetchConfig(modelId);
+  return { ...o, viaMirror: null };
+}
+
+// =============================================================================
 // Vocab extraction + comparison
 // =============================================================================
 
@@ -312,19 +383,23 @@ export async function checkCompatibility(targetId, draftId) {
     return { code: "identical_models", params: { targetId, draftId }, errors: [] };
   }
 
-  const [tTok, dTok, tCfg, dCfg] = await Promise.all([
-    fetchTokenizer(targetId),
-    fetchTokenizer(draftId),
-    fetchConfig(targetId),
-    fetchConfig(draftId),
+  const [tTok, dTok] = await Promise.all([
+    fetchTokenizerWithMirrorFallback(targetId),
+    fetchTokenizerWithMirrorFallback(draftId),
   ]);
 
   const errors = [];
-  if (!tTok.ok) errors.push({ side: "target", error: tTok.error, status: tTok.status });
-  if (!dTok.ok) errors.push({ side: "draft",  error: dTok.error, status: dTok.status });
+  if (!tTok.ok) errors.push({ side: "target", error: tTok.error, status: tTok.status, triedMirrors: tTok.triedMirrors });
+  if (!dTok.ok) errors.push({ side: "draft",  error: dTok.error, status: dTok.status, triedMirrors: dTok.triedMirrors });
   if (!tTok.ok || !dTok.ok) {
     return { code: "fetch_failed", params: { targetId, draftId }, errors };
   }
+
+  // Fetch configs — prefer mirror when one was used.
+  const [tCfg, dCfg] = await Promise.all([
+    fetchConfigWithMirrorFallback(targetId, tTok.viaMirror),
+    fetchConfigWithMirrorFallback(draftId, dTok.viaMirror),
+  ]);
 
   const cmp = compareVocabs(tTok.data, dTok.data);
 
@@ -366,6 +441,8 @@ export async function checkCompatibility(targetId, draftId) {
       speedup_high:     speedup?.high ?? null,
       target_source: tTok.source,
       draft_source: dTok.source,
+      target_via_mirror: tTok.viaMirror || null,
+      draft_via_mirror:  dTok.viaMirror || null,
     },
     errors,
   };
