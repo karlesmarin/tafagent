@@ -219,6 +219,19 @@
       "not_for": "Browser-only diagnosis — this mode is a builder, not an executor."
     },
     {
+      "id": "multilingual_token_tax",
+      "category": "diagnostic",
+      "pain": "Tokenizers tax non-English text asymmetrically — Chinese/Arabic/Hindi can be 2-3× the token count of English on Latin-trained tokenizers (Llama, Phi, GPT-4 cl100k), silently 3×ing API bills and halving effective context.",
+      "tafagent_mode": "🌍 Multilingual Tokenizer Tax",
+      "external_tools": [
+        {"name": "tiktokenizer (OpenAI only)", "url": "https://tiktokenizer.vercel.app", "type": "tool"},
+        {"name": "HuggingFace transformers.js (browser BPE runtime)", "url": "https://github.com/huggingface/transformers.js", "type": "tool"},
+        {"name": "OpenAI cookbook — counting tokens with tiktoken", "url": "https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken", "type": "docs"}
+      ],
+      "best_for": "Validating multilingual API cost projections before scaling. Compare REAL per-tokenizer counts on production-representative text across Qwen / Phi / Llama / Gemma / GPT-4 / Claude in one click — surfaces the worst offender for your specific text mix (e.g. Phi-3.5 = 2.27× Qwen2.5 on Chinese paragraphs).",
+      "not_for": "Tokenizer vocab compatibility for speculative decoding — that's a different question, use 🔬 Spec-Decode instead."
+    },
+    {
       "id": "speculative_decode_mismatch",
       "category": "setup",
       "pain": "Speculative decoding silently rejects all draft tokens when target+draft tokenizer vocabs differ — worse throughput than baseline, no error.",
