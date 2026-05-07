@@ -222,6 +222,9 @@
       <p><strong data-i18n="help.v083.peft.title">🔧 PEFT Anti-Pattern Checker</strong></p>
       <p data-i18n="help.v083.peft.body">PEFT's <code>get_peft_model(base, config)</code> creates a FRESH adapter — it does not load saved weights from a path. Users who paste tutorial code and try to resume from a checkpoint silently throw away their training. peft #2115 has the canonical bug report. This linter scans your training script for the pattern + 3 related issues (QLoRA ordering, target_modules/arch mismatch, lora_alpha ratio) and reports findings with line numbers and suggested fixes. <em>Use case</em>: before you launch a 10-hour LoRA fine-tune, paste your script — catch the silent bugs in 200ms.</p>
 
+      <p><strong data-i18n="help.v084.cache.title">🔁 Prompt-Cache Diff Predictor</strong></p>
+      <p data-i18n="help.v084.cache.body">Provider prompt caches each have different rules: Anthropic's <code>cache_control</code> breaks at the first token diff in the marked prefix; OpenAI auto-caches prefixes ≥1024 tokens; Gemini context caches require ≥32K tokens. A misplaced edit silently 10x's your bill — the API never warns you, and the cost only shows up on the next invoice. Paste old + new prompt, the predictor finds the longest common prefix, estimates tokens with three tokenizer profiles (English / code / CJK), and shows per-provider hit ratio + $ delta vs no-cache for Claude Opus/Sonnet/Haiku, GPT-5/mini, and Gemini 2.5 Pro. <em>Use case</em>: 'I tweaked the system prompt and the bill jumped — what broke?' → paste both prompts, see exactly which provider stopped caching.</p>
+
       <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
       <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
 
@@ -336,6 +339,7 @@
             <li data-i18n="inv.v08.saturation"><strong>📈 Saturation</strong> — is your benchmark still useful, or are all frontier models tied at the top?</li>
             <li data-i18n="inv.v082.cot"><strong>📋 JSON CoT</strong> — lints structured-output schemas for the answer-before-reasoning anti-pattern that silently breaks Chain-of-Thought.</li>
             <li data-i18n="inv.v083.peft"><strong>🔧 PEFT Lint</strong> — catches the silent <code>get_peft_model</code> base-load (peft #2115) + QLoRA order + target_modules / arch mismatch.</li>
+            <li data-i18n="inv.v084.cache"><strong>🔁 Cache Diff</strong> — predicts whether a prompt edit invalidated the provider's prompt cache. Per-provider hit ratio + $ delta.</li>
             <li data-i18n="inv.v081.hub"><strong>🧭 Solutions Hub</strong> — every documented pain mapped to a tafagent mode or curated external tool. Don't reinvent — find.</li>
           </ul>
         </details>
@@ -409,6 +413,7 @@
             <button data-mode-link="diagnose" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
             <button data-mode-link="cot" data-i18n="modes.cot">📋 JSON CoT</button>
             <button data-mode-link="peft" data-i18n="modes.peft">🔧 PEFT Lint</button>
+            <button data-mode-link="cache" data-i18n="modes.cache">🔁 Cache Diff</button>
           </div>
         </div>
         <div class="task-tile">
@@ -467,6 +472,7 @@
         <button class="mode-btn" data-mode="saturation" role="tab" aria-selected="false" data-i18n="modes.saturation">📈 Saturation</button>
         <button class="mode-btn" data-mode="cot" role="tab" aria-selected="false" data-i18n="modes.cot">📋 JSON CoT</button>
         <button class="mode-btn" data-mode="peft" role="tab" aria-selected="false" data-i18n="modes.peft">🔧 PEFT Lint</button>
+        <button class="mode-btn" data-mode="cache" role="tab" aria-selected="false" data-i18n="modes.cache">🔁 Cache Diff</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
@@ -1059,6 +1065,46 @@
       </div>
       <p id="peft-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="peft-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- Prompt-Cache Diff Predictor (mode=cache, v0.8.4 anti-bullshit pack #10) -->
+    <section id="cache-section" style="display:none;">
+      <h2><span data-i18n="cache.title">🔁 Prompt-Cache Diff Predictor</span>
+        <span class="info"><span class="tooltip" data-i18n="cache.tip">
+          <strong>Why this matters</strong>: Anthropic's `cache_control` cache breaks at the first token diff in the marked prefix. OpenAI auto-caches prefixes ≥1024 tokens but invalidates on any change. Gemini context cache requires ≥32K tokens. A misplaced edit silently 10x's your bill — and the API never warns you. Paste old + new prompt, see per-provider hit ratio + cost delta.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="cache.desc">
+        <strong>Don't 10x your bill on a one-character edit.</strong> Paste your previous and current prompt — the predictor finds the longest common prefix, estimates tokens, and shows per-provider cache hit ratio + $ delta vs no-cache.
+      </p>
+      <div class="form-row" style="display:flex; gap:1em; flex-wrap:wrap;">
+        <div style="flex:1; min-width:300px;">
+          <label for="cache-old" data-i18n="cache.old_label">Old prompt:</label>
+          <textarea id="cache-old" rows="10" style="width:100%;font-family:monospace;font-size:0.85em;" data-i18n-placeholder="cache.old.placeholder" placeholder="You are a helpful assistant. …"></textarea>
+        </div>
+        <div style="flex:1; min-width:300px;">
+          <label for="cache-new" data-i18n="cache.new_label">New prompt:</label>
+          <textarea id="cache-new" rows="10" style="width:100%;font-family:monospace;font-size:0.85em;" data-i18n-placeholder="cache.new.placeholder" placeholder="You are a helpful assistant. …"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="cache-profile" data-i18n="cache.profile_label">Tokenizer profile:</label>
+        <select id="cache-profile">
+          <option value="english" data-i18n="cache.profile.english">English (chars/4)</option>
+          <option value="code" data-i18n="cache.profile.code">Code (chars/3.5)</option>
+          <option value="mixed" data-i18n="cache.profile.mixed">CJK / Cyrillic (chars/2)</option>
+        </select>
+        <label for="cache-output-tokens" data-i18n="cache.output_label">Estimated output tokens:</label>
+        <input type="number" id="cache-output-tokens" value="500" min="0" max="100000" style="width:8em;" />
+      </div>
+      <div class="form-row">
+        <button type="button" id="cache-diff-btn" data-i18n="cache.diff_btn">🔍 Predict</button>
+        <button type="button" id="cache-example-good-btn" class="secondary" data-i18n="cache.example_good_btn">↳ Example: 99% hit</button>
+        <button type="button" id="cache-example-broken-btn" class="secondary" data-i18n="cache.example_broken_btn">↳ Example: cache busted</button>
+        <button type="button" id="cache-example-belowmin-btn" class="secondary" data-i18n="cache.example_belowmin_btn">↳ Example: below OpenAI min</button>
+      </div>
+      <p id="cache-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="cache-output" style="margin-top: 1em;"></div>
     </section>
 
     <section id="hub-section" style="display:none;">

@@ -29,6 +29,7 @@ import {
 } from "./solutions_hub.js";
 import { lintJsonCot, reorderJsonText, classifyFieldName } from "./json_cot_linter.js";
 import { lintPeftCode, ARCH_TARGET_MODULES } from "./peft_anti_pattern.js";
+import { diffPromptCache, PROVIDERS as CACHE_PROVIDERS } from "./prompt_cache_diff.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -220,6 +221,7 @@ document.addEventListener("click", (e) => {
       saturation: "saturation-section",
       cot: "cot-section",
       peft: "peft-section",
+      cache: "cache-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -245,7 +247,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -259,6 +261,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       saturation: "saturation-section",
       cot: "cot-section",
       peft: "peft-section",
+      cache: "cache-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -268,6 +271,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "saturation") initSaturation();
     if (mode === "cot") initCot();
     if (mode === "peft") initPeft();
+    if (mode === "cache") initCacheDiff();
     if (mode === "hub") initHub();
   });
 });
@@ -3710,6 +3714,200 @@ $("peft-example-qlora-btn")?.addEventListener("click", () => {
 $("peft-example-clean-btn")?.addEventListener("click", () => {
   $("peft-input").value = PEFT_EXAMPLE_CLEAN;
   runPeftLint();
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🔁 Prompt-Cache Diff Predictor (v0.8.4 anti-bullshit pack #10)
+// ════════════════════════════════════════════════════════════════════
+const CACHE_VERDICT_BG = {
+  identical:           "#3fb950",
+  divergent_can_cache: "#d29922",
+  divergent_below_min: "#f0883e",
+  fully_divergent:     "#f85149",
+  empty_input:         "#8b949e",
+};
+
+let __cacheInited = false;
+
+function initCacheDiff() {
+  if (__cacheInited) return;
+  __cacheInited = true;
+  // No-op (no async data); placeholder kept for symmetry.
+}
+
+function fmtUsd(n) {
+  if (n == null || isNaN(n)) return "—";
+  if (n === 0) return "$0";
+  if (n < 0.01) return `$${n.toFixed(6)}`;
+  if (n < 1)    return `$${n.toFixed(4)}`;
+  return `$${n.toFixed(2)}`;
+}
+
+function fmtPct(n) {
+  if (n == null || isNaN(n)) return "—";
+  return `${Math.round(n * 100)}%`;
+}
+
+function renderCacheProvider(p) {
+  const bgRow = p.reason === "below_min" ? "#21262d" : "#161b22";
+  const noteHtml = [];
+  if (p.requires_explicit && p.reason !== "below_min") {
+    noteHtml.push(`<span class="subtle" style="font-size:0.8em;">${t("cache.note.requires_marker") || "(requires cache_control marker)"}</span>`);
+  }
+  if (p.reason === "below_min") {
+    noteHtml.push(`<span class="subtle" style="font-size:0.8em;color:#f0883e;">${tFmt("cache.note.below_min", { min: p.min_cache_tokens.toLocaleString() }) || `(prefix < ${p.min_cache_tokens.toLocaleString()} tokens — provider min)`}</span>`);
+  }
+  const noteCell = noteHtml.length ? `<br>${noteHtml.join(" ")}` : "";
+
+  const ttlMin = p.cache_ttl_seconds >= 3600
+    ? `${Math.round(p.cache_ttl_seconds / 3600)}h`
+    : `${Math.round(p.cache_ttl_seconds / 60)}min`;
+
+  const savingsColor = p.savings_usd > 0 ? "#3fb950" : (p.reason ? "#8b949e" : "#d29922");
+  const writeRow = p.cache_write_surcharge_usd && p.cache_write_surcharge_usd > 0
+    ? `<tr style="background:${bgRow};"><td colspan="4" class="subtle" style="font-size:0.8em;padding-left:1em;">${tFmt("cache.write_surcharge", { cost: fmtUsd(p.cache_write_surcharge_usd) }) || `+ ${fmtUsd(p.cache_write_surcharge_usd)} cache-write surcharge first time (Anthropic)`}</td></tr>`
+    : "";
+
+  return `
+    <tr style="background:${bgRow};">
+      <td><strong>${escapeHtml(p.provider_name)}</strong>${noteCell}<br><span class="subtle" style="font-size:0.78em;">TTL ${ttlMin}</span></td>
+      <td style="text-align:right;">${fmtPct(p.hit_ratio)}</td>
+      <td style="text-align:right;">${fmtUsd(p.base_cost_usd)} → ${fmtUsd(p.cached_cost_usd)}</td>
+      <td style="text-align:right;color:${savingsColor};"><strong>${fmtUsd(p.savings_usd)}</strong> (${fmtPct(p.savings_pct ?? 0)})</td>
+    </tr>
+    ${writeRow}
+  `;
+}
+
+function renderCacheDiffVisualization(oldText, newText, lcpChars) {
+  // Truncate context — show last 200 chars of common prefix, and the
+  // first 200 chars of each diverging suffix. Keeps UI tight.
+  const ctxBefore = 200;
+  const startCommon = Math.max(0, lcpChars - ctxBefore);
+  const commonTail = oldText.slice(startCommon, lcpChars);
+  const oldDiv = oldText.slice(lcpChars);
+  const newDiv = newText.slice(lcpChars);
+  const commonLeader = startCommon > 0 ? "…" : "";
+
+  return `
+    <details style="margin-top:1em;">
+      <summary style="cursor:pointer;"><strong>${t("cache.diff.title") || "Where the cache breaks"}</strong></summary>
+      <div style="background:#0d1117;padding:0.75em;border-radius:4px;font-family:monospace;font-size:0.85em;line-height:1.4;overflow-x:auto;white-space:pre-wrap;">
+<span style="color:#3fb950;">${escapeHtml(commonLeader + commonTail)}</span><span style="color:#f85149;text-decoration:underline;">${escapeHtml(oldDiv.slice(0, 200))}</span><span class="subtle">  ← old</span>
+<span style="color:#3fb950;">${escapeHtml(commonLeader + commonTail)}</span><span style="color:#3fb950;text-decoration:underline;">${escapeHtml(newDiv.slice(0, 200))}</span><span class="subtle">  ← new</span>
+      </div>
+      <p class="subtle" style="font-size:0.82em;">${t("cache.diff.legend") || "Green = shared prefix (cacheable). Red = first edit (everything from here is re-billed)."}</p>
+    </details>
+  `;
+}
+
+function renderCacheResult(result, oldText, newText) {
+  const verdict = t(`cache.verdict.${result.code}`) || result.code;
+  const verdictBg = CACHE_VERDICT_BG[result.code] || "#8b949e";
+  const verdictBadge = `<span class="badge" style="background:${verdictBg};">${verdict}</span>`;
+
+  if (result.code === "empty_input") {
+    return `<div class="arena-result">
+      <p style="font-size:1.1em;">${verdictBadge}</p>
+      <p class="recipe-desc">${t("cache.hint.empty") || "Paste two prompts, then Predict."}</p>
+    </div>`;
+  }
+
+  const p = result.params;
+  const summary = `
+    <p class="recipe-desc">
+      ${tFmt("cache.summary.tokens", { common: p.tokens_common.toLocaleString(), total: p.tokens_total.toLocaleString(), pct: Math.round(p.hit_ratio * 100) })
+        || `Common prefix ${p.tokens_common.toLocaleString()} / ${p.tokens_total.toLocaleString()} tokens (${Math.round(p.hit_ratio * 100)}% theoretical hit ratio).`}
+    </p>
+    <p class="recipe-desc subtle">
+      ${tFmt("cache.summary.diff_at", { line: p.diff_point.line }) || `First difference at line ${p.diff_point.line}.`}
+    </p>
+  `;
+
+  const rows = (result.providers || []).map(renderCacheProvider).join("");
+  const table = rows ? `
+    <table class="lean-table" style="margin-top:1em;width:100%;">
+      <thead><tr>
+        <th style="text-align:left;">${t("cache.col.provider") || "Provider"}</th>
+        <th style="text-align:right;">${t("cache.col.hit") || "Hit"}</th>
+        <th style="text-align:right;">${t("cache.col.cost") || "Base → cached"}</th>
+        <th style="text-align:right;">${t("cache.col.savings") || "Savings"}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  ` : "";
+
+  const diffViz = result.code !== "identical"
+    ? renderCacheDiffVisualization(oldText, newText, p.lcp_chars)
+    : "";
+
+  const attribution = `
+    <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+      ${t("cache.attribution") || "Refs:"}
+      <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener noreferrer">Anthropic prompt caching</a> ·
+      <a href="https://platform.openai.com/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer">OpenAI prompt caching</a> ·
+      <a href="https://ai.google.dev/gemini-api/docs/caching" target="_blank" rel="noopener noreferrer">Gemini context caching</a>
+      <br><em>${t("cache.attribution.snapshot") || "Prices snapshot 2026-01; verify against current provider docs before acting on $."}</em>
+    </p>
+  `;
+
+  return `<div class="arena-result">
+    <p style="font-size:1.1em;">${verdictBadge}</p>
+    ${summary}
+    ${table}
+    ${diffViz}
+    ${attribution}
+  </div>`;
+}
+
+function runCacheDiff() {
+  const oldText = $("cache-old")?.value || "";
+  const newText = $("cache-new")?.value || "";
+  const profile = $("cache-profile")?.value || "english";
+  const outputTokens = parseInt($("cache-output-tokens")?.value || "500", 10);
+
+  const result = diffPromptCache(oldText, newText, {
+    profile,
+    outputTokensEstimate: outputTokens,
+  });
+  $("cache-output").innerHTML = renderCacheResult(result, oldText, newText);
+  $("cache-status").textContent = tFmt("cache.status.done", {
+    verdict: t(`cache.verdict.${result.code}`) || result.code,
+    hit: Math.round((result.params?.hit_ratio || 0) * 100),
+  });
+}
+
+const CACHE_LONG_SYS = "You are a helpful, harmless, and honest assistant. " +
+  "Always cite your sources. ".repeat(40) +
+  "Always show your reasoning step by step. ".repeat(40) +
+  "Be concise. Format code with backticks. ".repeat(40) +
+  "\n\nUser tools available:\n- search\n- calculator\n- code_runner\n";
+
+const CACHE_EXAMPLE_GOOD_OLD = CACHE_LONG_SYS + "\nUser: What is 2 + 2?";
+const CACHE_EXAMPLE_GOOD_NEW = CACHE_LONG_SYS + "\nUser: What is 2 + 3?";
+
+const CACHE_EXAMPLE_BROKEN_OLD = CACHE_LONG_SYS.replace("helpful, harmless, and honest", "helpful AND honest")
+  + "\nUser: What is 2 + 2?";
+const CACHE_EXAMPLE_BROKEN_NEW = CACHE_LONG_SYS + "\nUser: What is 2 + 2?";
+
+const CACHE_EXAMPLE_BELOWMIN_OLD = "Q: name 3 colors";
+const CACHE_EXAMPLE_BELOWMIN_NEW = "Q: name 4 colors";
+
+$("cache-diff-btn")?.addEventListener("click", runCacheDiff);
+$("cache-example-good-btn")?.addEventListener("click", () => {
+  $("cache-old").value = CACHE_EXAMPLE_GOOD_OLD;
+  $("cache-new").value = CACHE_EXAMPLE_GOOD_NEW;
+  runCacheDiff();
+});
+$("cache-example-broken-btn")?.addEventListener("click", () => {
+  $("cache-old").value = CACHE_EXAMPLE_BROKEN_OLD;
+  $("cache-new").value = CACHE_EXAMPLE_BROKEN_NEW;
+  runCacheDiff();
+});
+$("cache-example-belowmin-btn")?.addEventListener("click", () => {
+  $("cache-old").value = CACHE_EXAMPLE_BELOWMIN_OLD;
+  $("cache-new").value = CACHE_EXAMPLE_BELOWMIN_NEW;
+  runCacheDiff();
 });
 
 // ════════════════════════════════════════════════════════════════════
