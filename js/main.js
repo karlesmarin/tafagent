@@ -479,20 +479,63 @@ function fillRecipeForm(p) {
 // ════════════════════════════════════════════════════════════════════
 // HF Hub fetch (any model)
 // ════════════════════════════════════════════════════════════════════
-async function fetchHfConfig(modelId) {
-  const url = `https://huggingface.co/${modelId}/raw/main/config.json`;
+// Build the same unsloth mirror candidates used in spec-decode. Lets us
+// fetch config.json for gated families (Llama / Mistral / Gemma) without
+// requiring HF auth — the unsloth redistributions are public and ship the
+// original config.json verbatim (they only quantize weights, not metadata).
+function _hfMirrorCandidates(modelId) {
+  const last = modelId.split("/").slice(-1)[0];
+  if (!last) return [];
+  const out = [
+    `unsloth/${last}`,
+    last.startsWith("Meta-") ? null : `unsloth/Meta-${last}`,
+    `unsloth/${last}-bnb-4bit`,
+    last.startsWith("Meta-") ? null : `unsloth/Meta-${last}-bnb-4bit`,
+  ].filter(c => c && c !== modelId);
+  // Dedupe in case last starts with Meta- already.
+  return [...new Set(out)];
+}
+
+async function _tryConfigUrl(modelId) {
+  // /resolve/main/ rather than /raw/main/ — same lesson as spec-decode:
+  // /resolve follows LFS for large files (irrelevant for config.json which
+  // is always small, but consistent & future-proof). CORS is granted on both.
+  const url = `https://huggingface.co/${modelId}/resolve/main/config.json`;
   const resp = await fetch(url);
-  if (!resp.ok) {
-    if (resp.status === 401 || resp.status === 403) {
-      // Mark this so callers can render a clickable accept-license link.
-      const err = new Error(`🔒 ${modelId} is gated — accept license at https://huggingface.co/${modelId}`);
-      err.code = "gated";
-      err.modelId = modelId;
-      throw err;
-    }
-    throw new Error(`HTTP ${resp.status} — config.json not found at ${url}`);
+  if (!resp.ok) return { ok: false, status: resp.status };
+  try {
+    const j = await resp.json();
+    return { ok: true, data: j };
+  } catch (e) {
+    return { ok: false, error: "parse_failed" };
   }
-  return await resp.json();
+}
+
+async function fetchHfConfig(modelId) {
+  // 1. Try the user-pasted id directly.
+  let r = await _tryConfigUrl(modelId);
+  if (r.ok) return r.data;
+
+  // 2. On 401/403, try open-mirror fallback (unsloth/...). On other
+  //    errors (404/network/parse), surface as before — mirror won't help.
+  if (r.status === 401 || r.status === 403) {
+    for (const cand of _hfMirrorCandidates(modelId)) {
+      const m = await _tryConfigUrl(cand);
+      if (m.ok) {
+        // Stamp the mirror id so callers can surface a "fetched via mirror"
+        // hint if they want; backwards-compatible with code that ignores it.
+        m.data.__via_mirror = cand;
+        m.data.__mirror_of  = modelId;
+        return m.data;
+      }
+    }
+    const err = new Error(`🔒 ${modelId} is gated — accept license at https://huggingface.co/${modelId}`);
+    err.code = "gated";
+    err.modelId = modelId;
+    throw err;
+  }
+
+  throw new Error(`HTTP ${r.status} — config.json not found at https://huggingface.co/${modelId}/resolve/main/config.json`);
 }
 
 $("hf-fetch-btn").addEventListener("click", async () => {
@@ -1404,8 +1447,16 @@ async function niahFetchConfig() {
   try {
     const cfg = await fetchHfConfig(modelId);
     __niahLastConfig = cfg;
+    // Keep the user-pasted id for RULER lookup (it has the canonical
+    // alias mapping). The mirror id is recorded in cfg.__via_mirror
+    // for any UI that wants to surface "fetched via mirror" — niah
+    // status string already shows it below.
     __niahLastModelId = modelId;
-    $("niah-status").textContent = tFmt("niah.status.fetched", { modelId });
+    if (cfg.__via_mirror) {
+      $("niah-status").innerHTML = `${tFmt("niah.status.fetched", { modelId })} <span class="subtle" style="color:#d29922;">(via mirror <code>${cfg.__via_mirror}</code>)</span>`;
+    } else {
+      $("niah-status").textContent = tFmt("niah.status.fetched", { modelId });
+    }
     return cfg;
   } catch (err) {
     if (err.code === "gated") {
