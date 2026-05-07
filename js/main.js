@@ -4072,14 +4072,18 @@ async function runSpecCheck() {
 }
 
 $("spec-check-btn")?.addEventListener("click", runSpecCheck);
+// Examples use OPEN-WEIGHT models (no HF gating). Llama / Mistral /
+// Gemma require license acceptance — they 401 from a public browser
+// fetch. Qwen2.5 + Phi-3.5 ship under permissive licenses so the
+// in-app demo Just Works without the user having to log in to HF.
 $("spec-example-good-btn")?.addEventListener("click", () => {
-  $("spec-target-id").value = "meta-llama/Llama-3.1-70B-Instruct";
-  $("spec-draft-id").value  = "meta-llama/Llama-3.1-8B-Instruct";
+  $("spec-target-id").value = "Qwen/Qwen2.5-72B-Instruct";
+  $("spec-draft-id").value  = "Qwen/Qwen2.5-7B-Instruct";
   runSpecCheck();
 });
 $("spec-example-bad-btn")?.addEventListener("click", () => {
-  $("spec-target-id").value = "meta-llama/Llama-3.1-8B-Instruct";
-  $("spec-draft-id").value  = "mistralai/Mistral-7B-Instruct-v0.3";
+  $("spec-target-id").value = "Qwen/Qwen2.5-7B-Instruct";
+  $("spec-draft-id").value  = "microsoft/Phi-3.5-mini-instruct";
   runSpecCheck();
 });
 

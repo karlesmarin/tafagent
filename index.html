@@ -1125,17 +1125,20 @@
       </p>
       <div class="form-row">
         <label for="spec-target-id" data-i18n="speculative.target_label">Target (large) model id:</label>
-        <input type="text" id="spec-target-id" placeholder="meta-llama/Llama-3.1-70B-Instruct" style="flex:1;" />
+        <input type="text" id="spec-target-id" placeholder="Qwen/Qwen2.5-72B-Instruct" style="flex:1;" />
       </div>
       <div class="form-row">
         <label for="spec-draft-id" data-i18n="speculative.draft_label">Draft (small) model id:</label>
-        <input type="text" id="spec-draft-id" placeholder="meta-llama/Llama-3.1-8B-Instruct" style="flex:1;" />
+        <input type="text" id="spec-draft-id" placeholder="Qwen/Qwen2.5-7B-Instruct" style="flex:1;" />
       </div>
       <div class="form-row">
         <button type="button" id="spec-check-btn" data-i18n="speculative.check_btn">🔍 Check compatibility</button>
-        <button type="button" id="spec-example-good-btn" class="secondary" data-i18n="speculative.example_good_btn">↳ Example: Llama-3.1 8B/70B (good)</button>
+        <button type="button" id="spec-example-good-btn" class="secondary" data-i18n="speculative.example_good_btn">↳ Example: Qwen2.5 7B/72B (good)</button>
         <button type="button" id="spec-example-bad-btn" class="secondary" data-i18n="speculative.example_bad_btn">↳ Example: cross-family (bad)</button>
       </div>
+      <p class="recipe-desc subtle" style="font-size:0.82em;" data-i18n="speculative.gated_note">
+        💡 <strong>Gated models</strong> (Llama, Mistral, Gemma) require HF login + license acceptance — this tool can't auth, so they return 401. Use open-weight pairs (Qwen, Phi, DeepSeek, Yi, StarCoder, Falcon) for demos.
+      </p>
       <p id="spec-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="spec-output" style="margin-top: 1em;"></div>
     </section>
