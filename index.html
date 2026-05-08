@@ -384,18 +384,19 @@
     <!-- v0.7.7 — Task tiles: friendlier entry point, groups 14 modes by user intent. -->
     <section id="task-tiles" aria-labelledby="tiles-title">
       <h2 id="tiles-title" data-i18n="tiles.title">🎯 What do you want to do?</h2>
-      <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of 14 modes.</p>
+      <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of 22 modes.</p>
       <div class="tiles-grid">
         <div class="task-tile">
           <h3>
             <span data-i18n="tile.diagnose.title">🔬 Diagnose a model</span>
-            <span class="info"><span class="tooltip" data-i18n="tile.diagnose.tip">Start here when you have a specific model id and want a full diagnostic: <strong>Profile</strong> runs all 5 recipes at once. <strong>Unmask</strong> checks if max_position_embeddings is honest. <strong>NIAH→Reason</strong> predicts retrieval-vs-reasoning gap. <strong>Quant</strong> predicts whether quantizing will break it. <strong>Inspect</strong> lets you paste raw config.json for private/in-dev models.</span></span>
+            <span class="info"><span class="tooltip" data-i18n="tile.diagnose.tip">Start here when you have a specific model id and want a full diagnostic: <strong>Profile</strong> runs all 5 recipes at once. <strong>Unmask</strong> checks if max_position_embeddings is honest. <strong>NIAH→Reason</strong> predicts retrieval-vs-reasoning gap. <strong>LongScore</strong> looks up published RULER + HELMET data for the model and shows real degradation past short context (peer-reviewed metric). <strong>Quant</strong> predicts whether quantizing will break it. <strong>Inspect</strong> lets you paste raw config.json for private/in-dev models.</span></span>
           </h3>
           <p class="tile-desc" data-i18n="tile.diagnose.desc">Will this specific model work for my use case?</p>
           <div class="tile-modes">
             <button data-mode-link="profile" data-i18n="modes.profile">📇 Profile a model</button>
             <button data-mode-link="unmask" data-i18n="modes.unmask">🪟 Unmask</button>
             <button data-mode-link="niah" data-i18n="modes.niah">🔍 NIAH→Reason</button>
+            <button data-mode-link="longscore" data-i18n="modes.longscore">🎯 LongScore</button>
             <button data-mode-link="quant" data-i18n="modes.quant">⚖️ Quant</button>
             <button data-mode-link="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
           </div>

@@ -810,7 +810,7 @@ export const TRANSLATIONS = {
 
     // v0.7.7 — Task tiles (UX restructure: 14 modes grouped by user intent)
     "tiles.title":                 "🎯 What do you want to do?",
-    "tiles.subtitle":              "Pick a task. Each one opens the right tool below. Or scroll down for the full list of 14 modes.",
+    "tiles.subtitle":              "Pick a task. Each one opens the right tool below. Or scroll down for the full list of 22 modes.",
     "tile.diagnose.title":         "🔬 Diagnose a model",
     "tile.diagnose.desc":          "Will this specific model work for my use case?",
     "tile.trust.title":            "✓ Trust a benchmark score",
@@ -821,7 +821,7 @@ export const TRANSLATIONS = {
     "tile.compare.desc":           "Side-by-side, or browse the empirical model landscape.",
     "tile.manual.title":           "📋 Manual / free-form",
     "tile.manual.desc":            "Pick a specific recipe by hand, or ask in plain English.",
-    "tile.diagnose.tip":           "Start here when you have a specific model id and want a full diagnostic: <strong>Profile</strong> runs all 5 recipes at once. <strong>Unmask</strong> checks if max_position_embeddings is honest. <strong>NIAH→Reason</strong> predicts retrieval-vs-reasoning gap. <strong>Quant</strong> predicts whether quantizing will break it. <strong>Inspect</strong> lets you paste raw config.json for private/in-dev models.",
+    "tile.diagnose.tip":           "Start here when you have a specific model id and want a full diagnostic: <strong>Profile</strong> runs all 5 recipes at once. <strong>Unmask</strong> checks if max_position_embeddings is honest. <strong>NIAH→Reason</strong> predicts retrieval-vs-reasoning gap. <strong>LongScore</strong> looks up published RULER + HELMET data and shows real degradation past short context (peer-reviewed metric). <strong>Quant</strong> predicts whether quantizing will break it. <strong>Inspect</strong> lets you paste raw config.json for private/in-dev models.",
     "tile.trust.tip":              "When you see a score and want to know if it's real. <strong>Contamination</strong> rates 20+ benchmarks for likelihood the model saw them during training. <strong>Drift</strong> tells you if a gap between two evals is numerical noise or a real bug (chat-template mismatch, KV-cache layout, etc.). <strong>Arena CI</strong> reconstructs the confidence intervals Chatbot Arena hides — many top-Elo &quot;wins&quot; are statistically tied.",
     "tile.eval.tip":               "Before you run lm-eval-harness or vLLM serve, get the right CLI flag. <strong>Chat-template Sniffer</strong> detects the template family (Llama-3 / ChatML / Mistral / Phi-3 / DeepSeek / Alpaca / custom / none) and emits the exact <code>--apply_chat_template</code> / <code>--chat-template</code> invocation. Solves issue #1841 in lm-eval-harness (silent ÷2 accuracy). <strong>Diagnose CLI</strong> generates the Python command to measure γ_obs on your local GPU.",
     "tile.compare.tip":            "<strong>Compare</strong>: pick 2-3 candidate models + one recipe, see verdicts in a side-by-side table (e.g. Llama-3-8B vs Mistral-7B at 32k context). <strong>Phase diagram</strong>: scatter of 23 empirical models on the (log θ, γ) plane, with the Padé curve overlaid. Hover dots for details, click to load that model into the Recipe form.",
@@ -2060,7 +2060,7 @@ export const TRANSLATIONS = {
 
     // v0.7.7 — Tiles de tareas (UX restructure: 14 modos agrupados por intención)
     "tiles.title":                 "🎯 ¿Qué quieres hacer?",
-    "tiles.subtitle":              "Elige una tarea. Cada una abre la herramienta adecuada debajo. O baja para la lista completa de 14 modos.",
+    "tiles.subtitle":              "Elige una tarea. Cada una abre la herramienta adecuada debajo. O baja para la lista completa de 22 modos.",
     "tile.diagnose.title":         "🔬 Diagnosticar un modelo",
     "tile.diagnose.desc":          "¿Servirá este modelo concreto para mi caso de uso?",
     "tile.trust.title":            "✓ Confiar en un score de benchmark",
@@ -2071,7 +2071,7 @@ export const TRANSLATIONS = {
     "tile.compare.desc":           "Lado a lado, o explora el panel empírico de modelos.",
     "tile.manual.title":           "📋 Manual / libre",
     "tile.manual.desc":            "Elige una receta concreta a mano, o pregunta en inglés llano.",
-    "tile.diagnose.tip":           "Empieza aquí cuando tengas un id de modelo concreto y quieras diagnóstico completo: <strong>Profile</strong> corre las 5 recetas a la vez. <strong>Unmask</strong> comprueba si max_position_embeddings es honesto. <strong>NIAH→Reason</strong> predice el gap retrieval-vs-reasoning. <strong>Quant</strong> predice si cuantizar lo romperá. <strong>Inspect</strong> permite pegar config.json crudo para modelos privados / en desarrollo.",
+    "tile.diagnose.tip":           "Empieza aquí cuando tengas un id de modelo concreto y quieras diagnóstico completo: <strong>Profile</strong> corre las 5 recetas a la vez. <strong>Unmask</strong> comprueba si max_position_embeddings es honesto. <strong>NIAH→Reason</strong> predice el gap retrieval-vs-reasoning. <strong>LongScore</strong> consulta datos publicados de RULER + HELMET y muestra la degradación real más allá del contexto corto (métrica peer-reviewed). <strong>Quant</strong> predice si cuantizar lo romperá. <strong>Inspect</strong> permite pegar config.json crudo para modelos privados / en desarrollo.",
     "tile.trust.tip":              "Cuando ves un score y quieres saber si es real. <strong>Contamination</strong> puntúa 20+ benchmarks por probabilidad de que el modelo los viera en entrenamiento. <strong>Drift</strong> te dice si el gap entre dos evals es ruido numérico o bug real (chat-template mismatch, layout KV-cache, etc.). <strong>Arena CI</strong> reconstruye los intervalos de confianza que Chatbot Arena oculta — muchas &quot;victorias&quot; top-Elo están estadísticamente empatadas.",
     "tile.eval.tip":               "Antes de correr lm-eval-harness o vLLM serve, obtén el flag CLI correcto. <strong>Chat-template Sniffer</strong> detecta la familia de template (Llama-3 / ChatML / Mistral / Phi-3 / DeepSeek / Alpaca / custom / none) y emite la invocación exacta <code>--apply_chat_template</code> / <code>--chat-template</code>. Resuelve el issue #1841 de lm-eval-harness (÷2 accuracy silencioso). <strong>Diagnose CLI</strong> genera el comando Python para medir γ_obs en tu GPU local.",
     "tile.compare.tip":            "<strong>Compare</strong>: elige 2-3 modelos candidatos + una receta, ve veredictos en tabla lado a lado (ej. Llama-3-8B vs Mistral-7B a 32k). <strong>Phase diagram</strong>: scatter de 23 modelos empíricos en el plano (log θ, γ), con la curva Padé superpuesta. Hover puntos para detalles, click para cargar ese modelo en la Recipe form.",
@@ -3174,7 +3174,7 @@ export const TRANSLATIONS = {
 
     // v0.7.7 — Tuiles de tâches (refonte UX : 14 modes regroupés par intention)
     "tiles.title":                 "🎯 Que voulez-vous faire ?",
-    "tiles.subtitle":              "Choisissez une tâche. Chacune ouvre l'outil adéquat ci-dessous. Ou faites défiler pour la liste complète des 14 modes.",
+    "tiles.subtitle":              "Choisissez une tâche. Chacune ouvre l'outil adéquat ci-dessous. Ou faites défiler pour la liste complète des 22 modes.",
     "tile.diagnose.title":         "🔬 Diagnostiquer un modèle",
     "tile.diagnose.desc":          "Ce modèle conviendra-t-il à mon cas d'usage ?",
     "tile.trust.title":            "✓ Faire confiance à un score",
@@ -3185,7 +3185,7 @@ export const TRANSLATIONS = {
     "tile.compare.desc":           "Côte à côte, ou explorez le panel empirique de modèles.",
     "tile.manual.title":           "📋 Manuel / libre",
     "tile.manual.desc":            "Choisissez une recette à la main, ou demandez en langage naturel.",
-    "tile.diagnose.tip":           "Commencez ici quand vous avez un id de modèle spécifique et voulez un diagnostic complet : <strong>Profile</strong> lance les 5 recettes d'un coup. <strong>Unmask</strong> vérifie si max_position_embeddings est honnête. <strong>NIAH→Reason</strong> prédit le gap retrieval-vs-reasoning. <strong>Quant</strong> prédit si quantifier va le casser. <strong>Inspect</strong> permet de coller un config.json brut pour modèles privés / en dev.",
+    "tile.diagnose.tip":           "Commencez ici quand vous avez un id de modèle spécifique et voulez un diagnostic complet : <strong>Profile</strong> lance les 5 recettes d'un coup. <strong>Unmask</strong> vérifie si max_position_embeddings est honnête. <strong>NIAH→Reason</strong> prédit le gap retrieval-vs-reasoning. <strong>LongScore</strong> recherche les données publiées RULER + HELMET et montre la dégradation réelle au-delà du contexte court (métrique peer-reviewed). <strong>Quant</strong> prédit si quantifier va le casser. <strong>Inspect</strong> permet de coller un config.json brut pour modèles privés / en dev.",
     "tile.trust.tip":              "Quand vous voyez un score et voulez savoir s'il est réel. <strong>Contamination</strong> note 20+ benchmarks selon la probabilité que le modèle les ait vus en entraînement. <strong>Drift</strong> vous dit si l'écart entre deux évals est du bruit numérique ou un vrai bug (chat-template mismatch, layout KV-cache, etc.). <strong>Arena CI</strong> reconstruit les intervalles de confiance que Chatbot Arena cache — beaucoup de &quot;victoires&quot; top-Elo sont statistiquement à égalité.",
     "tile.eval.tip":               "Avant de lancer lm-eval-harness ou vLLM serve, obtenez le bon flag CLI. <strong>Chat-template Sniffer</strong> détecte la famille de template (Llama-3 / ChatML / Mistral / Phi-3 / DeepSeek / Alpaca / custom / none) et émet l'invocation exacte <code>--apply_chat_template</code> / <code>--chat-template</code>. Résout l'issue #1841 de lm-eval-harness (÷2 accuracy silencieux). <strong>Diagnose CLI</strong> génère la commande Python pour mesurer γ_obs sur votre GPU local.",
     "tile.compare.tip":            "<strong>Compare</strong> : choisissez 2-3 modèles candidats + une recette, voyez les verdicts dans un tableau côte à côte (ex. Llama-3-8B vs Mistral-7B à 32k). <strong>Phase diagram</strong> : nuage de 23 modèles empiriques dans le plan (log θ, γ), avec la courbe Padé superposée. Survolez les points pour détails, cliquez pour charger ce modèle dans le formulaire Recipe.",
@@ -4288,7 +4288,7 @@ export const TRANSLATIONS = {
 
     // v0.7.7 — 任务卡片（UX 重构：按用户意图分组的 14 个模式）
     "tiles.title":                 "🎯 你想做什么？",
-    "tiles.subtitle":              "选择一项任务。每一项会打开下方对应的工具。或往下滚动查看完整的 14 个模式列表。",
+    "tiles.subtitle":              "选择一项任务。每一项会打开下方对应的工具。或往下滚动查看完整的 22 个模式列表。",
     "tile.diagnose.title":         "🔬 诊断一个模型",
     "tile.diagnose.desc":          "这个具体模型符合我的用例吗？",
     "tile.trust.title":            "✓ 相信 benchmark 分数",
@@ -4299,7 +4299,7 @@ export const TRANSLATIONS = {
     "tile.compare.desc":           "并排，或浏览经验模型面板。",
     "tile.manual.title":           "📋 手动 / 自由",
     "tile.manual.desc":            "手动挑一个具体 recipe，或用自然语言提问。",
-    "tile.diagnose.tip":           "当你有具体的 model id 并想要完整诊断时从这里开始：<strong>Profile</strong> 一次运行所有 5 个 recipe。<strong>Unmask</strong> 检查 max_position_embeddings 是否诚实。<strong>NIAH→Reason</strong> 预测 retrieval-vs-reasoning 的 gap。<strong>Quant</strong> 预测量化是否会破坏它。<strong>Inspect</strong> 允许粘贴原始 config.json，适用于私有 / 在研模型。",
+    "tile.diagnose.tip":           "当你有具体的 model id 并想要完整诊断时从这里开始：<strong>Profile</strong> 一次运行所有 5 个 recipe。<strong>Unmask</strong> 检查 max_position_embeddings 是否诚实。<strong>NIAH→Reason</strong> 预测 retrieval-vs-reasoning 的 gap。<strong>LongScore</strong> 查询已发布的 RULER + HELMET 数据，显示模型在短上下文之外的真实降级（peer-reviewed 指标）。<strong>Quant</strong> 预测量化是否会破坏它。<strong>Inspect</strong> 允许粘贴原始 config.json，适用于私有 / 在研模型。",
     "tile.trust.tip":              "当你看到一个分数想知道它是否可靠。<strong>Contamination</strong> 按模型在训练时看到 benchmark 的可能性给 20+ 个 benchmark 评级。<strong>Drift</strong> 告诉你两个 eval 之间的 gap 是数值噪声还是真实 bug（chat-template 不匹配、KV-cache 布局等）。<strong>Arena CI</strong> 重建 Chatbot Arena 隐藏的置信区间——很多 top-Elo 的 &quot;胜利&quot; 在统计上是并列。",
     "tile.eval.tip":               "在运行 lm-eval-harness 或 vLLM serve 之前，获取正确的 CLI flag。<strong>Chat-template Sniffer</strong> 检测 template 系列（Llama-3 / ChatML / Mistral / Phi-3 / DeepSeek / Alpaca / custom / none）并输出精确的 <code>--apply_chat_template</code> / <code>--chat-template</code> 调用。解决 lm-eval-harness 的 issue #1841（accuracy 静默对半）。<strong>Diagnose CLI</strong> 生成 Python 命令在你的本地 GPU 上测量 γ_obs。",
     "tile.compare.tip":            "<strong>Compare</strong>：选择 2-3 个候选模型 + 一个 recipe，在并排表格中看判定（例如 Llama-3-8B vs Mistral-7B 在 32k 上下文）。<strong>Phase diagram</strong>：23 个经验模型在 (log θ, γ) 平面上的散点图，叠加 Padé 曲线。悬停点查看详情，点击将该模型加载到 Recipe 表单。",
