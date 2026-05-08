@@ -4430,7 +4430,7 @@ function initLongscore() {
   });
 }
 
-function fmtPct(x, sign) {
+function lsFmtPct(x, sign) {
   if (x == null) return "—";
   const v = (x * 100);
   return `${sign && v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
@@ -4475,7 +4475,7 @@ function renderLongscoreResult(res) {
     const v = verdictMap[res.verdict] || { color: "#8b949e", label: res.verdict };
     html += `<p style="margin-top:0.8em;font-size:1.1em;">
       <strong>${t("longscore.score_label") || "LongScore"}:</strong>
-      <span style="color:${lcColor(ls.avg_lc)};font-family:monospace;font-size:1.2em;font-weight:bold;">${fmtPct(ls.avg_lc, true)}</span>
+      <span style="color:${lcColor(ls.avg_lc)};font-family:monospace;font-size:1.2em;font-weight:bold;">${lsFmtPct(ls.avg_lc, true)}</span>
       <span class="subtle">· Base = ${ls.base.toFixed(1)}% (mean of 4K, 8K)</span>
     </p>`;
     html += `<p style="color:${v.color};font-weight:bold;">${v.label}</p>`;
@@ -4496,7 +4496,7 @@ function renderLongscoreResult(res) {
       html += `<tr ${isShort ? 'style="opacity:0.7;"' : ""}>
         <td><strong>${k.toUpperCase()}</strong>${isShort ? ` <span class="subtle" style="font-size:0.8em;">(base)</span>` : ""}</td>
         <td style="text-align:right;font-family:monospace;">${score.toFixed(1)}%</td>
-        <td style="text-align:right;font-family:monospace;color:${lcColor(lc)};">${lc != null ? fmtPct(lc, true) : "—"}</td>
+        <td style="text-align:right;font-family:monospace;color:${lcColor(lc)};">${lc != null ? lsFmtPct(lc, true) : "—"}</td>
       </tr>`;
     }
     html += `</tbody></table>`;
