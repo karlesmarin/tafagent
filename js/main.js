@@ -35,6 +35,9 @@ import {
   tokenizeAll, detectLanguageBlocks,
   PRESET_TOKENIZERS as TAX_PRESETS, SAMPLE_TEXTS as TAX_SAMPLES,
 } from "./tokenizer_tax.js";
+import {
+  loadKB as loadLongscoreKB, lookup as longscoreLookup, rank as longscoreRank,
+} from "./longscore.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -229,6 +232,7 @@ document.addEventListener("click", (e) => {
       cache: "cache-section",
       speculative: "speculative-section",
       tax: "tax-section",
+      longscore: "longscore-section",
       hub: "hub-section",
     }[targetMode];
     if (sectionId) {
@@ -254,7 +258,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -271,6 +275,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       cache: "cache-section",
       speculative: "speculative-section",
       tax: "tax-section",
+      longscore: "longscore-section",
       hub: "hub-section",
     };
     const sectionId = sectionMap[mode];
@@ -283,6 +288,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "cache") initCacheDiff();
     if (mode === "speculative") initSpeculative();
     if (mode === "tax") initTax();
+    if (mode === "longscore") initLongscore();
     if (mode === "hub") initHub();
   });
 });
@@ -3469,10 +3475,10 @@ async function initHub() {
 
 function renderEntry(e) {
   const modeBadge = e.tafagent_mode
-    ? `<span class="badge" style="background:#3fb950;">${e.tafagent_mode}</span>`
+    ? `<span class="badge" style="background:#3fb950;color:#fff;border-color:#3fb950;">${e.tafagent_mode}</span>`
     : (e.tafagent_planned_mode
-        ? `<span class="badge" style="background:#d29922;">${t("hub.planned") || "planned:"} ${e.tafagent_planned_mode}</span>`
-        : `<span class="badge" style="background:#6e7781;">${t("hub.no_mode") || "external"}</span>`);
+        ? `<span class="badge" style="background:#d29922;color:#1a1a1a;border-color:#d29922;">${t("hub.planned") || "planned:"} ${e.tafagent_planned_mode}</span>`
+        : `<span class="badge" style="background:#6e7781;color:#fff;border-color:#6e7781;">${t("hub.no_mode") || "external"}</span>`);
   const tools = (e.external_tools || [])
     .map(tl => {
       const icon = HUB_TYPE_BADGE[tl.type] || "🔗";
@@ -4408,6 +4414,167 @@ $("tax-sample-mixed-btn")?.addEventListener("click", () => {
 $("tax-sample-code-btn")?.addEventListener("click", () => {
   $("tax-input").value = TAX_SAMPLES.code;
   runTaxTokenize();
+});
+
+// ════════════════════════════════════════════════════════════════════
+// LongScore mode (v0.8.8 anti-bullshit pack #14)
+// ════════════════════════════════════════════════════════════════════
+let __longscoreInited = false;
+
+function initLongscore() {
+  if (__longscoreInited) return;
+  __longscoreInited = true;
+  // Eager-load KB so the first lookup is instant (KB is ~70KB, no real cost)
+  loadLongscoreKB().catch(e => {
+    console.warn("longscore_kb preload failed", e);
+  });
+}
+
+function fmtPct(x, sign) {
+  if (x == null) return "—";
+  const v = (x * 100);
+  return `${sign && v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
+}
+
+function lcColor(avg) {
+  if (avg == null) return "#8b949e";
+  if (avg >= -0.02) return "#3fb950";       // green: no degradation
+  if (avg >= -0.10) return "#a5d36a";       // light green
+  if (avg >= -0.20) return "#f0883e";       // orange
+  if (avg >= -0.30) return "#f85149";       // red
+  return "#a01b1b";                          // dark red: extreme
+}
+
+function renderLongscoreResult(res) {
+  if (res.code === "miss") {
+    return `<div class="arena-result">
+      <p style="color:#f0883e;"><strong>${t("longscore.miss.title") || "Model not found in KB"}</strong></p>
+      <p>${tFmt("longscore.miss.body", { id: res.normalized_id, n: res.n_kb_total }) || `Looked up <code>${res.normalized_id}</code>. KB has ${res.n_kb_total} models. Try a canonical HF id (e.g. <code>Qwen2.5-72B-Instruct</code>, <code>Llama-3.1-70B-Instruct</code>, <code>Jamba-1.5-Mini</code>).`}</p>
+      <p class="subtle" style="font-size:0.85em;">${t("longscore.miss.suggest") || "Check coverage at"} <a href="https://github.com/NVIDIA/RULER" target="_blank">RULER</a> · <a href="https://github.com/princeton-nlp/HELMET" target="_blank">HELMET</a>.</p>
+    </div>`;
+  }
+
+  const verdictMap = {
+    no_degradation: { color: "#3fb950", label: t("longscore.verdict.no_degradation") || "✅ No degradation past short context" },
+    mild:           { color: "#a5d36a", label: t("longscore.verdict.mild")           || "🟢 Mild degradation (<10%)" },
+    moderate:       { color: "#f0883e", label: t("longscore.verdict.moderate")       || "🟠 Moderate degradation (10-20%)" },
+    severe:         { color: "#f85149", label: t("longscore.verdict.severe")         || "🔴 Severe degradation (20-30%)" },
+    extreme:        { color: "#a01b1b", label: t("longscore.verdict.extreme")        || "🚨 Extreme degradation (>30%)" },
+  };
+
+  let html = `<div class="arena-result">`;
+  html += `<p><strong>${escapeHtml(res.display_name)}</strong>`;
+  if (res.params_b) html += ` <span class="subtle">· ${res.params_b}B params</span>`;
+  if (res.recipe_class) html += ` <span class="subtle">· ${escapeHtml(res.recipe_class)}</span>`;
+  if (res.native_context_k) html += ` <span class="subtle">· native ctx ${res.native_context_k}K</span>`;
+  html += `</p>`;
+
+  // RULER per-length + LongScore
+  if (res.ruler_long_score) {
+    const ls = res.ruler_long_score;
+    const v = verdictMap[res.verdict] || { color: "#8b949e", label: res.verdict };
+    html += `<p style="margin-top:0.8em;font-size:1.1em;">
+      <strong>${t("longscore.score_label") || "LongScore"}:</strong>
+      <span style="color:${lcColor(ls.avg_lc)};font-family:monospace;font-size:1.2em;font-weight:bold;">${fmtPct(ls.avg_lc, true)}</span>
+      <span class="subtle">· Base = ${ls.base.toFixed(1)}% (mean of 4K, 8K)</span>
+    </p>`;
+    html += `<p style="color:${v.color};font-weight:bold;">${v.label}</p>`;
+
+    // Per-length bars
+    html += `<table class="lean-table" style="margin-top:0.8em;width:100%;">
+      <thead><tr>
+        <th style="text-align:left;">${t("longscore.col.ctx") || "Context"}</th>
+        <th style="text-align:right;">${t("longscore.col.score") || "Score"}</th>
+        <th style="text-align:right;">${t("longscore.col.lc") || "LC"}</th>
+      </tr></thead><tbody>`;
+    const ctxKeys = ["4k", "8k", "16k", "32k", "64k", "128k"];
+    for (const k of ctxKeys) {
+      const score = res.ruler_per_ctx?.[k];
+      if (score == null) continue;
+      const isShort = k === "4k" || k === "8k";
+      const lc = ls.per_length_lc?.[k];
+      html += `<tr ${isShort ? 'style="opacity:0.7;"' : ""}>
+        <td><strong>${k.toUpperCase()}</strong>${isShort ? ` <span class="subtle" style="font-size:0.8em;">(base)</span>` : ""}</td>
+        <td style="text-align:right;font-family:monospace;">${score.toFixed(1)}%</td>
+        <td style="text-align:right;font-family:monospace;color:${lcColor(lc)};">${lc != null ? fmtPct(lc, true) : "—"}</td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+  } else {
+    // Helmet-only or partial
+    html += `<p style="margin-top:0.8em;color:#f0883e;">${t("longscore.no_ruler") || "⚠ No per-length data — LongScore not computable. Showing HELMET aggregate at 128K instead."}</p>`;
+  }
+
+  // HELMET breakdown if available
+  if (res.helmet) {
+    html += `<details style="margin-top:1em;" open>
+      <summary><strong>${t("longscore.helmet_label") || "HELMET 7-task breakdown"} (at 128K)</strong></summary>
+      <table class="lean-table" style="margin-top:0.5em;width:100%;">
+        <thead><tr>
+          <th style="text-align:left;">${t("longscore.col.task") || "Task"}</th>
+          <th style="text-align:right;">${t("longscore.col.score") || "Score"}</th>
+        </tr></thead><tbody>`;
+    if (res.helmet.overall != null) {
+      html += `<tr style="background:#1f2933;"><td><strong>Overall</strong></td><td style="text-align:right;font-family:monospace;"><strong>${res.helmet.overall.toFixed(1)}</strong></td></tr>`;
+    }
+    if (res.helmet.categories) {
+      for (const [task, score] of Object.entries(res.helmet.categories)) {
+        html += `<tr><td>${escapeHtml(task)}</td><td style="text-align:right;font-family:monospace;">${score != null ? score.toFixed(1) : "—"}</td></tr>`;
+      }
+    }
+    html += `</tbody></table></details>`;
+  }
+
+  html += `<p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;">
+    ${t("longscore.source_note") || "Data source"}: ${escapeHtml(res.source)} ·
+    <a href="https://arxiv.org/abs/2505.19293" target="_blank">LongScore metric</a>
+  </p>`;
+  html += `</div>`;
+  return html;
+}
+
+async function runLongscoreLookup() {
+  const id = $("longscore-input")?.value?.trim();
+  if (!id) {
+    $("longscore-status").textContent = t("longscore.hint.empty") || "⚠ Paste a model id first.";
+    return;
+  }
+  $("longscore-status").textContent = t("longscore.status.lookup") || "⏳ Looking up…";
+  $("longscore-output").innerHTML = "";
+  try {
+    const res = await longscoreLookup(id);
+    $("longscore-output").innerHTML = renderLongscoreResult(res);
+    if (res.code === "miss") {
+      $("longscore-status").textContent = t("longscore.status.miss") || "ℹ Model not in KB";
+    } else if (res.code === "ruler_hit") {
+      $("longscore-status").textContent = t("longscore.status.ruler_hit") || "✅ RULER per-length data found";
+    } else {
+      $("longscore-status").textContent = t("longscore.status.helmet_only") || "ℹ HELMET aggregate only (no per-length data)";
+    }
+  } catch (e) {
+    $("longscore-status").textContent = `❌ ${e.message || e}`;
+    console.error(e);
+  }
+}
+
+$("longscore-lookup-btn")?.addEventListener("click", runLongscoreLookup);
+$("longscore-input")?.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    runLongscoreLookup();
+  }
+});
+$("longscore-example-good-btn")?.addEventListener("click", () => {
+  $("longscore-input").value = "Jamba-1.5-Large";
+  runLongscoreLookup();
+});
+$("longscore-example-mid-btn")?.addEventListener("click", () => {
+  $("longscore-input").value = "Llama-3.1-70B-Instruct";
+  runLongscoreLookup();
+});
+$("longscore-example-bad-btn")?.addEventListener("click", () => {
+  $("longscore-input").value = "dbrx";
+  runLongscoreLookup();
 });
 
 // ════════════════════════════════════════════════════════════════════

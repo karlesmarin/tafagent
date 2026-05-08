@@ -231,6 +231,9 @@
       <p><strong data-i18n="help.v087.tax.title">🌍 Multilingual Tokenizer Tax</strong></p>
       <p data-i18n="help.v087.tax.body">Tokenizers tax non-English text asymmetrically. The same paragraph might be 100 tokens in English but 250+ in Chinese on a Latin-trained tokenizer (Llama, Phi). Both cost-per-request AND effective context degrade silently. This tool loads HuggingFace transformers.js in your browser (~750 KB CDN) and tokenizes pasted text against 6 preset vendor tokenizers (Qwen2.5, Phi-3.5, Llama-3.1, Gemma-2, GPT-4 cl100k, Claude approx). <em>Use case</em>: 'My multilingual support added 30% to the bill — which language costs the most?' → paste real production text, see exact per-tokenizer breakdown.</p>
 
+      <p><strong data-i18n="help.v088.longscore.title">🎯 LongScore</strong></p>
+      <p data-i18n="help.v088.longscore.body">Every long-ctx LLM claims 128K but degrades long before that. The 100-LongBench paper (ACL 2025, arXiv:2505.19293) noticed that raw long-ctx scores are dominated by base ability. They propose <strong>LongScore</strong>: <code>LC_l = (S_l − Base) / Base</code> with <code>Base = mean(S_short)</code>, then average over long lengths. This tafagent mode embeds LongScore-ready data: RULER aggregate per-context (n=33 models, 4K-128K) + HELMET aggregate at 128K (n=60 models, 7 task categories). Lookup is exact-match by HF model id. <em>Use case</em>: 'I want to use Llama-3.1-70B-Instruct for 100K-token doc summarization — how much accuracy do I actually lose?' → paste id, see -10% LongScore (moderate degradation, mostly the 128K cliff).</p>
+
       <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
       <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
 
@@ -348,6 +351,7 @@
             <li data-i18n="inv.v084.cache"><strong>🔁 Cache Diff</strong> — predicts whether a prompt edit invalidated the provider's prompt cache. Per-provider hit ratio + $ delta.</li>
             <li data-i18n="inv.v085.speculative"><strong>🔬 Spec-Decode</strong> — verifies tokenizer vocab compatibility between target + draft before you ship speculative decoding (the bug that gives WORSE throughput silently).</li>
             <li data-i18n="inv.v087.tax"><strong>🌍 Token Tax</strong> — real BPE encoding across 6 vendor tokenizers. Surfaces the silent cost asymmetry across languages (CJK / Arabic / mixed).</li>
+            <li data-i18n="inv.v088.longscore"><strong>🎯 LongScore</strong> — peer-reviewed degradation metric (100-LongBench, ACL 2025). Lookup any model in RULER + HELMET KBs (n=93). See how much your model actually drops past short context.</li>
             <li data-i18n="inv.v081.hub"><strong>🧭 Solutions Hub</strong> — every documented pain mapped to a tafagent mode or curated external tool. Don't reinvent — find.</li>
           </ul>
         </details>
@@ -485,6 +489,7 @@
         <button class="mode-btn" data-mode="cache" role="tab" aria-selected="false" data-i18n="modes.cache">🔁 Cache Diff</button>
         <button class="mode-btn" data-mode="speculative" role="tab" aria-selected="false" data-i18n="modes.speculative">🔬 Spec-Decode</button>
         <button class="mode-btn" data-mode="tax" role="tab" aria-selected="false" data-i18n="modes.tax">🌍 Token Tax</button>
+        <button class="mode-btn" data-mode="longscore" role="tab" aria-selected="false" data-i18n="modes.longscore">🎯 LongScore</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
@@ -1175,6 +1180,34 @@
       <div id="tax-output" style="margin-top: 1em;"></div>
       <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;" data-i18n="tax.firstload_note">
         💡 <strong>First-time load:</strong> the tool fetches transformers.js (~750 KB) + each tokenizer's vocab on demand (~5-15 MB per tokenizer, cached after). Subsequent runs are instant. All processing is local — your text never leaves the browser.
+      </p>
+    </section>
+
+    <!-- LongScore (mode=longscore, v0.8.8 anti-bullshit pack #14) -->
+    <section id="longscore-section" style="display:none;">
+      <h2><span data-i18n="longscore.title">🎯 LongScore</span>
+        <span class="info"><span class="tooltip" data-i18n="longscore.tip">
+          <strong>Why this matters</strong>: every model claims a 128K context window, but accuracy degrades long before that. LongScore (peer-reviewed metric from 100-LongBench, ACL 2025) measures relative degradation past short context. Disentangles base ability from true long-ctx capability — so you compare degradation, not raw scores. Lookup against RULER + HELMET KBs (n=93 models).
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="longscore.desc">
+        <strong>How much does your model degrade past short context?</strong> Paste an HF model id → see LongScore (relative degradation) + per-length breakdown + HELMET 7-task scores when available. No GPU. No inference. Pure lookup against published benchmarks.
+      </p>
+      <div class="form-row">
+        <label for="longscore-input" data-i18n="longscore.input_label">Model id:</label>
+        <input type="text" id="longscore-input" data-i18n-placeholder="longscore.input.placeholder"
+          placeholder="e.g. Qwen2.5-72B-Instruct or meta-llama/Llama-3.1-70B-Instruct" style="flex:1;" />
+        <button type="button" id="longscore-lookup-btn" data-i18n="longscore.lookup_btn">🔎 Lookup</button>
+      </div>
+      <div class="form-row">
+        <button type="button" id="longscore-example-good-btn" class="secondary" data-i18n="longscore.example_good_btn">↳ Example: Jamba-1.5-Large (no degradation)</button>
+        <button type="button" id="longscore-example-mid-btn" class="secondary" data-i18n="longscore.example_mid_btn">↳ Example: Llama-3.1-70B (moderate)</button>
+        <button type="button" id="longscore-example-bad-btn" class="secondary" data-i18n="longscore.example_bad_btn">↳ Example: dbrx (severe)</button>
+      </div>
+      <p id="longscore-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <div id="longscore-output" style="margin-top: 1em;"></div>
+      <p class="recipe-desc subtle" style="font-size:0.82em;margin-top:1em;" data-i18n="longscore.formula_note">
+        💡 <strong>LongScore</strong> = mean over l ∈ {16K, 32K, 64K, 128K} of (S_l − Base) / Base, where Base = mean(S_4K, S_8K). Source: <a href="https://arxiv.org/abs/2505.19293" target="_blank">100-LongBench, ACL 2025</a>. Data: <a href="https://github.com/NVIDIA/RULER" target="_blank">NVIDIA RULER</a> (per-length, n=33) + <a href="https://github.com/princeton-nlp/HELMET" target="_blank">HELMET</a> (aggregate at 128K, n=60). 0 = no degradation; -0.30 = severe.
       </p>
     </section>
 

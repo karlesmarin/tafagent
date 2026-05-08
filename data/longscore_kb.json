@@ -1,0 +1,2941 @@
+{
+  "version": "v0.8.8-longscore-2026-05-08",
+  "metric": "LongScore (100-LongBench, ACL 2025, arXiv:2505.19293, §3.2)",
+  "metric_formula": "Base = mean(S_4K, S_8K); LC_l = (S_l - Base) / Base; LongScore = mean(LC_l for l in {16K, 32K, 64K, 128K})",
+  "metric_interpretation": {
+    "0.0": "no degradation past short context",
+    "-0.05": "mild degradation (~5% relative drop)",
+    "-0.15": "moderate degradation (~15% relative drop)",
+    "-0.30": "severe degradation (~30% relative drop)",
+    "negative": "more negative = worse long-ctx retention"
+  },
+  "thresholds": {
+    "no_degradation": -0.02,
+    "mild": -0.1,
+    "moderate": -0.2,
+    "severe": -0.3
+  },
+  "sources": {
+    "ruler": "NVIDIA RULER leaderboard + Qwen2.5 Tech Report Table 16 (n=35)",
+    "helmet": "HELMET Google Sheet (princeton-nlp; arXiv:2410.02694; n=63)"
+  },
+  "stats": {
+    "n_total": 93,
+    "n_ruler_only": 30,
+    "n_helmet_only": 58,
+    "n_both": 5,
+    "n_with_longscore": 35
+  },
+  "models": {
+    "qwen-2-5-7-b-instruct": {
+      "display_name": "qwen2.5-7b-instruct",
+      "ruler_per_ctx": {
+        "4k": 96.7,
+        "8k": 95.1,
+        "16k": 93.7,
+        "32k": 89.4,
+        "64k": 74.5,
+        "128k": 31.4
+      },
+      "ruler_long_score": {
+        "base": 95.9,
+        "per_length_lc": {
+          "16k": -0.0229,
+          "32k": -0.0678,
+          "64k": -0.2231,
+          "128k": -0.6726
+        },
+        "avg_lc": -0.2466
+      },
+      "helmet": {
+        "overall": 22.8,
+        "categories": {
+          "Recall": 11.4,
+          "RAG": 30.6,
+          "Cite": 3.1,
+          "Re-rank": 1.6,
+          "ICL": 72.0,
+          "LongQA": 21.9,
+          "Summ": 18.8
+        },
+        "context_window_k": 128.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": "native",
+      "params_b": 7,
+      "native_context_k": 32,
+      "source": "ruler+helmet"
+    },
+    "qwen-2-5-14-b-instruct": {
+      "display_name": "qwen2.5-14b-instruct",
+      "ruler_per_ctx": {
+        "4k": 96.9,
+        "8k": 97.1,
+        "16k": 95.5,
+        "32k": 95.5,
+        "64k": 90.3,
+        "128k": 82.0
+      },
+      "ruler_long_score": {
+        "base": 97.0,
+        "per_length_lc": {
+          "16k": -0.0155,
+          "32k": -0.0155,
+          "64k": -0.0691,
+          "128k": -0.1546
+        },
+        "avg_lc": -0.0637
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 14,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "qwen-2-5-32-b-instruct": {
+      "display_name": "qwen2.5-32b-instruct",
+      "ruler_per_ctx": {
+        "4k": 97.7,
+        "8k": 97.2,
+        "16k": 97.7,
+        "32k": 96.5,
+        "64k": 88.5,
+        "128k": 67.0
+      },
+      "ruler_long_score": {
+        "base": 97.45,
+        "per_length_lc": {
+          "16k": 0.0026,
+          "32k": -0.0097,
+          "64k": -0.0918,
+          "128k": -0.3125
+        },
+        "avg_lc": -0.1028
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 32,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "mistral-7-b-v-0-2": {
+      "display_name": "mistral-7b-v0.2",
+      "ruler_per_ctx": {
+        "4k": 93.6,
+        "8k": 91.2,
+        "16k": 87.2,
+        "32k": 75.4,
+        "64k": 49.0,
+        "128k": 13.8
+      },
+      "ruler_long_score": {
+        "base": 92.4,
+        "per_length_lc": {
+          "16k": -0.0563,
+          "32k": -0.184,
+          "64k": -0.4697,
+          "128k": -0.8506
+        },
+        "avg_lc": -0.3901
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 7,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "mixtral-8-x-7-b": {
+      "display_name": "mixtral-8x7b",
+      "ruler_per_ctx": {
+        "4k": 94.9,
+        "8k": 92.1,
+        "16k": 92.5,
+        "32k": 85.9,
+        "64k": 72.4,
+        "128k": 44.5
+      },
+      "ruler_long_score": {
+        "base": 93.5,
+        "per_length_lc": {
+          "16k": -0.0107,
+          "32k": -0.0813,
+          "64k": -0.2257,
+          "128k": -0.5241
+        },
+        "avg_lc": -0.2104
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 47,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "mixtral-8-x-22-b-instruct": {
+      "display_name": "mixtral-8x22b-instruct",
+      "ruler_per_ctx": {
+        "4k": 95.6,
+        "8k": 94.9,
+        "16k": 93.4,
+        "32k": 90.9,
+        "64k": 84.7,
+        "128k": 31.7
+      },
+      "ruler_long_score": {
+        "base": 95.25,
+        "per_length_lc": {
+          "16k": -0.0194,
+          "32k": -0.0457,
+          "64k": -0.1108,
+          "128k": -0.6672
+        },
+        "avg_lc": -0.2108
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 141,
+      "native_context_k": 64,
+      "source": "ruler"
+    },
+    "qwen-2-72-b": {
+      "display_name": "qwen2-72b",
+      "ruler_per_ctx": {
+        "4k": 96.9,
+        "8k": 96.1,
+        "16k": 94.9,
+        "32k": 94.1,
+        "64k": 79.8,
+        "128k": 53.7
+      },
+      "ruler_long_score": {
+        "base": 96.5,
+        "per_length_lc": {
+          "16k": -0.0166,
+          "32k": -0.0249,
+          "64k": -0.1731,
+          "128k": -0.4435
+        },
+        "avg_lc": -0.1645
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 72,
+      "native_context_k": 128,
+      "source": "ruler"
+    },
+    "dbrx": {
+      "display_name": "dbrx",
+      "ruler_per_ctx": {
+        "4k": 95.1,
+        "8k": 93.8,
+        "16k": 83.6,
+        "32k": 63.1,
+        "64k": 2.4,
+        "128k": 0.0
+      },
+      "ruler_long_score": {
+        "base": 94.45,
+        "per_length_lc": {
+          "16k": -0.1149,
+          "32k": -0.3319,
+          "64k": -0.9746,
+          "128k": -1.0
+        },
+        "avg_lc": -0.6054
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 132,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "qwen-1-5-72-b": {
+      "display_name": "qwen1.5-72b",
+      "ruler_per_ctx": {
+        "4k": 94.9,
+        "8k": 93.8,
+        "16k": 78.0,
+        "32k": 67.8,
+        "64k": 0.0,
+        "128k": 0.0
+      },
+      "ruler_long_score": {
+        "base": 94.35,
+        "per_length_lc": {
+          "16k": -0.1733,
+          "32k": -0.2814,
+          "64k": -1.0,
+          "128k": -1.0
+        },
+        "avg_lc": -0.6137
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 72,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "mistral-large-2407": {
+      "display_name": "mistral-large-2407",
+      "ruler_per_ctx": {
+        "4k": 96.2,
+        "8k": 96.1,
+        "16k": 95.1,
+        "32k": 93.0,
+        "64k": 78.8,
+        "128k": 23.7
+      },
+      "ruler_long_score": {
+        "base": 96.15,
+        "per_length_lc": {
+          "16k": -0.0109,
+          "32k": -0.0328,
+          "64k": -0.1804,
+          "128k": -0.7535
+        },
+        "avg_lc": -0.2444
+      },
+      "helmet": null,
+      "recipe_class": "native",
+      "params_b": 123,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "yi-34-b-200-k": {
+      "display_name": "yi-34b-200k",
+      "ruler_per_ctx": {
+        "4k": 93.3,
+        "8k": 92.2,
+        "16k": 91.3,
+        "32k": 87.5,
+        "64k": 83.2,
+        "128k": 77.3
+      },
+      "ruler_long_score": {
+        "base": 92.75,
+        "per_length_lc": {
+          "16k": -0.0156,
+          "32k": -0.0566,
+          "64k": -0.103,
+          "128k": -0.1666
+        },
+        "avg_lc": -0.0854
+      },
+      "helmet": {
+        "overall": 40.3,
+        "categories": {
+          "Recall": 74.1,
+          "RAG": 59.5,
+          "Cite": 1.7,
+          "Re-rank": 20.5,
+          "ICL": 85.0,
+          "LongQA": 26.6,
+          "Summ": 14.3
+        },
+        "context_window_k": 200.0,
+        "params_b": "34.0",
+        "type": "♭"
+      },
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 34,
+      "native_context_k": 4,
+      "source": "ruler+helmet"
+    },
+    "command-r-35-b": {
+      "display_name": "command-r-35b",
+      "ruler_per_ctx": {
+        "4k": 93.8,
+        "8k": 93.3,
+        "16k": 92.4,
+        "32k": 89.5,
+        "64k": 84.9,
+        "128k": 76.0
+      },
+      "ruler_long_score": {
+        "base": 93.55,
+        "per_length_lc": {
+          "16k": -0.0123,
+          "32k": -0.0433,
+          "64k": -0.0925,
+          "128k": -0.1876
+        },
+        "avg_lc": -0.0839
+      },
+      "helmet": null,
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 35,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "command-r-0824-32-b": {
+      "display_name": "command-r-0824-32b",
+      "ruler_per_ctx": {
+        "4k": 94.7,
+        "8k": 93.7,
+        "16k": 93.1,
+        "32k": 90.8,
+        "64k": 86.6,
+        "128k": 74.7
+      },
+      "ruler_long_score": {
+        "base": 94.2,
+        "per_length_lc": {
+          "16k": -0.0117,
+          "32k": -0.0361,
+          "64k": -0.0807,
+          "128k": -0.207
+        },
+        "avg_lc": -0.0839
+      },
+      "helmet": null,
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 32,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "command-r-plus-104-b": {
+      "display_name": "command-r-plus-104b",
+      "ruler_per_ctx": {
+        "4k": 95.6,
+        "8k": 95.2,
+        "16k": 94.2,
+        "32k": 92.0,
+        "64k": 84.3,
+        "128k": 63.1
+      },
+      "ruler_long_score": {
+        "base": 95.4,
+        "per_length_lc": {
+          "16k": -0.0126,
+          "32k": -0.0356,
+          "64k": -0.1164,
+          "128k": -0.3386
+        },
+        "avg_lc": -0.1258
+      },
+      "helmet": null,
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 104,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "command-r-plus-0824-104-b": {
+      "display_name": "command-r-plus-0824-104b",
+      "ruler_per_ctx": {
+        "4k": 96.0,
+        "8k": 95.1,
+        "16k": 94.0,
+        "32k": 92.4,
+        "64k": 85.4,
+        "128k": 64.6
+      },
+      "ruler_long_score": {
+        "base": 95.55,
+        "per_length_lc": {
+          "16k": -0.0162,
+          "32k": -0.033,
+          "64k": -0.1062,
+          "128k": -0.3239
+        },
+        "avg_lc": -0.1198
+      },
+      "helmet": null,
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 104,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "mistral-large-2411-123-b": {
+      "display_name": "mistral-large-2411-123b",
+      "ruler_per_ctx": {
+        "4k": 96.4,
+        "8k": 96.3,
+        "16k": 95.3,
+        "32k": 94.0,
+        "64k": 85.9,
+        "128k": 48.1
+      },
+      "ruler_long_score": {
+        "base": 96.35,
+        "per_length_lc": {
+          "16k": -0.0109,
+          "32k": -0.0244,
+          "64k": -0.1085,
+          "128k": -0.5008
+        },
+        "avg_lc": -0.1612
+      },
+      "helmet": null,
+      "recipe_class": "engineered_long_ctx",
+      "params_b": 123,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "chatglm-3-6-b-128-k": {
+      "display_name": "chatglm3-6b-128k",
+      "ruler_per_ctx": {
+        "4k": 87.8,
+        "8k": 83.4,
+        "16k": 78.6,
+        "32k": 69.9,
+        "64k": 56.0,
+        "128k": 42.0
+      },
+      "ruler_long_score": {
+        "base": 85.6,
+        "per_length_lc": {
+          "16k": -0.0818,
+          "32k": -0.1834,
+          "64k": -0.3458,
+          "128k": -0.5093
+        },
+        "avg_lc": -0.2801
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 6,
+      "native_context_k": 2,
+      "source": "ruler"
+    },
+    "lwm-7-b": {
+      "display_name": "lwm-7b",
+      "ruler_per_ctx": {
+        "4k": 82.3,
+        "8k": 78.4,
+        "16k": 73.7,
+        "32k": 69.1,
+        "64k": 68.1,
+        "128k": 65.0
+      },
+      "ruler_long_score": {
+        "base": 80.35,
+        "per_length_lc": {
+          "16k": -0.0828,
+          "32k": -0.14,
+          "64k": -0.1525,
+          "128k": -0.191
+        },
+        "avg_lc": -0.1416
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 7,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "glm-4-9-b-1-m": {
+      "display_name": "glm4-9b-1m",
+      "ruler_per_ctx": {
+        "4k": 94.7,
+        "8k": 92.8,
+        "16k": 92.1,
+        "32k": 89.9,
+        "64k": 86.7,
+        "128k": 83.1
+      },
+      "ruler_long_score": {
+        "base": 93.75,
+        "per_length_lc": {
+          "16k": -0.0176,
+          "32k": -0.0411,
+          "64k": -0.0752,
+          "128k": -0.1136
+        },
+        "avg_lc": -0.0619
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 9,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "prolong-8-b-512-k": {
+      "display_name": "prolong-8b-512k",
+      "ruler_per_ctx": {
+        "4k": 94.5,
+        "8k": 92.5,
+        "16k": 92.3,
+        "32k": 89.3,
+        "64k": 83.2,
+        "128k": 81.6
+      },
+      "ruler_long_score": {
+        "base": 93.5,
+        "per_length_lc": {
+          "16k": -0.0128,
+          "32k": -0.0449,
+          "64k": -0.1102,
+          "128k": -0.1273
+        },
+        "avg_lc": -0.0738
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 8,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "megabeam-mistral-7-b-512-k": {
+      "display_name": "megabeam-mistral-7b-512k",
+      "ruler_per_ctx": {
+        "4k": 93.8,
+        "8k": 92.5,
+        "16k": 92.0,
+        "32k": 89.2,
+        "64k": 83.7,
+        "128k": 83.7
+      },
+      "ruler_long_score": {
+        "base": 93.15,
+        "per_length_lc": {
+          "16k": -0.0123,
+          "32k": -0.0424,
+          "64k": -0.1014,
+          "128k": -0.1014
+        },
+        "avg_lc": -0.0644
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 7,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "internlm-2-5-7-b-1-m": {
+      "display_name": "internlm2.5-7b-1m",
+      "ruler_per_ctx": {
+        "4k": 88.1,
+        "8k": 85.5,
+        "16k": 84.5,
+        "32k": 82.7,
+        "64k": 75.5,
+        "128k": 68.9
+      },
+      "ruler_long_score": {
+        "base": 86.8,
+        "per_length_lc": {
+          "16k": -0.0265,
+          "32k": -0.0472,
+          "64k": -0.1302,
+          "128k": -0.2062
+        },
+        "avg_lc": -0.1025
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 7,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "gradientai-llama-3-70-b-1-m": {
+      "display_name": "gradientai-llama3-70b-1m",
+      "ruler_per_ctx": {
+        "4k": 95.1,
+        "8k": 94.4,
+        "16k": 90.8,
+        "32k": 85.4,
+        "64k": 80.9,
+        "128k": 72.1
+      },
+      "ruler_long_score": {
+        "base": 94.75,
+        "per_length_lc": {
+          "16k": -0.0417,
+          "32k": -0.0987,
+          "64k": -0.1462,
+          "128k": -0.2391
+        },
+        "avg_lc": -0.1314
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 70,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "gradientai-llama-3-8-b-1-m": {
+      "display_name": "gradientai-llama3-8b-1m",
+      "ruler_per_ctx": {
+        "4k": 92.8,
+        "8k": 90.3,
+        "16k": 85.7,
+        "32k": 79.9,
+        "64k": 76.3,
+        "128k": 69.5
+      },
+      "ruler_long_score": {
+        "base": 91.55,
+        "per_length_lc": {
+          "16k": -0.0639,
+          "32k": -0.1273,
+          "64k": -0.1666,
+          "128k": -0.2409
+        },
+        "avg_lc": -0.1497
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 8,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "longchat-7-b-32-k": {
+      "display_name": "longchat-7b-32k",
+      "ruler_per_ctx": {
+        "4k": 84.7,
+        "8k": 79.9,
+        "16k": 70.8,
+        "32k": 59.3,
+        "64k": 0.0,
+        "128k": 0.0
+      },
+      "ruler_long_score": {
+        "base": 82.3,
+        "per_length_lc": {
+          "16k": -0.1397,
+          "32k": -0.2795,
+          "64k": -1.0,
+          "128k": -1.0
+        },
+        "avg_lc": -0.6048
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 7,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "longalpaca-13-b-32-k": {
+      "display_name": "longalpaca-13b-32k",
+      "ruler_per_ctx": {
+        "4k": 60.6,
+        "8k": 57.0,
+        "16k": 56.6,
+        "32k": 43.6,
+        "64k": 0.0,
+        "128k": 0.0
+      },
+      "ruler_long_score": {
+        "base": 58.8,
+        "per_length_lc": {
+          "16k": -0.0374,
+          "32k": -0.2585,
+          "64k": -1.0,
+          "128k": -1.0
+        },
+        "avg_lc": -0.574
+      },
+      "helmet": null,
+      "recipe_class": "aggressive_ext_small_base",
+      "params_b": 13,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "llama-3-1-70-b-instruct": {
+      "display_name": "llama3.1-70b-instruct",
+      "ruler_per_ctx": {
+        "4k": 96.5,
+        "8k": 95.8,
+        "16k": 95.4,
+        "32k": 94.8,
+        "64k": 88.4,
+        "128k": 66.6
+      },
+      "ruler_long_score": {
+        "base": 96.15,
+        "per_length_lc": {
+          "16k": -0.0078,
+          "32k": -0.014,
+          "64k": -0.0806,
+          "128k": -0.3073
+        },
+        "avg_lc": -0.1024
+      },
+      "helmet": {
+        "overall": 49.7,
+        "categories": {
+          "Recall": 90.7,
+          "RAG": 56.2,
+          "Cite": 7.5,
+          "Re-rank": 24.5,
+          "ICL": 81.4,
+          "LongQA": 56.3,
+          "Summ": 31.6
+        },
+        "context_window_k": 128.0,
+        "params_b": "70.0",
+        "type": "♯"
+      },
+      "recipe_class": "continued_pretrain_cliff",
+      "params_b": 70,
+      "native_context_k": 8,
+      "source": "ruler+helmet"
+    },
+    "llama-3-1-8-b-instruct": {
+      "display_name": "llama3.1-8b-instruct",
+      "ruler_per_ctx": {
+        "4k": 95.5,
+        "8k": 93.8,
+        "16k": 91.6,
+        "32k": 87.4,
+        "64k": 84.7,
+        "128k": 77.0
+      },
+      "ruler_long_score": {
+        "base": 94.65,
+        "per_length_lc": {
+          "16k": -0.0322,
+          "32k": -0.0766,
+          "64k": -0.1051,
+          "128k": -0.1865
+        },
+        "avg_lc": -0.1001
+      },
+      "helmet": {
+        "overall": 46.5,
+        "categories": {
+          "Recall": 95.2,
+          "RAG": 59.5,
+          "Cite": 2.9,
+          "Re-rank": 14.0,
+          "ICL": 83.9,
+          "LongQA": 43.2,
+          "Summ": 27.0
+        },
+        "context_window_k": 128.0,
+        "params_b": "8.0",
+        "type": "♯"
+      },
+      "recipe_class": "continued_pretrain_cliff",
+      "params_b": 8,
+      "native_context_k": 8,
+      "source": "ruler+helmet"
+    },
+    "mistral-nemo-12-b": {
+      "display_name": "mistral-nemo-12b",
+      "ruler_per_ctx": {
+        "4k": 87.8,
+        "8k": 87.2,
+        "16k": 87.7,
+        "32k": 69.0,
+        "64k": 46.8,
+        "128k": 19.0
+      },
+      "ruler_long_score": {
+        "base": 87.5,
+        "per_length_lc": {
+          "16k": 0.0023,
+          "32k": -0.2114,
+          "64k": -0.4651,
+          "128k": -0.7829
+        },
+        "avg_lc": -0.3643
+      },
+      "helmet": null,
+      "recipe_class": "continued_pretrain_cliff",
+      "params_b": 12,
+      "native_context_k": 8,
+      "source": "ruler"
+    },
+    "qwen-2-5-7-b-instruct-1-m": {
+      "display_name": "qwen2.5-7b-instruct-1m",
+      "ruler_per_ctx": {
+        "4k": 96.8,
+        "8k": 95.3,
+        "16k": 93.0,
+        "32k": 91.1,
+        "64k": 90.4,
+        "128k": 84.4
+      },
+      "ruler_long_score": {
+        "base": 96.05,
+        "per_length_lc": {
+          "16k": -0.0318,
+          "32k": -0.0515,
+          "64k": -0.0588,
+          "128k": -0.1213
+        },
+        "avg_lc": -0.0659
+      },
+      "helmet": null,
+      "recipe_class": "dca_ssm_flat",
+      "params_b": 7,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "qwen-2-5-14-b-instruct-1-m": {
+      "display_name": "qwen2.5-14b-instruct-1m",
+      "ruler_per_ctx": {
+        "4k": 97.5,
+        "8k": 97.1,
+        "16k": 94.6,
+        "32k": 94.9,
+        "64k": 94.9,
+        "128k": 92.2
+      },
+      "ruler_long_score": {
+        "base": 97.3,
+        "per_length_lc": {
+          "16k": -0.0277,
+          "32k": -0.0247,
+          "64k": -0.0247,
+          "128k": -0.0524
+        },
+        "avg_lc": -0.0324
+      },
+      "helmet": null,
+      "recipe_class": "dca_ssm_flat",
+      "params_b": 14,
+      "native_context_k": 32,
+      "source": "ruler"
+    },
+    "jamba-1-5-large": {
+      "display_name": "jamba-1.5-large",
+      "ruler_per_ctx": {
+        "4k": 96.7,
+        "8k": 96.6,
+        "16k": 96.4,
+        "32k": 96.0,
+        "64k": 95.4,
+        "128k": 95.1
+      },
+      "ruler_long_score": {
+        "base": 96.65,
+        "per_length_lc": {
+          "16k": -0.0026,
+          "32k": -0.0067,
+          "64k": -0.0129,
+          "128k": -0.016
+        },
+        "avg_lc": -0.0095
+      },
+      "helmet": null,
+      "recipe_class": "dca_ssm_flat",
+      "params_b": 398,
+      "native_context_k": 256,
+      "source": "ruler"
+    },
+    "jamba-1-5-mini": {
+      "display_name": "jamba-1.5-mini",
+      "ruler_per_ctx": {
+        "4k": 95.6,
+        "8k": 95.6,
+        "16k": 94.8,
+        "32k": 94.6,
+        "64k": 92.8,
+        "128k": 90.0
+      },
+      "ruler_long_score": {
+        "base": 95.6,
+        "per_length_lc": {
+          "16k": -0.0084,
+          "32k": -0.0105,
+          "64k": -0.0293,
+          "128k": -0.0586
+        },
+        "avg_lc": -0.0267
+      },
+      "helmet": {
+        "overall": 46.9,
+        "categories": {
+          "Recall": 90.0,
+          "RAG": 57.3,
+          "Cite": 3.1,
+          "Re-rank": 14.6,
+          "ICL": 91.0,
+          "LongQA": 54.2,
+          "Summ": 18.1
+        },
+        "context_window_k": 256.0,
+        "params_b": "12.0",
+        "type": "♯"
+      },
+      "recipe_class": "dca_ssm_flat",
+      "params_b": 52,
+      "native_context_k": 256,
+      "source": "ruler+helmet"
+    },
+    "phi-3-mini-3-8-b": {
+      "display_name": "phi3-mini-3.8b",
+      "ruler_per_ctx": {
+        "4k": 92.2,
+        "8k": 91.5,
+        "16k": 90.7,
+        "32k": 87.5,
+        "64k": 80.6,
+        "128k": 66.7
+      },
+      "ruler_long_score": {
+        "base": 91.85,
+        "per_length_lc": {
+          "16k": -0.0125,
+          "32k": -0.0474,
+          "64k": -0.1225,
+          "128k": -0.2738
+        },
+        "avg_lc": -0.114
+      },
+      "helmet": null,
+      "recipe_class": "longrope",
+      "params_b": 3.8,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "phi-3-medium-14-b": {
+      "display_name": "phi3-medium-14b",
+      "ruler_per_ctx": {
+        "4k": 93.3,
+        "8k": 93.2,
+        "16k": 91.1,
+        "32k": 86.8,
+        "64k": 78.6,
+        "128k": 46.1
+      },
+      "ruler_long_score": {
+        "base": 93.25,
+        "per_length_lc": {
+          "16k": -0.0231,
+          "32k": -0.0692,
+          "64k": -0.1571,
+          "128k": -0.5056
+        },
+        "avg_lc": -0.1888
+      },
+      "helmet": null,
+      "recipe_class": "longrope",
+      "params_b": 14,
+      "native_context_k": 4,
+      "source": "ruler"
+    },
+    "gpt-4": {
+      "display_name": "GPT-4",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 39.2,
+        "categories": {
+          "Recall": 73.5,
+          "RAG": 64.7,
+          "Cite": 1.2,
+          "Re-rank": 9.6,
+          "ICL": 46.0,
+          "LongQA": 46.7,
+          "Summ": 33.0
+        },
+        "context_window_k": 128.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gpt-4-o-mini": {
+      "display_name": "GPT-4o-mini",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 55.7,
+        "categories": {
+          "Recall": 89.6,
+          "RAG": 68.0,
+          "Cite": 24.3,
+          "Re-rank": 31.2,
+          "ICL": 81.2,
+          "LongQA": 54.8,
+          "Summ": 40.8
+        },
+        "context_window_k": 128.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gpt-4-o-05": {
+      "display_name": "GPT-4o-05",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 56.4,
+        "categories": {
+          "Recall": 82.4,
+          "RAG": 70.4,
+          "Cite": 40.4,
+          "Re-rank": 47.7,
+          "ICL": 48.4,
+          "LongQA": 62.0,
+          "Summ": 43.6
+        },
+        "context_window_k": 128.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gpt-4-o-08": {
+      "display_name": "GPT-4o-08",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 64.8,
+        "categories": {
+          "Recall": 99.9,
+          "RAG": 70.2,
+          "Cite": 44.3,
+          "Re-rank": 50.0,
+          "ICL": 86.3,
+          "LongQA": 59.3,
+          "Summ": 43.2
+        },
+        "context_window_k": 128.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "claude-3-5-sonnet": {
+      "display_name": "Claude-3.5-Sonnet",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 38.4,
+        "categories": {
+          "Recall": 94.7,
+          "RAG": 38.1,
+          "Cite": 18.7,
+          "Re-rank": 7.2,
+          "ICL": 61.0,
+          "LongQA": 12.6,
+          "Summ": 36.6
+        },
+        "context_window_k": 200.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemini-1-5-flash": {
+      "display_name": "Gemini-1.5-Flash",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 52.1,
+        "categories": {
+          "Recall": 91.2,
+          "RAG": 66.5,
+          "Cite": 31.7,
+          "Re-rank": 50.8,
+          "ICL": 28.1,
+          "LongQA": 57.3,
+          "Summ": 39.4
+        },
+        "context_window_k": 1024.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemini-1-5-pro": {
+      "display_name": "Gemini-1.5-Pro",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 64.4,
+        "categories": {
+          "Recall": 91.0,
+          "RAG": 71.1,
+          "Cite": 43.6,
+          "Re-rank": 59.7,
+          "ICL": 79.4,
+          "LongQA": 59.6,
+          "Summ": 46.4
+        },
+        "context_window_k": 2048.0,
+        "params_b": "?",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "?",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-2-7-b-32-k": {
+      "display_name": "Llama-2-7B-32k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.3,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 9.4,
+          "Summ": 0.0
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-2-7-b-32-k-instruct": {
+      "display_name": "Llama-2-7B-32k-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.3,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 9.1,
+          "Summ": 0.0
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-7-b-80-k": {
+      "display_name": "Llama-7B-80k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 22.4,
+        "categories": {
+          "Recall": 17.0,
+          "RAG": 40.8,
+          "Cite": 1.0,
+          "Re-rank": 0.2,
+          "ICL": 76.8,
+          "LongQA": 19.8,
+          "Summ": 0.9
+        },
+        "context_window_k": 80.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "yarn-llama-2-7-b-64-k": {
+      "display_name": "Yarn-Llama-2-7B-64k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 0.6,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.2,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 3.8,
+          "Summ": 0.2
+        },
+        "context_window_k": 64.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "yarn-llama-2-7-b-128-k": {
+      "display_name": "Yarn-Llama-2-7B-128k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 17.9,
+        "categories": {
+          "Recall": 4.3,
+          "RAG": 26.7,
+          "Cite": 0.7,
+          "Re-rank": 0.4,
+          "ICL": 75.4,
+          "LongQA": 16.1,
+          "Summ": 1.9
+        },
+        "context_window_k": 128.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-8-b": {
+      "display_name": "Llama-3-8B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.5,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 10.5,
+          "Summ": 0.0
+        },
+        "context_window_k": 8.0,
+        "params_b": "8.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-8-b-instruct": {
+      "display_name": "Llama-3-8B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.2,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 8.7,
+          "Summ": 0.0
+        },
+        "context_window_k": 8.0,
+        "params_b": "8.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-8-b-θ": {
+      "display_name": "Llama-3-8B-θ",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 0.9,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 2.4,
+          "Cite": 0.1,
+          "Re-rank": 0.0,
+          "ICL": 2.8,
+          "LongQA": 0.8,
+          "Summ": 0.0
+        },
+        "context_window_k": 8.0,
+        "params_b": "8.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-8-b-instruct-θ": {
+      "display_name": "Llama-3-8B-Inst-θ",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.6,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 1.3,
+          "Cite": 0.8,
+          "Re-rank": 0.1,
+          "ICL": 4.3,
+          "LongQA": 2.5,
+          "Summ": 1.9
+        },
+        "context_window_k": 8.0,
+        "params_b": "8.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-70-b-θ": {
+      "display_name": "Llama-3-70B-θ",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 1.2,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 2.9,
+          "Re-rank": 0.0,
+          "ICL": 0.2,
+          "LongQA": 5.4,
+          "Summ": 0.1
+        },
+        "context_window_k": 8.0,
+        "params_b": "70.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "70.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-70-b-instruct-θ": {
+      "display_name": "Llama-3-70B-Inst-θ",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 2.1,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 0.0,
+          "LongQA": 12.0,
+          "Summ": 2.7
+        },
+        "context_window_k": 8.0,
+        "params_b": "70.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "70.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-1-8-b": {
+      "display_name": "Llama-3.1-8B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 37.1,
+        "categories": {
+          "Recall": 76.6,
+          "RAG": 54.5,
+          "Cite": 1.6,
+          "Re-rank": 9.3,
+          "ICL": 79.5,
+          "LongQA": 36.2,
+          "Summ": 1.7
+        },
+        "context_window_k": 128.0,
+        "params_b": "8.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-1-70-b": {
+      "display_name": "Llama-3.1-70B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 41.7,
+        "categories": {
+          "Recall": 76.3,
+          "RAG": 56.6,
+          "Cite": 3.9,
+          "Re-rank": 22.6,
+          "ICL": 80.4,
+          "LongQA": 46.0,
+          "Summ": 6.3
+        },
+        "context_window_k": 128.0,
+        "params_b": "70.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "70.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-3-70-b-instruct": {
+      "display_name": "Llama-3.3-70B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 48.2,
+        "categories": {
+          "Recall": 81.8,
+          "RAG": 55.1,
+          "Cite": 10.9,
+          "Re-rank": 26.2,
+          "ICL": 77.8,
+          "LongQA": 52.0,
+          "Summ": 33.3
+        },
+        "context_window_k": 128.0,
+        "params_b": "70.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "70.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-2-1-b": {
+      "display_name": "Llama-3.2-1B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 22.6,
+        "categories": {
+          "Recall": 25.2,
+          "RAG": 32.1,
+          "Cite": 1.5,
+          "Re-rank": 5.6,
+          "ICL": 76.9,
+          "LongQA": 15.9,
+          "Summ": 0.9
+        },
+        "context_window_k": 128.0,
+        "params_b": "1.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "1.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-2-1-b-instruct": {
+      "display_name": "Llama-3.2-1B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 25.0,
+        "categories": {
+          "Recall": 32.4,
+          "RAG": 33.8,
+          "Cite": 2.4,
+          "Re-rank": 1.7,
+          "ICL": 77.3,
+          "LongQA": 18.1,
+          "Summ": 9.1
+        },
+        "context_window_k": 128.0,
+        "params_b": "1.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "1.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-2-3-b": {
+      "display_name": "Llama-3.2-3B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 33.5,
+        "categories": {
+          "Recall": 58.8,
+          "RAG": 51.4,
+          "Cite": 2.1,
+          "Re-rank": 5.4,
+          "ICL": 89.5,
+          "LongQA": 27.6,
+          "Summ": 0.0
+        },
+        "context_window_k": 128.0,
+        "params_b": "3.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "3.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-3-2-3-b-instruct": {
+      "display_name": "Llama-3.2-3B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 37.0,
+        "categories": {
+          "Recall": 53.1,
+          "RAG": 56.4,
+          "Cite": 7.4,
+          "Re-rank": 0.7,
+          "ICL": 86.4,
+          "LongQA": 28.9,
+          "Summ": 25.9
+        },
+        "context_window_k": 128.0,
+        "params_b": "3.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "3.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-4-17-b": {
+      "display_name": "Llama-4-17B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 31.4,
+        "categories": {
+          "Recall": 42.8,
+          "RAG": 50.4,
+          "Cite": 3.7,
+          "Re-rank": 6.1,
+          "ICL": 88.0,
+          "LongQA": 28.1,
+          "Summ": 0.6
+        },
+        "context_window_k": 128.0,
+        "params_b": "17.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "17.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "llama-4-17-b-instruct": {
+      "display_name": "Llama-4-17B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 45.0,
+        "categories": {
+          "Recall": 76.6,
+          "RAG": 51.2,
+          "Cite": 4.7,
+          "Re-rank": 17.9,
+          "ICL": 81.0,
+          "LongQA": 50.5,
+          "Summ": 33.2
+        },
+        "context_window_k": 128.0,
+        "params_b": "17.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "17.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-7-b-instruct-v-0-1": {
+      "display_name": "Mistral-7B-Inst-v0.1",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 15.8,
+        "categories": {
+          "Recall": 3.8,
+          "RAG": 36.6,
+          "Cite": 1.3,
+          "Re-rank": 0.0,
+          "ICL": 44.8,
+          "LongQA": 15.2,
+          "Summ": 9.2
+        },
+        "context_window_k": 8.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-7-b-instruct-v-0-2": {
+      "display_name": "Mistral-7B-Inst-v0.2",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 8.7,
+        "categories": {
+          "Recall": 1.5,
+          "RAG": 11.4,
+          "Cite": 0.6,
+          "Re-rank": 1.2,
+          "ICL": 38.0,
+          "LongQA": 4.1,
+          "Summ": 4.3
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-7-b-v-0-3": {
+      "display_name": "Mistral-7B-v0.3",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 10.8,
+        "categories": {
+          "Recall": 3.6,
+          "RAG": 4.3,
+          "Cite": 0.4,
+          "Re-rank": 1.2,
+          "ICL": 54.8,
+          "LongQA": 10.7,
+          "Summ": 0.4
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-7-b-instruct-v-0-3": {
+      "display_name": "Mistral-7B-Inst-v0.3",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 17.3,
+        "categories": {
+          "Recall": 8.0,
+          "RAG": 21.3,
+          "Cite": 0.9,
+          "Re-rank": 0.5,
+          "ICL": 73.6,
+          "LongQA": 12.0,
+          "Summ": 5.1
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "ministral-8-b-instruct": {
+      "display_name": "Ministral-8B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 24.2,
+        "categories": {
+          "Recall": 12.8,
+          "RAG": 35.3,
+          "Cite": 0.4,
+          "Re-rank": 0.0,
+          "ICL": 84.4,
+          "LongQA": 25.0,
+          "Summ": 11.5
+        },
+        "context_window_k": 128.0,
+        "params_b": "8.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-nemo": {
+      "display_name": "Mistral-Nemo",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 25.0,
+        "categories": {
+          "Recall": 17.7,
+          "RAG": 45.9,
+          "Cite": 1.0,
+          "Re-rank": 0.0,
+          "ICL": 82.4,
+          "LongQA": 26.2,
+          "Summ": 1.7
+        },
+        "context_window_k": 128.0,
+        "params_b": "12.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "12.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "mistral-nemo-instruct": {
+      "display_name": "Mistral-Nemo-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 25.7,
+        "categories": {
+          "Recall": 14.6,
+          "RAG": 40.0,
+          "Cite": 0.5,
+          "Re-rank": 0.0,
+          "ICL": 84.0,
+          "LongQA": 22.5,
+          "Summ": 18.5
+        },
+        "context_window_k": 128.0,
+        "params_b": "12.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "12.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "megabeam-mistral": {
+      "display_name": "MegaBeam-Mistral",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 45.4,
+        "categories": {
+          "Recall": 89.6,
+          "RAG": 57.0,
+          "Cite": 4.0,
+          "Re-rank": 14.7,
+          "ICL": 86.2,
+          "LongQA": 37.3,
+          "Summ": 28.9
+        },
+        "context_window_k": 512.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "yi-6-b-200-k": {
+      "display_name": "Yi-6B-200k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 27.8,
+        "categories": {
+          "Recall": 37.4,
+          "RAG": 36.9,
+          "Cite": 1.1,
+          "Re-rank": 3.4,
+          "ICL": 82.3,
+          "LongQA": 30.0,
+          "Summ": 3.5
+        },
+        "context_window_k": 200.0,
+        "params_b": "6.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "6.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "yi-9-b-200-k": {
+      "display_name": "Yi-9B-200k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 33.9,
+        "categories": {
+          "Recall": 56.2,
+          "RAG": 50.5,
+          "Cite": 3.3,
+          "Re-rank": 8.3,
+          "ICL": 73.4,
+          "LongQA": 39.3,
+          "Summ": 6.2
+        },
+        "context_window_k": 200.0,
+        "params_b": "9.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "9.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "yi-1-5-9-b-32-k": {
+      "display_name": "Yi-1.5-9B-32k",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 2.1,
+        "categories": {
+          "Recall": 0.0,
+          "RAG": 0.0,
+          "Cite": 0.0,
+          "Re-rank": 0.0,
+          "ICL": 4.2,
+          "LongQA": 7.1,
+          "Summ": 3.2
+        },
+        "context_window_k": 32.0,
+        "params_b": "9.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "9.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "phi-3-mini-128-k-instruct": {
+      "display_name": "Phi-3-mini-128k-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 33.6,
+        "categories": {
+          "Recall": 50.1,
+          "RAG": 46.7,
+          "Cite": 0.6,
+          "Re-rank": 5.8,
+          "ICL": 78.7,
+          "LongQA": 29.9,
+          "Summ": 23.7
+        },
+        "context_window_k": 128.0,
+        "params_b": "4.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "4.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "phi-3-small-128-k-instruct": {
+      "display_name": "Phi-3-small-128k-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 24.9,
+        "categories": {
+          "Recall": 22.3,
+          "RAG": 33.8,
+          "Cite": 3.0,
+          "Re-rank": 1.9,
+          "ICL": 79.6,
+          "LongQA": 27.5,
+          "Summ": 6.6
+        },
+        "context_window_k": 128.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "phi-3-med-128-k-instruct": {
+      "display_name": "Phi-3-med-128k-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 29.1,
+        "categories": {
+          "Recall": 24.5,
+          "RAG": 44.8,
+          "Cite": 3.3,
+          "Re-rank": 6.6,
+          "ICL": 73.2,
+          "LongQA": 26.9,
+          "Summ": 24.8
+        },
+        "context_window_k": 128.0,
+        "params_b": "14.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "14.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "phi-3-5-mini-instruct": {
+      "display_name": "Phi-3.5-mini-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 33.6,
+        "categories": {
+          "Recall": 48.8,
+          "RAG": 43.1,
+          "Cite": 1.6,
+          "Re-rank": 7.8,
+          "ICL": 79.5,
+          "LongQA": 28.5,
+          "Summ": 26.3
+        },
+        "context_window_k": 128.0,
+        "params_b": "4.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "4.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-7-b": {
+      "display_name": "Qwen2-7B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 30.0,
+        "categories": {
+          "Recall": 38.2,
+          "RAG": 45.0,
+          "Cite": 2.3,
+          "Re-rank": 3.6,
+          "ICL": 77.5,
+          "LongQA": 36.8,
+          "Summ": 6.8
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-7-b-instruct": {
+      "display_name": "Qwen2-7B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 31.2,
+        "categories": {
+          "Recall": 36.8,
+          "RAG": 47.4,
+          "Cite": 2.4,
+          "Re-rank": 5.9,
+          "ICL": 66.2,
+          "LongQA": 31.9,
+          "Summ": 27.6
+        },
+        "context_window_k": 32.0,
+        "params_b": "7.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-57-b": {
+      "display_name": "Qwen2-57B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 11.0,
+        "categories": {
+          "Recall": 1.8,
+          "RAG": 10.6,
+          "Cite": 1.1,
+          "Re-rank": 0.0,
+          "ICL": 43.3,
+          "LongQA": 15.7,
+          "Summ": 4.9
+        },
+        "context_window_k": 32.0,
+        "params_b": "14.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "14.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-57-b-instruct": {
+      "display_name": "Qwen2-57B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 13.4,
+        "categories": {
+          "Recall": 5.9,
+          "RAG": 12.7,
+          "Cite": 1.1,
+          "Re-rank": 0.0,
+          "ICL": 40.6,
+          "LongQA": 22.9,
+          "Summ": 10.5
+        },
+        "context_window_k": 32.0,
+        "params_b": "14.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "14.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-1-5-b": {
+      "display_name": "Qwen2.5-1.5B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 12.9,
+        "categories": {
+          "Recall": 3.5,
+          "RAG": 22.3,
+          "Cite": 0.6,
+          "Re-rank": 0.0,
+          "ICL": 43.7,
+          "LongQA": 18.2,
+          "Summ": 2.1
+        },
+        "context_window_k": 32.0,
+        "params_b": "1.5",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "1.5",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-1-5-b-instruct": {
+      "display_name": "Qwen2.5-1.5B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 13.2,
+        "categories": {
+          "Recall": 7.8,
+          "RAG": 25.0,
+          "Cite": 1.7,
+          "Re-rank": 0.3,
+          "ICL": 38.4,
+          "LongQA": 7.8,
+          "Summ": 11.3
+        },
+        "context_window_k": 32.0,
+        "params_b": "1.5",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "1.5",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-3-b": {
+      "display_name": "Qwen2.5-3B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 12.3,
+        "categories": {
+          "Recall": 7.5,
+          "RAG": 21.1,
+          "Cite": 1.0,
+          "Re-rank": 2.2,
+          "ICL": 32.0,
+          "LongQA": 20.5,
+          "Summ": 1.8
+        },
+        "context_window_k": 32.0,
+        "params_b": "3.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "3.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-3-b-instruct": {
+      "display_name": "Qwen2.5-3B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 18.1,
+        "categories": {
+          "Recall": 10.4,
+          "RAG": 22.4,
+          "Cite": 1.9,
+          "Re-rank": 3.7,
+          "ICL": 49.4,
+          "LongQA": 21.3,
+          "Summ": 17.5
+        },
+        "context_window_k": 32.0,
+        "params_b": "3.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "3.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-7-b": {
+      "display_name": "Qwen2.5-7B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 20.9,
+        "categories": {
+          "Recall": 13.9,
+          "RAG": 27.0,
+          "Cite": 1.3,
+          "Re-rank": 0.1,
+          "ICL": 71.5,
+          "LongQA": 25.9,
+          "Summ": 6.8
+        },
+        "context_window_k": 128.0,
+        "params_b": "7.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "7.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "qwen-2-5-72-b-instruct": {
+      "display_name": "Qwen2.5-72B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 38.2,
+        "categories": {
+          "Recall": 38.4,
+          "RAG": 43.0,
+          "Cite": 8.0,
+          "Re-rank": 24.5,
+          "ICL": 83.2,
+          "LongQA": 38.9,
+          "Summ": 31.4
+        },
+        "context_window_k": 128.0,
+        "params_b": "72.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "72.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "prolong": {
+      "display_name": "ProLong",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 49.4,
+        "categories": {
+          "Recall": 98.8,
+          "RAG": 63.2,
+          "Cite": 1.4,
+          "Re-rank": 22.5,
+          "ICL": 86.5,
+          "LongQA": 43.9,
+          "Summ": 29.2
+        },
+        "context_window_k": 512.0,
+        "params_b": "8.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "8.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemma-3-12-b": {
+      "display_name": "Gemma-3-12B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 40.6,
+        "categories": {
+          "Recall": 76.6,
+          "RAG": 59.3,
+          "Cite": 2.0,
+          "Re-rank": 16.0,
+          "ICL": 88.7,
+          "LongQA": 41.4,
+          "Summ": 0.2
+        },
+        "context_window_k": 128.0,
+        "params_b": "12.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "12.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemma-3-12-b-instruct": {
+      "display_name": "Gemma-3-12B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 36.0,
+        "categories": {
+          "Recall": 25.9,
+          "RAG": 52.1,
+          "Cite": 1.3,
+          "Re-rank": 21.3,
+          "ICL": 75.4,
+          "LongQA": 43.0,
+          "Summ": 33.1
+        },
+        "context_window_k": 128.0,
+        "params_b": "12.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "12.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemma-3-27-b": {
+      "display_name": "Gemma-3-27B",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 44.5,
+        "categories": {
+          "Recall": 82.6,
+          "RAG": 64.1,
+          "Cite": 2.8,
+          "Re-rank": 30.4,
+          "ICL": 86.3,
+          "LongQA": 44.6,
+          "Summ": 0.7
+        },
+        "context_window_k": 128.0,
+        "params_b": "27.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "27.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "gemma-3-27-b-instruct": {
+      "display_name": "Gemma-3-27B-Inst",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 41.9,
+        "categories": {
+          "Recall": 45.1,
+          "RAG": 56.6,
+          "Cite": 1.6,
+          "Re-rank": 30.0,
+          "ICL": 77.4,
+          "LongQA": 46.8,
+          "Summ": 35.9
+        },
+        "context_window_k": 128.0,
+        "params_b": "27.0",
+        "type": "♯"
+      },
+      "recipe_class": null,
+      "params_b": "27.0",
+      "native_context_k": null,
+      "source": "helmet"
+    },
+    "jamba-v-0-1": {
+      "display_name": "Jamba-v0.1",
+      "ruler_per_ctx": null,
+      "ruler_long_score": null,
+      "helmet": {
+        "overall": 41.5,
+        "categories": {
+          "Recall": 80.3,
+          "RAG": 60.3,
+          "Cite": 6.0,
+          "Re-rank": 9.3,
+          "ICL": 88.7,
+          "LongQA": 41.7,
+          "Summ": 4.0
+        },
+        "context_window_k": 256.0,
+        "params_b": "12.0",
+        "type": "♭"
+      },
+      "recipe_class": null,
+      "params_b": "12.0",
+      "native_context_k": null,
+      "source": "helmet"
+    }
+  },
+  "aliases": {
+    "qwen-2-5-7-b-instruct": [
+      "qwen2.5-7b-instruct",
+      "Qwen2.5-7B-Inst",
+      "Qwen2.5-7B-Inst",
+      "Qwen2.5-7B-Inst",
+      "Qwen2.5-7B-Inst",
+      "Qwen2.5-7B-Inst"
+    ],
+    "qwen-2-5-14-b-instruct": [
+      "qwen2.5-14b-instruct"
+    ],
+    "qwen-2-5-32-b-instruct": [
+      "qwen2.5-32b-instruct"
+    ],
+    "mistral-7-b-v-0-2": [
+      "mistral-7b-v0.2"
+    ],
+    "mixtral-8-x-7-b": [
+      "mixtral-8x7b"
+    ],
+    "mixtral-8-x-22-b-instruct": [
+      "mixtral-8x22b-instruct"
+    ],
+    "qwen-2-72-b": [
+      "qwen2-72b"
+    ],
+    "dbrx": [
+      "dbrx"
+    ],
+    "qwen-1-5-72-b": [
+      "qwen1.5-72b"
+    ],
+    "mistral-large-2407": [
+      "mistral-large-2407"
+    ],
+    "yi-34-b-200-k": [
+      "yi-34b-200k",
+      "Yi-34B-200k",
+      "Yi-34B-200k",
+      "Yi-34B-200k",
+      "Yi-34B-200k",
+      "Yi-34B-200k"
+    ],
+    "command-r-35-b": [
+      "command-r-35b"
+    ],
+    "command-r-0824-32-b": [
+      "command-r-0824-32b"
+    ],
+    "command-r-plus-104-b": [
+      "command-r-plus-104b"
+    ],
+    "command-r-plus-0824-104-b": [
+      "command-r-plus-0824-104b"
+    ],
+    "mistral-large-2411-123-b": [
+      "mistral-large-2411-123b"
+    ],
+    "chatglm-3-6-b-128-k": [
+      "chatglm3-6b-128k"
+    ],
+    "lwm-7-b": [
+      "lwm-7b"
+    ],
+    "glm-4-9-b-1-m": [
+      "glm4-9b-1m"
+    ],
+    "prolong-8-b-512-k": [
+      "prolong-8b-512k"
+    ],
+    "megabeam-mistral-7-b-512-k": [
+      "megabeam-mistral-7b-512k"
+    ],
+    "internlm-2-5-7-b-1-m": [
+      "internlm2.5-7b-1m"
+    ],
+    "gradientai-llama-3-70-b-1-m": [
+      "gradientai-llama3-70b-1m"
+    ],
+    "gradientai-llama-3-8-b-1-m": [
+      "gradientai-llama3-8b-1m"
+    ],
+    "longchat-7-b-32-k": [
+      "longchat-7b-32k"
+    ],
+    "longalpaca-13-b-32-k": [
+      "longalpaca-13b-32k"
+    ],
+    "llama-3-1-70-b-instruct": [
+      "llama3.1-70b-instruct",
+      "Llama-3.1-70B-Inst",
+      "Llama-3.1-70B-Inst",
+      "Llama-3.1-70B-Inst",
+      "Llama-3.1-70B-Inst",
+      "Llama-3.1-70B-Inst"
+    ],
+    "llama-3-1-8-b-instruct": [
+      "llama3.1-8b-instruct",
+      "Llama-3.1-8B-Inst",
+      "Llama-3.1-8B-Inst",
+      "Llama-3.1-8B-Inst",
+      "Llama-3.1-8B-Inst",
+      "Llama-3.1-8B-Inst"
+    ],
+    "mistral-nemo-12-b": [
+      "mistral-nemo-12b"
+    ],
+    "qwen-2-5-7-b-instruct-1-m": [
+      "qwen2.5-7b-instruct-1m"
+    ],
+    "qwen-2-5-14-b-instruct-1-m": [
+      "qwen2.5-14b-instruct-1m"
+    ],
+    "jamba-1-5-large": [
+      "jamba-1.5-large"
+    ],
+    "jamba-1-5-mini": [
+      "jamba-1.5-mini",
+      "Jamba-1.5-Mini",
+      "Jamba-1.5-Mini",
+      "Jamba-1.5-Mini",
+      "Jamba-1.5-Mini",
+      "Jamba-1.5-Mini"
+    ],
+    "phi-3-mini-3-8-b": [
+      "phi3-mini-3.8b"
+    ],
+    "phi-3-medium-14-b": [
+      "phi3-medium-14b"
+    ],
+    "gpt-4": [
+      "GPT-4",
+      "GPT-4",
+      "GPT-4",
+      "GPT-4",
+      "GPT-4"
+    ],
+    "gpt-4-o-mini": [
+      "GPT-4o-mini",
+      "GPT-4o-mini",
+      "GPT-4o-mini",
+      "GPT-4o-mini",
+      "GPT-4o-mini"
+    ],
+    "gpt-4-o-05": [
+      "GPT-4o-05",
+      "GPT-4o-05",
+      "GPT-4o-05",
+      "GPT-4o-05",
+      "GPT-4o-05"
+    ],
+    "gpt-4-o-08": [
+      "GPT-4o-08",
+      "GPT-4o-08",
+      "GPT-4o-08",
+      "GPT-4o-08",
+      "GPT-4o-08"
+    ],
+    "claude-3-5-sonnet": [
+      "Claude-3.5-Sonnet",
+      "Claude-3.5-Sonnet",
+      "Claude-3.5-Sonnet",
+      "Claude-3.5-Sonnet",
+      "Claude-3.5-Sonnet"
+    ],
+    "gemini-1-5-flash": [
+      "Gemini-1.5-Flash",
+      "Gemini-1.5-Flash",
+      "Gemini-1.5-Flash",
+      "Gemini-1.5-Flash",
+      "Gemini-1.5-Flash"
+    ],
+    "gemini-1-5-pro": [
+      "Gemini-1.5-Pro",
+      "Gemini-1.5-Pro",
+      "Gemini-1.5-Pro",
+      "Gemini-1.5-Pro",
+      "Gemini-1.5-Pro"
+    ],
+    "llama-2-7-b-32-k": [
+      "Llama-2-7B-32k",
+      "Llama-2-7B-32k",
+      "Llama-2-7B-32k",
+      "Llama-2-7B-32k",
+      "Llama-2-7B-32k"
+    ],
+    "llama-2-7-b-32-k-instruct": [
+      "Llama-2-7B-32k-Inst",
+      "Llama-2-7B-32k-Inst",
+      "Llama-2-7B-32k-Inst",
+      "Llama-2-7B-32k-Inst",
+      "Llama-2-7B-32k-Inst"
+    ],
+    "llama-7-b-80-k": [
+      "Llama-7B-80k",
+      "Llama-7B-80k",
+      "Llama-7B-80k",
+      "Llama-7B-80k",
+      "Llama-7B-80k"
+    ],
+    "yarn-llama-2-7-b-64-k": [
+      "Yarn-Llama-2-7B-64k",
+      "Yarn-Llama-2-7B-64k",
+      "Yarn-Llama-2-7B-64k",
+      "Yarn-Llama-2-7B-64k",
+      "Yarn-Llama-2-7B-64k"
+    ],
+    "yarn-llama-2-7-b-128-k": [
+      "Yarn-Llama-2-7B-128k",
+      "Yarn-Llama-2-7B-128k",
+      "Yarn-Llama-2-7B-128k",
+      "Yarn-Llama-2-7B-128k",
+      "Yarn-Llama-2-7B-128k"
+    ],
+    "llama-3-8-b": [
+      "Llama-3-8B",
+      "Llama-3-8B",
+      "Llama-3-8B",
+      "Llama-3-8B",
+      "Llama-3-8B"
+    ],
+    "llama-3-8-b-instruct": [
+      "Llama-3-8B-Inst",
+      "Llama-3-8B-Inst",
+      "Llama-3-8B-Inst",
+      "Llama-3-8B-Inst",
+      "Llama-3-8B-Inst"
+    ],
+    "llama-3-8-b-θ": [
+      "Llama-3-8B-θ",
+      "Llama-3-8B-θ",
+      "Llama-3-8B-θ",
+      "Llama-3-8B-θ",
+      "Llama-3-8B-θ"
+    ],
+    "llama-3-8-b-instruct-θ": [
+      "Llama-3-8B-Inst-θ",
+      "Llama-3-8B-Inst-θ",
+      "Llama-3-8B-Inst-θ",
+      "Llama-3-8B-Inst-θ",
+      "Llama-3-8B-Inst-θ"
+    ],
+    "llama-3-70-b-θ": [
+      "Llama-3-70B-θ",
+      "Llama-3-70B-θ",
+      "Llama-3-70B-θ",
+      "Llama-3-70B-θ",
+      "Llama-3-70B-θ"
+    ],
+    "llama-3-70-b-instruct-θ": [
+      "Llama-3-70B-Inst-θ",
+      "Llama-3-70B-Inst-θ",
+      "Llama-3-70B-Inst-θ",
+      "Llama-3-70B-Inst-θ",
+      "Llama-3-70B-Inst-θ"
+    ],
+    "llama-3-1-8-b": [
+      "Llama-3.1-8B",
+      "Llama-3.1-8B",
+      "Llama-3.1-8B",
+      "Llama-3.1-8B",
+      "Llama-3.1-8B"
+    ],
+    "llama-3-1-70-b": [
+      "Llama-3.1-70B",
+      "Llama-3.1-70B",
+      "Llama-3.1-70B",
+      "Llama-3.1-70B",
+      "Llama-3.1-70B"
+    ],
+    "llama-3-3-70-b-instruct": [
+      "Llama-3.3-70B-Inst",
+      "Llama-3.3-70B-Inst",
+      "Llama-3.3-70B-Inst",
+      "Llama-3.3-70B-Inst",
+      "Llama-3.3-70B-Inst"
+    ],
+    "llama-3-2-1-b": [
+      "Llama-3.2-1B",
+      "Llama-3.2-1B",
+      "Llama-3.2-1B",
+      "Llama-3.2-1B",
+      "Llama-3.2-1B"
+    ],
+    "llama-3-2-1-b-instruct": [
+      "Llama-3.2-1B-Inst",
+      "Llama-3.2-1B-Inst",
+      "Llama-3.2-1B-Inst",
+      "Llama-3.2-1B-Inst",
+      "Llama-3.2-1B-Inst"
+    ],
+    "llama-3-2-3-b": [
+      "Llama-3.2-3B",
+      "Llama-3.2-3B",
+      "Llama-3.2-3B",
+      "Llama-3.2-3B",
+      "Llama-3.2-3B"
+    ],
+    "llama-3-2-3-b-instruct": [
+      "Llama-3.2-3B-Inst",
+      "Llama-3.2-3B-Inst",
+      "Llama-3.2-3B-Inst",
+      "Llama-3.2-3B-Inst",
+      "Llama-3.2-3B-Inst"
+    ],
+    "llama-4-17-b": [
+      "Llama-4-17B",
+      "Llama-4-17B",
+      "Llama-4-17B",
+      "Llama-4-17B",
+      "Llama-4-17B"
+    ],
+    "llama-4-17-b-instruct": [
+      "Llama-4-17B-Inst",
+      "Llama-4-17B-Inst",
+      "Llama-4-17B-Inst",
+      "Llama-4-17B-Inst",
+      "Llama-4-17B-Inst"
+    ],
+    "mistral-7-b-instruct-v-0-1": [
+      "Mistral-7B-Inst-v0.1",
+      "Mistral-7B-Inst-v0.1",
+      "Mistral-7B-Inst-v0.1",
+      "Mistral-7B-Inst-v0.1",
+      "Mistral-7B-Inst-v0.1"
+    ],
+    "mistral-7-b-instruct-v-0-2": [
+      "Mistral-7B-Inst-v0.2",
+      "Mistral-7B-Inst-v0.2",
+      "Mistral-7B-Inst-v0.2",
+      "Mistral-7B-Inst-v0.2",
+      "Mistral-7B-Inst-v0.2"
+    ],
+    "mistral-7-b-v-0-3": [
+      "Mistral-7B-v0.3",
+      "Mistral-7B-v0.3",
+      "Mistral-7B-v0.3",
+      "Mistral-7B-v0.3",
+      "Mistral-7B-v0.3"
+    ],
+    "mistral-7-b-instruct-v-0-3": [
+      "Mistral-7B-Inst-v0.3",
+      "Mistral-7B-Inst-v0.3",
+      "Mistral-7B-Inst-v0.3",
+      "Mistral-7B-Inst-v0.3",
+      "Mistral-7B-Inst-v0.3"
+    ],
+    "ministral-8-b-instruct": [
+      "Ministral-8B-Inst",
+      "Ministral-8B-Inst",
+      "Ministral-8B-Inst",
+      "Ministral-8B-Inst",
+      "Ministral-8B-Inst"
+    ],
+    "mistral-nemo": [
+      "Mistral-Nemo",
+      "Mistral-Nemo",
+      "Mistral-Nemo",
+      "Mistral-Nemo",
+      "Mistral-Nemo"
+    ],
+    "mistral-nemo-instruct": [
+      "Mistral-Nemo-Inst",
+      "Mistral-Nemo-Inst",
+      "Mistral-Nemo-Inst",
+      "Mistral-Nemo-Inst",
+      "Mistral-Nemo-Inst"
+    ],
+    "megabeam-mistral": [
+      "MegaBeam-Mistral",
+      "MegaBeam-Mistral",
+      "MegaBeam-Mistral",
+      "MegaBeam-Mistral",
+      "MegaBeam-Mistral"
+    ],
+    "yi-6-b-200-k": [
+      "Yi-6B-200k",
+      "Yi-6B-200k",
+      "Yi-6B-200k",
+      "Yi-6B-200k",
+      "Yi-6B-200k"
+    ],
+    "yi-9-b-200-k": [
+      "Yi-9B-200k",
+      "Yi-9B-200k",
+      "Yi-9B-200k",
+      "Yi-9B-200k",
+      "Yi-9B-200k"
+    ],
+    "yi-1-5-9-b-32-k": [
+      "Yi-1.5-9B-32k",
+      "Yi-1.5-9B-32k",
+      "Yi-1.5-9B-32k",
+      "Yi-1.5-9B-32k",
+      "Yi-1.5-9B-32k"
+    ],
+    "phi-3-mini-128-k-instruct": [
+      "Phi-3-mini-128k-Inst",
+      "Phi-3-mini-128k-Inst",
+      "Phi-3-mini-128k-Inst",
+      "Phi-3-mini-128k-Inst",
+      "Phi-3-mini-128k-Inst"
+    ],
+    "phi-3-small-128-k-instruct": [
+      "Phi-3-small-128k-Inst",
+      "Phi-3-small-128k-Inst",
+      "Phi-3-small-128k-Inst",
+      "Phi-3-small-128k-Inst",
+      "Phi-3-small-128k-Inst"
+    ],
+    "phi-3-med-128-k-instruct": [
+      "Phi-3-med-128k-Inst",
+      "Phi-3-med-128k-Inst",
+      "Phi-3-med-128k-Inst",
+      "Phi-3-med-128k-Inst",
+      "Phi-3-med-128k-Inst"
+    ],
+    "phi-3-5-mini-instruct": [
+      "Phi-3.5-mini-Inst",
+      "Phi-3.5-mini-Inst",
+      "Phi-3.5-mini-Inst",
+      "Phi-3.5-mini-Inst",
+      "Phi-3.5-mini-Inst"
+    ],
+    "qwen-2-7-b": [
+      "Qwen2-7B",
+      "Qwen2-7B",
+      "Qwen2-7B",
+      "Qwen2-7B",
+      "Qwen2-7B"
+    ],
+    "qwen-2-7-b-instruct": [
+      "Qwen2-7B-Inst",
+      "Qwen2-7B-Inst",
+      "Qwen2-7B-Inst",
+      "Qwen2-7B-Inst",
+      "Qwen2-7B-Inst"
+    ],
+    "qwen-2-57-b": [
+      "Qwen2-57B",
+      "Qwen2-57B",
+      "Qwen2-57B",
+      "Qwen2-57B",
+      "Qwen2-57B"
+    ],
+    "qwen-2-57-b-instruct": [
+      "Qwen2-57B-Inst",
+      "Qwen2-57B-Inst",
+      "Qwen2-57B-Inst",
+      "Qwen2-57B-Inst",
+      "Qwen2-57B-Inst"
+    ],
+    "qwen-2-5-1-5-b": [
+      "Qwen2.5-1.5B",
+      "Qwen2.5-1.5B",
+      "Qwen2.5-1.5B",
+      "Qwen2.5-1.5B",
+      "Qwen2.5-1.5B"
+    ],
+    "qwen-2-5-1-5-b-instruct": [
+      "Qwen2.5-1.5B-Inst",
+      "Qwen2.5-1.5B-Inst",
+      "Qwen2.5-1.5B-Inst",
+      "Qwen2.5-1.5B-Inst",
+      "Qwen2.5-1.5B-Inst"
+    ],
+    "qwen-2-5-3-b": [
+      "Qwen2.5-3B",
+      "Qwen2.5-3B",
+      "Qwen2.5-3B",
+      "Qwen2.5-3B",
+      "Qwen2.5-3B"
+    ],
+    "qwen-2-5-3-b-instruct": [
+      "Qwen2.5-3B-Inst",
+      "Qwen2.5-3B-Inst",
+      "Qwen2.5-3B-Inst",
+      "Qwen2.5-3B-Inst",
+      "Qwen2.5-3B-Inst"
+    ],
+    "qwen-2-5-7-b": [
+      "Qwen2.5-7B",
+      "Qwen2.5-7B",
+      "Qwen2.5-7B",
+      "Qwen2.5-7B",
+      "Qwen2.5-7B"
+    ],
+    "qwen-2-5-72-b-instruct": [
+      "Qwen2.5-72B-Inst",
+      "Qwen2.5-72B-Inst",
+      "Qwen2.5-72B-Inst",
+      "Qwen2.5-72B-Inst",
+      "Qwen2.5-72B-Inst"
+    ],
+    "prolong": [
+      "ProLong",
+      "ProLong",
+      "ProLong",
+      "ProLong",
+      "ProLong"
+    ],
+    "gemma-3-12-b": [
+      "Gemma-3-12B",
+      "Gemma-3-12B",
+      "Gemma-3-12B",
+      "Gemma-3-12B",
+      "Gemma-3-12B"
+    ],
+    "gemma-3-12-b-instruct": [
+      "Gemma-3-12B-Inst",
+      "Gemma-3-12B-Inst",
+      "Gemma-3-12B-Inst",
+      "Gemma-3-12B-Inst",
+      "Gemma-3-12B-Inst"
+    ],
+    "gemma-3-27-b": [
+      "Gemma-3-27B",
+      "Gemma-3-27B",
+      "Gemma-3-27B",
+      "Gemma-3-27B",
+      "Gemma-3-27B"
+    ],
+    "gemma-3-27-b-instruct": [
+      "Gemma-3-27B-Inst",
+      "Gemma-3-27B-Inst",
+      "Gemma-3-27B-Inst",
+      "Gemma-3-27B-Inst",
+      "Gemma-3-27B-Inst"
+    ],
+    "jamba-v-0-1": [
+      "Jamba-v0.1",
+      "Jamba-v0.1",
+      "Jamba-v0.1",
+      "Jamba-v0.1",
+      "Jamba-v0.1"
+    ]
+  }
+}

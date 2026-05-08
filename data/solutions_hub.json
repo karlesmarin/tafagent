@@ -138,6 +138,22 @@
       "not_for": "Final go/no-go decision — re-test on your domain after architectural screening passes."
     },
     {
+      "id": "long_ctx_degradation",
+      "category": "diagnostic",
+      "pain": "Long-ctx accuracy drops well before the claimed 128K window — but raw scores are dominated by base ability and hide which model truly retains capability past short context.",
+      "tafagent_mode": "🎯 LongScore",
+      "external_tools": [
+        {"name": "100-LongBench paper (LongScore metric)", "url": "https://arxiv.org/abs/2505.19293", "type": "paper"},
+        {"name": "HELMET (Princeton, 7-task long-ctx benchmark)", "url": "https://github.com/princeton-nlp/HELMET", "type": "tool"},
+        {"name": "HELMET full results sheet (n=315)", "url": "https://docs.google.com/spreadsheets/d/1LBt6dP4UwZwU_CjoYhyAd_rjKhQLvo0Gq4cYUnpi_CA", "type": "leaderboard"},
+        {"name": "NVIDIA RULER per-length scores", "url": "https://github.com/NVIDIA/RULER", "type": "tool"},
+        {"name": "LongBench v2 (THUDM)", "url": "https://longbench2.github.io/", "type": "leaderboard"},
+        {"name": "Chroma context rot study", "url": "https://research.trychroma.com/context-rot", "type": "paper"}
+      ],
+      "best_for": "Picking a long-ctx model by relative degradation rather than raw score. Uses peer-reviewed LongScore metric to disentangle base ability from long-ctx capability. Browser-only, no GPU.",
+      "not_for": "Models not yet covered by RULER or HELMET (KB has n=93). Use the external tools above for breadth."
+    },
+    {
       "id": "tokenizer_glitch",
       "category": "diagnostic",
       "pain": "Glitch tokens / merge residues break inference silently.",
