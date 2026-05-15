@@ -2396,6 +2396,18 @@ function renderProfile(p, params) {
   const gammaForPill = kn.gamma_decomposed ?? kn.gamma_pade;
   const recipeCount = Object.keys(p.recipes).length;
 
+  // v0.8.9: pre-compute γ Validity Gate state so we can auto-expand Diagnostics when banner fires.
+  const _initGObs = kn.gamma_decomposed ?? kn.gamma_pade;
+  const _initGCheck = (typeof _initGObs === "number" && Number.isFinite(_initGObs))
+    ? gammaCheckAll({ theta: params.theta, T: params.T_eval, gObs: _initGObs, isRandom: false })
+    : null;
+  const _validitySet = new Set(["fraud", "compressed", "overpade", "swa", "unknown"]);
+  const initialBannerActive = _initGCheck && (
+    _validitySet.has(_initGCheck.regime) ||
+    (Number.isFinite(_initGCheck.efficiency) && (_initGCheck.efficiency < 0.85 || _initGCheck.efficiency > 1.15))
+  );
+  const diagOpenAttr = initialBannerActive ? " open" : "";
+
   $("profile-box").innerHTML = `
     <div class="taf-card">
       <div class="taf-hero">
@@ -2427,9 +2439,10 @@ function renderProfile(p, params) {
         </div>
       </details>
 
-      <details class="taf-section">
+      <details class="taf-section"${diagOpenAttr}>
         <summary>
           <span data-i18n="tafcard.diag_title">🔬 Diagnostics — numbers + γ check + what-if</span>
+          ${initialBannerActive ? `<span class="section-count" style="background:rgba(210,153,34,0.18); color:#d29922; border:1px solid rgba(210,153,34,0.4);" data-i18n="gamma_check.validity.summary_pill">⚠ Validity gate</span>` : ""}
         </summary>
         <div class="taf-section-body">
           <h4 style="margin-top:0.3em;" data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h4>
@@ -2444,7 +2457,7 @@ function renderProfile(p, params) {
               <label><span data-i18n="gamma_check.gobs_label">γ_observed</span>
                 <span class="info"><span class="tooltip" data-i18n="gamma_check.gobs_tip">Empirically measured γ from your model's attention scores. Use the Diagnose CLI to obtain this from real weights.</span></span>
               </label>
-              <input type="number" id="gc-gobs" step="0.0001" value="${formatN(kn.gamma_decomposed ?? kn.gamma_pade)}" />
+              <input type="number" id="gc-gobs" step="0.0001" value="${(() => { const v = kn.gamma_decomposed ?? kn.gamma_pade; return (typeof v === "number" && Number.isFinite(v)) ? v.toFixed(4) : ""; })()}" />
             </div>
             <div class="form-field">
               <label><span data-i18n="gamma_check.random_label">Random corpus?</span>
