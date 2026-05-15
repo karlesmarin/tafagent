@@ -2573,6 +2573,16 @@ function renderProfile(p, params) {
     const fmt = (x, d=4) => (x === null || x === undefined || Number.isNaN(x))
       ? "n/a"
       : (!Number.isFinite(x) ? "∞" : Number(x).toLocaleString(undefined, { maximumFractionDigits: d }));
+    const validityRegimes = new Set(["fraud", "compressed", "overpade", "swa", "unknown"]);
+    const effOutOfBand = Number.isFinite(r.efficiency) && (r.efficiency < 0.85 || r.efficiency > 1.15);
+    const showValidity = validityRegimes.has(r.regime) || effOutOfBand;
+    const validityBanner = showValidity ? `
+      <div class="gc-validity-warning" style="margin-top:0.6em; padding:0.7em 0.9em; border-left:3px solid #d29922; background:rgba(210,153,34,0.08); border-radius:4px;">
+        <div style="font-weight:600; margin-bottom:0.3em;" data-i18n="gamma_check.validity.title">⚠ Closed-form γ may not apply to this model</div>
+        <div style="font-size:0.92em;" data-i18n="gamma_check.validity.body"></div>
+        <div style="font-size:0.85em; margin-top:0.3em; opacity:0.85;" data-i18n="gamma_check.validity.${r.regime}.hint"></div>
+      </div>
+    ` : "";
     $("gamma-check-results").innerHTML = `
       <div class="taf-key-numbers">
         <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ.")}</span><span class="num-value">${fmt(r.gammaPade)}</span></div>
@@ -2581,6 +2591,7 @@ function renderProfile(p, params) {
         <div class="num-row"><span class="num-label">η = θ_eff_obs / θ_eff_Padé ${ttip("tooltip.efficiency", "Efficiency ratio. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.")}</span><span class="num-value">${fmt(r.efficiency)}</span></div>
         <div class="num-row"><span class="num-label">ΔH_Cardy = log(θ_eff_obs / θ_nominal) ${ttip("tooltip.delta_h_cardy", "Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.")}</span><span class="num-value">${fmt(r.deltaHCardy)}</span></div>
       </div>
+      ${validityBanner}
       <div class="taf-recipe-tile ${meta.cls}" style="margin-top:0.6em;">
         <div class="tile-header">
           <span data-i18n="gamma_check.regime">Regime</span>

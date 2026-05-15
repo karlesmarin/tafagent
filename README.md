@@ -85,6 +85,12 @@ If it is useful to you — even once — that is enough. If it is wrong about
 your model, please tell us so we can fix the framework. The point is the
 common ground, not the artefact.
 
+The closed-form predictions used in TAF Agent have explicit assumptions
+and a regime of validity. When the in-tool **Validity Gate** fires (γ
+panel banner), or when you want the full discussion of what the
+closed-forms assume and when they break, see
+**[`docs/LIMITATIONS.md`](docs/LIMITATIONS.md)**.
+
 ---
 
 ## What it does

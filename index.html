@@ -172,6 +172,9 @@
         <li data-i18n="help.v06.case.swa"><strong>SWA random-corpus</strong> (γ_obs &gt; 1.05 with random_corpus=Yes) — sliding-window attention signature. <em>Use case</em>: confirm Mistral / Gemma SWA on random tokens.</li>
       </ul>
 
+      <p><strong data-i18n="help.v06.gamma_check.validity_gate.title">Validity gate (v0.8.9+)</strong></p>
+      <p data-i18n="help.v06.gamma_check.validity_gate.body">When η falls outside [0.85, 1.15] OR the regime is not <em>normal</em>, the panel shows a warning banner explaining that the closed-form prediction may not apply. Trust the empirical γ in those cases. See <code>docs/LIMITATIONS.md</code> for the full regime-of-validity discussion (closed-form γ assumes natural attention without explicit regularization; ν = -1/(2π) assumes i.i.d. tokens).</p>
+
       <p><strong data-i18n="help.v06.cardy.title">Cardy ΔH diagnostic</strong></p>
       <p data-i18n="help.v06.cardy.body"><strong>ΔH_Cardy = log(θ_eff_obs / θ_nominal)</strong>. Entropy shift between observed effective θ and nominal θ. Strong negative = compression entropy; near zero = nominal match. Complements η for borderline cases.</p>
 
