@@ -2439,10 +2439,10 @@ function renderProfile(p, params) {
         </div>
       </details>
 
-      <details class="taf-section"${diagOpenAttr}>
+      <details class="taf-section" id="diag-section"${diagOpenAttr}>
         <summary>
           <span data-i18n="tafcard.diag_title">🔬 Diagnostics — numbers + γ check + what-if</span>
-          ${initialBannerActive ? `<span class="section-count" style="background:rgba(210,153,34,0.18); color:#d29922; border:1px solid rgba(210,153,34,0.4);" data-i18n="gamma_check.validity.summary_pill">⚠ Validity gate</span>` : ""}
+          <span id="diag-validity-pill" class="section-count" data-i18n="gamma_check.validity.summary_pill" style="${initialBannerActive ? 'background:rgba(210,153,34,0.18); color:#d29922; border:1px solid rgba(210,153,34,0.4);' : 'display:none;'}">⚠ Validity gate</span>
         </summary>
         <div class="taf-section-body">
           <h4 style="margin-top:0.3em;" data-i18n="tafcard.numbers_title">🔢 Key numbers (paper §26)</h4>
@@ -2625,6 +2625,17 @@ function renderProfile(p, params) {
         </ul>
       </details>
     `;
+    // v0.8.9: keep summary pill + Diagnostics auto-open in sync with current γ_obs.
+    const diagSection = document.getElementById("diag-section");
+    const validityPill = document.getElementById("diag-validity-pill");
+    if (validityPill) {
+      validityPill.style.cssText = showValidity
+        ? "background:rgba(210,153,34,0.18); color:#d29922; border:1px solid rgba(210,153,34,0.4);"
+        : "display:none;";
+    }
+    if (diagSection && showValidity && !diagSection.open) {
+      diagSection.open = true;
+    }
     if (window.__taf_applyTranslations) window.__taf_applyTranslations();
   };
   $("gc-gobs").addEventListener("input", updateGammaCheck);
