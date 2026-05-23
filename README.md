@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: 14 anti-bullshit LLM diagnostics in browser. 4 langs.
+short_description: 25 anti-bullshit LLM diagnostics in browser. 4 langs.
 tags:
   - transformer
   - llm
@@ -27,6 +27,9 @@ tags:
   - formal-verification
   - rope
   - kv-cache
+  - gguf
+  - llama-cpp
+  - ollama
   - viability
   - thermodynamics
   - free
@@ -42,12 +45,26 @@ language:
 # 🔬 TAF Agent
 
 > **Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.**
-> 14 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
+> 25 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
 **📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/20314038)
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
+
+---
+
+## 🆕 v0.9 — The "fits ≠ works" pack (3 new modes)
+
+The dozen GGUF/VRAM calculators on HF answer one question: *does it fit in my GPU?* None answer the harder one: *does it fit **and still work**?* These three close that gap — all browser-only, no inference.
+
+| Mode | What it answers | Pain it kills |
+|------|-----------------|---------------|
+| 🧵 **YaRN Planner** | "How do I set `rope_scaling` to extend context — and will quality hold?" | The most-asked HF question; nobody gives the config **and** a γ/d_horizon verdict |
+| 🧊 **GGUF Bridge** | "This Q4 fits 8GB — but is it brain-dead past 30K?" | Reads the `.gguf` header (HTTP Range, no full download) → quality verdict + per-quant comparison the VRAM calcs skip |
+| 🚀 **Launch Flags** | "What `-ngl` for Llama-70B-Q4 on my 4090?" | Exact `llama.cpp` / Ollama command (`-ngl`, `-c`, `--no-mmap`, KV-type) + warns when your context is past the usable horizon |
+
+[**▶ Try it now**](https://huggingface.co/spaces/karlexmarin/taf-agent)
 
 ---
 
