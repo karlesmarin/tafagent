@@ -39,6 +39,7 @@ import {
   loadKB as loadLongscoreKB, lookup as longscoreLookup, rank as longscoreRank,
 } from "./longscore.js";
 import { planExtension, suggestRopeType } from "./yarn_planner.js";
+import { listGgufFiles, fetchGgufMetadata, ggufToConfig, quantFromFilename, analyzeGguf } from "./gguf_bridge.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -233,6 +234,7 @@ document.addEventListener("click", (e) => {
       longscore: "longscore-section",
       hub: "hub-section",
       yarn: "yarn-section",
+      gguf: "gguf-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -257,7 +259,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -277,6 +279,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       longscore: "longscore-section",
       hub: "hub-section",
       yarn: "yarn-section",
+      gguf: "gguf-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -291,6 +294,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "longscore") initLongscore();
     if (mode === "hub") initHub();
     if (mode === "yarn") initYarn();
+    if (mode === "gguf") initGguf();
   });
 });
 
@@ -4661,9 +4665,20 @@ function initYarn() {
   });
 }
 
+// Context / horizon lengths: binary-K so 32768→32K, 131072→128K, 8192→8K
+// (the convention everyone uses for context windows), not decimal-K (→33K).
 function _yarnFmtK(n) {
   if (n == null || !Number.isFinite(n)) return "—";
-  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "K";
+  if (n >= 1048576) return (n / 1048576).toFixed(1) + "M";
+  if (n >= 1024) return Math.round(n / 1024) + "K";
+  return String(Math.round(n));
+}
+// RoPE θ is an arbitrary base, not a power of two → decimal M/K reads naturally
+// (1000000→1M, 500000→500K, 40000→40K).
+function _thetaFmt(n) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + "K";
   return String(Math.round(n));
 }
 function _yarnFmtG(g) {
@@ -4720,7 +4735,7 @@ function renderYarnPlan(p) {
       <tr><td style="${td}">${t("yarn.r.method")}</td><td><code>${p.ropeType}</code></td></tr>
       <tr><td style="${td}">γ ${t("yarn.r.naive")}</td><td>${_yarnFmtG(p.gammaNaive)}${p.gammaNaive <= 0 ? ` 🚨 ${t("yarn.r.collapsed")}` : ""}</td></tr>
       <tr><td style="${td}">γ ${t("yarn.r.eff")}</td><td><strong>${_yarnFmtG(p.gammaEff)}</strong></td></tr>
-      <tr><td style="${td}">θ_eff</td><td>${_yarnFmtK(p.thetaEff)}${p.thetaEff > p.theta ? ` (↑ ${t("yarn.r.from")} ${_yarnFmtK(p.theta)})` : ""}</td></tr>
+      <tr><td style="${td}">θ_eff</td><td>${_thetaFmt(p.thetaEff)}${p.thetaEff > p.theta ? ` (↑ ${t("yarn.r.from")} ${_thetaFmt(p.theta)})` : ""}</td></tr>
       <tr><td style="${td}">d_horizon ${t("yarn.r.eff")}</td><td>${_yarnFmtK(p.dHorizonEff)} ${horizonOk ? "✅ ≥ L" : "⚠ &lt; L"}</td></tr>
     </table>
     <h3>${t("yarn.r.snippet")}</h3>
@@ -4734,6 +4749,196 @@ function renderYarnPlan(p) {
       $("yarn-copy-btn").textContent = "✓ " + t("yarn.copied");
     } catch (e) { /* clipboard blocked */ }
   });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 🧊 GGUF Validity Bridge (v0.9.1)
+// ════════════════════════════════════════════════════════════════════
+let _ggufWired = false;
+let _ggufFiles = [];
+let _ggufCfgCache = {}; // "repo|file" → ggufToConfig result (geometry is shared across quants)
+
+// Parse a .gguf header once and cache. The architecture/θ/context/head geometry
+// is identical across every quant of the same model — only the quant scheme
+// differs — so one parsed file is enough to score the whole repo.
+async function ggufGetCfg(repo, file) {
+  const key = `${repo}|${file}`;
+  if (_ggufCfgCache[key]) return _ggufCfgCache[key];
+  const url = `https://huggingface.co/${repo}/resolve/main/${file}`;
+  const meta = await fetchGgufMetadata(url);
+  const cfg = ggufToConfig(meta);
+  if (!cfg.quant_scheme) {
+    const q = quantFromFilename(file);
+    cfg.quant_label = cfg.quant_label || q.label;
+    cfg.quant_scheme = q.scheme;
+  }
+  cfg.__bytesRead = meta.bytesRead;
+  _ggufCfgCache[key] = cfg;
+  return cfg;
+}
+
+function initGguf() {
+  if (_ggufWired) return;
+  _ggufWired = true;
+
+  const listBtn = $("gguf-list-btn");
+  const analyzeBtn = $("gguf-analyze-btn");
+  const allBtn = $("gguf-all-btn");
+  const fileSel = $("gguf-file");
+
+  listBtn?.addEventListener("click", async () => {
+    const repo = ($("gguf-repo").value || "").trim();
+    if (!repo) { $("gguf-status").textContent = "⚠ " + t("gguf.need_repo"); return; }
+    $("gguf-status").textContent = "⏳ " + t("gguf.listing");
+    listBtn.disabled = true;
+    state.lastModelId = repo;
+    try {
+      const files = await listGgufFiles(repo);
+      if (!files.length) { $("gguf-status").textContent = "⚠ " + t("gguf.no_files"); fileSel.disabled = true; analyzeBtn.disabled = true; return; }
+      fileSel.innerHTML = files.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+      // Default-select a Q4_K_M (the community sweet spot) if present.
+      const def = files.find(f => /q4_k_m/i.test(f)) || files[0];
+      fileSel.value = def;
+      fileSel.disabled = false;
+      analyzeBtn.disabled = false;
+      $("gguf-all-btn").disabled = false;
+      _ggufFiles = files;
+      $("gguf-status").innerHTML = `✅ ${files.length} ${t("gguf.found")} — ${t("gguf.pick_hint")}`;
+    } catch (err) {
+      $("gguf-status").textContent = `❌ ${err.message}`;
+    } finally {
+      listBtn.disabled = false;
+    }
+  });
+
+  analyzeBtn?.addEventListener("click", async () => {
+    const repo = ($("gguf-repo").value || "").trim();
+    const file = fileSel.value;
+    if (!repo || !file) return;
+    $("gguf-status").textContent = "⏳ " + t("gguf.reading");
+    analyzeBtn.disabled = true;
+    try {
+      const cfg = await ggufGetCfg(repo, file);
+      const target = parseFloat($("gguf-target").value) || null;
+      const result = analyzeGguf(cfg, target);
+      $("gguf-status").innerHTML = `✅ ${t("gguf.read_ok")} (${(cfg.__bytesRead / 1024 / 1024).toFixed(1)} MB header)`;
+      renderGgufResult(cfg, result);
+    } catch (err) {
+      $("gguf-status").textContent = `❌ ${ggufErrMsg(err)}`;
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  allBtn?.addEventListener("click", async () => {
+    const repo = ($("gguf-repo").value || "").trim();
+    const file = fileSel.value;
+    if (!repo || !file) return;
+    $("gguf-status").textContent = "⏳ " + t("gguf.reading");
+    allBtn.disabled = true; analyzeBtn.disabled = true;
+    try {
+      // One header parse gives the shared geometry; score every quant from it.
+      const cfg = await ggufGetCfg(repo, file);
+      const target = parseFloat($("gguf-target").value) || null;
+      // Dedupe repo files to one row per quant label (drop shard suffixes).
+      const seen = new Set();
+      const rows = [];
+      for (const f of _ggufFiles) {
+        const q = quantFromFilename(f);
+        if (q.label === "?" || seen.has(q.label)) continue;
+        seen.add(q.label);
+        const res = analyzeGguf({ ...cfg, quant_label: q.label, quant_scheme: q.scheme }, target);
+        rows.push({ label: q.label, scheme: q.scheme, res });
+      }
+      // Best precision first: lowest γ-shift (baseline F16 = 0) at the top.
+      rows.sort((a, b) => (a.res.quant?.gamma_shift ?? 0) - (b.res.quant?.gamma_shift ?? 0));
+      $("gguf-status").innerHTML = `✅ ${t("gguf.read_ok")} (${(cfg.__bytesRead / 1024 / 1024).toFixed(1)} MB header)`;
+      renderGgufComparison(cfg, rows);
+    } catch (err) {
+      $("gguf-status").textContent = `❌ ${ggufErrMsg(err)}`;
+    } finally {
+      allBtn.disabled = false; analyzeBtn.disabled = false;
+    }
+  });
+}
+
+function ggufErrMsg(err) {
+  return ({
+    not_a_gguf_file: t("gguf.err.not_gguf"),
+    gguf_metadata_too_large: t("gguf.err.too_large"),
+  })[err.message] || err.message;
+}
+
+function renderGgufResult(cfg, r) {
+  const out = $("gguf-output");
+  if (!out) return;
+  out.style.display = "";
+
+  if (r.verdict === "incomplete") {
+    out.innerHTML = `<div class="gc-validity-warning">⚠ ${t("gguf.err.incomplete")}</div>`;
+    return;
+  }
+
+  const meta = ({
+    healthy:          { emoji: "✅", cls: "v-yes" },
+    usable_with_care: { emoji: "⚠️", cls: "v-deg" },
+    degrades:         { emoji: "🚨", cls: "v-no"  },
+  })[r.verdict] || { emoji: "❓", cls: "v-deg" };
+
+  const td = "padding:3px 12px 3px 0;";
+  const gqa = (cfg.num_attention_heads && cfg.num_key_value_heads && cfg.num_key_value_heads < cfg.num_attention_heads)
+    ? `GQA ${cfg.num_attention_heads}:${cfg.num_key_value_heads}` : "MHA";
+
+  // Quant block (may be null for F16/F32 files).
+  let quantHtml = "";
+  if (r.quant) {
+    const regimeEmoji = ({ safe: "✅", mild: "🟡", significant: "🟠", cliff: "🚨" })[r.quant.regime] || "";
+    const dp = r.quant.delta_ppl;
+    quantHtml = `
+      <tr><td style="${td}">${t("gguf.r.quant")}</td><td><code>${r.quantLabel || "?"}</code></td></tr>
+      <tr><td style="${td}">${t("gguf.r.gamma_shift")}</td><td>−${_yarnFmtG(r.quant.gamma_shift)} ${regimeEmoji} <span class="subtle">${t("quant.regime." + r.quant.regime) || r.quant.regime}</span></td></tr>
+      <tr><td style="${td}">ΔPPL</td><td>≈ +${dp.mid} <span class="subtle">(${dp.low}–${dp.high})</span></td></tr>`;
+  } else {
+    quantHtml = `<tr><td style="${td}">${t("gguf.r.quant")}</td><td><code>${r.quantLabel || "F16/F32"}</code> <span class="subtle">${t("gguf.r.no_quant_shift")}</span></td></tr>`;
+  }
+
+  out.innerHTML = `
+    <p><span class="verdict-badge ${meta.cls}">${meta.emoji} ${t("gguf.verdict." + r.verdict)}</span></p>
+    <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
+      <tr><td style="${td}">${t("gguf.r.arch")}</td><td><code>${escapeHtml(r.arch)}</code> · ${gqa} · θ=${_thetaFmt(r.theta)}</td></tr>
+      <tr><td style="${td}">${t("gguf.r.ctx_train")}</td><td>${_yarnFmtK(r.nCtx)}</td></tr>
+      <tr><td style="${td}">${t("gguf.r.horizon_fp16")}</td><td>${_yarnFmtK(r.dHoriz)} <span class="subtle">(γ=${_yarnFmtG(r.gammaTrain)})</span></td></tr>
+      ${quantHtml}
+      <tr><td style="${td}"><strong>γ @ L=${_yarnFmtK(r.L)}</strong> ${t("gguf.r.after_quant")}</td><td><strong>${_yarnFmtG(r.gammaQuant)}</strong> <span class="subtle">(fp16: ${_yarnFmtG(r.gammaAtL)})</span></td></tr>
+    </table>
+    <p class="subtle" style="font-size:0.88em;">${t("gguf.r.note")}</p>`;
+}
+
+function renderGgufComparison(cfg, rows) {
+  const out = $("gguf-output");
+  if (!out) return;
+  out.style.display = "";
+  const gqa = (cfg.num_attention_heads && cfg.num_key_value_heads && cfg.num_key_value_heads < cfg.num_attention_heads)
+    ? `GQA ${cfg.num_attention_heads}:${cfg.num_key_value_heads}` : "MHA";
+  // Short verdict label = the word before the em-dash of the full verdict string
+  // (works in every language: "HEALTHY — …", "SANO — …", "健康 —— …").
+  const short = v => (t("gguf.verdict." + v) || v).split(/——|—| - /)[0].trim();
+  const emo = v => ({ healthy: "✅", usable_with_care: "⚠️", degrades: "🚨" })[v] || "❓";
+  const td = "padding:3px 14px 3px 0;";
+  const head = `<tr style="text-align:left;border-bottom:1px solid var(--border);">
+    <th style="${td}">${t("gguf.r.quant")}</th><th style="${td}">${t("gguf.r.gamma_shift")}</th>
+    <th style="${td}">${t("gguf.col.gamma_at_l")}</th><th style="${td}">${t("gguf.col.verdict")}</th></tr>`;
+  const body = rows.map(({ label, res }) => {
+    const shift = res.quant ? "−" + _yarnFmtG(res.quant.gamma_shift) : "—";
+    return `<tr><td style="${td}"><code>${escapeHtml(label)}</code></td><td style="${td}">${shift}</td>
+      <td style="${td}">${_yarnFmtG(res.gammaQuant)}</td>
+      <td style="${td}">${emo(res.verdict)} ${short(res.verdict)}</td></tr>`;
+  }).join("");
+  // d_horizon is θ-set → identical for every quant; show it once in the header line.
+  out.innerHTML = `<h3>${t("gguf.compare_title")}</h3>
+    <p class="subtle">${escapeHtml(cfg.architecture)} · ${gqa} · θ=${_thetaFmt(cfg.rope_theta)} · ctx ${_yarnFmtK(cfg.context_length)} · horizon ${_yarnFmtK(rows[0]?.res.dHoriz)} · L=${_yarnFmtK(rows[0]?.res.L)}</p>
+    <table style="border-collapse:collapse;font-size:0.93em;">${head}${body}</table>
+    <p class="subtle" style="font-size:0.88em;">${t("gguf.r.note")}</p>`;
 }
 
 // ════════════════════════════════════════════════════════════════════

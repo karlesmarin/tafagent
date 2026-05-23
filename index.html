@@ -246,6 +246,9 @@
       <p><strong data-i18n="help.v09.yarn.title">🧵 YaRN / RoPE Context-Extension Planner</strong></p>
       <p data-i18n="help.v09.yarn.body">The dozen GGUF/VRAM calculators on HF (NyxKrage, oobabooga, DavidAU, …) all answer the same question: <em>does context length L fit in my GPU?</em> None answer the harder one: <em>does L fit AND still work?</em> Enter a model id (or its θ + trained context) and a target length L. The planner computes the extension factor, emits the exact <code>rope_scaling</code> block for transformers ≥4.43 (<code>yarn</code> / <code>linear</code> / <code>dynamic</code> / <code>llama3</code>, with paper-default β ramps), then runs TAF's γ_Padé / d_horizon math: γ with no extension (the problem), γ after the chosen method (the fix), the effective attention horizon, and a verdict — HEALTHY / USABLE-WITH-CARE / NEEDS-FINETUNE / DEGRADES. It flags the θ_eff≈θ·factor estimate and the >4× fine-tune requirement honestly. <em>Use case</em>: 'I want Mistral-7B (θ=10k, 8k trained) at 32k' → see γ collapse from naive use, YaRN partially recover it, and get the exact config to paste. Or 'Qwen2.5 at 128k' → discover its θ=1e6 already covers it, no aggressive scaling needed.</p>
 
+      <p><strong data-i18n="help.v091.gguf.title">🧊 GGUF Validity Bridge</strong></p>
+      <p data-i18n="help.v091.gguf.body">The dozen GGUF/VRAM calculators (NyxKrage, oobabooga, …) read a <code>.gguf</code> header to tell you if a quant <em>fits in your GPU</em>. This reads the same header — via HTTP Range, so no multi-GB download — and answers the question they skip: <em>does it fit AND still work?</em> Paste a GGUF repo, pick a quant file; the bridge pulls <code>rope_theta</code>, <code>context_length</code>, the quant scheme (from <code>general.file_type</code> or the filename), and head geometry, then runs TAF's γ_Padé / d_horizon plus the architecture-aware quant-regime γ-shift. Output: effective attention horizon at the trained context, how far the quant erodes γ (and ΔPPL) for <em>this</em> model, and a verdict — HEALTHY / USABLE-WITH-CARE / DEGRADES. <em>Use case</em>: 'unsloth/Qwen3.5-9B-GGUF Q4_K_M fits 8GB — but is it brain-dead past 30K?' → see the horizon and the Q4 γ-penalty before you download 6 GB.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -408,6 +411,7 @@
             <button data-mode-link="longscore" data-i18n="modes.longscore">🎯 LongScore</button>
             <button data-mode-link="quant" data-i18n="modes.quant">⚖️ Quant</button>
             <button data-mode-link="yarn" data-i18n="modes.yarn">🧵 YaRN Planner</button>
+            <button data-mode-link="gguf" data-i18n="modes.gguf">🧊 GGUF Bridge</button>
             <button data-mode-link="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
           </div>
         </div>
@@ -503,6 +507,7 @@
         <button class="mode-btn" data-mode="longscore" role="tab" aria-selected="false" data-i18n="modes.longscore">🎯 LongScore</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
         <button class="mode-btn" data-mode="yarn" role="tab" aria-selected="false" data-i18n="modes.yarn">🧵 YaRN Planner</button>
+        <button class="mode-btn" data-mode="gguf" role="tab" aria-selected="false" data-i18n="modes.gguf">🧊 GGUF Bridge</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -1288,6 +1293,44 @@
       </div>
       <button id="yarn-plan-btn" data-i18n="yarn.plan_btn">🧵 Plan extension</button>
       <div id="yarn-output" style="display:none; margin-top:1em;"></div>
+    </section>
+
+    <!-- GGUF Validity Bridge (mode=gguf) -->
+    <section id="gguf-section" style="display:none;">
+      <h2><span data-i18n="gguf.title">🧊 GGUF Validity Bridge</span>
+        <span class="info"><span class="tooltip" data-i18n="gguf.tip">
+          <strong>Fits in VRAM ≠ works</strong>. The GGUF/VRAM calculators read a model's metadata to
+          tell you if a quant <em>fits in your GPU</em>. This reads the SAME metadata (rope_theta,
+          context_length, quant scheme, head geometry) straight from the <code>.gguf</code> header via
+          HTTP Range — no multi-GB download — and answers the question they don't: does attention
+          quality actually hold, and how much does the quant erode it (γ-shift, ΔPPL)?
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="gguf.desc">
+        Paste a GGUF repo (e.g. <code>Qwen/Qwen2.5-7B-Instruct-GGUF</code>), pick a quant file, and get a
+        TAF quality verdict: the model's effective attention horizon, plus how much the chosen
+        quantization shifts γ for <em>this specific architecture</em>. Reads only the file header in your
+        browser.
+      </p>
+
+      <div class="form-row">
+        <label for="gguf-repo" data-i18n="gguf.repo_label">GGUF repo id:</label>
+        <input type="text" id="gguf-repo" placeholder="Qwen/Qwen2.5-7B-Instruct-GGUF">
+        <button id="gguf-list-btn" class="secondary" data-i18n="gguf.list_btn">📂 List quant files</button>
+      </div>
+      <span id="gguf-status" class="subtle"></span>
+
+      <div class="form-row">
+        <label for="gguf-file" data-i18n="gguf.file_label">Quant file:</label>
+        <select id="gguf-file" disabled></select>
+      </div>
+      <div class="form-row">
+        <label for="gguf-target" data-i18n="gguf.target_label">Target context L (optional):</label>
+        <input type="number" id="gguf-target" placeholder="(defaults to trained context)" min="256">
+      </div>
+      <button id="gguf-analyze-btn" disabled data-i18n="gguf.analyze_btn">🧊 Analyze GGUF</button>
+      <button id="gguf-all-btn" class="secondary" disabled data-i18n="gguf.all_btn">📊 Compare all quants</button>
+      <div id="gguf-output" style="display:none; margin-top:1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->
