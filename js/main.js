@@ -159,9 +159,6 @@ function enableUI() {
   $("compare-recipe").disabled = false;
   $("compare-btn").disabled = false;
   $("inspector-btn").disabled = false;
-  // Render community feed + falsification (independent of Pyodide)
-  renderFalsificationDashboard();
-  loadCommunityFeed();
   // Restore from URL if present
   parseUrlState();
 }
@@ -4616,6 +4613,11 @@ $("longscore-example-bad-btn")?.addEventListener("click", () => {
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
 initI18n();
+// Pyodide-independent panels: render immediately so they survive a Pyodide
+// load failure (CDN blocked / offline / slow region). These use only fetch +
+// DOM, never state.pyodide — must NOT be gated behind enableUI().
+renderFalsificationDashboard();
+loadCommunityFeed();
 loadPyodideAndTaf().catch(err => {
   setStatus(`❌ Failed to initialise: ${err.message || err}`);
   console.error(err);
