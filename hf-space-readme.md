@@ -14,6 +14,11 @@ tags:
   - rope
   - kv-cache
   - long-context
+  - gguf
+  - llama-cpp
+  - ollama
+  - yarn
+  - quantization
   - viability
   - thermodynamics
   - free
@@ -42,7 +47,7 @@ Predicts practical viability of any transformer LLM from its config alone:
 - Cheapest GPU to serve Llama-70B at 100M tokens/day?
 - Which KV compression strategy fits my model's γ profile?
 
-5 cross-section recipes, 5 modes, 4 languages (EN/ES/FR/ZH), 100% in-browser.
+25 modes, 4 languages (EN/ES/FR/ZH), 100% in-browser.
 
 ## Why it's different
 
@@ -56,13 +61,20 @@ Predicts practical viability of any transformer LLM from its config alone:
 
 ✓ RoPE-MHA · ✓ RoPE-GQA · ✓ ALiBi · ✓ AbsPE · ✓ SWA · ✓ SSM · ✓ Any HuggingFace public model
 
-## Modes
+## Modes (25)
 
+**Core**
 - **📇 Profile**: paste model id → all 5 recipes scored at once = TAF Card
-- **🆚 Compare**: 2-3 models side-by-side on same recipe
-- **🔍 Inspector**: paste raw config.json (private/in-development models)
-- **💬 Ask**: free-form question, in-browser LLM picks the recipe
-- **📋 Recipe**: manual selection with full form control
+- **🆚 Compare**: 2-3 models side-by-side · **🔍 Inspector**: raw config.json · **💬 Ask**: free-form · **📋 Recipe**: manual
+
+**🆕 v0.9 — "fits ≠ works" pack**
+- **🧵 YaRN Planner**: target context → exact `rope_scaling` config + γ/d_horizon verdict on whether quality holds
+- **🧊 GGUF Bridge**: paste a GGUF repo → reads the `.gguf` header (HTTP Range, no full download), compares every quant's γ-shift
+- **🚀 Launch Flags**: model + GPU + context → exact `llama.cpp`/Ollama command (`-ngl`, `-c`, `--no-mmap`, KV-type) + wasted-context warning
+
+**Anti-bullshit pack (v0.7–v0.8)**
+- 🪟 Unmask · 📜 Chat-template · 🎯 Arena CI · 🧪 Contamination · ⚖️ Quant · 🔀 Drift · 🔍 NIAH→Reason
+- 📈 Saturation · 📋 JSON CoT · 🔧 PEFT Lint · 🔁 Cache Diff · 🔬 Spec-Decode · 🌍 Token Tax · 🎯 LongScore · 🧭 Solutions · 🩺 Diagnose CLI · 📊 Phase diagram
 
 ## Underlying paper
 
