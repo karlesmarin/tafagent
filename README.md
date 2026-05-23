@@ -46,7 +46,7 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
-**📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/19826343)
+**📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/20314038)
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
@@ -413,7 +413,7 @@ If this tool helps you — paper or code:
 Analytic Power-Law Theory, Phase Transitions, and Practical Compression
 Tools},
   year    = {2026},
-  url     = {https://zenodo.org/records/19826343},
+  url     = {https://zenodo.org/records/20314038},
 }
 
 @misc{marin2026tafagent,

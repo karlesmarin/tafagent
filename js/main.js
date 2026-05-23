@@ -40,6 +40,7 @@ import {
 } from "./longscore.js";
 import { planExtension, suggestRopeType } from "./yarn_planner.js";
 import { listGgufFiles, fetchGgufMetadata, ggufToConfig, quantFromFilename, analyzeGguf } from "./gguf_bridge.js";
+import { GPU_PRESETS, QUANT_BPW, planLaunch, launchCommands } from "./launch_flags.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -235,6 +236,7 @@ document.addEventListener("click", (e) => {
       hub: "hub-section",
       yarn: "yarn-section",
       gguf: "gguf-section",
+      launch: "launch-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -259,7 +261,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -280,6 +282,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       hub: "hub-section",
       yarn: "yarn-section",
       gguf: "gguf-section",
+      launch: "launch-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -295,6 +298,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "hub") initHub();
     if (mode === "yarn") initYarn();
     if (mode === "gguf") initGguf();
+    if (mode === "launch") initLaunch();
   });
 });
 
@@ -4949,6 +4953,127 @@ function renderGgufComparison(cfg, rows) {
     <p class="subtle">${escapeHtml(cfg.architecture)} · ${gqa} · θ=${_thetaFmt(cfg.rope_theta)} · ctx ${_yarnFmtK(cfg.context_length)} · horizon ${_yarnFmtK(rows[0]?.res.dHoriz)} · L=${_yarnFmtK(rows[0]?.res.L)}</p>
     <table style="border-collapse:collapse;font-size:0.93em;">${head}${body}</table>
     <p class="subtle" style="font-size:0.88em;">${t("gguf.r.note")}</p>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 🚀 Launch-Flag Generator (v0.9.4)
+// ════════════════════════════════════════════════════════════════════
+let _launchWired = false;
+let _launchGeom = null; // fetched model geometry
+function initLaunch() {
+  if (_launchWired) return;
+  _launchWired = true;
+
+  // Populate GPU presets.
+  const gpuSel = $("launch-gpu");
+  if (gpuSel && !gpuSel.options.length) {
+    gpuSel.innerHTML = GPU_PRESETS.map(g => `<option value="${g.vram}">${escapeHtml(g.label)}</option>`).join("");
+    gpuSel.value = "24"; // sensible default (4090)
+  }
+
+  const fetchBtn = $("launch-fetch-btn");
+  const modelEl = $("launch-model");
+  // Picking from autocomplete auto-fetches geometry (matches the other modes).
+  if (modelEl) attachHfAutocomplete(modelEl, { onSelect: () => fetchBtn?.click() });
+
+  fetchBtn?.addEventListener("click", async () => {
+    const id = (modelEl.value || "").trim();
+    if (!id) { $("launch-status").textContent = "⚠ " + t("launch.need_id"); return; }
+    $("launch-status").textContent = "⏳ " + t("launch.fetching");
+    fetchBtn.disabled = true;
+    state.lastModelId = id;
+    try {
+      const cfg = await fetchHfConfig(id);
+      const nAttn = cfg.num_attention_heads ?? null;
+      const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
+      _launchGeom = {
+        nLayers: cfg.num_hidden_layers ?? null,
+        nKvHeads: cfg.num_key_value_heads ?? nAttn,
+        headDim: cfg.head_dim ?? (cfg.hidden_size && nAttn ? cfg.hidden_size / nAttn : null),
+        hidden: cfg.hidden_size ?? null,
+        vocab: cfg.vocab_size ?? null,
+        intermediate: cfg.intermediate_size ?? null,
+        tieEmbeddings: cfg.tie_word_embeddings ?? false,
+        nParams: cfg.num_parameters ?? null,
+        ropeTheta: cfg.rope_theta ?? 10000,
+        ctxTrain: rs.original_max_position_embeddings ?? cfg.max_position_embeddings ?? null,
+      };
+      if (!$("launch-ctx").value && _launchGeom.ctxTrain) $("launch-ctx").value = _launchGeom.ctxTrain;
+      const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
+      $("launch-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_launchGeom.nLayers} ${t("launch.layers")}, ` +
+        `GQA ${nAttn}:${_launchGeom.nKvHeads}, θ=${_thetaFmt(_launchGeom.ropeTheta)}, ctx ${_yarnFmtK(_launchGeom.ctxTrain)}. ${t("launch.fetched_hint")}`;
+    } catch (err) {
+      $("launch-status").textContent = `❌ ${err.message}`;
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  });
+
+  $("launch-gen-btn")?.addEventListener("click", () => {
+    if (!_launchGeom) { $("launch-status").textContent = "⚠ " + t("launch.need_fetch"); return; }
+    const vram = parseFloat($("launch-vram").value) || parseFloat(gpuSel.value);
+    const plan = planLaunch({
+      ..._launchGeom,
+      quant: $("launch-quant").value,
+      vramGB: vram,
+      targetCtx: parseFloat($("launch-ctx").value),
+      cacheType: $("launch-cache").value,
+      flashAttn: $("launch-fa").checked,
+    });
+    renderLaunch(plan);
+  });
+}
+
+function _launchWarnText(w) {
+  switch (w.code) {
+    case "horizon_wasted":   return `${t("launch.warn.horizon_wasted")} (d_horizon ≈ ${_yarnFmtK(w.params.dHoriz)}, L=${_yarnFmtK(w.params.target)})`;
+    case "beyond_trained":   return `${t("launch.warn.beyond_trained")} (${_yarnFmtK(w.params.ctxTrain)} → ${_yarnFmtK(w.params.target)})`;
+    case "no_mmap_blackwell":return t("launch.warn.no_mmap");
+    case "partial_offload":  return `${t("launch.warn.partial")} (${w.params.ngl}/${w.params.nLayers})`;
+    case "cpu_only":         return t("launch.warn.cpu_only");
+    case "no_params":        return t("launch.warn.no_params");
+    default: return w.code;
+  }
+}
+
+function renderLaunch(p) {
+  const out = $("launch-output");
+  if (!out) return;
+  out.style.display = "";
+  const errMap = { no_geometry: "launch.err.no_geom", no_gpu: "launch.err.no_gpu", no_ctx: "launch.err.no_ctx" };
+  if (errMap[p.verdict]) { out.innerHTML = `<div class="gc-validity-warning">⚠ ${t(errMap[p.verdict])}</div>`; return; }
+
+  const meta = ({
+    fits:    { emoji: "✅", cls: "v-yes" },
+    partial: { emoji: "⚠️", cls: "v-deg" },
+    too_big: { emoji: "🚨", cls: "v-no"  },
+  })[p.verdict] || { emoji: "❓", cls: "v-deg" };
+
+  const cmds = launchCommands(p);
+  const td = "padding:3px 12px 3px 0;";
+  const gb = n => (n == null ? "—" : n.toFixed(1) + " GB");
+  const warnHtml = p.warnings.map(w => `<li>${_launchWarnText(w)}</li>`).join("");
+
+  out.innerHTML = `
+    <p><span class="verdict-badge ${meta.cls}">${meta.emoji} ${t("launch.verdict." + p.verdict)}</span></p>
+    <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
+      <tr><td style="${td}">${t("launch.r.weights")}</td><td>${gb(p.weightsGB)} <span class="subtle">(${p.quant}, ${p.bpw} bpw)</span></td></tr>
+      <tr><td style="${td}">${t("launch.r.kv")}</td><td>${gb(p.kvGB)} <span class="subtle">(${p.cacheType}${p.flashAttn ? ", -fa" : ""})</span></td></tr>
+      <tr><td style="${td}">${t("launch.r.overhead")}</td><td>${gb(p.overheadGB)}</td></tr>
+      <tr style="border-top:1px solid var(--border);"><td style="${td}"><strong>${t("launch.r.total")}</strong></td><td><strong>${gb(p.totalGB)}</strong> / ${gb(p.vramGB)} VRAM</td></tr>
+      <tr><td style="${td}">${t("launch.r.ngl")}</td><td><strong>${p.allOnGpu ? `${p.nLayers} (${t("launch.r.all")})` : `${p.ngl} / ${p.nLayers}`}</strong></td></tr>
+    </table>
+    <h3>llama.cpp</h3>
+    <pre class="diag-cmd-box">${escapeHtml(cmds.llamacpp)}</pre>
+    <button id="launch-copy-llama" class="secondary">📋 ${t("launch.copy")}</button>
+    <h3 style="margin-top:0.8em;">Ollama</h3>
+    <pre class="diag-cmd-box">${escapeHtml(cmds.ollama)}</pre>
+    ${warnHtml ? `<ul style="font-size:0.9em;margin-top:0.8em;opacity:0.9;">${warnHtml}</ul>` : ""}
+    <p class="subtle" style="font-size:0.86em;">${t("launch.r.note")}</p>`;
+
+  $("launch-copy-llama")?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(cmds.llamacpp); $("launch-copy-llama").textContent = "✓ " + t("yarn.copied"); } catch (e) {}
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════

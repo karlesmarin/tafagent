@@ -5,7 +5,7 @@ No server, no auth, no cost. Runs entirely in your browser.
 
 🌐 **Try it**: https://huggingface.co/spaces/karlexmarin/taf-agent
 📦 **Source**: https://github.com/karlesmarin/tafagent
-📄 **Paper**: [Predicting How Transformers Attend](https://zenodo.org/records/19826343)
+📄 **Paper**: [Predicting How Transformers Attend](https://zenodo.org/records/20314038)
 
 ## What it answers
 

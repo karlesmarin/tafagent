@@ -249,6 +249,9 @@
       <p><strong data-i18n="help.v091.gguf.title">🧊 GGUF Validity Bridge</strong></p>
       <p data-i18n="help.v091.gguf.body">The dozen GGUF/VRAM calculators (NyxKrage, oobabooga, …) read a <code>.gguf</code> header to tell you if a quant <em>fits in your GPU</em>. This reads the same header — via HTTP Range, so no multi-GB download — and answers the question they skip: <em>does it fit AND still work?</em> Paste a GGUF repo, pick a quant file; the bridge pulls <code>rope_theta</code>, <code>context_length</code>, the quant scheme (from <code>general.file_type</code> or the filename), and head geometry, then runs TAF's γ_Padé / d_horizon plus the architecture-aware quant-regime γ-shift. Output: effective attention horizon at the trained context, how far the quant erodes γ (and ΔPPL) for <em>this</em> model, and a verdict — HEALTHY / USABLE-WITH-CARE / DEGRADES. <em>Use case</em>: 'unsloth/Qwen3.5-9B-GGUF Q4_K_M fits 8GB — but is it brain-dead past 30K?' → see the horizon and the Q4 γ-penalty before you download 6 GB.</p>
 
+      <p><strong data-i18n="help.v094.launch.title">🚀 Launch-Flag Generator</strong></p>
+      <p data-i18n="help.v094.launch.body">The VRAM calculators tell you <em>whether</em> a model fits; they don't hand you the command. This does. Pick a model (fetches geometry from HF <code>config.json</code>), a quant, a GPU and a target context — it computes the VRAM breakdown (weights + KV cache + scratch), how many layers to offload (<code>-ngl</code>), and emits the copy-paste <code>llama-server</code> and Ollama commands with <code>-c</code> context, <code>-fa</code> flash-attention, KV-cache type, and <code>--no-mmap</code> (the Blackwell OOM fix: force all weights into physical VRAM). Plus the TAF reality check no calculator gives: if you're allocating KV for a context past the model's d_horizon, it warns you that memory is wasted — the attention won't reach there. <em>Use case</em>: 'What <code>-ngl</code> for Llama-70B-Q4 on my 4090?' → 39 of 80 layers, exact command, and a note if your context is past the usable horizon.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -282,7 +285,7 @@
 
       <h3 data-i18n="help.source.title">Source &amp; paper</h3>
       <p data-i18n="help.source.body">Source code: <a href="https://github.com/karlesmarin/tafagent" target="_blank">github.com/karlesmarin/tafagent</a><br>
-      Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href="https://zenodo.org/records/19826343" target="_blank">Zenodo</a>; arXiv forthcoming)<br>
+      Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href="https://zenodo.org/records/20314038" target="_blank">Zenodo</a>; arXiv forthcoming)<br>
       Dataset: <a href="https://huggingface.co/datasets/karlexmarin/taf-attention-decay" target="_blank">taf-attention-decay</a> — 58 γ-measurements across 32 models (CC-BY-4.0)</p>
     </div>
   </div>
@@ -412,6 +415,7 @@
             <button data-mode-link="quant" data-i18n="modes.quant">⚖️ Quant</button>
             <button data-mode-link="yarn" data-i18n="modes.yarn">🧵 YaRN Planner</button>
             <button data-mode-link="gguf" data-i18n="modes.gguf">🧊 GGUF Bridge</button>
+            <button data-mode-link="launch" data-i18n="modes.launch">🚀 Launch Flags</button>
             <button data-mode-link="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
           </div>
         </div>
@@ -508,6 +512,7 @@
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
         <button class="mode-btn" data-mode="yarn" role="tab" aria-selected="false" data-i18n="modes.yarn">🧵 YaRN Planner</button>
         <button class="mode-btn" data-mode="gguf" role="tab" aria-selected="false" data-i18n="modes.gguf">🧊 GGUF Bridge</button>
+        <button class="mode-btn" data-mode="launch" role="tab" aria-selected="false" data-i18n="modes.launch">🚀 Launch Flags</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -1331,6 +1336,69 @@
       <button id="gguf-analyze-btn" disabled data-i18n="gguf.analyze_btn">🧊 Analyze GGUF</button>
       <button id="gguf-all-btn" class="secondary" disabled data-i18n="gguf.all_btn">📊 Compare all quants</button>
       <div id="gguf-output" style="display:none; margin-top:1em;"></div>
+    </section>
+
+    <!-- Launch-flag generator (mode=launch) -->
+    <section id="launch-section" style="display:none;">
+      <h2><span data-i18n="launch.title">🚀 Launch-Flag Generator</span>
+        <span class="info"><span class="tooltip" data-i18n="launch.tip">
+          <strong>Exact flags + why, not just "fits"</strong>. The VRAM calculators tell you whether a
+          model fits. This gives you the copy-paste <code>llama.cpp</code> / <code>Ollama</code> command —
+          <code>-ngl</code> layers to offload, <code>-c</code> context, <code>--no-mmap</code>,
+          KV-cache type — AND the TAF reality check: if you allocate KV for 128K but the model's
+          attention horizon is 32K, that VRAM is wasted.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="launch.desc">
+        Pick a model, GPU and target context → get the exact launch command, a VRAM breakdown
+        (weights + KV cache + overhead), and how many layers to offload. Solves the recurring
+        "what <code>-ngl</code> do I use?" / Blackwell OOM guesswork.
+      </p>
+
+      <div class="form-row">
+        <label for="launch-model" data-i18n="launch.model_label">HF model id:</label>
+        <input type="text" id="launch-model" placeholder="Qwen/Qwen2.5-7B-Instruct">
+        <button id="launch-fetch-btn" class="secondary" data-i18n="launch.fetch_btn">📥 Fetch geometry</button>
+      </div>
+      <span id="launch-status" class="subtle"></span>
+
+      <div class="form-row">
+        <label for="launch-quant" data-i18n="launch.quant_label">Quant:</label>
+        <select id="launch-quant">
+          <option value="Q4_K_M">Q4_K_M (4-bit, sweet spot)</option>
+          <option value="Q8_0">Q8_0 (8-bit)</option>
+          <option value="Q6_K">Q6_K</option>
+          <option value="Q5_K_M">Q5_K_M</option>
+          <option value="Q4_0">Q4_0</option>
+          <option value="Q3_K_M">Q3_K_M</option>
+          <option value="Q2_K">Q2_K (extreme)</option>
+          <option value="F16">F16 (full)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="launch-gpu" data-i18n="launch.gpu_label">GPU:</label>
+        <select id="launch-gpu"></select>
+        <input type="number" id="launch-vram" placeholder="or custom VRAM (GB)" min="1" style="width:11em;">
+      </div>
+      <div class="form-row">
+        <label for="launch-ctx" data-i18n="launch.ctx_label">Target context L:</label>
+        <input type="number" id="launch-ctx" placeholder="32768" min="256">
+      </div>
+      <div class="form-row">
+        <label data-i18n="launch.adv_label">Advanced:</label>
+        <span>
+          <label data-i18n="launch.cache_label">KV cache:</label>
+          <select id="launch-cache">
+            <option value="fp16">fp16</option>
+            <option value="q8_0">q8_0 (½ KV)</option>
+            <option value="q4_0">q4_0 (¼ KV)</option>
+          </select>
+          &nbsp;
+          <label><input type="checkbox" id="launch-fa" checked> <span data-i18n="launch.fa_label">Flash attention (-fa)</span></label>
+        </span>
+      </div>
+      <button id="launch-gen-btn" data-i18n="launch.gen_btn">🚀 Generate flags</button>
+      <div id="launch-output" style="display:none; margin-top:1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

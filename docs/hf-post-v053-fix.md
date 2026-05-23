@@ -156,5 +156,5 @@ If you spot anything else wrong — please open an issue.
 **Links**:
 - Live: https://huggingface.co/spaces/karlexmarin/taf-agent
 - Source: https://github.com/karlesmarin/tafagent
-- Paper: https://zenodo.org/records/19826343
+- Paper: https://zenodo.org/records/20314038
 - Dataset: https://huggingface.co/datasets/karlexmarin/taf-attention-decay
