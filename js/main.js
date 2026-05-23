@@ -38,6 +38,7 @@ import {
 import {
   loadKB as loadLongscoreKB, lookup as longscoreLookup, rank as longscoreRank,
 } from "./longscore.js";
+import { planExtension, suggestRopeType } from "./yarn_planner.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -231,6 +232,7 @@ document.addEventListener("click", (e) => {
       tax: "tax-section",
       longscore: "longscore-section",
       hub: "hub-section",
+      yarn: "yarn-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -255,7 +257,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -274,6 +276,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       tax: "tax-section",
       longscore: "longscore-section",
       hub: "hub-section",
+      yarn: "yarn-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -287,6 +290,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "tax") initTax();
     if (mode === "longscore") initLongscore();
     if (mode === "hub") initHub();
+    if (mode === "yarn") initYarn();
   });
 });
 
@@ -4608,6 +4612,129 @@ $("longscore-example-bad-btn")?.addEventListener("click", () => {
   $("longscore-input").value = "dbrx";
   runLongscoreLookup();
 });
+
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+// 🧵 YaRN / RoPE Context-Extension Planner (v0.9)
+// ════════════════════════════════════════════════════════════════════
+let _yarnWired = false;
+function initYarn() {
+  if (_yarnWired) return;
+  _yarnWired = true;
+
+  const fetchBtn = $("yarn-fetch-btn");
+  const planBtn = $("yarn-plan-btn");
+
+  fetchBtn?.addEventListener("click", async () => {
+    const modelId = ($("yarn-model").value || "").trim();
+    if (!modelId) { $("yarn-status").textContent = "⚠ " + t("yarn.need_id"); return; }
+    $("yarn-status").textContent = "⏳ " + t("yarn.fetching");
+    fetchBtn.disabled = true;
+    state.lastModelId = modelId;
+    try {
+      const cfg = await fetchHfConfig(modelId);
+      const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
+      // If the model already ships a rope_scaling block, original_max_position_embeddings
+      // is the TRUE trained context; max_position_embeddings is the already-extended figure.
+      const orig = rs.original_max_position_embeddings ?? cfg.max_position_embeddings ?? null;
+      const theta = cfg.rope_theta ?? 10000;
+      if (orig) $("yarn-orig").value = orig;
+      $("yarn-theta").value = theta;
+      const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
+      $("yarn-status").innerHTML =
+        `✅ <strong>${escapeHtml(modelId)}</strong>${via}: θ=${theta}, orig=${orig ?? "?"}. ${t("yarn.loaded_hint")}`;
+    } catch (err) {
+      $("yarn-status").textContent = `❌ ${err.message}`;
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  });
+
+  planBtn?.addEventListener("click", () => {
+    const plan = planExtension({
+      originalCtx: parseFloat($("yarn-orig").value),
+      theta: parseFloat($("yarn-theta").value),
+      targetCtx: parseFloat($("yarn-target").value),
+      ropeType: $("yarn-type").value || null,
+    });
+    renderYarnPlan(plan);
+  });
+}
+
+function _yarnFmtK(n) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "K";
+  return String(Math.round(n));
+}
+function _yarnFmtG(g) {
+  return (g == null || !Number.isFinite(g)) ? "—" : g.toFixed(3);
+}
+function _yarnWarnText(w) {
+  switch (w.code) {
+    case "theta_eff_estimate": return t("yarn.warn.theta_eff_estimate");
+    case "aggressive_factor":  return `${t("yarn.warn.aggressive")} (${w.params.factor}×)`;
+    case "horizon_short":      return `${t("yarn.warn.horizon_short")} (d_horizon ${_yarnFmtK(w.params.dHorizon)} < L ${_yarnFmtK(w.params.target)}, γ_eff ${_yarnFmtG(w.params.gammaEff)})`;
+    case "finetune_note":      return t("yarn.warn.finetune");
+    default: return w.code;
+  }
+}
+
+function renderYarnPlan(p) {
+  const out = $("yarn-output");
+  if (!out) return;
+  out.style.display = "";
+
+  const errMap = {
+    no_original_ctx: "yarn.err.no_orig",
+    no_theta:        "yarn.err.no_theta",
+    no_target:       "yarn.err.no_target",
+  };
+  if (errMap[p.verdict]) {
+    out.innerHTML = `<div class="gc-validity-warning">⚠ ${t(errMap[p.verdict])}</div>`;
+    return;
+  }
+
+  if (p.verdict === "no_extension_needed") {
+    out.innerHTML =
+      `<div class="gc-validity-warning" style="border-left-color:#3fb950;">✅ ${t("yarn.verdict.no_extension_needed")}
+        <br><span class="subtle">L=${_yarnFmtK(p.targetCtx)} ≤ trained ${_yarnFmtK(p.originalCtx)}. γ_Padé=${_yarnFmtG(p.gammaNaive)}, d_horizon=${_yarnFmtK(p.dHorizonNaive)}.</span></div>`;
+    return;
+  }
+
+  const meta = ({
+    healthy:          { emoji: "✅", cls: "v-yes" },
+    usable_with_care: { emoji: "⚠️", cls: "v-deg" },
+    needs_finetune:   { emoji: "🔧", cls: "v-deg" },
+    degrades:         { emoji: "🚨", cls: "v-no"  },
+  })[p.verdict] || { emoji: "❓", cls: "v-deg" };
+
+  const cfgJson = JSON.stringify({ rope_scaling: p.config }, null, 2);
+  const horizonOk = p.dHorizonEff != null && p.dHorizonEff >= p.targetCtx;
+  const warnHtml = p.warnings.map(w => `<li>${_yarnWarnText(w)}</li>`).join("");
+  const td = "padding:3px 10px 3px 0;";
+
+  out.innerHTML = `
+    <p><span class="verdict-badge ${meta.cls}">${meta.emoji} ${t("yarn.verdict." + p.verdict)}</span></p>
+    <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
+      <tr><td style="${td}">${t("yarn.r.factor")}</td><td><strong>${p.factor}×</strong> (${_yarnFmtK(p.originalCtx)} → ${_yarnFmtK(p.targetCtx)})</td></tr>
+      <tr><td style="${td}">${t("yarn.r.method")}</td><td><code>${p.ropeType}</code></td></tr>
+      <tr><td style="${td}">γ ${t("yarn.r.naive")}</td><td>${_yarnFmtG(p.gammaNaive)}${p.gammaNaive <= 0 ? ` 🚨 ${t("yarn.r.collapsed")}` : ""}</td></tr>
+      <tr><td style="${td}">γ ${t("yarn.r.eff")}</td><td><strong>${_yarnFmtG(p.gammaEff)}</strong></td></tr>
+      <tr><td style="${td}">θ_eff</td><td>${_yarnFmtK(p.thetaEff)}${p.thetaEff > p.theta ? ` (↑ ${t("yarn.r.from")} ${_yarnFmtK(p.theta)})` : ""}</td></tr>
+      <tr><td style="${td}">d_horizon ${t("yarn.r.eff")}</td><td>${_yarnFmtK(p.dHorizonEff)} ${horizonOk ? "✅ ≥ L" : "⚠ &lt; L"}</td></tr>
+    </table>
+    <h3>${t("yarn.r.snippet")}</h3>
+    <pre class="diag-cmd-box">${escapeHtml(cfgJson)}</pre>
+    <button id="yarn-copy-btn" class="secondary">📋 ${t("yarn.copy_btn")}</button>
+    ${warnHtml ? `<ul style="font-size:0.9em;margin-top:0.8em;opacity:0.9;">${warnHtml}</ul>` : ""}`;
+
+  $("yarn-copy-btn")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(cfgJson);
+      $("yarn-copy-btn").textContent = "✓ " + t("yarn.copied");
+    } catch (e) { /* clipboard blocked */ }
+  });
+}
 
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap

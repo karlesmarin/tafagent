@@ -240,6 +240,12 @@
       <p><strong data-i18n="help.v081.hub.title">🧭 Solutions Hub</strong></p>
       <p data-i18n="help.v081.hub.body">tafagent as integrator, not silo. 30+ pains across 7 categories (eval reliability · diagnostics · setup · training · retrieval · multimodal · observability), each mapped to (a) the tafagent mode that addresses it, if any, and (b) the best-of-breed external tools the community already trusts (RAGAS, MTEB, HELM, MCP Schema Validator, llm-stats, llguidance, GlitchMiner, etc.). Search box matches across pain, scenario, and tool name. <em>Use case</em>: 'I have problem X — does tafagent solve it, and if not, who does?'</p>
 
+      <h3 style="margin-top: 1.5em;" data-i18n="help.v09.title">🆕 v0.9 — YaRN / RoPE Context-Extension Planner</h3>
+      <p style="opacity: 0.85;" data-i18n="help.v09.intro"><em>v0.9 (2026-05-23): the most-asked HuggingFace question — "how do I set rope_scaling to extend context, and will it actually work?" — answered with a copy-paste config snippet AND a TAF quality verdict. Browser-only, no inference.</em></p>
+
+      <p><strong data-i18n="help.v09.yarn.title">🧵 YaRN / RoPE Context-Extension Planner</strong></p>
+      <p data-i18n="help.v09.yarn.body">The dozen GGUF/VRAM calculators on HF (NyxKrage, oobabooga, DavidAU, …) all answer the same question: <em>does context length L fit in my GPU?</em> None answer the harder one: <em>does L fit AND still work?</em> Enter a model id (or its θ + trained context) and a target length L. The planner computes the extension factor, emits the exact <code>rope_scaling</code> block for transformers ≥4.43 (<code>yarn</code> / <code>linear</code> / <code>dynamic</code> / <code>llama3</code>, with paper-default β ramps), then runs TAF's γ_Padé / d_horizon math: γ with no extension (the problem), γ after the chosen method (the fix), the effective attention horizon, and a verdict — HEALTHY / USABLE-WITH-CARE / NEEDS-FINETUNE / DEGRADES. It flags the θ_eff≈θ·factor estimate and the >4× fine-tune requirement honestly. <em>Use case</em>: 'I want Mistral-7B (θ=10k, 8k trained) at 32k' → see γ collapse from naive use, YaRN partially recover it, and get the exact config to paste. Or 'Qwen2.5 at 128k' → discover its θ=1e6 already covers it, no aggressive scaling needed.</p>
+
       <h3 data-i18n="help.audit.title">The audit chain</h3>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -401,6 +407,7 @@
             <button data-mode-link="niah" data-i18n="modes.niah">🔍 NIAH→Reason</button>
             <button data-mode-link="longscore" data-i18n="modes.longscore">🎯 LongScore</button>
             <button data-mode-link="quant" data-i18n="modes.quant">⚖️ Quant</button>
+            <button data-mode-link="yarn" data-i18n="modes.yarn">🧵 YaRN Planner</button>
             <button data-mode-link="inspector" data-i18n="modes.inspector">🔍 Inspect config</button>
           </div>
         </div>
@@ -495,6 +502,7 @@
         <button class="mode-btn" data-mode="tax" role="tab" aria-selected="false" data-i18n="modes.tax">🌍 Token Tax</button>
         <button class="mode-btn" data-mode="longscore" role="tab" aria-selected="false" data-i18n="modes.longscore">🎯 LongScore</button>
         <button class="mode-btn" data-mode="hub" role="tab" aria-selected="false" data-i18n="modes.hub">🧭 Solutions</button>
+        <button class="mode-btn" data-mode="yarn" role="tab" aria-selected="false" data-i18n="modes.yarn">🧵 YaRN Planner</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -1230,6 +1238,56 @@
       </div>
       <p id="hub-status" class="recipe-desc" style="font-size:0.92em;"></p>
       <div id="hub-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <!-- YaRN / RoPE context-extension planner (mode=yarn) -->
+    <section id="yarn-section" style="display:none;">
+      <h2><span data-i18n="yarn.title">🧵 YaRN / RoPE Context-Extension Planner</span>
+        <span class="info"><span class="tooltip" data-i18n="yarn.tip">
+          <strong>Config + verdict, not just VRAM</strong>. The GGUF/VRAM calculators tell you if a
+          context length <em>fits in GPU</em>. This tells you the exact <code>rope_scaling</code> block
+          to put in <code>config.json</code> AND whether attention quality will actually hold at that
+          length — using TAF's γ_Padé / d_horizon machinery, all in your browser.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="yarn.desc">
+        Want to run a model past its trained context? Enter the model (or its θ + trained context)
+        and your target length L. Get the copy-paste <code>rope_scaling</code> snippet for
+        transformers ≥4.43, plus a TAF verdict: does the effective attention horizon reach L, or will
+        the model just hallucinate past d_horizon?
+      </p>
+
+      <div class="form-row">
+        <label for="yarn-model" data-i18n="yarn.model_label">HF model id (optional):</label>
+        <input type="text" id="yarn-model" placeholder="Qwen/Qwen2.5-7B-Instruct">
+        <button id="yarn-fetch-btn" class="secondary" data-i18n="yarn.fetch_btn">📥 Fetch config</button>
+      </div>
+      <span id="yarn-status" class="subtle"></span>
+
+      <div class="form-row">
+        <label for="yarn-orig" data-i18n="yarn.orig_label">Trained context (orig max_position_embeddings):</label>
+        <input type="number" id="yarn-orig" placeholder="32768" min="256">
+      </div>
+      <div class="form-row">
+        <label for="yarn-theta" data-i18n="yarn.theta_label">RoPE θ (rope_theta):</label>
+        <input type="number" id="yarn-theta" placeholder="1000000" min="1">
+      </div>
+      <div class="form-row">
+        <label for="yarn-target" data-i18n="yarn.target_label">Target context L:</label>
+        <input type="number" id="yarn-target" placeholder="131072" min="256">
+      </div>
+      <div class="form-row">
+        <label for="yarn-type" data-i18n="yarn.type_label">RoPE scaling method:</label>
+        <select id="yarn-type">
+          <option value="" data-i18n="yarn.type_auto">Auto (recommended)</option>
+          <option value="yarn">YaRN</option>
+          <option value="linear">Linear PI</option>
+          <option value="dynamic">Dynamic NTK</option>
+          <option value="llama3">Llama3</option>
+        </select>
+      </div>
+      <button id="yarn-plan-btn" data-i18n="yarn.plan_btn">🧵 Plan extension</button>
+      <div id="yarn-output" style="display:none; margin-top:1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

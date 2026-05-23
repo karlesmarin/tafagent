@@ -202,7 +202,7 @@ export function attachHfAutocomplete(inputEl, options = {}) {
 export function attachAllHfAutocompletes() {
   const ids = [
     "hf-id", "profile-hf-id", "unmask-id", "template-id", "quant-id", "niah-id",
-    "spec-target-id", "spec-draft-id", "longscore-input",
+    "spec-target-id", "spec-draft-id", "longscore-input", "yarn-model",
   ];
   for (const id of ids) {
     const el = document.getElementById(id);
