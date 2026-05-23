@@ -16,7 +16,7 @@ import { sniffChatTemplate } from "./chat_template_sniffer.js";
 import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
-import { attachAllHfAutocompletes } from "./hf_autocomplete.js";
+import { attachAllHfAutocompletes, attachHfAutocomplete } from "./hf_autocomplete.js";
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
 import { predictNIAHReasoning, sweepContextLengths, loadRulerKB, calibrateNIAH, listRulerModels } from "./niah_reasoning.js";
 import {
@@ -4786,6 +4786,11 @@ function initGguf() {
   const allBtn = $("gguf-all-btn");
   const fileSel = $("gguf-file");
 
+  // GGUF-tag-filtered autocomplete; picking a repo auto-lists its quant files
+  // so the flow matches the other modes (select → it just works).
+  const repoEl = $("gguf-repo");
+  if (repoEl) attachHfAutocomplete(repoEl, { pipeline: "gguf", onSelect: () => listBtn?.click() });
+
   listBtn?.addEventListener("click", async () => {
     const repo = ($("gguf-repo").value || "").trim();
     if (!repo) { $("gguf-status").textContent = "⚠ " + t("gguf.need_repo"); return; }
@@ -4805,6 +4810,11 @@ function initGguf() {
       _ggufFiles = files;
       $("gguf-status").innerHTML = `✅ ${files.length} ${t("gguf.found")} — ${t("gguf.pick_hint")}`;
     } catch (err) {
+      // Clear any stale file list from a previous repo so a failed lookup
+      // never leaves the old repo's quants showing.
+      fileSel.innerHTML = ""; fileSel.disabled = true;
+      analyzeBtn.disabled = true; $("gguf-all-btn").disabled = true;
+      $("gguf-output").style.display = "none";
       $("gguf-status").textContent = `❌ ${err.message}`;
     } finally {
       listBtn.disabled = false;

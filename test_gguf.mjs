@@ -33,6 +33,45 @@ check("files listed in dropdown", listed.count>0, `(${listed.count} files)`);
 check("Q4_K_M auto-selected", /q4_k_m/i.test(listed.selected), listed.selected);
 check("analyze button enabled", listed.analyzeEnabled);
 
+log("\n── Autocomplete pick → auto-lists files (the 'no sale nada' fix) ──");
+await p.fill("#gguf-repo","");
+// clear current file list first to prove auto-list repopulates
+await p.evaluate(()=>{const s=document.querySelector("#gguf-file");s.innerHTML="";s.disabled=true;});
+await p.click("#gguf-repo");
+await p.fill("#gguf-repo","Qwen2.5-0.5B-Instruct-GGUF");
+await p.waitForTimeout(1300);
+const picked = await p.evaluate(()=>{
+  const dd=[...document.querySelectorAll(".hf-autocomplete-dropdown")].find(d=>getComputedStyle(d).display!=="none");
+  const items=dd?[...dd.querySelectorAll(".hf-result")]:[];
+  const m=items.find(i=>i.dataset.id==="Qwen/Qwen2.5-0.5B-Instruct-GGUF")||items[0];
+  if(m){m.dispatchEvent(new MouseEvent("mousedown",{bubbles:true}));return m.dataset.id;}
+  return null;
+});
+check("autocomplete shows GGUF repos", !!picked, picked||"none");
+await p.waitForTimeout(4500); // auto-list fires onSelect
+const auto = await p.evaluate(()=>({count:document.querySelector("#gguf-file").options.length, sel:document.querySelector("#gguf-file").value}));
+check("picking repo AUTO-lists quant files (no extra click)", auto.count>0, `(${auto.count} files, sel=${auto.sel})`);
+
+log("\n── Multiple repo naming conventions ──");
+async function listRepo(repo){
+  await p.fill("#gguf-repo",repo);
+  await p.keyboard.press("Escape");
+  await p.click("#gguf-list-btn");
+  await p.waitForTimeout(3500);
+  return p.evaluate(()=>({count:document.querySelector("#gguf-file").options.length, sel:document.querySelector("#gguf-file").value, status:document.querySelector("#gguf-status").innerText.slice(0,40)}));
+}
+let m1=await listRepo("bartowski/Qwen2.5-7B-Instruct-GGUF");
+check("bartowski/* lists files", m1.count>0, `(${m1.count})`);
+let m2=await listRepo("TheBloke/Llama-2-7B-Chat-GGUF");
+check("TheBloke/* lists files", m2.count>0, `(${m2.count})`);
+
+log("\n── Error clears stale dropdown ──");
+let m3=await listRepo("this/not-real-xyz999");
+check("bad repo clears file dropdown (no stale)", m3.count===0, `(count=${m3.count})`);
+
+log("\n── reset to known-good for downstream tests ──");
+await listRepo("Qwen/Qwen2.5-0.5B-Instruct-GGUF");
+
 log("\n── Analyze GGUF (parse header + verdict) ──");
 await p.click("#gguf-analyze-btn");
 await p.waitForTimeout(8000); // range fetch + parse

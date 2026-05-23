@@ -208,8 +208,6 @@ export function attachAllHfAutocompletes() {
     const el = document.getElementById(id);
     if (el) attachHfAutocomplete(el);
   }
-  // GGUF Bridge wants GGUF repos specifically, not generic text-gen models —
-  // filter on the `gguf` tag so the dropdown only surfaces quant repos.
-  const ggufEl = document.getElementById("gguf-repo");
-  if (ggufEl) attachHfAutocomplete(ggufEl, { pipeline: "gguf" });
+  // NOTE: #gguf-repo is attached in main.js initGguf() instead — it needs both
+  // the `gguf` tag filter AND an onSelect that auto-lists the repo's quant files.
 }
