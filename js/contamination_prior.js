@@ -1,8 +1,11 @@
-// Contamination Prior (v0.7.3 anti-bullshit pack #4)
-// Bayesian-ish prior on whether a benchmark score is contaminated, based on
-// (model training cutoff date) × (benchmark release date) × (known leak status).
-// Pure logic — no human strings. Open LLM Leaderboard v1 (MMLU/HellaSwag/etc)
-// was killed for contamination; this lets a user calibrate trust per score.
+// Contamination Risk Heuristic (v0.7.3 anti-bullshit pack #4)
+// HONESTY NOTE: this is an UNCALIBRATED risk SCORE in [0,1], NOT a calibrated
+// probability and NOT Bayesian inference — there is no labelled (model,benchmark)
+// contamination dataset behind these curves. The time/corpora/leak terms are
+// hand-set heuristics; treat the output as "risk ranking", not a literal P(leak).
+// Based on (model training cutoff date) × (benchmark release date) × (known leak
+// status). Pure logic — no human strings. Open LLM Leaderboard v1 (MMLU/HellaSwag
+// /etc) was killed for contamination; this lets a user rank trust per score.
 
 // Benchmark database. Each entry tracks release date, whether it's known to
 // be in common pretraining corpora (CommonCrawl etc), and a base-rate adjustment
@@ -63,8 +66,11 @@ function timePrior(gapMonths) {
   return Math.min(0.92, 0.75 + ((gapMonths - 24) / 36) * 0.17);
 }
 
-// Per-benchmark prior: time-prior × in_corpora boost + leak_factor.
-// Caps at 0.97 (always some uncertainty).
+// Per-benchmark risk score: time-term + in_corpora boost + leak_factor, summed
+// and clamped to [0.01, 0.97]. NOT a probability — the terms are added, not
+// combined by any probability rule, so a model can hit the 0.97 ceiling purely
+// from the clamp (we surface `clamped` so the UI doesn't read 0.97 as "97%
+// certain"). Caps at 0.97 (always some uncertainty).
 export function computeContaminationPrior(modelCutoff, benchmarkId) {
   const bench = BENCHMARK_DB[benchmarkId];
   if (!bench) return null;
@@ -78,6 +84,7 @@ export function computeContaminationPrior(modelCutoff, benchmarkId) {
   const corporaBoost = bench.in_corpora ? 0.10 : 0.0;
   const raw = tp + corporaBoost + bench.leak_factor;
   const prior = Math.max(0.01, Math.min(0.97, raw));
+  const clamped = raw > 0.97;
 
   let level;
   if (prior >= 0.65) level = "high";
@@ -98,6 +105,8 @@ export function computeContaminationPrior(modelCutoff, benchmarkId) {
     leak_factor: bench.leak_factor,
     prior: Math.round(prior * 100) / 100,
     level,
+    calibrated: false,
+    clamped,
     advice_code: level === "high" ? "treat_unreliable" :
                  level === "medium" ? "verify_alternate" : "score_likely_clean",
   };

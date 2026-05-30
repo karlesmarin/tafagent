@@ -8,7 +8,6 @@
 // guessing -ngl / hitting Blackwell OOM. All browser-only.
 
 import { gammaPade } from "./gamma_check.js";
-import { dHorizon } from "./yarn_planner.js";
 
 // Curated GPU VRAM presets (GB). Unified-memory Macs included (shared pool).
 export const GPU_PRESETS = [
@@ -121,14 +120,17 @@ export function planLaunch(opts) {
     allOnGpu = false; fits = false;
   }
 
-  // TAF horizon: does the model's attention actually reach the context you're
-  // paying KV memory for? This is the differentiator vs pure VRAM calculators.
+  // TAF reality check vs pure VRAM calculators: γ_Padé at the trained context is
+  // the model's natural attention sharpness, and the trained context is the
+  // reach the model was actually tuned for. (We do NOT compute a separate
+  // "d_horizon" reach: dHorizon(θ, γ_Padé(θ, ctxTrain)) ≡ ctxTrain by
+  // construction, so allocating KV well past it is wasted memory — the warning
+  // below is keyed directly on the trained context.)
   const theta = Number(ropeTheta) || 10000;
   const gammaTrain = ctxTrain ? gammaPade(theta, ctxTrain) : null;
-  const dHoriz = gammaTrain != null ? dHorizon(theta, gammaTrain) : null;
-  const horizonWasted = dHoriz != null && targetCtx > dHoriz * 1.25;
-  if (horizonWasted) out.warnings.push({ code: "horizon_wasted", params: { dHoriz, target: targetCtx } });
-  if (ctxTrain && targetCtx > ctxTrain) out.warnings.push({ code: "beyond_trained", params: { ctxTrain, target: targetCtx } });
+  const kvWasted = ctxTrain && targetCtx > ctxTrain * 1.25;
+  if (kvWasted) out.warnings.push({ code: "kv_wasted", params: { ctxTrain, target: targetCtx } });
+  if (ctxTrain && targetCtx > ctxTrain && !kvWasted) out.warnings.push({ code: "beyond_trained", params: { ctxTrain, target: targetCtx } });
   if (allOnGpu) out.warnings.push({ code: "no_mmap_blackwell" });
   if (!fits && ngl > 0) out.warnings.push({ code: "partial_offload", params: { ngl, nLayers } });
   if (!fits && ngl === 0) out.warnings.push({ code: "cpu_only", params: {} });
@@ -139,7 +141,7 @@ export function planLaunch(opts) {
     nParams: N, bpw, quant, cacheType, flashAttn,
     weightsGB, kvGB, overheadGB, totalGB, vramGB,
     ngl, allOnGpu, nLayers,
-    theta, dHoriz, gammaTrain, ctxTrain, targetCtx,
+    theta, gammaTrain, ctxTrain, targetCtx,
   });
   return out;
 }

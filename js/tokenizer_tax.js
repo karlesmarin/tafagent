@@ -134,7 +134,7 @@ export async function tokenizeAll(modelIds, text, baseline_idx = 0) {
 
 const UNICODE_BLOCKS = [
   // [name, regex_class]
-  ["latin",      /[A-z]/g],
+  ["latin",      /[A-Za-z]/g],
   ["cjk",        /[぀-ゟ゠-ヿ一-鿿ｦ-ﾝ]/g],
   ["korean",     /[가-힯ᄀ-ᇿ]/g],
   ["arabic",     /[؀-ۿݐ-ݿ]/g],

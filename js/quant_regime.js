@@ -4,6 +4,11 @@
 // quantization "cliffs" are unpredictable per model. Generic "AWQ ~95% retention"
 // claims are too vague — TAF gives architecture-specific verdict.
 //
+// HONESTY NOTE: base_penalty / archMultiplier / ΔPPL constants are HAND-SET
+// heuristics informed by (not fit to) the sources below — most schemes carry
+// `calibrated:false`, surfaced as `scheme_calibrated` in the output. Treat the
+// regime verdict ("safe"…"cliff") and ΔPPL as order-of-magnitude ESTIMATES, not
+// measured values. Verify borderline cases with a real eval.
 // Calibration sources: Maarten Grootendorst's quant comparison newsletter,
 // llama.cpp PPL benchmarks, GPTQ/AWQ papers.
 
@@ -58,9 +63,12 @@ function archMultiplier(config) {
   else if (gqaRatio >= 4) mult *= 1.15;
   // SWA: localized attention is somewhat more robust to head-level noise
   if (hasSWA) mult *= 0.92;
-  // Post-IH (large) models more robust; pre-IH (small) less robust
+  // Size-based robustness multiplier. The "pre-IH / post-IH" framing is a rough
+  // heuristic only: the induction-head R_c boundary it alludes to was NOT
+  // confirmed as a clean threshold (demoted to a diagnostic), so these cutoffs
+  // are size buckets, not a validated phase boundary.
   if (n_params !== null) {
-    if (n_params < 1.5e9) mult *= 1.4;       // <1.5B = pre-IH
+    if (n_params < 1.5e9) mult *= 1.4;       // small models: less robust
     else if (n_params < 4e9) mult *= 1.15;   // borderline
     else if (n_params >= 30e9) mult *= 0.85; // very large = robust
     else if (n_params >= 7e9) mult *= 0.95;
@@ -88,7 +96,9 @@ function inferNParams(config) {
 // Returns {low, mid, high} estimate as a band (50% uncertainty).
 function predictDeltaPPL(gammaShift, nParams) {
   if (gammaShift <= 0) return { low: 0, mid: 0, high: 0 };
-  const sizeBoost = nParams ? 1 + Math.log10(nParams / 1e9) / 4 : 1;
+  // sizeBoost shrinks for sub-1B "models"; clamp at 0.1 so a tiny/garbage
+  // n_params can never drive ΔPPL negative (log10 goes negative below 1B).
+  const sizeBoost = nParams ? Math.max(0.1, 1 + Math.log10(nParams / 1e9) / 4) : 1;
   const mid = 8 * gammaShift * gammaShift * sizeBoost;
   return {
     low:  Math.max(0, Math.round((mid * 0.6) * 100) / 100),

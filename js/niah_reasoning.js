@@ -10,29 +10,24 @@
 //
 // Pure logic — no human strings. Render via i18n in main.js.
 
-import { gammaPade, thetaEffPade } from "./gamma_check.js";
+import { gammaPade } from "./gamma_check.js";
 
-// d_horizon ≈ effective attention horizon. Reproduces formula from
-// taf_browser.py / paper §sec:gamma_decomposition. For browser-only v1 use.
-function dHorizon(theta, gammaPredicted) {
-  if (gammaPredicted >= 1) return Infinity;
-  if (gammaPredicted <= 0) return theta;
-  // d_horizon ≈ θ × (1 + γ_predicted) / (1 - γ_predicted)
-  // Padé-canonical form (paper §sec:gamma_decomposition).
-  return theta * (1 + gammaPredicted) / (1 - gammaPredicted);
-}
-
-// Sigmoid-like passrate vs. ratio = T_eval / d_horizon.
-// Calibrated such that:
-//   ratio = 0.25 → ≈ 0.95 (well within horizon)
-//   ratio = 0.50 → ≈ 0.88
-//   ratio = 1.00 → ≈ 0.65
-//   ratio = 2.00 → ≈ 0.35
-//   ratio = 4.00 → ≈ 0.15
+// Sigmoid pass-rate vs. the EXTRAPOLATION ratio = T_eval / T_train — the real,
+// non-circular degradation axis (how far past the trained context the eval
+// pushes). Heuristic logistic, centred so that:
+//   ratio = 0.25 (deep within trained context) → ≈ 0.96
+//   ratio = 1.00 (at the trained context)       → ≈ 0.79
+//   ratio = 2.00 (2× past training)             → ≈ 0.62
+//   ratio = 4.00 (4× past training)             → ≈ 0.42
+//   ratio = 8.00                                → ≈ 0.24
+// Rough fit to RULER (NVIDIA 2024) degradation curves; when the model is in
+// data/ruler_kb.json the published number OVERRIDES this (see calibrateNIAH).
+// NOTE: an earlier version keyed this on T_eval/d_horizon, but d_horizon =
+// f(γ_Padé) is the exact Padé inverse (≡ T_eval by construction), so that ratio
+// carried no signal — same tautology corrected in the gguf/yarn/launch modules.
 function niahRate(ratio) {
-  // Logistic on log-ratio: P = 1/(1+exp(k*(log(ratio)-log(0.7))))
-  const k = 1.4;
-  const center = Math.log(0.7);
+  const k = 1.2;
+  const center = Math.log(3.0);
   const x = Math.log(Math.max(0.01, ratio));
   return 1 / (1 + Math.exp(k * (x - center)));
 }
@@ -74,26 +69,29 @@ function archPressureFromConfig(config) {
 
 export function predictNIAHReasoning(config, T_eval) {
   const baseTheta = config.rope_theta ?? 10000;
-  // YaRN / linear / dynamic NTK rope-scaling effectively widens d_horizon.
-  // Use scaled theta when present so YaRN-extended models aren't false-broken.
   const rs = config.rope_scaling;
   const yarnFactor = rs && (rs.factor ?? 1);
-  const theta = (rs && yarnFactor > 1) ? baseTheta * yarnFactor : baseTheta;
-  const T_train = config.max_position_embeddings ?? T_eval;
-  const gPade = gammaPade(theta, T_eval);
-  const dh = dHorizon(theta, gPade);
-  const ratio = dh === Infinity ? 0 : T_eval / dh;
+  // YaRN/NTK raise the effective base θ; linear/dynamic PI compress positions
+  // instead (they extend the usable trained context, not θ). Treat each kind
+  // correctly so YaRN-extended models aren't falsely flagged broken and linear
+  // ones aren't falsely flagged healthy.
+  const ropeType = String((rs && (rs.rope_type || rs.type)) || "").toLowerCase();
+  const isPiLike  = !!rs && yarnFactor > 1 && (ropeType === "linear" || ropeType === "dynamic");
+  const isNtkLike = !!rs && yarnFactor > 1 && !isPiLike;
+  const theta = isNtkLike ? baseTheta * yarnFactor : baseTheta;
+  const baseTrain = config.max_position_embeddings ?? T_eval;
+  const T_train = isPiLike ? baseTrain * yarnFactor : baseTrain;
 
+  const gPade = gammaPade(theta, T_eval);
   const archPressure = archPressureFromConfig(config);
-  // Extrapolation penalty: models tested far beyond their training context
-  // degrade regardless of architecture (no positional embeddings learned for
-  // unseen positions). Capped at 0.7 so we never zero out completely.
+
+  // Degradation is driven by the EXTRAPOLATION ratio T_eval/T_train (real,
+  // non-circular) plus architecture pressure. We do NOT use a d_horizon ratio:
+  // d_horizon = f(γ_Padé) is the exact Padé inverse (≡ T_eval by construction)
+  // and carries no signal — the same correction applied to gguf/yarn/launch.
   const extrapolation_ratio = T_train > 0 ? T_eval / T_train : 1;
-  const extrapolation_penalty = extrapolation_ratio > 1
-    ? Math.min(0.7, (extrapolation_ratio - 1) * 0.3)
-    : 0;
-  const niah = Math.max(0.02, niahRate(ratio) * (1 - extrapolation_penalty));
-  const penalty = reasoningPenalty(ratio, archPressure);
+  const niah = Math.max(0.02, niahRate(extrapolation_ratio));
+  const penalty = reasoningPenalty(extrapolation_ratio, archPressure);
   const reasoning = Math.max(0.02, niah * (1 - penalty));
   const gap = niah - reasoning;
 
@@ -105,14 +103,12 @@ export function predictNIAHReasoning(config, T_eval) {
   else if (niah >= 0.70 && reasoning >= 0.55) verdict = "robust";
   else                                        verdict = "marginal";
 
-  // Find a "safe" context where reasoning >= 0.65 (binary search-like sweep)
+  // Find a "safe" context where reasoning >= 0.65 (doubling sweep)
   let safeT = null;
   for (let t = 1024; t <= T_eval; t *= 2) {
-    const gP = gammaPade(theta, t);
-    const dh2 = dHorizon(theta, gP);
-    const r = dh2 === Infinity ? 0 : t / dh2;
-    const niah2 = niahRate(r);
-    const reas2 = niah2 * (1 - reasoningPenalty(r, archPressure));
+    const er = T_train > 0 ? t / T_train : 1;
+    const niah2 = niahRate(er);
+    const reas2 = niah2 * (1 - reasoningPenalty(er, archPressure));
     if (reas2 >= 0.65) safeT = t;
     else break;
   }
@@ -123,8 +119,7 @@ export function predictNIAHReasoning(config, T_eval) {
     theta,
     arch_pressure: Math.round(archPressure * 100) / 100,
     gamma_pade: Math.round(gPade * 1000) / 1000,
-    d_horizon: dh === Infinity ? null : Math.round(dh),
-    horizon_ratio: Math.round(ratio * 100) / 100,
+    extrapolation_ratio: Math.round(extrapolation_ratio * 100) / 100,
     niah_rate: Math.round(niah * 100) / 100,
     reasoning_rate: Math.round(reasoning * 100) / 100,
     gap: Math.round(gap * 100) / 100,

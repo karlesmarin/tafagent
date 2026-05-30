@@ -35,7 +35,10 @@ export function unmaskConfig(config) {
   if (out.flags.n_attn_heads && out.flags.n_kv_heads) {
     out.flags.hasGQA = out.flags.n_kv_heads < out.flags.n_attn_heads;
   }
-  if (config.hidden_size && out.flags.n_attn_heads) {
+  // Guard n_attn_heads > 0: a config with num_attention_heads 0 or missing
+  // would yield Infinity/NaN here and silently suppress the d_head < 64 GQA
+  // hint below. Leave d_head null and skip that hint when it can't be computed.
+  if (config.hidden_size && out.flags.n_attn_heads > 0) {
     out.flags.d_head = config.hidden_size / out.flags.n_attn_heads;
   }
 

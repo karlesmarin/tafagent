@@ -488,6 +488,13 @@ def main():
                         help="Force CPU even if CUDA available")
     args = parser.parse_args()
 
+    # Validate numeric inputs: N is used as a divisor (D90/N) and inside
+    # log/partition terms, and theta must be positive for the Padé form.
+    if args.N < 1:
+        parser.error("--N must be >= 1 (it is used as a divisor and in log terms).")
+    if args.theta is not None and args.theta <= 0:
+        parser.error("--theta must be > 0.")
+
     try:
         run_diagnostic(args)
     except KeyboardInterrupt:

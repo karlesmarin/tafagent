@@ -34,7 +34,11 @@ export function deltaHCardy(thEffObs, thetaNominal) {
 
 export function classifyRegime(eff, gObs, isRandom) {
   if (!Number.isFinite(gObs)) return "unknown";
-  if (gObs > 1.05) return isRandom ? "swa" : "unknown";
+  // Phase B (γ ≥ 1): recency-locked / local attention — a legitimate regime.
+  // The efficiency diagnostic below assumes Phase A: thetaEffObserved =
+  // T√2/(1−γ) goes NEGATIVE for γ > 1, which must NOT be misread as "fraud"
+  // (efficiency < 0.01). A random/SWA-corpus signature lands here too.
+  if (gObs >= 1) return isRandom ? "swa" : "phase_b";
   if (!Number.isFinite(eff)) return "unknown";
   if (eff < 0.01) return "fraud";
   if (eff < 0.50) return "compressed";
@@ -65,6 +69,7 @@ export const REGIME_META = {
   fraud:      { emoji: "🚨", cls: "v-no"  },
   compressed: { emoji: "📉", cls: "v-deg" },
   overpade:   { emoji: "📈", cls: "v-deg" },
+  phase_b:    { emoji: "🔒", cls: "v-deg" },
   swa:        { emoji: "🪟", cls: "v-deg" },
   unknown:    { emoji: "❓", cls: "v-deg" },
 };

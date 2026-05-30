@@ -7,12 +7,27 @@ let _byName = null;
 
 export async function loadLeanManifest(url = "data/lean_status.json") {
   if (_manifest) return _manifest;
-  const res = await fetch(url, { cache: "default" });
-  if (!res.ok) throw new Error(`lean manifest fetch failed: ${res.status}`);
-  _manifest = await res.json();
+  let res;
+  try {
+    res = await fetch(url, { cache: "default" });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    return null;
+  }
+  // Shape validation: a malformed manifest (missing groups) must not throw.
+  if (!data || !Array.isArray(data.groups)) return null;
+  _manifest = data;
   _byName = {};
   for (const g of _manifest.groups) {
+    if (!g || !Array.isArray(g.theorems)) continue;
     for (const t of g.theorems) {
+      if (!t || t.name == null) continue;
       t._group = g.id;
       t._url = sourceUrl(_manifest, t);
       _byName[t.name] = t;
@@ -25,7 +40,7 @@ export function getManifest() { return _manifest; }
 export function getTheorem(name) { return _byName ? _byName[name] : null; }
 
 export function sourceUrl(manifest, theorem) {
-  const repo = manifest.lean_repo;
+  const repo = (manifest && manifest.lean_repo) || {};
   return `${repo.url}/blob/${repo.default_branch}/${theorem.file}#L${theorem.line}`;
 }
 
@@ -52,12 +67,14 @@ export function renderTheoremTable() {
   const manifest = getManifest();
   if (!manifest) return "<div class='subtle'>Lean manifest not loaded.</div>";
 
-  const repo = manifest.lean_repo;
+  const repo = manifest.lean_repo || {};
+  const summary = manifest.summary || {};
+  const dash = (v) => (v == null ? "—" : v);
   const headerHtml = `
     <div class="lean-meta">
       <div><strong data-i18n="lean.meta.repo">Repo</strong>: <a href="${escapeAttr(repo.url)}" target="_blank">${escapeHtml(repo.name)}</a> @ <code>${escapeHtml(repo.commit_short)}</code></div>
-      <div class="subtle"><strong data-i18n="lean.meta.build">Build</strong>: ${repo.build_jobs} jobs · ${escapeHtml(repo.lean_toolchain)} · ${repo.compile_time_seconds}s compile (warm)</div>
-      <div class="subtle"><strong data-i18n="lean.meta.theorems">Theorems</strong>: ${manifest.summary.theorems_total} <span data-i18n="lean.meta.verified">verified</span> · ${manifest.summary.lean_rejected} <span data-i18n="lean.meta.rejected">rejected</span> · ${manifest.summary.skipped_sorry} <span data-i18n="lean.meta.sorry">sorry</span> · ${manifest.summary.substantive_findings} <span data-i18n="lean.meta.findings">substantive findings</span></div>
+      <div class="subtle"><strong data-i18n="lean.meta.build">Build</strong>: ${dash(repo.build_jobs)} jobs · ${escapeHtml(repo.lean_toolchain)} · ${dash(repo.compile_time_seconds)}s compile (warm)</div>
+      <div class="subtle"><strong data-i18n="lean.meta.theorems">Theorems</strong>: ${dash(summary.theorems_total)} <span data-i18n="lean.meta.verified">verified</span> · ${dash(summary.lean_rejected)} <span data-i18n="lean.meta.rejected">rejected</span> · ${dash(summary.skipped_sorry)} <span data-i18n="lean.meta.sorry">sorry</span> · ${dash(summary.substantive_findings)} <span data-i18n="lean.meta.findings">substantive findings</span></div>
     </div>`;
 
   const findingsHtml = (manifest.findings && manifest.findings.length)
@@ -78,9 +95,11 @@ export function renderTheoremTable() {
       </details>`
     : "";
 
-  const groupsHtml = manifest.groups.map(g => `
+  const groupsHtml = (Array.isArray(manifest.groups) ? manifest.groups : []).map(g => {
+    const theorems = Array.isArray(g.theorems) ? g.theorems : [];
+    return `
     <details class="lean-group">
-      <summary><strong>${escapeHtml(g.title)}</strong> <span class="subtle">(${g.theorems.length})</span></summary>
+      <summary><strong>${escapeHtml(g.title)}</strong> <span class="subtle">(${theorems.length})</span></summary>
       <div class="lean-table-wrap">
         <table class="lean-table">
           <thead>
@@ -93,7 +112,7 @@ export function renderTheoremTable() {
             </tr>
           </thead>
           <tbody>
-            ${g.theorems.map(t => `
+            ${theorems.map(t => `
               <tr>
                 <td><code>${escapeHtml(t.name)}</code></td>
                 <td>${escapeHtml(t.claim)}</td>
@@ -104,7 +123,8 @@ export function renderTheoremTable() {
           </tbody>
         </table>
       </div>
-    </details>`).join("");
+    </details>`;
+  }).join("");
 
   return `${headerHtml}${findingsHtml}<div class="lean-groups">${groupsHtml}</div>`;
 }

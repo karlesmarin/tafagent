@@ -75,8 +75,6 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
     thetaEff: null,
     gammaNaive: null,   // γ_Padé(θ, L) — NO extension: shows the problem
     gammaEff: null,     // γ_Padé after the chosen extension method
-    dHorizonNaive: null,
-    dHorizonEff: null,
     thetaNeeded: null,  // θ to keep γ healthy (0.5) at L — reference target
     verdict: "unknown",
     warnings: [],
@@ -100,7 +98,6 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
 
   // Baseline (no extension) — this is what naive use at L gives.
   out.gammaNaive = gammaPade(theta, targetCtx);
-  out.dHorizonNaive = dHorizon(theta, out.gammaNaive);
   // θ that would keep γ at a healthy 0.5 at L — a reference design target.
   out.thetaNeeded = thetaDesign(0.5, targetCtx);
 
@@ -109,7 +106,6 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
     out.factor = Math.round(factor * 1000) / 1000;
     out.ropeType = "none";
     out.gammaEff = out.gammaNaive;
-    out.dHorizonEff = out.dHorizonNaive;
     return out;
   }
 
@@ -122,34 +118,28 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
     // context axis: the attention pattern at L behaves like context L/factor.
     out.thetaEff = theta;
     out.gammaEff = gammaPade(theta, targetCtx / factor);
-    out.dHorizonEff = dHorizon(theta, out.gammaEff);
-    if (out.dHorizonEff != null) out.dHorizonEff *= factor; // back to real-position units
   } else {
     // YaRN / NTK / llama3: raise the effective base ≈ θ·factor.
     out.thetaEff = thetaEffNTK(theta, factor);
     out.gammaEff = gammaPade(out.thetaEff, targetCtx);
-    out.dHorizonEff = dHorizon(out.thetaEff, out.gammaEff);
     out.warnings.push({ code: "theta_eff_estimate", params: { thetaEff: out.thetaEff, factor: out.factor } });
   }
-
-  // Verdict from how much of the target the effective horizon actually covers.
-  const horizonCover = (out.dHorizonEff != null && targetCtx > 0)
-    ? out.dHorizonEff / targetCtx : null;
 
   if (factor > 4) {
     out.warnings.push({ code: "aggressive_factor", params: { factor: out.factor } });
   }
-  // Verdict weighs BOTH reach (does d_horizon cover L?) and sharpness (is γ_eff
-  // high enough that tokens within the horizon are actually attended?). A horizon
-  // that just barely reaches L with γ≈0.2 still means heavy decay — not "healthy".
-  const reaches = horizonCover != null && horizonCover >= 1.0;
+  // Verdict is driven by γ_eff = γ_Padé(θ_eff, L): the attention sharpness the
+  // extension actually buys at the target length. We do NOT run a separate
+  // d_horizon "reach" test — dHorizon(θ_eff, γ_Padé(θ_eff, L)) ≡ L by
+  // construction (the exact Padé inverse), so it always "reaches" and carries
+  // no signal beyond L itself. γ_eff is the honest, θ_eff-sensitive axis.
   const collapsed = !Number.isFinite(out.gammaEff) || out.gammaEff <= 0.2;
-  if (collapsed || (horizonCover != null && horizonCover < 0.5)) {
+  if (collapsed) {
     out.verdict = "degrades";
-    out.warnings.push({ code: "horizon_short", params: { dHorizon: out.dHorizonEff, target: targetCtx, cover: horizonCover, gammaEff: out.gammaEff } });
+    out.warnings.push({ code: "gamma_collapse", params: { gammaEff: out.gammaEff, target: targetCtx } });
   } else if (factor > 4) {
     out.verdict = "needs_finetune";
-  } else if (reaches && out.gammaEff >= 0.6) {
+  } else if (out.gammaEff >= 0.6) {
     out.verdict = "healthy";
   } else {
     out.verdict = "usable_with_care";

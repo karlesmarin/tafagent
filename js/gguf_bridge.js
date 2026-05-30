@@ -10,7 +10,6 @@
 // Parser logic is pure; the network fetch is unavoidable I/O. main.js renders.
 
 import { gammaPade } from "./gamma_check.js";
-import { dHorizon } from "./yarn_planner.js";
 import { predictQuantShift } from "./quant_regime.js";
 
 // ── GGUF metadata value types (spec v2/v3) ──
@@ -133,6 +132,9 @@ async function readValue(r, type) {
     case GT.ARR: {
       const et = await r.u32();
       const len = await r.u64();
+      // Sanity bound on array length: a garbage high dword yields an absurd len
+      // and the skip/string loop below would churn fetches to the 48MB cap.
+      if (!Number.isFinite(len) || len > 1e7) throw new Error("not_a_gguf_file");
       if (FIXED_SIZE[et]) { await r.skip(len * FIXED_SIZE[et]); return { __array: len, elemType: et }; }
       if (et === GT.STR) { for (let i = 0; i < len; i++) { const sl = await r.u64(); await r.skip(sl); } return { __array: len, elemType: et }; }
       throw new Error("gguf_nested_array");
@@ -150,6 +152,12 @@ export async function fetchGgufMetadata(url) {
   const version = await r.u32();
   const tensorCount = await r.u64();
   const kvCount = await r.u64();
+  // Sanity bounds before looping: a malformed header with a garbage high dword
+  // makes these counts astronomically large, and the KV loop would churn fetches
+  // until the 48MB cap throws. Reject implausible counts fast as "not a gguf".
+  if (!Number.isFinite(kvCount) || kvCount > 1e6 || !Number.isFinite(tensorCount) || tensorCount > 1e7) {
+    throw new Error("not_a_gguf_file");
+  }
   const kv = {};
   for (let i = 0; i < kvCount; i++) {
     const key = await r.str();
@@ -198,32 +206,37 @@ export function ggufToConfig(meta) {
 //   cfg       : ggufToConfig output (may be edited by user / filename backstop)
 //   targetCtx : optional desired context L to check (else uses context_length)
 export function analyzeGguf(cfg, targetCtx) {
-  const theta = Number(cfg.rope_theta) || 10000;
+  // theta is genuinely nullable: a GGUF missing rope.freq_base must NOT be
+  // handed a fabricated θ=10000 and a confident verdict — it should fall to the
+  // "incomplete" verdict below. We only apply the 10000 fallback at points of
+  // USE where a fallback is acceptable (the γ_Padé calls), not here.
+  const theta = (cfg.rope_theta != null) ? Number(cfg.rope_theta) : null;
   const nCtx = Number(cfg.context_length) || null;
   const L = Number(targetCtx) || nCtx;
 
-  // fp16 attention horizon — architectural, set by θ. SAME across every quant
-  // of the model (quantisation adds noise, it does not change θ). d_horizon is
-  // a function of the *natural* Padé γ, so it must be computed from the fp16 γ —
-  // never from a quant-shifted γ (that inverts the formula and is meaningless).
-  const gammaTrain = nCtx ? gammaPade(theta, nCtx) : null;
-  const dHoriz = gammaTrain != null ? dHorizon(theta, gammaTrain) : null;
+  // γ_Padé at the trained context — the model's natural attention sharpness,
+  // set by θ and SAME across every quant (quantisation adds noise, it does not
+  // change θ). NOTE: we deliberately do NOT derive a separate "d_horizon" number:
+  // by construction dHorizon(θ, γ_Padé(θ, nCtx)) ≡ nCtx (d_horizon is the exact
+  // inverse of the Padé fit), so it carries no information beyond the trained
+  // context. The honest, model-specific axis is γ@L, computed below.
+  const thetaForGamma = (theta != null) ? theta : 10000;   // fallback only for the math
+  const gammaTrain = nCtx ? gammaPade(thetaForGamma, nCtx) : null;
 
   // Quant γ-shift via the existing quant-regime model (architecture-aware).
   const quant = cfg.quant_scheme ? predictQuantShift(cfg, cfg.quant_scheme) : null;
 
   // γ at the target L: fp16, then after the quant shift. This is the quantity
   // that degrades monotonically with worse quant — the correct comparison axis.
-  const gammaAtL = (theta && L) ? gammaPade(theta, L) : null;
+  const gammaAtL = L ? gammaPade(thetaForGamma, L) : null;
   const shift = quant ? quant.gamma_shift : 0;
   const gammaQuant = (gammaAtL != null) ? gammaAtL - shift : null;
 
   // Verdict is driven by γ@L after quant (the direct attention-quality signal
-  // at the target length) plus the quant-regime band. We deliberately do NOT
-  // gate on L ≤ d_horizon: the closed-form d_horizon understates the true reach
-  // for high-θ models (e.g. Qwen θ=1e6 keeps γ healthy far past its d_horizon),
-  // so γ@L is the honest measure. `reaches` is reported for context only.
-  const reaches = dHoriz != null && L != null && L <= dHoriz;
+  // at the target length) plus the quant-regime band. d_horizon is intentionally
+  // not used: dHorizon(θ, γ_Padé(θ, ctx)) ≡ ctx by construction (the Padé
+  // inverse), so a "L ≤ d_horizon" gate is just "L ≤ trained context" relabelled
+  // and adds nothing. γ@L is the honest, θ-sensitive measure.
   const collapsed = !Number.isFinite(gammaQuant) || gammaQuant <= 0.2;
   const quantCliff = quant && quant.regime === "cliff";
   let verdict;
@@ -234,9 +247,8 @@ export function analyzeGguf(cfg, targetCtx) {
 
   return {
     theta, nCtx, L,
-    gammaTrain, dHoriz,          // fp16 architectural horizon (shared across quants)
+    gammaTrain,                  // γ_Padé at trained context (natural sharpness)
     gammaAtL, gammaQuant,        // attention at L: fp16 vs after-quant
-    reaches,                     // is L within the fp16 horizon?
     quant,                       // {gamma_shift, regime, delta_ppl, ...} or null
     quantLabel: cfg.quant_label,
     arch: cfg.architecture,

@@ -26,9 +26,11 @@
 // docstrings or commented-out code. Anything still in scope after this
 // is treated as "live" Python.
 function stripCommentsAndStrings(code) {
-  // Remove triple-quoted strings (greedy match across newlines)
-  let s = code.replace(/"""[\s\S]*?"""/g, "");
-  s = s.replace(/'''[\s\S]*?'''/g, "");
+  // Remove triple-quoted strings, but PRESERVE the original newline count so
+  // subsequent line numbers stay valid (replace content with blank lines).
+  const blankSameLines = (m) => "\n".repeat((m.match(/\n/g) || []).length);
+  let s = code.replace(/"""[\s\S]*?"""/g, blankSameLines);
+  s = s.replace(/'''[\s\S]*?'''/g, blankSameLines);
   // Remove single-line strings (but keep the line so line numbers stay valid)
   s = s.replace(/"(?:\\.|[^"\\\n])*"/g, '""');
   s = s.replace(/'(?:\\.|[^'\\\n])*'/g, "''");
@@ -136,7 +138,11 @@ const ARCH_TARGET_MODULES = {
 // Token hints in HF model ids that map to the keys above. Any one of
 // these matching is enough to claim "the user is targeting arch X".
 const ARCH_ID_HINTS = {
-  llama:   /\b(?:llama|llama-?[123]|tinyllama|vicuna|alpaca|deepseek|mixtral)\b/i,
+  // NOTE: deepseek & mixtral intentionally excluded — they are MoE with
+  // different module names (DeepSeek-V2: kv_a_proj_with_mqa/gate/experts;
+  // Mixtral: block_sparse_moe experts). Mapping them to the llama list
+  // false-flags CORRECT target_modules, so we skip the mismatch check.
+  llama:   /\b(?:llama|llama-?[123]|tinyllama|vicuna|alpaca)\b/i,
   mistral: /\bmistral\b/i,
   qwen2:   /\bqwen2?\b/i,
   phi:     /\bphi-?[12]\b/i,
@@ -164,14 +170,25 @@ function detectArch(stringLiterals) {
 // Heuristics for detecting "this string is a saved adapter checkpoint path"
 // =============================================================================
 
+// STRONG evidence: a saved-adapter ARTIFACT name. These rarely appear in a
+// correct from-scratch training script and strongly imply the user meant to
+// LOAD an existing adapter.
+const ADAPTER_ARTIFACT_RE =
+  /(?:adapter[_-]?(?:config|model)|adapter\.safetensors|adapter_model\.bin|peft[_-]?model|lora[_-]?weights?|trained?[_-]?lora)/i;
+
+// WEAK evidence: a generic checkpoint / output_dir path. CORRECT training
+// scripts that create a NEW adapter routinely have these (e.g.
+// output_dir="./checkpoint-out"), so on their own they are NOT a bug.
 const CHECKPOINT_HINT_RE =
-  /(?:adapter[_-]?(?:config|model)|adapter\.safetensors|adapter_model\.bin|peft[_-]?model|lora[_-]?weights?|checkpoint(?:[-_/]\d+)?|\boutput[_-]?dir\b|trained?[_-]?lora)/i;
+  /(?:checkpoint(?:[-_/]\d+)?|\boutput[_-]?dir\b)/i;
 
 function findAdapterCheckpointHint(stringLiterals) {
+  let weak = null;
   for (const lit of stringLiterals) {
-    if (CHECKPOINT_HINT_RE.test(lit.value)) return lit;
+    if (ADAPTER_ARTIFACT_RE.test(lit.value)) return { lit, strong: true };
+    if (weak === null && CHECKPOINT_HINT_RE.test(lit.value)) weak = lit;
   }
-  return null;
+  return weak ? { lit: weak, strong: false } : null;
 }
 
 // =============================================================================
@@ -227,12 +244,20 @@ export function lintPeftCode(text) {
   // there's a string literal that looks like a saved adapter path.
   // Likely user wants to LOAD a saved adapter but is creating a new one.
   if (hasGetPeftModel && !hasFromPretrained) {
-    const hint = findAdapterCheckpointHint(stringLiterals);
-    if (hint) {
+    const hasLoadAdapter = /\.\s*load_adapter\s*\(/.test(stripped);
+    const hintResult = findAdapterCheckpointHint(stringLiterals);
+    if (hintResult) {
+      const hint = hintResult.lit;
+      // Only an explicit adapter-load intent (artifact filename, or a
+      // load_adapter() call) is strong enough to call this a definite bug.
+      // A bare checkpoint/output_dir path is routine in CORRECT new-adapter
+      // training scripts, so downgrade those to a warning to avoid telling
+      // users their working config is broken.
+      const strong = hintResult.strong || hasLoadAdapter;
       const getPeftLine = findFirstMatchLine(stripped, /\bget_peft_model\s*\(/);
       findings.push({
         rule: "silent_base_load",
-        severity: "error",
+        severity: strong ? "error" : "warning",
         line: getPeftLine,
         params: {
           checkpoint_hint: hint.value,
@@ -297,7 +322,7 @@ export function lintPeftCode(text) {
   // worth surfacing as info.
   const loraCfgs = extractLoraConfig(text);
   for (const cfg of loraCfgs) {
-    if (cfg.r != null && cfg.lora_alpha != null) {
+    if (cfg.r != null && cfg.r > 0 && cfg.lora_alpha != null) {
       const ratio = cfg.lora_alpha / cfg.r;
       if (ratio !== 1 && ratio !== 2) {
         findings.push({

@@ -72,12 +72,14 @@ function batchDrift(batchA, batchB) {
   return 0.20;
 }
 
-// Chat-template mismatch is the dominant failure mode — separated from numerical
-// drift because the cause is structural, not floating point.
-function templateDriftHuge(templateA, templateB) {
-  if (templateA === templateB) return null;       // both same → numerical only
-  if (templateA === "unknown" || templateB === "unknown") return null;
-  return 25.0; // typical drop on multi-turn evals; user will swamp this
+// Chat-template mismatch is a common dominant failure mode — separated from
+// numerical drift because the cause is structural, not floating point. Returns
+// whether the two templates actually DIFFER (a known, scorable difference);
+// whether it is the dominant CAUSE depends on the observed gap (decided below).
+function templatesDiffer(templateA, templateB) {
+  if (templateA === templateB) return false;       // both same → numerical only
+  if (templateA === "unknown" || templateB === "unknown") return false;
+  return true;
 }
 
 export function computeDriftBound(setupA, setupB) {
@@ -85,7 +87,7 @@ export function computeDriftBound(setupA, setupB) {
   const dDtype = dtypeDrift(setupA.dtype, setupB.dtype);
   const dFw    = frameworkDrift(setupA.framework, setupB.framework);
   const dBatch = batchDrift(setupA.batch, setupB.batch);
-  const dTpl   = templateDriftHuge(setupA.chat_template, setupB.chat_template);
+  const tplDiffers = templatesDiffer(setupA.chat_template, setupB.chat_template);
 
   // Numerical-only bound (additive worst-case). Floor at 0.3 pts to account
   // for random-seed + run-to-run non-determinism that ALL setups have, even
@@ -95,10 +97,16 @@ export function computeDriftBound(setupA, setupB) {
   const observedGap = Math.abs((setupA.score ?? 0) - (setupB.score ?? 0));
   let verdict, dominantCause = null;
 
-  if (dTpl !== null) {
-    // chat-template mismatch dominates anything else by orders of magnitude
+  if (tplDiffers && observedGap > numericalBand) {
+    // Templates differ AND the gap is beyond numerical noise → template
+    // mismatch is the most likely dominant cause of a real difference.
     verdict = "bug_template";
     dominantCause = "template_mismatch";
+  } else if (tplDiffers && observedGap <= numericalBand) {
+    // Templates differ but scores AGREE → the differing config did not move
+    // results here. Report config-differs-but-results-agree, NOT a bug.
+    verdict = "noise";
+    dominantCause = "template_differs_no_effect";
   } else if (observedGap <= numericalBand) {
     verdict = "noise";
   } else if (observedGap <= 2.5 * numericalBand) {
@@ -121,7 +129,7 @@ export function computeDriftBound(setupA, setupB) {
       dtype: Math.round(dDtype * 100) / 100,
       framework: Math.round(dFw * 100) / 100,
       batch: Math.round(dBatch * 100) / 100,
-      template_mismatch: dTpl,
+      template_mismatch: tplDiffers,
     },
     verdict,
     dominant_cause: dominantCause,

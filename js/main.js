@@ -573,7 +573,7 @@ $("hf-fetch-btn").addEventListener("click", async () => {
     const cfg = await fetchHfConfig(modelId);
     const preset = configToPreset(cfg, modelId);
     fillRecipeForm(preset);
-    $("hf-status").innerHTML = `✅ Config loaded for <strong>${modelId}</strong> (family: ${preset._family}). Verify values, click Analyze.`;
+    $("hf-status").innerHTML = `✅ Config loaded for <strong>${escapeHtml(modelId)}</strong> (family: ${preset._family}). Verify values, click Analyze.`;
   } catch (err) {
     $("hf-status").textContent = `❌ ${err.message}`;
   } finally {
@@ -695,7 +695,7 @@ async function runUnmaskFromId() {
     $("unmask-status").textContent = tFmt("unmask.status.success", { modelId, verdict: verdictLocalized });
   } catch (err) {
     if (err.code === "gated") {
-      $("unmask-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+      $("unmask-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
     } else {
       $("unmask-status").textContent = `❌ ${err.message}`;
     }
@@ -857,7 +857,7 @@ async function runTemplateFromId() {
     $("template-status").textContent = tFmt("template.status.success", { modelId, verdict: verdictLocalized });
   } catch (err) {
     if (err.code === "gated") {
-      $("template-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+      $("template-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
     } else {
       $("template-status").textContent = `❌ ${err.message}`;
     }
@@ -1040,14 +1040,14 @@ function renderContamCard(rows, modelCutoff) {
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-  const titleRanked  = t("contam.section.ranked")  || "Benchmark contamination priors";
+  const titleRanked  = t("contam.section.ranked")  || "Benchmark contamination risk (uncalibrated)";
   const titleHigh    = t("contam.section.high")    || "🔴 High-risk benchmarks (treat scores as unreliable)";
   const titleMed     = t("contam.section.medium")  || "🟡 Medium-risk (verify with alternates)";
   const titleLow     = t("contam.section.low")     || "🟢 Low-risk (likely clean)";
   const colBench     = t("contam.col.benchmark")   || "Benchmark";
   const colReleased  = t("contam.col.released")    || "Released";
   const colGap       = t("contam.col.gap")         || "Gap (months)";
-  const colPrior     = t("contam.col.prior")       || "P(contam)";
+  const colPrior     = t("contam.col.prior")       || "Risk (0–1)";
   const colLevel     = t("contam.col.level")       || "Level";
   const colCorpora   = t("contam.col.corpora")     || "In corpora";
   const colCategory  = t("contam.col.category")    || "Category";
@@ -1064,7 +1064,7 @@ function renderContamCard(rows, modelCutoff) {
         <td><strong>${escapeHtml(r.benchmark)}</strong></td>
         <td>${escapeHtml(r.benchmark_released)}</td>
         <td class="arena-spread">${r.gap_months > 0 ? "+" : ""}${r.gap_months}</td>
-        <td class="arena-elo" style="color: ${CONTAM_LEVEL_COLOR[r.level]};"><strong>${(r.prior * 100).toFixed(0)}%</strong></td>
+        <td class="arena-elo" style="color: ${CONTAM_LEVEL_COLOR[r.level]};"><strong>${r.prior.toFixed(2)}</strong>${r.clamped ? '<span class="subtle" title="clamped at ceiling — not a literal probability">*</span>' : ''}</td>
         <td>${r.benchmark_in_corpora ? "✓" : "✗"}</td>
         <td class="arena-spread">${escapeHtml(r.benchmark_category)}</td>
       </tr>`;
@@ -1175,7 +1175,7 @@ async function quantFetchConfig() {
     return cfg;
   } catch (err) {
     if (err.code === "gated") {
-      $("quant-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+      $("quant-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
     } else {
       $("quant-status").textContent = `❌ ${err.message}`;
     }
@@ -1397,7 +1397,7 @@ function renderDriftCard(result) {
             <li><strong>${t("drift.contrib.dtype") || "Dtype mismatch"}:</strong> ${result.breakdown.dtype.toFixed(2)} pts</li>
             <li><strong>${t("drift.contrib.framework") || "Framework"}:</strong> ${result.breakdown.framework.toFixed(2)} pts</li>
             <li><strong>${t("drift.contrib.batch") || "Batch difference"}:</strong> ${result.breakdown.batch.toFixed(2)} pts</li>
-            ${result.breakdown.template_mismatch !== null ? `<li style="color:${color};"><strong>${t("drift.contrib.template") || "Chat-template MISMATCH"}:</strong> ~${result.breakdown.template_mismatch.toFixed(0)} pts (dominant)</li>` : ""}
+            ${result.breakdown.template_mismatch ? `<li style="color:${color};"><strong>${t("drift.contrib.template") || "Chat-template"}:</strong> ⚠ ${t("drift.contrib.template_differ") || "templates differ (see cause below)"}</li>` : ""}
           </ul>
         </details>
         <details class="unmask-panel" open>
@@ -1475,14 +1475,14 @@ async function niahFetchConfig() {
     // status string already shows it below.
     __niahLastModelId = modelId;
     if (cfg.__via_mirror) {
-      $("niah-status").innerHTML = `${tFmt("niah.status.fetched", { modelId })} <span class="subtle" style="color:#d29922;">(via mirror <code>${cfg.__via_mirror}</code>)</span>`;
+      $("niah-status").innerHTML = `${tFmt("niah.status.fetched", { modelId })} <span class="subtle" style="color:#d29922;">(via mirror <code>${escapeHtml(cfg.__via_mirror)}</code>)</span>`;
     } else {
       $("niah-status").textContent = tFmt("niah.status.fetched", { modelId });
     }
     return cfg;
   } catch (err) {
     if (err.code === "gated") {
-      $("niah-status").innerHTML = `🔒 <strong>${err.modelId}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${err.modelId}" target="_blank" rel="noopener">huggingface.co/${err.modelId}</a>`;
+      $("niah-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated. Accept the license here:"} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
     } else {
       $("niah-status").textContent = `❌ ${err.message}`;
     }
@@ -1594,8 +1594,7 @@ function renderNIAHCard(result, modelId, calib = null) {
           <summary class="unmask-panel-title">${t("niah.section.breakdown") || "Architecture breakdown"}</summary>
           <ul>
             <li><strong>γ_Padé @ T_eval:</strong> ${result.gamma_pade}</li>
-            <li><strong>${t("niah.field.dhorizon") || "d_horizon (effective)"}:</strong> ${fmtN(result.d_horizon)} tokens</li>
-            <li><strong>${t("niah.field.ratio") || "T_eval / d_horizon"}:</strong> ${result.horizon_ratio}×</li>
+            <li><strong>${t("niah.field.extrap") || "Extrapolation (T_eval / T_train)"}:</strong> ${result.extrapolation_ratio}×</li>
             <li><strong>${t("niah.field.arch_pressure") || "Arch pressure (small d_head + GQA + SWA)"}:</strong> ×${result.arch_pressure}</li>
             <li><strong>${t("niah.field.theta") || "RoPE θ"}:</strong> ${fmtN(result.theta)}</li>
             <li><strong>${t("niah.field.t_train") || "T_train (claimed)"}:</strong> ${fmtN(result.T_train)}</li>
@@ -2139,7 +2138,7 @@ function renderWhatIfSlider(profile, params, targetEl) {
 // ════════════════════════════════════════════════════════════════════
 const FALSIFICATION_STATUS = [
   { id: "F1",  claim: "γ_Padé MAE < 5% on non-anomalous Phase A models",                status: "confirmed", evidence: "n=9, paper Tab. 4" },
-  { id: "F2",  claim: "d_horizon predicts NIAH collapse within 1% (pythia-70m)",          status: "confirmed", evidence: "predicted 4078, observed 4096" },
+  { id: "F2",  claim: "d_horizon independently predicts NIAH collapse (claimed) — REFUTED as circular: it is the Padé inverse (≡ trained ctx, see F23)", status: "refuted", evidence: "dHorizon(θ,γ_Padé(θ,T))≡T by construction; the 'match' is Padé-fit precision, not an independent NIAH measurement" },
   { id: "F3",  claim: "Fisher info predicts forward-hook recovery within 0.2%",            status: "confirmed", evidence: "12.5% predicted vs 12.3% observed" },
   { id: "F4",  claim: "Layer asymmetry early/late ratio ≈ 13.5× (pythia-70m)",             status: "confirmed", evidence: "F2 thermostat experiment" },
   { id: "F5",  claim: "Area law S_γ = O(log N) for all γ > 0",                              status: "confirmed", evidence: "n=56, r=-0.954" },
@@ -2299,7 +2298,7 @@ $("profile-fetch-btn").addEventListener("click", async () => {
     $("profile-n_layers").value = p.n_layers;
     $("profile-n_params").value = p.n_params.toExponential(2);
     $("profile-has_swa").value = String(p.has_SWA);
-    $("profile-hf-status").innerHTML = `✅ <strong>${id}</strong> (${p._family})`;
+    $("profile-hf-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong> (${p._family})`;
   } catch (err) {
     $("profile-hf-status").textContent = `❌ ${err.message}`;
   } finally {
@@ -2550,7 +2549,7 @@ function renderProfile(p, params) {
       host.innerHTML = `<div class="subtle" data-i18n="lean.manifest.loading">Loading Lean manifest…</div>`;
       loadLeanManifest()
         .then(() => { host.innerHTML = renderTheoremTable(); if (window.__taf_applyTranslations) window.__taf_applyTranslations(); })
-        .catch(err => { host.innerHTML = `<div class="subtle" data-i18n="lean.manifest.error">Lean manifest unavailable: ${err.message}</div>`; });
+        .catch(err => { host.innerHTML = `<div class="subtle" data-i18n="lean.manifest.error">Lean manifest unavailable: ${escapeHtml(String(err.message))}</div>`; });
     }
   };
   renderLeanTable();
@@ -3292,7 +3291,7 @@ function importJSON(file, statusEl) {
         statusEl.innerHTML = `❌ Unknown TAF type: ${type}`;
       }
     } catch (err) {
-      statusEl.innerHTML = `❌ Failed to parse JSON: ${err.message}`;
+      statusEl.innerHTML = `❌ Failed to parse JSON: ${escapeHtml(String(err.message))}`;
     }
   };
   reader.readAsText(file);
@@ -4692,7 +4691,7 @@ function _yarnWarnText(w) {
   switch (w.code) {
     case "theta_eff_estimate": return t("yarn.warn.theta_eff_estimate");
     case "aggressive_factor":  return `${t("yarn.warn.aggressive")} (${w.params.factor}×)`;
-    case "horizon_short":      return `${t("yarn.warn.horizon_short")} (d_horizon ${_yarnFmtK(w.params.dHorizon)} < L ${_yarnFmtK(w.params.target)}, γ_eff ${_yarnFmtG(w.params.gammaEff)})`;
+    case "gamma_collapse":     return `${t("yarn.warn.gamma_collapse")} (γ_eff ${_yarnFmtG(w.params.gammaEff)} @ L ${_yarnFmtK(w.params.target)})`;
     case "finetune_note":      return t("yarn.warn.finetune");
     default: return w.code;
   }
@@ -4716,7 +4715,7 @@ function renderYarnPlan(p) {
   if (p.verdict === "no_extension_needed") {
     out.innerHTML =
       `<div class="gc-validity-warning" style="border-left-color:#3fb950;">✅ ${t("yarn.verdict.no_extension_needed")}
-        <br><span class="subtle">L=${_yarnFmtK(p.targetCtx)} ≤ trained ${_yarnFmtK(p.originalCtx)}. γ_Padé=${_yarnFmtG(p.gammaNaive)}, d_horizon=${_yarnFmtK(p.dHorizonNaive)}.</span></div>`;
+        <br><span class="subtle">L=${_yarnFmtK(p.targetCtx)} ≤ trained ${_yarnFmtK(p.originalCtx)}. γ_Padé=${_yarnFmtG(p.gammaNaive)}.</span></div>`;
     return;
   }
 
@@ -4728,7 +4727,6 @@ function renderYarnPlan(p) {
   })[p.verdict] || { emoji: "❓", cls: "v-deg" };
 
   const cfgJson = JSON.stringify({ rope_scaling: p.config }, null, 2);
-  const horizonOk = p.dHorizonEff != null && p.dHorizonEff >= p.targetCtx;
   const warnHtml = p.warnings.map(w => `<li>${_yarnWarnText(w)}</li>`).join("");
   const td = "padding:3px 10px 3px 0;";
 
@@ -4740,7 +4738,6 @@ function renderYarnPlan(p) {
       <tr><td style="${td}">γ ${t("yarn.r.naive")}</td><td>${_yarnFmtG(p.gammaNaive)}${p.gammaNaive <= 0 ? ` 🚨 ${t("yarn.r.collapsed")}` : ""}</td></tr>
       <tr><td style="${td}">γ ${t("yarn.r.eff")}</td><td><strong>${_yarnFmtG(p.gammaEff)}</strong></td></tr>
       <tr><td style="${td}">θ_eff</td><td>${_thetaFmt(p.thetaEff)}${p.thetaEff > p.theta ? ` (↑ ${t("yarn.r.from")} ${_thetaFmt(p.theta)})` : ""}</td></tr>
-      <tr><td style="${td}">d_horizon ${t("yarn.r.eff")}</td><td>${_yarnFmtK(p.dHorizonEff)} ${horizonOk ? "✅ ≥ L" : "⚠ &lt; L"}</td></tr>
     </table>
     <h3>${t("yarn.r.snippet")}</h3>
     <pre class="diag-cmd-box">${escapeHtml(cfgJson)}</pre>
@@ -4921,7 +4918,7 @@ function renderGgufResult(cfg, r) {
     <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
       <tr><td style="${td}">${t("gguf.r.arch")}</td><td><code>${escapeHtml(r.arch)}</code> · ${gqa} · θ=${_thetaFmt(r.theta)}</td></tr>
       <tr><td style="${td}">${t("gguf.r.ctx_train")}</td><td>${_yarnFmtK(r.nCtx)}</td></tr>
-      <tr><td style="${td}">${t("gguf.r.horizon_fp16")}</td><td>${_yarnFmtK(r.dHoriz)} <span class="subtle">(γ=${_yarnFmtG(r.gammaTrain)})</span></td></tr>
+      <tr><td style="${td}">${t("gguf.r.gamma_train")}</td><td>${_yarnFmtG(r.gammaTrain)} <span class="subtle">${t("gguf.r.gamma_train_note")}</span></td></tr>
       ${quantHtml}
       <tr><td style="${td}"><strong>γ @ L=${_yarnFmtK(r.L)}</strong> ${t("gguf.r.after_quant")}</td><td><strong>${_yarnFmtG(r.gammaQuant)}</strong> <span class="subtle">(fp16: ${_yarnFmtG(r.gammaAtL)})</span></td></tr>
     </table>
@@ -4948,9 +4945,9 @@ function renderGgufComparison(cfg, rows) {
       <td style="${td}">${_yarnFmtG(res.gammaQuant)}</td>
       <td style="${td}">${emo(res.verdict)} ${short(res.verdict)}</td></tr>`;
   }).join("");
-  // d_horizon is θ-set → identical for every quant; show it once in the header line.
+  // γ_Padé is θ-set → identical for every quant; show it once in the header line.
   out.innerHTML = `<h3>${t("gguf.compare_title")}</h3>
-    <p class="subtle">${escapeHtml(cfg.architecture)} · ${gqa} · θ=${_thetaFmt(cfg.rope_theta)} · ctx ${_yarnFmtK(cfg.context_length)} · horizon ${_yarnFmtK(rows[0]?.res.dHoriz)} · L=${_yarnFmtK(rows[0]?.res.L)}</p>
+    <p class="subtle">${escapeHtml(cfg.architecture)} · ${gqa} · θ=${_thetaFmt(cfg.rope_theta)} · ctx ${_yarnFmtK(cfg.context_length)} · γ_train ${_yarnFmtG(rows[0]?.res.gammaTrain)} · L=${_yarnFmtK(rows[0]?.res.L)}</p>
     <table style="border-collapse:collapse;font-size:0.93em;">${head}${body}</table>
     <p class="subtle" style="font-size:0.88em;">${t("gguf.r.note")}</p>`;
 }
@@ -5026,7 +5023,7 @@ function initLaunch() {
 
 function _launchWarnText(w) {
   switch (w.code) {
-    case "horizon_wasted":   return `${t("launch.warn.horizon_wasted")} (d_horizon ≈ ${_yarnFmtK(w.params.dHoriz)}, L=${_yarnFmtK(w.params.target)})`;
+    case "kv_wasted":        return `${t("launch.warn.kv_wasted")} (trained ${_yarnFmtK(w.params.ctxTrain)}, L=${_yarnFmtK(w.params.target)})`;
     case "beyond_trained":   return `${t("launch.warn.beyond_trained")} (${_yarnFmtK(w.params.ctxTrain)} → ${_yarnFmtK(w.params.target)})`;
     case "no_mmap_blackwell":return t("launch.warn.no_mmap");
     case "partial_offload":  return `${t("launch.warn.partial")} (${w.params.ngl}/${w.params.nLayers})`;

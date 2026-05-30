@@ -18,9 +18,18 @@ let KB = null;
 
 export async function loadKB() {
   if (KB) return KB;
-  const res = await fetch("data/longscore_kb.json");
-  if (!res.ok) throw new Error("longscore_kb fetch failed: " + res.status);
-  KB = await res.json();
+  let res;
+  try {
+    res = await fetch("data/longscore_kb.json");
+  } catch (e) {
+    return { error: "fetch_failed", detail: String(e && e.message || e) };
+  }
+  if (!res.ok) return { error: "fetch_failed", detail: "status " + res.status };
+  try {
+    KB = await res.json();
+  } catch (e) {
+    return { error: "parse_failed", detail: String(e && e.message || e) };
+  }
   return KB;
 }
 
@@ -39,7 +48,16 @@ export function normalize(name) {
 
 /** Classify LongScore avg into verdict code. */
 export function classify(longscore_avg, thresholds) {
-  if (longscore_avg === null || longscore_avg === undefined) return "no_data";
+  if (longscore_avg === null || longscore_avg === undefined || !Number.isFinite(longscore_avg)) return "no_data";
+  // Guard against malformed/incomplete thresholds: comparing against undefined
+  // would silently fall through to "extreme" and mislabel a good model.
+  if (!thresholds ||
+      !Number.isFinite(thresholds.no_degradation) ||
+      !Number.isFinite(thresholds.mild) ||
+      !Number.isFinite(thresholds.moderate) ||
+      !Number.isFinite(thresholds.severe)) {
+    return "invalid";
+  }
   if (longscore_avg >= thresholds.no_degradation) return "no_degradation";
   if (longscore_avg >= thresholds.mild) return "mild";
   if (longscore_avg >= thresholds.moderate) return "moderate";
@@ -50,6 +68,9 @@ export function classify(longscore_avg, thresholds) {
 /** Look up a model and return a structured result. */
 export async function lookup(rawId) {
   const kb = await loadKB();
+  if (!kb || kb.error) {
+    return { code: "kb_error", error: kb ? kb.error : "fetch_failed" };
+  }
   const id = normalize(rawId);
   const entry = kb.models[id];
   if (!entry) {
@@ -61,12 +82,15 @@ export async function lookup(rawId) {
   }
 
   const longscore = entry.ruler_long_score;
-  const verdict = longscore
+  // Treat as a real ruler hit only when avg_lc is a finite number; a present-but-
+  // empty {} (no avg_lc) must not report "ruler_hit" while verdict says "no_data".
+  const hasLc = longscore && Number.isFinite(longscore.avg_lc);
+  const verdict = hasLc
     ? classify(longscore.avg_lc, kb.thresholds)
     : null;
 
   return {
-    code: longscore ? "ruler_hit" : (entry.helmet ? "helmet_only" : "partial"),
+    code: hasLc ? "ruler_hit" : (entry.helmet ? "helmet_only" : "partial"),
     display_name: entry.display_name,
     normalized_id: id,
     ruler_per_ctx: entry.ruler_per_ctx,

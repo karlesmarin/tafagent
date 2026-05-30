@@ -52,6 +52,11 @@ export function estimateTokens(text, profile = "english") {
 // (OpenAI auto-cache requires ≥1024; Gemini context cache ≥32K).
 // Anthropic has no min token floor but requires explicit cache_control
 // marker — we treat that as min=0 with a `requires_explicit` flag for UI.
+//
+// HONESTY: these prices are a frozen snapshot and go stale silently. The
+// snapshot date is surfaced to the UI via `PRICES_AS_OF` (returned in params)
+// so it can render an "as of" caveat. Update this date whenever prices change.
+export const PRICES_AS_OF = "2026-01";
 export const PROVIDERS = {
   anthropic_opus: {
     name: "Claude Opus 4.7",
@@ -245,6 +250,11 @@ export function diffPromptCache(
     return { code: "empty_input", params: {} };
   }
 
+  // HONESTY: the common prefix is measured at the CHARACTER level, but real
+  // provider caches break at TOKEN boundaries. A small edit inside a token can
+  // shift the true token-level break earlier than the char-level prefix implies,
+  // so char-LCP OVERCOUNTS cached tokens. The resulting hit_ratio is therefore
+  // an UPPER BOUND (flagged via hit_ratio_is_upper_bound in the returned params).
   const lcpChars = longestCommonPrefix(oldTrim, newTrim);
   const isIdentical = oldTrim === newTrim;
   const totalCharsNew = newTrim.length;
@@ -284,8 +294,10 @@ export function diffPromptCache(
       tokens_diverge: tokensDiverge,
       tokens_total: tokensTotal,
       hit_ratio: tokensTotal === 0 ? 0 : tokensCommon / tokensTotal,
+      hit_ratio_is_upper_bound: true,   // char-level LCP overcounts vs token-boundary caches
       diff_point: diffPoint,
       output_tokens: outputTokensEstimate,
+      prices_as_of: PRICES_AS_OF,       // snapshot date for the pricing caveat
     },
     providers: providerResults,
   };

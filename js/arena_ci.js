@@ -106,19 +106,23 @@ function bootstrapCIs(votes, models, opts = {}) {
   });
 }
 
-// Detect statistical ties: pairs where the bootstrap distributions overlap by
-// more than `overlapThreshold` (default 0.05 = 5%). Cheaper proxy: CIs overlap.
+// Detect statistical ties: pairs whose bootstrap confidence intervals overlap.
+// Two intervals [a_lo,a_hi] and [b_lo,b_hi] overlap iff a_lo ≤ b_hi AND
+// b_lo ≤ a_hi — BOTH conditions are required. (An earlier version tested only
+// the first, which over-declares ties when one CI sits entirely above the
+// other.) This is the documented cheaper proxy for a full difference-of-ratings
+// bootstrap test.
 function findTies(ratings) {
   const ties = [];
   const sorted = [...ratings].sort((a, b) => b.elo - a.elo);
   for (let i = 0; i < sorted.length; i++) {
     for (let j = i + 1; j < sorted.length; j++) {
       const a = sorted[i], b = sorted[j];
-      // CI overlap: a.ci_low <= b.ci_high (a's lower bound below b's upper bound)
-      if (a.ci_low <= b.ci_high) {
+      // Proper two-sided CI overlap test.
+      if (a.ci_low <= b.ci_high && b.ci_low <= a.ci_high) {
         const eloDiff = a.elo - b.elo;
         const totalSpread = (a.ci_high - a.ci_low) + (b.ci_high - b.ci_low);
-        const overlap = Math.max(0, b.ci_high - a.ci_low);
+        const overlap = Math.max(0, Math.min(a.ci_high, b.ci_high) - Math.max(a.ci_low, b.ci_low));
         ties.push({
           rank_a: i + 1, rank_b: j + 1,
           model_a: a.model, model_b: b.model,
