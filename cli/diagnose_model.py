@@ -322,6 +322,10 @@ def run_diagnostic(args) -> dict:
     model = AutoModelForCausalLM.from_pretrained(local_path, **load_kwargs)
     if device == "cpu":
         model = model.to("cpu")
+    elif device == "cuda" and not args.load_in_4bit:
+        # non-quantized cuda path: from_pretrained leaves the model on CPU,
+        # so move it explicitly (else input(cuda)/model(cpu) device mismatch -> nan attn).
+        model = model.to(torch.float16).to("cuda")
     model.eval()
     print(f"  Loaded in {time.time()-t0:.1f}s  device={device}")
 
