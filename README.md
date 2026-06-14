@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: 25 anti-bullshit LLM diagnostics in browser. 4 langs.
+short_description: 27 anti-bullshit LLM diagnostics in browser. 4 langs.
 tags:
   - transformer
   - llm
@@ -35,6 +35,11 @@ tags:
   - free
   - browser
   - webgpu
+  - mamba
+  - ssm
+  - rwkv
+  - linear-attention
+  - memory
 language:
   - en
   - es
@@ -45,12 +50,28 @@ language:
 # 🔬 TAF Agent
 
 > **Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.**
-> 25 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
+> 27 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
 **📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/20314038)
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
+
+---
+
+## 🆕 v0.10 — Architecture-aware + Reality-check (2 new modes + confidence)
+
+Three additions, all browser-only — no inference, no server.
+
+| Mode | What it answers |
+|------|-----------------|
+| 🧠 **Memory Reality Check** | *"My model says 128k / 1M context — what does that actually mean?"* Detects the architecture (full-attention / SWA / SSM-Mamba / RWKV / linear / TTT / hybrid) from `config.json` and tells you how its memory really works and how it fails — e.g. why a Mamba/RWKV model misses an exact needle. Detection validated against 13 live HF configs. |
+| 📊 **Prediction vs Reality** | *"Don't take the numbers on faith."* Compares TAF's predictions against MEASURED values (the shipped dataset or your Diagnose-CLI JSON), with a confidence score — and lets you contribute your measurement back to the public dataset, server-less. |
+| ✅ **Confidence score** | Every viability verdict now carries a 0–100% confidence with a ✓/⚠ evidence checklist (γ measured vs closed-form, validated regime, benchmark available). Predictions are never shown as absolute truth. |
+
+Plus: HF model-id autocomplete on **every** input, the manual reorganised into scannable cards, and an honest fix to the long-context verdict (the `d_horizon ≡ T_eval` tautology, see [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md)). Full notes: [`docs/RELEASE_NOTES_v0.10.md`](docs/RELEASE_NOTES_v0.10.md).
+
+[**▶ Try it now**](https://huggingface.co/spaces/karlexmarin/taf-agent)
 
 ---
 
