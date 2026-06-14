@@ -1240,3 +1240,18 @@ footer a:hover { text-decoration: underline; }
 }
 .lean-table tbody tr:hover { background: rgba(255,255,255,0.03); }
 .lean-table code { font-size: 0.95em; }
+
+/* v0.9 — manual reuses the SAME collapsible cards as the "🧰 What it gives you" inventory
+   (.inv-card / .inv-card-title), stacked in one column for sequential reading. */
+.help-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  margin-top: 0.9em;
+}
+.inv-card-title > h3 {        /* the manual's <h3> inherits the inventory card-title look */
+  font: inherit;
+  margin: 0;
+  display: inline;
+  color: inherit;
+}

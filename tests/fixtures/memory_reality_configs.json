@@ -1,0 +1,65 @@
+{
+  "_comment": "Validated 2026-06-14 against live HF configs. Field subsets + expected class for the Memory Reality Check detector. Gated models (gemma-2, Llama-3.1, gated_deltanet) return 401 without auth — handle as 'gated' class, not a detection failure.",
+  "_detection_order": ["HYBRID", "SSM", "RWKV", "LINEAR_OR_TTT", "SWA", "FULL", "UNKNOWN"],
+  "cases": [
+    {"model": "Qwen/Qwen2.5-7B", "expect": "FULL",
+     "cfg": {"model_type": "qwen2", "num_attention_heads": 28, "rope_theta": 1000000.0,
+             "sliding_window": 131072, "use_sliding_window": false, "max_position_embeddings": 131072},
+     "gotcha": "sliding_window present and == max_pos with use_sliding_window=false → NOT SWA"},
+
+    {"model": "Qwen/Qwen2.5-7B-Instruct-1M", "expect": "FULL",
+     "cfg": {"model_type": "qwen2", "sliding_window": 32768, "use_sliding_window": false,
+             "rope_scaling": null, "max_position_embeddings": 1010000},
+     "gotcha": "sliding_window < max_pos BUT use_sliding_window=false → FULL (1M), not SWA-32k"},
+
+    {"model": "EleutherAI/pythia-1.4b", "expect": "FULL",
+     "cfg": {"model_type": "gpt_neox", "num_attention_heads": 16, "max_position_embeddings": 2048}},
+
+    {"model": "mistralai/Mistral-7B-v0.1", "expect": "SWA",
+     "cfg": {"model_type": "mistral", "sliding_window": 4096, "num_attention_heads": 32,
+             "rope_theta": 10000.0, "max_position_embeddings": 32768},
+     "note": "sliding_window 4096 < max_pos 32768 and not disabled → real SWA"},
+
+    {"model": "state-spaces/mamba-2.8b-hf", "expect": "SSM",
+     "cfg": {"model_type": "mamba", "state_size": 16, "conv_kernel": 4, "num_hidden_layers": 64,
+             "hidden_size": 2560, "intermediate_size": 5120},
+     "note": "no num_attention_heads; state_size+conv_kernel present"},
+
+    {"model": "tiiuae/falcon-mamba-7b", "expect": "SSM",
+     "cfg": {"model_type": "falcon_mamba", "state_size": 16, "conv_kernel": 4}},
+
+    {"model": "RWKV/v6-Finch-1B6-HF", "expect": "RWKV",
+     "cfg": {"model_type": "rwkv6", "num_attention_heads": 64},
+     "gotcha": "declares num_attention_heads but is linear-recurrent → model_type prefix wins"},
+
+    {"model": "fla-hub/gla-1.3B-100B", "expect": "LINEAR",
+     "cfg": {"model_type": "gla", "attn_mode": "chunk", "max_position_embeddings": 2048},
+     "note": "attn_mode chunk/fused_recurrent = flash-linear-attention family marker"},
+
+    {"model": "fla-hub/delta_net-1.3B-100B", "expect": "TTT",
+     "cfg": {"model_type": "delta_net", "attn_mode": "chunk", "max_position_embeddings": 2048},
+     "note": "delta/gated_delta subtype = test-time-updated state (TTT)"},
+
+    {"model": "ai21labs/Jamba-v0.1", "expect": "HYBRID",
+     "cfg": {"model_type": "jamba", "num_hidden_layers": 32, "attn_layer_period": 8,
+             "attn_layer_offset": 4, "num_experts": 16, "num_experts_per_tok": 2,
+             "sliding_window": null, "max_position_embeddings": 262144},
+     "recall_layers": "num_hidden_layers / attn_layer_period = 32/8 = 4 attention layers",
+     "also": "MoE side-badge: 16 experts, 2 active"},
+
+    {"model": "Zyphra/Zamba2-2.7B", "expect": "HYBRID",
+     "cfg": {"model_type": "zamba2", "num_attention_heads": 32, "rope_theta": 10000,
+             "max_position_embeddings": 4096, "layers_block_type": "array of {mamba,hybrid}"},
+     "recall_layers": "count 'hybrid' entries in layers_block_type"},
+
+    {"model": "nvidia/Nemotron-H-8B-Base-8K", "expect": "HYBRID",
+     "cfg": {"model_type": "nemotron_h", "num_hidden_layers": 52, "mamba_num_heads": 128,
+             "hybrid_override_pattern": "M-M-M-M*-M-M-M-M-M*-...", "max_position_embeddings": 8192},
+     "recall_layers": "count non-'M' tokens in hybrid_override_pattern"},
+
+    {"model": "Qwen/Qwen3-30B-A3B", "expect": "FULL",
+     "cfg": {"model_type": "qwen3_moe", "num_experts": 128, "num_experts_per_tok": 8,
+             "sliding_window": null, "use_sliding_window": false, "max_position_embeddings": 40960},
+     "also": "MoE side-badge: 128 experts, 8 active → 30B total / ~3B active"}
+  ]
+}

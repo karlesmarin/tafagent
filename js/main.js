@@ -12,6 +12,9 @@ import { initPhaseDiagram } from "./phase_diagram.js";
 import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
 import { unmaskConfig } from "./swa_unmasker.js";
+import { classifyMemory, compressionPressure, CLASS_LIGHT } from "./memory_reality.js";
+import { computeConfidence } from "./confidence.js";
+import { normalizeMeasured, predictionVsReality, confidenceFromMeasured, contributionRecord, gammaPade as pvrGammaPade } from "./prediction_reality.js";
 import { sniffChatTemplate } from "./chat_template_sniffer.js";
 import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
@@ -224,6 +227,7 @@ document.addEventListener("click", (e) => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
+      memreal: "memreal-section", pvr: "pvr-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
@@ -258,7 +262,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Hide all mode sections
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
-     "diagnose-section", "phase-section", "unmask-section",
+     "diagnose-section", "phase-section", "unmask-section", "memreal-section", "pvr-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
      "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section"].forEach(id => {
@@ -270,6 +274,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
+      memreal: "memreal-section", pvr: "pvr-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
@@ -299,6 +304,9 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "yarn") initYarn();
     if (mode === "gguf") initGguf();
     if (mode === "launch") initLaunch();
+    // Re-scan: any model-id input rendered lazily by an init() above now gets the
+    // autocomplete dropdown too. Idempotent (WeakSet) — already-attached inputs are skipped.
+    attachAllHfAutocompletes();
   });
 });
 
@@ -729,6 +737,223 @@ $("unmask-fetch-btn")?.addEventListener("click", runUnmaskFromId);
 $("unmask-paste-btn")?.addEventListener("click", runUnmaskFromPaste);
 $("unmask-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runUnmaskFromId(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🧠 Memory Reality Check (v0.9.x — architecture-aware long-context)
+// ════════════════════════════════════════════════════════════════════
+
+const MEMREAL_LIGHT_COLOR = {
+  green: "#3fb950", yellow: "#f1c40f", orange: "#e67e22", red: "#f85149", gray: "#8b949e",
+};
+const MEMREAL_LIGHT_EMOJI = {
+  green: "🟢", yellow: "🟡", orange: "🟠", red: "🔴", gray: "⚪",
+};
+
+function memrealTokens(n) {
+  if (n == null) return "?";
+  return n >= 1000 ? Math.round(n / 1000).toLocaleString() + "k" : String(n);
+}
+
+function renderMemRealCard(result, cfg, modelId = "") {
+  const k = result.keySuffix;
+  const color = MEMREAL_LIGHT_COLOR[result.light] || MEMREAL_LIGHT_COLOR.gray;
+  const className = t("memreal.class." + k) || result.cls;
+  const means = t("memreal.means." + k) || "";
+  const fail = t("memreal.fail." + k) || "";
+  const memConf = computeConfidence([
+    { key: result.confidence === "low" ? "arch_exotic" : "arch_known",
+      status: result.confidence === "high" ? "ok" : result.confidence === "medium" ? "warn" : "miss" },
+    { key: "structural_only", status: "warn" },
+  ]);
+
+  const flags = [];
+  if (result.moe) flags.push(tFmt("memreal.flag.moe", { experts: result.moe.experts, active: result.moe.active ?? "?" }));
+  if (result.ghostWindow) flags.push(t("memreal.flag.ghost"));
+  if (result.extended) flags.push(t("memreal.flag.extended"));
+  if (result.claimedContext) flags.push(tFmt("memreal.flag.tokens",
+    { ctx: memrealTokens(result.claimedContext), words: memrealTokens(Math.round(result.claimedContext * 0.75)) }));
+
+  const fixedState = ["ssm", "rwkv", "linear", "ttt"].includes(k);
+  const rows = [];
+  rows.push([t("memreal.label.context"),
+    result.claimedContext != null ? memrealTokens(result.claimedContext)
+      : (fixedState ? t("memreal.val.unbounded") : "—")]);
+  if (result.recallLayers != null) rows.push([t("memreal.label.recall"), `${result.recallLayers} / ${result.totalLayers ?? "?"}`]);
+  if (result.stateSize != null) rows.push([t("memreal.label.state"), String(result.stateSize)]);
+  if (result.window != null) rows.push([t("memreal.label.window"), memrealTokens(result.window)]);
+  const press = compressionPressure(cfg, result);
+  if (press) {
+    const ref = press.refUsed ? " " + tFmt("memreal.pressure.atref", { ref: memrealTokens(press.refLen) }) : "";
+    rows.push([t("memreal.label.pressure"), `~${Math.round(press.value).toLocaleString()}×${ref}`]);
+  }
+  rows.push([t("memreal.label.markers"), (result.markers || []).join(", ")]);
+
+  const rowsHtml = rows.map(([l, v]) =>
+    `<div><span class="unmask-num-label">${escapeHtml(l)}</span> <code>${escapeHtml(String(v))}</code></div>`).join("");
+  const flagsHtml = flags.length
+    ? `<details class="unmask-panel" open><summary class="unmask-panel-title">${t("memreal.sec.flags")}</summary><ul>${flags.map(f => `<li>${f}</li>`).join("")}</ul></details>`
+    : "";
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color:${color};">
+        <div class="unmask-verdict" style="color:${color};">${MEMREAL_LIGHT_EMOJI[result.light] || ""} ${escapeHtml(className)}<span style="font-size:0.62em; font-weight:600; opacity:0.85;"> · ${escapeHtml(t("memreal.risk." + result.light) || "")}</span></div>
+        ${modelId ? `<div class="unmask-model"><code>${escapeHtml(modelId)}</code></div>` : ""}
+        <p style="margin:0.5em 0;"><strong>${t("memreal.sec.means")}:</strong> ${means}</p>
+        <p style="margin:0.5em 0;"><strong>${t("memreal.sec.fail")}:</strong> ${fail}</p>
+        ${confidenceHtml(memConf)}
+      </div>
+      <div class="unmask-details">
+        ${flagsHtml}
+        <details class="unmask-panel"><summary class="unmask-panel-title">${t("memreal.sec.details")}</summary>${rowsHtml}</details>
+        <details class="unmask-panel"><summary class="unmask-panel-title">${t("memreal.sec.limits")}</summary><p>${t("memreal.limits")}</p></details>
+      </div>
+    </div>`;
+}
+
+async function runMemRealFromId() {
+  const modelId = ($("memreal-id").value || "").trim();
+  if (!modelId) { $("memreal-status").textContent = t("memreal.status.empty_id"); return; }
+  $("memreal-status").textContent = tFmt("memreal.status.fetching", { modelId });
+  $("memreal-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(modelId);
+    const result = classifyMemory(cfg);
+    $("memreal-output").innerHTML = renderMemRealCard(result, cfg, modelId);
+    $("memreal-status").textContent = tFmt("memreal.status.success",
+      { modelId, cls: t("memreal.class." + result.keySuffix) || result.cls });
+  } catch (err) {
+    if (err.code === "gated") {
+      $("memreal-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated."} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
+    } else {
+      $("memreal-status").textContent = `❌ ${err.message}`;
+    }
+    $("memreal-output").innerHTML = "";
+  } finally {
+    $("memreal-fetch-btn").disabled = false;
+  }
+}
+
+function runMemRealFromPaste() {
+  const raw = ($("memreal-paste").value || "").trim();
+  if (!raw) { $("memreal-status").textContent = t("memreal.status.empty_paste"); return; }
+  let cfg;
+  try { cfg = JSON.parse(raw); }
+  catch (e) { $("memreal-status").textContent = tFmt("memreal.status.invalid_json", { error: e.message }); return; }
+  const result = classifyMemory(cfg);
+  $("memreal-output").innerHTML = renderMemRealCard(result, cfg, t("memreal.pasted_label"));
+  $("memreal-status").textContent = tFmt("memreal.status.success",
+    { modelId: t("memreal.pasted_label"), cls: t("memreal.class." + result.keySuffix) || result.cls });
+}
+
+$("memreal-fetch-btn")?.addEventListener("click", runMemRealFromId);
+$("memreal-paste-btn")?.addEventListener("click", runMemRealFromPaste);
+$("memreal-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runMemRealFromId(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 📊 Prediction vs Reality + BYOD (v0.9.x — server-less, contributes to dataset)
+// ════════════════════════════════════════════════════════════════════
+
+function pvrNum(v) {
+  if (v == null) return "—";
+  return typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 4 }) : String(v);
+}
+
+function renderPvrPrediction(modelId, theta, T) {
+  const pred = pvrGammaPade(theta, T);
+  return `<div class="unmask-result"><div class="unmask-hero">
+      <div class="unmask-verdict" style="font-size:1.2rem;">📊 ${escapeHtml(modelId)}</div>
+      <p style="margin:0.5em 0;">${tFmt("pvr.prediction_line", { gamma: pred.toFixed(3), theta: theta.toLocaleString(), T: memrealTokens(T) })}</p>
+      <p class="recipe-desc">${escapeHtml(t("pvr.prediction_only") || "Paste a measurement below to compare predicted vs reality.")}</p>
+    </div></div>`;
+}
+
+function renderPvrCard(measured, modelId, cfg) {
+  const m = normalizeMeasured(measured) || measured;
+  const rows = predictionVsReality(
+    { theta: (cfg && cfg.rope_theta) ?? m.theta, T: (cfg && cfg.max_position_embeddings) ?? m.T }, m);
+  if (!rows.length) {
+    return `<div class="unmask-result"><div class="unmask-hero"><p>${escapeHtml(t("pvr.prediction_only") || "No comparable measurement found.")}</p></div></div>`;
+  }
+  const TH = `style="text-align:left; padding:3px 8px; border-bottom:1px solid rgba(128,128,128,0.35);"`;
+  const TD = `style="padding:3px 8px; border-bottom:1px solid rgba(128,128,128,0.18);"`;
+  const head = `<tr><th ${TH}>${t("pvr.col.metric")}</th><th ${TH}>${t("pvr.col.prediction")}</th><th ${TH}>${t("pvr.col.measured")}</th><th ${TH}>Δ</th><th ${TH}>${t("pvr.col.source")}</th></tr>`;
+  const body = rows.map((r) => {
+    const within = r.within == null ? "" : (r.within ? ` <span style="color:#3fb950">✓</span>` : ` <span style="color:#f85149">✗</span>`);
+    const metric = t("pvr.metric." + r.metric) || r.metric;
+    const dlt = r.delta == null ? "—" : (r.delta > 0 ? "+" : "") + r.delta.toFixed(3);
+    return `<tr><td ${TD}>${escapeHtml(metric)}</td><td ${TD}>${pvrNum(r.predicted)}</td><td ${TD}>${pvrNum(r.measured)}${within}</td><td ${TD}>${dlt}</td><td ${TD}><code>${escapeHtml(r.source || "")}</code></td></tr>`;
+  }).join("");
+  const conf = computeConfidence(confidenceFromMeasured(m));
+  const contrib = contributionRecord(modelId || m.model, m, cfg);
+  const contribHtml = `
+    <details class="unmask-panel" style="margin-top:0.6rem;">
+      <summary class="unmask-panel-title">➕ ${escapeHtml(t("pvr.contribute_btn") || "Contribute this measurement")}</summary>
+      <p class="recipe-desc" style="font-size:0.85em;">${escapeHtml(t("pvr.contribute.note") || contrib.note)}</p>
+      <textarea readonly rows="6" style="width:100%; font-family:monospace; font-size:0.8em;">${escapeHtml(JSON.stringify(contrib.json, null, 2))}</textarea>
+      <a href="${contrib.hfUrl}" target="_blank" rel="noopener" style="display:inline-block; margin-top:0.4em;">↗ ${escapeHtml(t("pvr.contribute.open") || "Open HF dataset discussion")}</a>
+    </details>`;
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero">
+        <div class="unmask-verdict" style="font-size:1.2rem;">📊 ${escapeHtml(modelId || m.model || "")}</div>
+        <table style="width:100%; border-collapse:collapse; margin-top:0.5em; font-size:0.9em;">${head}${body}</table>
+      </div>
+      <div class="unmask-details">
+        ${confidenceHtml(conf)}
+        ${contribHtml}
+      </div>
+    </div>`;
+}
+
+async function runPvrFromId() {
+  const modelId = ($("pvr-id").value || "").trim();
+  if (!modelId) { $("pvr-status").textContent = t("pvr.status.empty_id"); return; }
+  $("pvr-status").textContent = tFmt("pvr.status.fetching", { modelId });
+  $("pvr-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchHfConfig(modelId);
+    const theta = cfg.rope_theta ?? null;
+    const T = cfg.max_position_embeddings ?? null;
+    if (theta && T) {
+      $("pvr-output").innerHTML = renderPvrPrediction(modelId, theta, T);
+      $("pvr-status").textContent = tFmt("pvr.status.predicted", { modelId });
+    } else {
+      $("pvr-output").innerHTML = "";
+      $("pvr-status").textContent = t("pvr.status.no_geom");
+    }
+  } catch (err) {
+    if (err.code === "gated") {
+      $("pvr-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
+    } else {
+      $("pvr-status").textContent = `❌ ${err.message}`;
+    }
+    $("pvr-output").innerHTML = "";
+  } finally {
+    $("pvr-fetch-btn").disabled = false;
+  }
+}
+
+function runPvrFromPaste() {
+  const raw = ($("pvr-paste").value || "").trim();
+  if (!raw) { $("pvr-status").textContent = t("pvr.status.empty_paste"); return; }
+  let rec;
+  try { rec = JSON.parse(raw); }
+  catch (e) { $("pvr-status").textContent = tFmt("pvr.status.invalid_json", { error: e.message }); return; }
+  const m = normalizeMeasured(rec);
+  if (!m || m.gamma_obs == null) { $("pvr-status").textContent = t("pvr.status.no_measure"); return; }
+  const modelId = m.model || ($("pvr-id").value || "").trim() || t("pvr.pasted_label");
+  $("pvr-output").innerHTML = renderPvrCard(m, modelId, null);
+  $("pvr-status").textContent = tFmt("pvr.status.done", { modelId });
+}
+
+$("pvr-fetch-btn")?.addEventListener("click", runPvrFromId);
+$("pvr-paste-btn")?.addEventListener("click", runPvrFromPaste);
+$("pvr-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runPvrFromId(); }
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -1882,6 +2107,15 @@ function renderResult(r) {
     ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe."
       ? `<div><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
       : ""}
+    ${Array.isArray(r.caveats) && r.caveats.length
+      ? `<div class="recipe-caveats" style="margin-top:0.6rem; padding:0.5rem 0.7rem; border-left:3px solid #d29922; background:rgba(210,153,34,0.08); font-size:0.85rem; border-radius:4px;">
+           <strong>⚠ ${escapeHtml(t("caveat.title") || "Honesty notes")}</strong>
+           <ul style="margin:0.3rem 0 0; padding-left:1.1rem;">
+             ${r.caveats.map(k => `<li>${escapeHtml(t("caveat." + k) || k)}</li>`).join("")}
+           </ul>
+         </div>`
+      : ""}
+    ${confidenceHtml(r.confidence)}
   `;
   console.log("[TAF] verdict-box populated with class:", vClass, "verdict:", verdictStr);
 
@@ -1902,6 +2136,22 @@ function renderResult(r) {
     `;
     cBox.appendChild(div);
   });
+}
+
+// Confidence widget (#5) — shared renderer for recipes + Memory Reality + others.
+// Takes { pct, band, factors:[{key,status}] } (from Python _confidence or JS computeConfidence).
+function confidenceHtml(conf) {
+  if (!conf || !Array.isArray(conf.factors)) return "";
+  const ICON = { ok: "✓", warn: "⚠", miss: "✗" };
+  const FCOLOR = { ok: "#3fb950", warn: "#d29922", miss: "#f85149" };
+  const BCOLOR = { high: "#3fb950", medium: "#d29922", low: "#f85149" };
+  const c = BCOLOR[conf.band] || "#8b949e";
+  const items = conf.factors.map((f) =>
+    `<li><span style="color:${FCOLOR[f.status] || "#8b949e"}">${ICON[f.status] || "·"}</span> ${escapeHtml(t("conf.factor." + f.key) || f.key)}</li>`).join("");
+  return `<div class="taf-confidence" style="margin-top:0.6rem; padding:0.5rem 0.7rem; border-left:3px solid ${c}; background:rgba(110,118,129,0.08); border-radius:4px; font-size:0.85rem;">
+      <strong>${escapeHtml(t("conf.label") || "Confidence")}: <span style="color:${c}">${conf.pct}% · ${escapeHtml(t("conf.band." + conf.band) || conf.band)}</span></strong>
+      <ul style="margin:0.3rem 0 0; padding-left:1.1rem; list-style:none;">${items}</ul>
+    </div>`;
 }
 
 function formatResult(r) {
@@ -2979,6 +3229,36 @@ function wireModal(modalId, btnId, closeId) {
 wireModal("help-modal", "help-btn", "help-close");
 wireModal("quickstart-modal", "quickstart-btn", "quickstart-close");
 wireModal("inventory-modal", "inventory-btn", "inventory-close");
+
+// Manual is now static <details class="inv-card"> cards in index.html (same as the
+// "🧰 What it gives you" inventory). FALLBACK: if a stale/cached index.html still serves
+// the old flat <h3> manual, convert those sections to the same cards on open. No-op when
+// the static cards are already present.
+function buildHelpAccordionFallback() {
+  const content = document.querySelector("#help-modal .help-content");
+  if (!content) return;
+  if (![...content.children].some((n) => n.tagName === "H3")) return; // already static cards
+  const nodes = [...content.children];
+  const frag = document.createDocumentFragment();
+  let cards = null, current = null;
+  for (const node of nodes) {
+    if (node.tagName === "H3") {
+      if (!cards) { cards = document.createElement("div"); cards.className = "help-cards"; frag.appendChild(cards); }
+      const det = document.createElement("details"); det.className = "inv-card";
+      const sum = document.createElement("summary"); sum.className = "inv-card-title";
+      const key = node.getAttribute("data-i18n");
+      if (key) sum.setAttribute("data-i18n", key);
+      sum.innerHTML = node.innerHTML;
+      det.appendChild(sum); cards.appendChild(det); current = det;
+    } else if (current) { current.appendChild(node); }
+    else { frag.appendChild(node); }
+  }
+  const firstCard = frag.querySelector(".inv-card");
+  if (firstCard) firstCard.open = true;
+  content.innerHTML = "";
+  content.appendChild(frag);
+}
+$("help-btn")?.addEventListener("click", buildHelpAccordionFallback);
 
 // Quick-start modal "↓ Start now" link should also close the modal so user lands on mode-section.
 $("qs-start-link")?.addEventListener("click", () => __modalCloseFns.get("quickstart-modal")?.());

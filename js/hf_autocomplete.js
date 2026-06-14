@@ -46,6 +46,7 @@ function formatDownloads(n) {
 export function attachHfAutocomplete(inputEl, options = {}) {
   if (!inputEl || ATTACHED.has(inputEl)) return;
   ATTACHED.add(inputEl);
+  inputEl.setAttribute("data-hf-ac", "1"); // visible marker: this input has the autocomplete dropdown
 
   const {
     pipeline = "text-generation",
@@ -152,12 +153,18 @@ export function attachHfAutocomplete(inputEl, options = {}) {
     timeoutId = setTimeout(() => search(e.target.value.trim()), debounceMs);
   });
 
-  inputEl.addEventListener("focus", (e) => {
-    // Always show dropdown on focus: either filtered (if user already typed)
-    // or the global top-most-downloaded models (empty query).
-    const v = e.target.value.trim();
-    search(v);
-  });
+  // (Re)open the dropdown on focus AND on click. Two real causes of "only opens once":
+  //  (1) clicking an already-focused input fires no `focus` event → handle `click` too;
+  //  (2) the dedup guard in search() blocks re-opening with an unchanged value → reset lastQuery.
+  // Also cancel any pending blur-close so a quick re-click isn't shut by a stale timeout.
+  let blurTimeout = null;
+  const reopen = () => {
+    clearTimeout(blurTimeout);
+    lastQuery = null;
+    search(inputEl.value.trim());
+  };
+  inputEl.addEventListener("focus", reopen);
+  inputEl.addEventListener("click", reopen);
 
   // Click on a result picks it. Use mousedown to fire before input loses focus.
   dropdown.addEventListener("mousedown", (e) => {
@@ -185,8 +192,9 @@ export function attachHfAutocomplete(inputEl, options = {}) {
     }
   });
 
-  // Click outside or blur → close (small delay so click on dropdown still fires)
-  inputEl.addEventListener("blur", () => setTimeout(close, 150));
+  // Click outside or blur → close (small delay so click on dropdown still fires).
+  // Store the timeout so a re-focus/re-click (reopen) can cancel it.
+  inputEl.addEventListener("blur", () => { blurTimeout = setTimeout(close, 150); });
 
   // Reposition on scroll/resize when dropdown is open
   window.addEventListener("scroll", () => {
@@ -201,12 +209,16 @@ export function attachHfAutocomplete(inputEl, options = {}) {
 // NIAH was added in v0.7.6, LongScore in v0.8.8 — keep this list in sync when adding new modes.
 export function attachAllHfAutocompletes() {
   const ids = [
-    "hf-id", "profile-hf-id", "unmask-id", "template-id", "quant-id", "niah-id",
-    "spec-target-id", "spec-draft-id", "longscore-input", "yarn-model",
+    "hf-id", "profile-hf-id", "unmask-id", "memreal-id", "pvr-id", "template-id", "quant-id", "niah-id",
+    "spec-target-id", "spec-draft-id", "longscore-input", "yarn-model", "diag-model",
   ];
   for (const id of ids) {
     const el = document.getElementById(id);
     if (el) attachHfAutocomplete(el);
+  }
+  // Compare mode uses class-based inputs (3 model slots), not ids → bind by class.
+  for (const el of document.querySelectorAll(".compare-hf-id")) {
+    attachHfAutocomplete(el);
   }
   // NOTE: #gguf-repo is attached in main.js initGguf() instead — it needs both
   // the `gguf` tag filter AND an onSelect that auto-lists the repo's quant files.

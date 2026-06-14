@@ -270,3 +270,93 @@ def test_decompose_v2_warnings_present():
     assert "calibration_warning" in r
     assert r["delta_SWA"] == 0.0  # disabled
     assert "exploratory" in r["delta_SWA_status"] or "n1" in r["delta_SWA_status"]
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# X-2 horizon tautology (D-NEW-1) + honesty caveats (v0.9.x audit fix)
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_d_horizon_is_tautological_at_Teval():
+    """d_horizon(θ, γ_Padé(θ, T)) ≡ T by construction (identity D-NEW-1).
+
+    Only meaningful where γ_Padé ∈ (0,1); the code guards γ∉(0,1) → None
+    (T ≥ θ√2 gives γ ≤ 0, the geometric-collapse regime).
+    """
+    checked = 0
+    for theta in (10000, 500000, 1_000_000):
+        for T in (1000, 8192, 65536):
+            g = gamma_pade(theta, T)
+            if not (0 < g < 1):
+                continue
+            dh = d_horizon(theta, g)
+            assert dh is not None
+            assert abs(dh - T) < 1e-6 * T
+            checked += 1
+    assert checked >= 4  # identity actually exercised across regimes
+
+
+def test_x2_closed_form_flags_tautology():
+    """No measured γ_obs → X-2 flags the closed-form tautology + routes to measured γ."""
+    from taf_browser import run_recipe_x2
+    out = run_recipe_x2(theta=1_000_000, T_train=32768, T_eval=65536,
+                        n_attention_heads=32, n_kv_heads=8, d_head=128,
+                        n_layers=36, n_params=4e9, has_SWA=False)
+    assert out["horizon_source"] == "closed_form_tautological"
+    assert "x2_closed_form_tautology" in out["caveats"]
+    assert "x2_use_measured_gamma" in out["caveats"]
+
+
+def test_x2_measured_gamma_uses_PDI():
+    """Supplying γ_obs → non-tautological PDI-based verdict + measured caveat."""
+    from taf_browser import run_recipe_x2
+    out = run_recipe_x2(theta=1_000_000, T_train=32768, T_eval=65536,
+                        n_attention_heads=32, n_kv_heads=8, d_head=128,
+                        n_layers=36, n_params=4e9, has_SWA=False,
+                        gamma_obs=0.90)
+    assert out["horizon_source"] == "measured"
+    assert "x2_measured_horizon" in out["caveats"]
+    assert out.get("pdi") is not None
+    # PDI = d_horizon_obs / T_eval; γ_obs=0.90 ≠ γ_Padé → PDI must differ from 1.
+    assert abs(out["pdi"] - 1.0) > 1e-3
+
+
+def test_x2_swa_caveat_present():
+    """SWA model → δ_SWA-disabled caveat surfaced in X-2."""
+    from taf_browser import run_recipe_x2
+    out = run_recipe_x2(theta=1_000_000, T_train=32768, T_eval=65536,
+                        n_attention_heads=32, n_kv_heads=8, d_head=128,
+                        n_layers=36, n_params=4e9, has_SWA=True)
+    assert "x2_delta_swa_disabled" in out["caveats"]
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Confidence engine (#5)
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_confidence_engine():
+    from taf_browser import _confidence
+    hi = _confidence([("a", "ok"), ("b", "ok")])
+    assert hi["pct"] == 100 and hi["band"] == "high"
+    lo = _confidence([("a", "miss"), ("b", "warn")])
+    assert lo["pct"] == 25 and lo["band"] == "low"
+    assert _confidence([])["pct"] == 0
+
+
+def test_x2_emits_confidence():
+    """X-2 attaches a confidence score; measured γ beats closed-form."""
+    from taf_browser import run_recipe_x2
+    closed = run_recipe_x2(theta=1_000_000, T_train=32768, T_eval=65536,
+                           n_attention_heads=32, n_kv_heads=8, d_head=128,
+                           n_layers=36, n_params=4e9, has_SWA=False)
+    c = closed["confidence"]
+    assert "pct" in c and "band" in c and isinstance(c["factors"], list)
+    keys = [f["key"] for f in c["factors"]]
+    assert "gamma_closed" in keys and "benchmark_no" in keys
+    measured = run_recipe_x2(theta=1_000_000, T_train=32768, T_eval=65536,
+                             n_attention_heads=32, n_kv_heads=8, d_head=128,
+                             n_layers=36, n_params=4e9, has_SWA=False, gamma_obs=0.90)
+    assert measured["confidence"]["pct"] > c["pct"]
+    mkeys = [f["key"] for f in measured["confidence"]["factors"]]
+    assert "gamma_measured" in mkeys and "benchmark_yes" in mkeys

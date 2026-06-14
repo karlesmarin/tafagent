@@ -457,8 +457,16 @@ def break_even_volume(training_cost: float, self_inference_per_Mtok: float,
 # ─────────────────────────────────────────────────────────────────────
 def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                   d_head, n_layers, n_params, has_SWA=False,
-                  bytes_per_element=2.0, **_unused):
-    """X-2: will model M serve length L doing NIAH retrieval?"""
+                  bytes_per_element=2.0, gamma_obs=None, **_unused):
+    """X-2: will model M serve length L doing NIAH retrieval?
+
+    Honesty note (v0.9.x audit): the closed-form horizon is TAUTOLOGICAL —
+    d_horizon(γ_Padé(θ, T_eval)) ≡ T_eval by construction (identity D-NEW-1,
+    see padé_deviation_index §33.2). Without a measured γ_obs the no-inference
+    verdict is driven only by the empirical γ-corrections (δ), several of which
+    are disabled/exploratory — NOT by RoPE geometry. Pass `gamma_obs` (from the
+    Diagnose CLI) for a non-tautological, PDI-based verdict.
+    """
     chain = []
     g_pade = gamma_pade(theta, T_eval)
     chain.append(_step(1, "§26.1", "γ_Padé", "γ = (2θ - T√2)/(2θ + T√2)",
@@ -472,10 +480,22 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                        {"has_GQA": has_GQA, "has_SWA": has_SWA, "n_params": n_params},
                        g_corr, breakdown=decomp))
 
+    # Honesty: d_horizon(γ_Padé(θ,T_eval)) ≡ T_eval identically (D-NEW-1; see PDI §33.2),
+    # so the closed-form horizon is tautological — only the δ-corrections move it off T_eval.
+    # The genuinely geometric reference is the NATIVE horizon at the training length T_train.
     dh = d_horizon(theta, g_corr)
+    dh_native = d_horizon(theta, gamma_pade(theta, T_train))  # ≡ T_train by construction
+    caveats = ["x2_closed_form_tautology"]
+    if has_SWA:
+        caveats.append("x2_delta_swa_disabled")
+    if decomp.get("delta_post_IH", 0.0) != 0.0:
+        caveats.append("x2_delta_postih_exploratory")
     chain.append(_step(3, "§26.2", "d_horizon", "d_h = θ(1-γ)√2/(1+γ)",
-                       {"theta": theta, "gamma": g_corr}, dh,
-                       "n/a — γ outside (0,1)" if dh is None else f"horizon at d={dh:.0f}"))
+                       {"theta": theta, "gamma": g_corr, "T_train": T_train}, dh,
+                       "n/a — γ outside (0,1)" if dh is None else
+                       (f"closed-form d_h≈{dh:.0f}; but d_horizon(γ_Padé(θ,T_eval))≡T_eval={T_eval} "
+                        f"by construction (D-NEW-1) → this verdict is δ-driven, not RoPE geometry. "
+                        f"Native horizon at T_train={T_train}: d_h≈{dh_native:.0f}.")))
 
     l_niah = l_niah_c(dh)
     chain.append(_step(4, "§26.5", "L_NIAH^c", "L_NIAH^c = 2·d_horizon",
@@ -493,23 +513,73 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                         "seq_len": T_eval, "bytes_per_element": bytes_per_element},
                        kv, f"{kv['GB']:.2f} GB per request"))
 
-    if g_corr <= 0 or g_corr >= 1:
-        verdict, reason = "NO", "Phase B / geometric collapse (γ_corrected outside (0,1))"
-        mit = (f"Apply NTK-aware extension. Required θ for γ=0.85: "
-               f"{theta_design(0.85, T_eval):,.0f}. α_opt = {alpha_opt(0.85, T_eval, theta):.2f} "
-               f"({'fine-tuning required' if alpha_opt(0.85, T_eval, theta) > 8 else 'zero-shot may work'}).")
-    elif dh is not None and T_eval < dh:
-        margin = (1 - T_eval / dh) * 100
-        verdict, reason = "YES", f"L={T_eval} inside d_horizon={dh:.0f} ({margin:.0f}% margin)."
-        mit = "None required."
-    elif dh is not None and T_eval < l_niah:
-        verdict, reason = "DEGRADED", f"L between d_horizon ({dh:.0f}) and L_NIAH^c ({l_niah:.0f})."
-        mit = "Consider context contraction OR NTK extension."
+    if gamma_obs is not None:
+        # Non-tautological path: verdict from MEASURED γ_obs (Diagnose CLI).
+        horizon_source = "measured"
+        caveats.append("x2_measured_horizon")
+        pdi_info = padé_deviation_index(theta, gamma_obs, T_eval)
+        pdi = pdi_info["PDI"]
+        dh_obs = d_horizon(theta, gamma_obs)
+        chain.append(_step(7, "§33.2", "PDI (measured γ_obs)",
+                           "PDI = d_h^obs/T_eval = θ(1−γ_obs)√2/((1+γ_obs)·T_eval)",
+                           {"theta": theta, "gamma_obs": gamma_obs, "T_eval": T_eval}, pdi,
+                           pdi_info.get("traffic_light", "")))
+        if gamma_obs >= 1 or dh_obs is None:
+            verdict, reason = "NO", (f"Measured γ_obs={gamma_obs:.3f} ≥ 1 (Phase B): long-context "
+                                     f"retrieval fails without NTK extension.")
+            mit = f"Apply NTK extension. α_opt = {alpha_opt(0.85, T_eval, theta):.2f}."
+        elif T_eval < dh_obs:
+            margin = (1 - T_eval / dh_obs) * 100
+            verdict, reason = "YES", (f"Measured horizon d_h^obs={dh_obs:.0f} > L={T_eval} "
+                                      f"({margin:.0f}% margin, PDI={pdi:.2f}).")
+            mit = "None required."
+        elif T_eval < 2 * dh_obs:
+            verdict, reason = "DEGRADED", (f"L={T_eval} between measured horizon {dh_obs:.0f} and "
+                                           f"NIAH ceiling {2*dh_obs:.0f} (PDI={pdi:.2f}).")
+            mit = "Consider context contraction OR NTK extension."
+        else:
+            verdict, reason = "NO", (f"L={T_eval} exceeds measured NIAH ceiling {2*dh_obs:.0f} "
+                                     f"(PDI={pdi:.2f}).")
+            mit = f"Apply NTK extension; need θ ≈ {theta_design(0.85, T_eval):,.0f} for γ=0.85."
     else:
-        verdict, reason = "NO", f"L={T_eval} exceeds NIAH ceiling {l_niah:.0f}."
-        mit = f"Apply NTK extension; need θ ≈ {theta_design(0.85, T_eval):,.0f} for γ=0.85."
+        # Closed-form path: verdict is δ-driven (tautological horizon). Flag it.
+        horizon_source = "closed_form_tautological"
+        caveats.append("x2_use_measured_gamma")
+        if g_corr <= 0 or g_corr >= 1:
+            verdict, reason = "NO", "Phase B / geometric collapse (γ_corrected outside (0,1))"
+            mit = (f"Apply NTK-aware extension. Required θ for γ=0.85: "
+                   f"{theta_design(0.85, T_eval):,.0f}. α_opt = {alpha_opt(0.85, T_eval, theta):.2f} "
+                   f"({'fine-tuning required' if alpha_opt(0.85, T_eval, theta) > 8 else 'zero-shot may work'}).")
+        elif dh is not None and T_eval < dh:
+            margin = (1 - T_eval / dh) * 100
+            verdict, reason = "YES", f"L={T_eval} inside d_horizon={dh:.0f} ({margin:.0f}% margin)."
+            mit = "None required."
+        elif dh is not None and T_eval < l_niah:
+            verdict, reason = "DEGRADED", f"L between d_horizon ({dh:.0f}) and L_NIAH^c ({l_niah:.0f})."
+            mit = "Consider context contraction OR NTK extension."
+        else:
+            verdict, reason = "NO", f"L={T_eval} exceeds NIAH ceiling {l_niah:.0f}."
+            mit = f"Apply NTK extension; need θ ≈ {theta_design(0.85, T_eval):,.0f} for γ=0.85."
 
-    return _wrap("X-2", "Long Context Viability", locals(), chain, verdict, reason, mit)
+    out = _wrap("X-2", "Long Context Viability", locals(), chain, verdict, reason, mit)
+    out["caveats"] = caveats
+    out["horizon_source"] = horizon_source
+    if gamma_obs is not None:
+        out["pdi"] = pdi
+
+    # Confidence (#5): how much evidence backs this verdict — never an absolute truth.
+    conf_factors = []
+    if horizon_source == "measured":
+        conf_factors.append(("gamma_measured", "ok"))
+        conf_factors.append(("benchmark_yes", "ok"))
+    else:
+        conf_factors.append(("gamma_closed", "warn"))
+        conf_factors.append(("benchmark_no", "warn"))
+    conf_factors.append(("validity_ok", "ok") if 0 < g_corr < 1 else ("validity_out", "miss"))
+    _exploratory = any(c in caveats for c in ("x2_delta_postih_exploratory", "x2_delta_swa_disabled"))
+    conf_factors.append(("calib_exploratory", "warn") if _exploratory else ("calib_reliable", "ok"))
+    out["confidence"] = _confidence(conf_factors)
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -977,10 +1047,28 @@ def _wrap(rid, rname, locals_dict, chain, verdict, reason, mitigation):
                "N_chinchilla", "D_chinchilla", "candidates", "best", "tok_per_s",
                "tok_per_day", "capacity_users", "usd_per_day", "usd_per_Mtok",
                "total_GB", "w_mem", "df", "df_zone_ok", "regime", "has_GQA",
-               "margin", "months", "months_to_payoff", "name")}
+               "margin", "months", "months_to_payoff", "name",
+               "caveats", "horizon_source", "dh_native", "pdi", "pdi_info",
+               "dh_obs", "gamma_obs")}
     return {"recipe_id": rid, "recipe_name": rname, "inputs": inputs,
             "chain": chain, "verdict": verdict, "reason": reason,
             "mitigation": mitigation}
+
+
+def _confidence(factors):
+    """Confidence engine (#5) — mirror of js/confidence.js.
+
+    factors: list of (key, status) with status in {ok, warn, miss}.
+    Returns {pct, band, factors:[{key,status}]}. So a prediction is never shown
+    as an absolute truth — the user sees how much evidence backs it.
+    """
+    w = {"ok": 1.0, "warn": 0.5, "miss": 0.0}
+    total = len(factors)
+    score = sum(w.get(s, 0.0) for _, s in factors)
+    pct = round(100 * score / total) if total else 0
+    band = "high" if pct >= 80 else "medium" if pct >= 55 else "low"
+    return {"pct": pct, "band": band,
+            "factors": [{"key": k, "status": s} for k, s in factors]}
 
 
 def _phase_label(g):

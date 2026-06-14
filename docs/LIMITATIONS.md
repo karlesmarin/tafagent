@@ -8,6 +8,7 @@ This document records the assumptions behind the closed-form predictions used in
 |-------------|------------|----------------|------------------------|
 | **γ_Padé(θ, T) = (2−z)/(2+z), z = T√2/θ** | Natural training; attention follows the architectural RoPE-induced shape; no explicit attention regularization | Heavy regularization, RLHF/instruction-tuning collapse, sliding-window architectures, undertrained checkpoints | η = θ_eff_obs / θ_eff_Padé outside [0.85, 1.15] → Validity Gate banner |
 | **ν = −1/(2π) (universal footprint)** | Token sequence is i.i.d. when computing the gradient fixed point of the RoPE base | Real text has long-range correlations (1/f, Zipf-like). Synthetic data can shift the fixed point further | Not yet detected automatically — see Future Work |
+| **d_horizon = θ(1−γ)√2/(1+γ)** | Treated as an independent predicted horizon | **Always**, in the no-inference path: with γ = γ_Padé(θ, T_eval) it is the algebraic identity d_horizon ≡ T_eval (D-NEW-1) — tautological | X-2 now flags it ("Honesty notes") and routes to measured γ_obs → PDI |
 
 ## 1. Closed-form γ — regime of validity
 
@@ -32,6 +33,28 @@ We considered, and explicitly rejected, the "γ_eff = γ_RoPE + λ · Δ_attn" p
 - If the closed-form is unreliable in a regime, the honest answer is "use the empirical measurement", not "trust this patched formula".
 
 We therefore treat the closed-form as a **regime-bounded prediction** with an automatic gate, rather than a universal law.
+
+## 1b. The closed-form horizon `d_horizon` is tautological (D-NEW-1)
+
+The recipe **X-2 (Long Context Viability)** reports a `d_horizon = θ(1−γ)√2/(1+γ)` and compares the requested length `T_eval` against it. In the no-inference browser path the γ fed to this formula is `γ_Padé(θ, T_eval)`. Substituting:
+
+```
+d_horizon(θ, γ_Padé(θ, T_eval)) = θ·√2·(1−γ)/(1+γ)  with  (1−γ)/(1+γ) = T_eval·√2/(2θ)
+                                = θ·√2·T_eval·√2/(2θ) = T_eval   (identically)
+```
+
+So **the closed-form horizon equals `T_eval` by construction** — it is the identity behind the Padé Deviation Index (`PDI = d_horizon_obs / T_eval = 1 ⟺ γ_obs = γ_Padé`, §33.2). Consequences:
+
+- The θ → γ_Padé → d_horizon → verdict chain shown in the audit trail **collapses to an identity**. Any deviation of the displayed `d_horizon` from `T_eval` comes **only** from the empirical γ-corrections (`δ_GQA`, `δ_SWA`, `δ_post_IH`), several of which are disabled (`δ_SWA`, fit on n=1) or exploratory (`δ_post_IH`, group-mean ≈ 0 in re-audit). The verdict is therefore **δ-driven, not RoPE-geometry-driven**, despite how the trail reads.
+- This is *not* a numerical bug — the numbers are internally consistent — but presenting a tautological horizon as a geometry-derived prediction would be exactly the kind of false confidence this tool exists to surface.
+
+### What TAF Agent does about it (v0.9.x audit fix)
+
+- **X-2 now emits "Honesty notes"** (all 4 UI languages) disclosing the tautology and that the no-inference verdict is δ-driven, with the disabled/exploratory δ-corrections flagged individually.
+- The audit-trail `d_horizon` step now states the identity inline and also reports the **native horizon at `T_train`** (`d_horizon(θ, γ_Padé(θ, T_train)) ≡ T_train`) as the meaningful geometric reference ("are you asking beyond the training length?").
+- **Non-tautological path:** passing a measured `gamma_obs` (from the Diagnose CLI) makes X-2 compute the real `PDI = d_horizon_obs / T_eval` and base the verdict on it. `PDI ≈ 1` matches Padé; `PDI > 1.5` sink-dominated; `PDI < 0.5` over-concentrated.
+
+The honest rule is the same as for §1: when the closed-form is tautological in a regime, **use the empirical measurement** (γ_obs → PDI), not the identity dressed as a prediction.
 
 ## 2. Universal footprint ν = −1/(2π)
 
