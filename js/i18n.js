@@ -1231,6 +1231,7 @@ export const TRANSLATIONS = {
     "help.privacy.body":        "Everything runs in your browser. No telemetry, no analytics, no data sent anywhere. Even the LLM model runs locally via WebGPU/WebAssembly. Your model_ids and questions never leave this page.",
     "help.source.title":        "📄 Source & paper",
     "help.source.body":         "Source code: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/20314038\" target=\"_blank\">Zenodo</a>; arXiv forthcoming)<br>Dataset: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 γ-measurements across 32 models (CC-BY-4.0)",
+    "help.guide.body":          "📖 <strong>Guide</strong>: the <strong>📖 Guide</strong> button in the header opens the companion <a href=\"https://karlesmarin.github.io/transformers-guide/\" target=\"_blank\" rel=\"noopener\">Transformers Guide</a> — a longer-form explainer of the concepts behind the diagnostics (attention decay, RoPE, KV cache, quantization, long-context). Opens in a new tab.",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · independent research · the tool that closes the loop of the paper.",
 
@@ -1323,8 +1324,6 @@ export const TRANSLATIONS = {
     "gamma_check.glossary.efficiency":   "<strong>η</strong>: ratio θ_eff_obs / θ_eff_Padé. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.",
     "gamma_check.glossary.delta_h":      "<strong>ΔH_Cardy</strong>: log(θ_eff_obs / θ_nominal). Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.",
     "gamma_check.glossary.regime":       "<strong>Regime</strong>: automatic classifier from η + γ_obs + random_corpus flag.",
-    "gamma_check.condensate.note":       "🧊 At γ &gt; 1 (Phase B), Softmax mass conservation forces excess attention to condense into the sink (Bose–Einstein analogue, Part III §2). This condensate is recency-dominated and largely KV-compressible — the random-access retrieval work is done by the remaining mass.",
-    "gamma_check.condensate.phase_a":    "— (Phase A: dispersed)",
 
     // §36 v0.6 — Tooltips for inline ⓘ icons (per-variable explanations)
     "tooltip.gamma_pade":          "<strong>γ_Padé(T_eval)</strong>: closed-form prediction (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.",
@@ -1337,7 +1336,6 @@ export const TRANSLATIONS = {
     "tooltip.theta_eff_pade":      "<strong>θ_eff (Padé)</strong>: effective θ predicted by closed-form: θ + T/√2.",
     "tooltip.efficiency":          "<strong>η = θ_eff_obs / θ_eff_Padé</strong>: efficiency ratio. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.",
     "tooltip.delta_h_cardy":       "<strong>ΔH_Cardy</strong>: log(θ_eff_obs / θ_nominal). Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.",
-    "tooltip.bec_condensate":      "<strong>BEC condensate</strong>: fraction of attention mass condensed into the sink / ground state (Bose–Einstein analogue), Part III §2: 1 − (1/ζ(γ))·∫₁ᴸ d⁻ᵞ dd. Recency / heavy-hitter dominated → KV-compressible. Closed-form indicator, not a measurement.",
     "tooltip.verdict_aggregate":   "<strong>Verdict</strong>: worst-of across all recipes. ✅ GO = all green · ⚠ DEGRADED = ≥1 yellow · ❌ NO = ≥1 red.",
     "tooltip.verdict_breakdown":   "<strong>Per-recipe breakdown</strong>: each recipe tests an <em>independent</em> decision axis (long-context · budget · hardware · custom-vs-API · KV-compression). A ❌ on X-1 means \"use the API for your volume\" not \"the model fails\" — open the Recipes section for per-axis context.",
     "tooltip.gamma_pill":          "<strong>γ headline</strong>: γ_decomposed (or γ_Padé fallback). Range (0,1) = Phase A (anti-Ising). γ ≥ 1 = Hagedorn / Phase B.",
@@ -1607,8 +1605,6 @@ export const TRANSLATIONS = {
     "gamma_check.glossary.efficiency":   "<strong>η</strong>: ratio θ_eff_obs / θ_eff_Padé. ≈1 = normal · &lt;0.01 = fraude · &lt;0.5 = comprimido · &gt;1.5 = sobre-Padé.",
     "gamma_check.glossary.delta_h":      "<strong>ΔH_Cardy</strong>: log(θ_eff_obs / θ_nominal). Cambio de entropía de Cardy. Negativo = entropía de compresión. ~0 = coincide con nominal.",
     "gamma_check.glossary.regime":       "<strong>Régimen</strong>: clasificador automático a partir de η + γ_obs + flag corpus_aleatorio.",
-    "gamma_check.condensate.note":       "🧊 Con γ &gt; 1 (Phase B), la conservación de masa del Softmax fuerza que el exceso de atención condense en el sink (análogo de Bose–Einstein, Part III §2). Ese condensado está dominado por recencia y es en gran parte KV-comprimible — el trabajo de retrieval de acceso aleatorio lo hace la masa restante.",
-    "gamma_check.condensate.phase_a":    "— (Phase A: dispersa)",
 
     // §36 v0.6 — Tooltips para iconos ⓘ inline
     "tooltip.gamma_pade":          "<strong>γ_Padé(T_eval)</strong>: predicción cerrada (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.",
@@ -1621,7 +1617,6 @@ export const TRANSLATIONS = {
     "tooltip.theta_eff_pade":      "<strong>θ_eff (Padé)</strong>: θ efectivo predicho por la fórmula cerrada: θ + T/√2.",
     "tooltip.efficiency":          "<strong>η = θ_eff_obs / θ_eff_Padé</strong>: ratio de eficiencia. ≈1 = normal · &lt;0.01 = fraude · &lt;0.5 = comprimido · &gt;1.5 = sobre-Padé.",
     "tooltip.delta_h_cardy":       "<strong>ΔH_Cardy</strong>: log(θ_eff_obs / θ_nominal). Cambio de entropía de Cardy. Negativo = entropía de compresión. ~0 = coincide con nominal.",
-    "tooltip.bec_condensate":      "<strong>Condensado BEC</strong>: fracción de la masa de atención condensada en el sink / estado base (análogo de Bose–Einstein), Part III §2: 1 − (1/ζ(γ))·∫₁ᴸ d⁻ᵞ dd. Dominada por recencia / heavy-hitters → KV comprimible. Indicador de fórmula cerrada, no una medición.",
     "tooltip.verdict_aggregate":   "<strong>Veredicto</strong>: peor-de entre todas las recipes. ✅ ADELANTE = todo verde · ⚠ DEGRADADO = ≥1 amarillo · ❌ NO = ≥1 rojo.",
     "tooltip.verdict_breakdown":   "<strong>Desglose por recipe</strong>: cada recipe evalúa un eje de decisión <em>independiente</em> (contexto-largo · presupuesto · hardware · custom-vs-API · compresión-KV). Un ❌ en X-1 significa «usa la API para tu volumen» no «el modelo falla» — abre la sección Recipes para contexto por eje.",
     "tooltip.gamma_pill":          "<strong>γ titular</strong>: γ_descompuesto (o γ_Padé como fallback). Rango (0,1) = Fase A (anti-Ising). γ ≥ 1 = Hagedorn / Fase B.",
@@ -2763,6 +2758,7 @@ export const TRANSLATIONS = {
     "help.privacy.body":        "Todo corre en tu navegador. Sin telemetría, sin analytics, sin datos enviados a ningún sitio. Incluso el modelo LLM corre localmente vía WebGPU/WebAssembly. Tus model_ids y preguntas nunca abandonan esta página.",
     "help.source.title":        "📄 Código fuente y paper",
     "help.source.body":         "Código: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/20314038\" target=\"_blank\">Zenodo</a>; arXiv próximamente)<br>Dataset: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 mediciones γ sobre 32 modelos (CC-BY-4.0)",
+    "help.guide.body":          "📖 <strong>Guía</strong>: el botón <strong>📖 Guía</strong> de la cabecera abre la <a href=\"https://karlesmarin.github.io/transformers-guide/\" target=\"_blank\" rel=\"noopener\">Transformers Guide</a> complementaria — una explicación más extensa de los conceptos detrás de los diagnósticos (decaimiento de atención, RoPE, KV cache, cuantización, contexto largo). Se abre en una pestaña nueva.",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · investigación independiente · la herramienta que cierra el círculo del paper.",
   },
@@ -2987,8 +2983,6 @@ export const TRANSLATIONS = {
     "gamma_check.glossary.efficiency":   "<strong>η</strong> : rapport θ_eff_obs / θ_eff_Padé. ≈1 = normal · &lt;0.01 = fraude · &lt;0.5 = comprimé · &gt;1.5 = sur-Padé.",
     "gamma_check.glossary.delta_h":      "<strong>ΔH_Cardy</strong> : log(θ_eff_obs / θ_nominal). Variation d'entropie de Cardy. Négatif = entropie de compression. ~0 = correspondance nominale.",
     "gamma_check.glossary.regime":       "<strong>Régime</strong> : classifieur automatique à partir de η + γ_obs + flag corpus_aléatoire.",
-    "gamma_check.condensate.note":       "🧊 À γ &gt; 1 (Phase B), la conservation de masse du Softmax force l'excès d'attention à se condenser dans le puits (analogue de Bose–Einstein, Part III §2). Ce condensat est dominé par la récence et largement KV-compressible — le travail de récupération à accès aléatoire est fait par la masse restante.",
-    "gamma_check.condensate.phase_a":    "— (Phase A : dispersée)",
 
     // §36 v0.6 — Tooltips pour icônes ⓘ inline
     "tooltip.gamma_pade":          "<strong>γ_Padé(T_eval)</strong> : prédiction fermée (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.",
@@ -3001,7 +2995,6 @@ export const TRANSLATIONS = {
     "tooltip.theta_eff_pade":      "<strong>θ_eff (Padé)</strong> : θ effectif prédit par la formule fermée : θ + T/√2.",
     "tooltip.efficiency":          "<strong>η = θ_eff_obs / θ_eff_Padé</strong> : ratio d'efficacité. ≈1 = normal · &lt;0.01 = fraude · &lt;0.5 = comprimé · &gt;1.5 = sur-Padé.",
     "tooltip.delta_h_cardy":       "<strong>ΔH_Cardy</strong> : log(θ_eff_obs / θ_nominal). Variation d'entropie de Cardy. Négatif = entropie de compression. ~0 = correspondance nominale.",
-    "tooltip.bec_condensate":      "<strong>Condensat BEC</strong> : fraction de la masse d'attention condensée dans le puits / état fondamental (analogue de Bose–Einstein), Part III §2 : 1 − (1/ζ(γ))·∫₁ᴸ d⁻ᵞ dd. Dominée par la récence / heavy-hitters → KV compressible. Indicateur en forme close, pas une mesure.",
     "tooltip.verdict_aggregate":   "<strong>Verdict</strong> : pire-de toutes les recettes. ✅ GO = tout vert · ⚠ DÉGRADÉ = ≥1 jaune · ❌ NON = ≥1 rouge.",
     "tooltip.verdict_breakdown":   "<strong>Décomposition par recette</strong> : chaque recette teste un axe de décision <em>indépendant</em> (contexte-long · budget · matériel · custom-vs-API · compression-KV). Un ❌ en X-1 signifie « utilisez l'API pour votre volume » et non « le modèle échoue » — ouvrez la section Recettes pour le contexte par axe.",
     "tooltip.gamma_pill":          "<strong>γ vedette</strong> : γ_décomposé (ou γ_Padé en fallback). Plage (0,1) = Phase A (anti-Ising). γ ≥ 1 = Hagedorn / Phase B.",
@@ -4143,6 +4136,7 @@ export const TRANSLATIONS = {
     "help.privacy.body":        "Tout s'exécute dans votre navigateur. Pas de télémétrie, pas d'analytique, pas de données envoyées ailleurs. Même le modèle LLM s'exécute localement via WebGPU/WebAssembly. Vos model_ids et questions ne quittent jamais cette page.",
     "help.source.title":        "📄 Code source et paper",
     "help.source.body":         "Code : <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>Paper : <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/20314038\" target=\"_blank\">Zenodo</a> ; arXiv à venir)<br>Dataset : <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 58 mesures γ sur 32 modèles (CC-BY-4.0)",
+    "help.guide.body":          "📖 <strong>Guide</strong> : le bouton <strong>📖 Guide</strong> dans l'en-tête ouvre le <a href=\"https://karlesmarin.github.io/transformers-guide/\" target=\"_blank\" rel=\"noopener\">Transformers Guide</a> compagnon — une explication plus détaillée des concepts derrière les diagnostics (décroissance d'attention, RoPE, KV cache, quantification, contexte long). S'ouvre dans un nouvel onglet.",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · recherche indépendante · l'outil qui ferme la boucle du paper.",
   },
@@ -4367,8 +4361,6 @@ export const TRANSLATIONS = {
     "gamma_check.glossary.efficiency":   "<strong>η</strong>：θ_eff_obs / θ_eff_Padé 比值。≈1 = 正常 · &lt;0.01 = 欺诈 · &lt;0.5 = 压缩 · &gt;1.5 = 超 Padé。",
     "gamma_check.glossary.delta_h":      "<strong>ΔH_Cardy</strong>：log(θ_eff_obs / θ_nominal)。Cardy 熵变。负值 = 压缩熵。~0 = 与名义匹配。",
     "gamma_check.glossary.regime":       "<strong>体制</strong>：基于 η + γ_obs + 随机语料标志的自动分类器。",
-    "gamma_check.condensate.note":       "🧊 当 γ &gt; 1（Phase B）时，Softmax 的质量守恒迫使多余的注意力凝聚到 sink（玻色–爱因斯坦类比，Part III §2）。该凝聚体由近因主导，且大部分 KV 可压缩 —— 随机访问检索由剩余质量完成。",
-    "gamma_check.condensate.phase_a":    "—（Phase A：分散）",
 
     // §36 v0.6 — 内联 ⓘ 图标提示
     "tooltip.gamma_pade":          "<strong>γ_Padé(T_eval)</strong>：闭式预测 (2−z)/(2+z), z = T√2/θ。论文 §sec:gamma_decomposition。",
@@ -4381,7 +4373,6 @@ export const TRANSLATIONS = {
     "tooltip.theta_eff_pade":      "<strong>θ_eff (Padé)</strong>：闭式公式预测的有效 θ：θ + T/√2。",
     "tooltip.efficiency":          "<strong>η = θ_eff_obs / θ_eff_Padé</strong>：效率比。≈1 = 正常 · &lt;0.01 = 欺诈 · &lt;0.5 = 压缩 · &gt;1.5 = 超 Padé。",
     "tooltip.delta_h_cardy":       "<strong>ΔH_Cardy</strong>：log(θ_eff_obs / θ_nominal)。Cardy 熵变。负值 = 压缩熵。~0 = 与名义匹配。",
-    "tooltip.bec_condensate":      "<strong>BEC 凝聚</strong>：凝聚到 sink／基态的注意力质量比例（玻色–爱因斯坦类比），Part III §2：1 − (1/ζ(γ))·∫₁ᴸ d⁻ᵞ dd。由近因／heavy-hitter 主导 → KV 可压缩。闭式指标，非实测。",
     "tooltip.verdict_aggregate":   "<strong>判定</strong>：所有配方中最差。✅ 通过 = 全绿 · ⚠ 降级 = ≥1 黄 · ❌ 否 = ≥1 红。",
     "tooltip.verdict_breakdown":   "<strong>各配方分解</strong>：每个配方测试一个<em>独立</em>的决策轴 (长上下文 · 预算 · 硬件 · 自训 vs API · KV 压缩)。X-1 上的 ❌ 表示「按你的量级用 API」而非「模型失败」——展开 Recipes 节查看各轴上下文。",
     "tooltip.gamma_pill":          "<strong>γ 头条</strong>：γ_分解 (或 γ_Padé 回退)。范围 (0,1) = 相位 A (反伊辛)。γ ≥ 1 = Hagedorn / 相位 B。",
@@ -5523,6 +5514,7 @@ export const TRANSLATIONS = {
     "help.privacy.body":        "一切都在您的浏览器中运行。无遥测,无分析,无数据发送到任何地方。即使是 LLM 模型也通过 WebGPU/WebAssembly 在本地运行。您的 model_ids 和问题永不离开此页面。",
     "help.source.title":        "📄 源代码和论文",
     "help.source.body":         "源代码: <a href=\"https://github.com/karlesmarin/tafagent\" target=\"_blank\">github.com/karlesmarin/tafagent</a><br>论文: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href=\"https://zenodo.org/records/20314038\" target=\"_blank\">Zenodo</a>; arXiv 即将)<br>数据集: <a href=\"https://huggingface.co/datasets/karlexmarin/taf-attention-decay\" target=\"_blank\">taf-attention-decay</a> — 32个模型上的58次γ测量 (CC-BY-4.0)",
+    "help.guide.body":          "📖 <strong>指南</strong>：标题栏中的 <strong>📖 指南</strong> 按钮会打开配套的 <a href=\"https://karlesmarin.github.io/transformers-guide/\" target=\"_blank\" rel=\"noopener\">Transformers Guide</a> —— 对诊断背后概念（注意力衰减、RoPE、KV 缓存、量化、长上下文）的更详细讲解。在新标签页中打开。",
 
     "footer.text":             "© 2026 Carles Marin · Apache-2.0 · 独立研究 · 闭合论文回路的工具。",
   },
