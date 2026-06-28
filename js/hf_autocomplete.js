@@ -211,6 +211,7 @@ export function attachAllHfAutocompletes() {
   const ids = [
     "hf-id", "profile-hf-id", "unmask-id", "memreal-id", "pvr-id", "template-id", "quant-id", "niah-id",
     "spec-target-id", "spec-draft-id", "longscore-input", "yarn-model", "diag-model",
+    "adapter-id", "adapter-base",
   ];
   for (const id of ids) {
     const el = document.getElementById(id);

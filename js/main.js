@@ -13,6 +13,7 @@ import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
 import { unmaskConfig } from "./swa_unmasker.js";
 import { classifyMemory, compressionPressure, CLASS_LIGHT } from "./memory_reality.js";
+import { parseAdapterConfig, compatChecks, forgettingBand } from "./adapter_reality.js";
 import { computeConfidence } from "./confidence.js";
 import { normalizeMeasured, predictionVsReality, confidenceFromMeasured, contributionRecord, gammaPade as pvrGammaPade } from "./prediction_reality.js";
 import { sniffChatTemplate } from "./chat_template_sniffer.js";
@@ -227,7 +228,7 @@ document.addEventListener("click", (e) => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
-      memreal: "memreal-section", pvr: "pvr-section",
+      memreal: "memreal-section", adapter: "adapter-section", pvr: "pvr-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
@@ -262,7 +263,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     // Hide all mode sections
     ["ask-section", "recipe-section", "form-section",
      "profile-section", "compare-section", "inspector-section",
-     "diagnose-section", "phase-section", "unmask-section", "memreal-section", "pvr-section",
+     "diagnose-section", "phase-section", "unmask-section", "memreal-section", "adapter-section", "pvr-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
      "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section"].forEach(id => {
@@ -274,7 +275,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       ask: "ask-section", recipe: "recipe-section", profile: "profile-section",
       compare: "compare-section", inspector: "inspector-section",
       diagnose: "diagnose-section", phase: "phase-section", unmask: "unmask-section",
-      memreal: "memreal-section", pvr: "pvr-section",
+      memreal: "memreal-section", adapter: "adapter-section", pvr: "pvr-section",
       template: "template-section", arena: "arena-section", contam: "contam-section",
       quant: "quant-section", drift: "drift-section", niah: "niah-section",
       saturation: "saturation-section",
@@ -851,6 +852,158 @@ $("memreal-fetch-btn")?.addEventListener("click", runMemRealFromId);
 $("memreal-paste-btn")?.addEventListener("click", runMemRealFromPaste);
 $("memreal-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runMemRealFromId(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// 🔌 Adapter Reality Check (published PEFT/LoRA sanity + forgetting evidence)
+// ════════════════════════════════════════════════════════════════════
+
+async function fetchAdapterConfig(modelId) {
+  const url = `https://huggingface.co/${modelId}/resolve/main/adapter_config.json`;
+  let resp;
+  try { resp = await fetch(url); }
+  catch (e) { throw new Error(`network error fetching ${url}`); }
+  if (resp.ok) {
+    try { return await resp.json(); }
+    catch (e) { throw new Error("adapter_config.json parse failed"); }
+  }
+  if (resp.status === 401 || resp.status === 403) {
+    const err = new Error("gated"); err.code = "gated"; err.modelId = modelId; throw err;
+  }
+  throw new Error(`HTTP ${resp.status} — adapter_config.json not found at ${url}`);
+}
+
+const ADAPTER_LEVEL = {
+  ok:   { emoji: "✅", color: "#2ea043" },
+  info: { emoji: "ℹ️", color: "#8b949e" },
+  warn: { emoji: "⚠️", color: "#d29922" },
+  bad:  { emoji: "❌", color: "#f85149" },
+};
+const ADAPTER_LEVEL_ORDER = { ok: 0, info: 1, warn: 2, bad: 3 };
+
+// inline ℹ tooltip, same pattern as the rest of the card
+const adapterTip = (key) => `<span class="info"><span class="tooltip" data-i18n="${key}"></span></span>`;
+
+function renderAdapterCard(parsed, compat, band, modelId = "") {
+  const worst = compat.reduce((w, c) =>
+    (ADAPTER_LEVEL_ORDER[c.level] > ADAPTER_LEVEL_ORDER[w] ? c.level : w), "ok");
+  const heroColor = (ADAPTER_LEVEL[worst] || ADAPTER_LEVEL.info).color;
+
+  const typeLabel = (parsed.peftType || "?").toUpperCase();
+  const rankLabel = parsed.r != null ? `r=${parsed.r}` : t("adapter.norank");
+  const alphaLabel = parsed.alpha != null ? ` · α=${parsed.alpha}` : "";
+  const scaleLabel = parsed.scaling != null
+    ? ` · α/r=${(Math.round(parsed.scaling * 100) / 100)}${parsed.useRslora ? " (rsLoRA √r)" : ""}` : "";
+
+  // Block A — compatibility
+  const compatHtml = compat.map((c) => {
+    const lv = ADAPTER_LEVEL[c.level] || ADAPTER_LEVEL.info;
+    const msg = tFmt("adapter.compat." + c.code, c.params) || c.code;
+    return `<li style="margin:0.25em 0;"><span style="color:${lv.color};">${lv.emoji}</span> ${msg}</li>`;
+  }).join("");
+
+  // Block B — forgetting band (evidence, not prediction)
+  let forgetHtml;
+  if (!band || !band.applicable) {
+    forgetHtml = `<p class="recipe-desc">${t("adapter.forget.na")}</p>`;
+  } else {
+    const s = band.query.stats;
+    if (!s || s.deltaCount === 0) {
+      forgetHtml = `<p class="recipe-desc">${t("adapter.forget.nodata")}</p>`;
+    } else {
+      const bandLine = tFmt("adapter.forget.band", {
+        min: s.min, max: s.max, median: s.median, n: s.deltaCount,
+        bucket: t("adapter.bucket." + band.bucket) || band.bucket,
+      });
+      const signLine = t("adapter.forget.sign." + s.sign) || "";
+      const broaden = band.broadened ? `<p class="recipe-desc" style="opacity:0.85;">${t("adapter.forget.broadened")}</p>` : "";
+      const warns = (band.query.verdict.warnings || [])
+        .map((w) => tFmt("adapter.forget.warn." + w.code, w.params))
+        .filter(Boolean);
+      const warnHtml = warns.length
+        ? `<ul style="margin:0.3em 0 0 1.1em;">${warns.map((w) => `<li>${w}</li>`).join("")}</ul>` : "";
+      const cites = Array.from(new Map((band.query.matches || [])
+        .filter((m) => m.citation && (m.citation.arxiv || m.citation.title))
+        .map((m) => [m.citation.arxiv || m.citation.title, m.citation])).values());
+      const citeHtml = cites.length
+        ? `<p class="recipe-desc" style="font-size:0.86em; margin-top:0.4em;"><strong>${t("adapter.forget.cite")}:</strong> ${
+            cites.map((c) => c.arxiv
+              ? `<a href="https://arxiv.org/abs/${escapeHtml(c.arxiv)}" target="_blank" rel="noopener">${escapeHtml(c.title || c.arxiv)}</a>`
+              : escapeHtml(c.title)).join(" · ")}</p>` : "";
+      forgetHtml = `<p>${bandLine}</p><p>${signLine}</p>${warnHtml}${broaden}${citeHtml}`;
+    }
+  }
+
+  // Block C — merge & deploy sanity
+  const mergeNotes = [];
+  if (parsed.isRankBased) mergeNotes.push(t("adapter.merge.mergeable"));
+  else mergeNotes.push(t("adapter.merge.prompt_tuning"));
+  if (parsed.useDora) mergeNotes.push(t("adapter.merge.dora_caveat"));
+  if (parsed.modulesToSave && parsed.modulesToSave.length) mergeNotes.push(t("adapter.merge.embed_caveat"));
+  const mergeHtml = `<ul style="margin:0.2em 0 0 1.1em;">${mergeNotes.map((m) => `<li>${m}</li>`).join("")}</ul>`;
+
+  return `
+    <div class="unmask-result">
+      <div class="unmask-hero" style="border-color:${heroColor};">
+        <div class="unmask-verdict" style="color:${heroColor};">🔌 ${escapeHtml(typeLabel)} · ${escapeHtml(rankLabel)}${escapeHtml(alphaLabel)}${escapeHtml(scaleLabel)}</div>
+        ${modelId ? `<div class="unmask-model"><code>${escapeHtml(modelId)}</code></div>` : ""}
+        ${parsed.baseModel ? `<p style="margin:0.4em 0;"><strong>${t("adapter.base_of")}:</strong> <code>${escapeHtml(parsed.baseModel)}</code></p>` : ""}
+      </div>
+      <div class="unmask-details">
+        <details class="unmask-panel" open><summary class="unmask-panel-title">${t("adapter.sec.compat")} ${adapterTip("adapter.help.compat")}</summary><ul style="margin:0.3em 0 0 1.1em;">${compatHtml}</ul></details>
+        <details class="unmask-panel" open><summary class="unmask-panel-title">${t("adapter.sec.forget")} ${adapterTip("adapter.help.forget")}</summary>${forgetHtml}</details>
+        <details class="unmask-panel"><summary class="unmask-panel-title">${t("adapter.sec.merge")} ${adapterTip("adapter.help.merge")}</summary>${mergeHtml}</details>
+        <details class="unmask-panel"><summary class="unmask-panel-title">${t("adapter.sec.limits")}</summary><p>${t("adapter.limits")}</p></details>
+      </div>
+    </div>`;
+}
+
+async function runAdapterAnalysis(cfg, modelId) {
+  const parsed = parseAdapterConfig(cfg);
+  const baseId = ($("adapter-base")?.value || "").trim();
+  const compat = compatChecks(parsed, baseId);
+  let band = null;
+  try { band = await forgettingBand(parsed, baseId); }
+  catch (e) { band = { applicable: false, reason: "kb_error" }; }
+  $("adapter-output").innerHTML = renderAdapterCard(parsed, compat, band, modelId);
+  if (window.__taf_applyTranslations) window.__taf_applyTranslations();
+}
+
+async function runAdapterFromId() {
+  const modelId = ($("adapter-id").value || "").trim();
+  if (!modelId) { $("adapter-status").textContent = t("adapter.status.empty_id"); return; }
+  $("adapter-status").textContent = tFmt("adapter.status.fetching", { modelId });
+  $("adapter-fetch-btn").disabled = true;
+  try {
+    const cfg = await fetchAdapterConfig(modelId);
+    await runAdapterAnalysis(cfg, modelId);
+    $("adapter-status").textContent = tFmt("adapter.status.success", { modelId });
+  } catch (err) {
+    if (err.code === "gated") {
+      $("adapter-status").innerHTML = `🔒 <strong>${escapeHtml(err.modelId)}</strong> ${t("hf_auto.gated_msg") || "is gated."} <a href="https://huggingface.co/${escapeHtml(err.modelId)}" target="_blank" rel="noopener">huggingface.co/${escapeHtml(err.modelId)}</a>`;
+    } else {
+      $("adapter-status").textContent = `❌ ${err.message}`;
+    }
+    $("adapter-output").innerHTML = "";
+  } finally {
+    $("adapter-fetch-btn").disabled = false;
+  }
+}
+
+function runAdapterFromPaste() {
+  const raw = ($("adapter-paste").value || "").trim();
+  if (!raw) { $("adapter-status").textContent = t("adapter.status.empty_paste"); return; }
+  let cfg;
+  try { cfg = JSON.parse(raw); }
+  catch (e) { $("adapter-status").textContent = tFmt("adapter.status.invalid_json", { error: e.message }); return; }
+  runAdapterAnalysis(cfg, t("adapter.pasted_label"));
+  $("adapter-status").textContent = tFmt("adapter.status.success", { modelId: t("adapter.pasted_label") });
+}
+
+$("adapter-fetch-btn")?.addEventListener("click", runAdapterFromId);
+$("adapter-paste-btn")?.addEventListener("click", runAdapterFromPaste);
+$("adapter-id")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); runAdapterFromId(); }
 });
 
 // ════════════════════════════════════════════════════════════════════

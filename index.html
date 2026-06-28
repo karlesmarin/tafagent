@@ -299,6 +299,10 @@
       <p><strong data-i18n="help.v09.confidence.title">Confidence score</strong> — <span data-i18n="help.v09.confidence.desc">every X-2 viability verdict + Memory Reality + Prediction-vs-Reality carries a 0–100% confidence with a ✓/⚠ factor checklist (γ measured vs closed-form, validated regime, benchmark available, calibration). Predictions are never shown as absolute truth.</span></p>
         </details>
         <details class="inv-card">
+          <summary class="inv-card-title" data-i18n="help.adapter.title">🔌 Adapter Reality Check</summary>
+      <p data-i18n="help.adapter.body">Paste a published LoRA/PEFT adapter id (or its adapter_config.json). From the config alone it reports (A) compatibility — base match, target_modules, α/r scaling, embedding resize; (B) the forgetting evidence for its rank bucket from the literature (Biderman 2024, SMoLoRA, rank trade-offs 2025) as a Δpp range with sources — never a fabricated per-adapter number; and (C) merge &amp; deploy sanity. Browser-only, no inference.</p>
+        </details>
+        <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.verdicts.title">What to look for in verdicts</summary>
       <ul>
         <li data-i18n="help.verdict.yes"><strong style="color:#3fb950;">YES / GO</strong> — proceed with confidence; numbers support the choice.</li>
@@ -446,6 +450,7 @@
             <button data-mode-link="profile" data-i18n="modes.profile">📇 Profile a model</button>
             <button data-mode-link="unmask" data-i18n="modes.unmask">🪟 Unmask</button>
             <button data-mode-link="memreal" data-i18n="modes.memreal">🧠 Memory Reality</button>
+            <button data-mode-link="adapter" data-i18n="modes.adapter">🔌 Adapter Reality</button>
             <button data-mode-link="pvr" data-i18n="modes.pvr">📊 Prediction vs Reality</button>
             <button data-mode-link="niah" data-i18n="modes.niah">🔍 NIAH→Reason</button>
             <button data-mode-link="longscore" data-i18n="modes.longscore">🎯 LongScore</button>
@@ -534,6 +539,7 @@
         <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
         <button class="mode-btn" data-mode="unmask" role="tab" aria-selected="false" data-i18n="modes.unmask">🪟 Unmask</button>
         <button class="mode-btn" data-mode="memreal" role="tab" aria-selected="false" data-i18n="modes.memreal">🧠 Memory Reality</button>
+        <button class="mode-btn" data-mode="adapter" role="tab" aria-selected="false" data-i18n="modes.adapter">🔌 Adapter Reality</button>
         <button class="mode-btn" data-mode="pvr" role="tab" aria-selected="false" data-i18n="modes.pvr">📊 Prediction vs Reality</button>
         <button class="mode-btn" data-mode="template" role="tab" aria-selected="false" data-i18n="modes.template">📜 Chat-template</button>
         <button class="mode-btn" data-mode="arena" role="tab" aria-selected="false" data-i18n="modes.arena">🎯 Arena CI</button>
@@ -896,6 +902,34 @@
         <button type="button" id="memreal-paste-btn" data-i18n="memreal.paste_btn" style="margin-top:0.4em;">🧠 Check pasted config</button>
       </details>
       <div id="memreal-output" style="margin-top: 1em;"></div>
+    </section>
+
+    <section id="adapter-section" style="display:none;">
+      <h2><span data-i18n="adapter.title">🔌 Adapter Reality Check</span>
+        <span class="info"><span class="tooltip" data-i18n="adapter.tip">
+          Paste a published LoRA/PEFT adapter id (or its adapter_config.json). It checks base
+          compatibility and shows the forgetting evidence for its rank — no inference, just the config + literature.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="adapter.desc">
+        <strong>Will this adapter load on my base — and how much will it make it forget?</strong> Sanity-check a published LoRA from its config, with the literature's forgetting range for its rank.
+      </p>
+      <div class="form-row">
+        <label for="adapter-id" data-i18n="adapter.id_label">Adapter model id:</label>
+        <input type="text" id="adapter-id" placeholder="e.g. predibase/Llama-3-8B-Instruct-... (a LoRA repo)" />
+        <button type="button" id="adapter-fetch-btn" data-i18n="adapter.fetch_btn">🔌 Check</button>
+      </div>
+      <div class="form-row">
+        <label for="adapter-base" data-i18n="adapter.base_label">Your base model (optional):</label>
+        <input type="text" id="adapter-base" placeholder="e.g. meta-llama/Meta-Llama-3-8B" />
+      </div>
+      <p id="adapter-status" class="recipe-desc" style="font-size:0.92em;"></p>
+      <details style="margin: 0.6em 0;">
+        <summary style="cursor:pointer; font-size:0.92em;" data-i18n="adapter.paste_summary">Or paste raw adapter_config.json (private / in-dev adapters)</summary>
+        <textarea id="adapter-paste" rows="6" style="width:100%; font-family:monospace; font-size:0.85em; margin-top:0.4em;" placeholder='{"peft_type": "LORA", "r": 16, "lora_alpha": 32, "target_modules": ["q_proj","v_proj"], "base_model_name_or_path": "meta-llama/Meta-Llama-3-8B"}'></textarea>
+        <button type="button" id="adapter-paste-btn" data-i18n="adapter.paste_btn" style="margin-top:0.4em;">🔌 Check pasted config</button>
+      </details>
+      <div id="adapter-output" style="margin-top: 1em;"></div>
     </section>
 
     <!-- Prediction vs Reality + BYOD mode (v0.9.x) -->
