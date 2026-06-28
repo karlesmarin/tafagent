@@ -8,8 +8,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs",
+    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs && node tests/gamma_condensate.test.mjs",
     "test:smoke": "node tests/smoke.mjs",
+    "test:condensate": "node tests/gamma_condensate.test.mjs",
     "test:i18n": "node tests/i18n_check.mjs",
     "test:memreal": "node tests/memory_reality.test.mjs",
     "test:confidence": "node tests/confidence.test.mjs",
