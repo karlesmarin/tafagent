@@ -21,6 +21,7 @@ import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 import { attachAllHfAutocompletes, attachHfAutocomplete } from "./hf_autocomplete.js";
+import { dt } from "./demo_i18n.js";
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
 import { predictNIAHReasoning, sweepContextLengths, loadRulerKB, calibrateNIAH, listRulerModels } from "./niah_reasoning.js";
 import {
@@ -168,6 +169,13 @@ function enableUI() {
   $("inspector-btn").disabled = false;
   // Restore from URL if present
   parseUrlState();
+  // Auto-play a guided demo when launched with ?demo=<mode> (or ?demo=1 → profile).
+  // Used by the field guide to deep-link straight into a simulation.
+  const __demoParam = new URLSearchParams(window.location.search).get("demo");
+  if (__demoParam) {
+    const __m = __demoParam === "1" ? "profile" : __demoParam;
+    if (DEMOS[__m]) setTimeout(() => runDemoFor(__m), 900);
+  }
 }
 
 function setStatus(msg) { $("status").textContent = msg; }
@@ -5521,3 +5529,618 @@ loadPyodideAndTaf().catch(err => {
   setStatus(`❌ Failed to initialise: ${err.message || err}`);
   console.error(err);
 });
+
+// ════════════════════════════════════════════════════════════════════
+// ▶ Guided demo / simulation — types an example model, fetches its
+// architecture, generates the full profile, with step banners. Plays on
+// the "▶ Demo" button or when the page is opened with ?demo=1 (the field
+// guide deep-links here). Lives IN the app so it never goes stale.
+// ════════════════════════════════════════════════════════════════════
+let __demoRunning = false;
+const __demoSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function __demoBanner(text, step, total) {
+  let el = document.getElementById("__taf_demo_banner");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "__taf_demo_banner";
+    el.style.cssText =
+      "position:fixed;top:0;left:0;right:0;z-index:100000;padding:13px 20px;" +
+      "font:700 18px Georgia,'Times New Roman',serif;color:#fff;text-align:center;" +
+      "background:linear-gradient(135deg,#0072B2,#34b3e0);box-shadow:0 2px 14px rgba(0,0,0,.35);" +
+      "transition:opacity .3s;";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = (step ? `<span style="opacity:.82">${dt("step")} ${step}/${total} · </span>` : "") + text;
+  el.style.opacity = "1";
+}
+function __demoHideBanner() {
+  const el = document.getElementById("__taf_demo_banner");
+  if (el) { el.style.opacity = "0"; setTimeout(() => el.remove(), 400); }
+}
+function __demoHighlight(sel) {
+  document.querySelectorAll(".__taf_demo_hl").forEach((e) => e.classList.remove("__taf_demo_hl"));
+  const el = document.querySelector(sel);
+  if (el) { el.classList.add("__taf_demo_hl"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+}
+async function __demoType(sel, text) {
+  const el = document.querySelector(sel);
+  if (!el) return;
+  el.focus(); el.value = "";
+  for (const ch of text) {
+    el.value += ch;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    await __demoSleep(55);
+  }
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+// Per-run context handed to each mode's demo script.
+function __demoCtx() {
+  return {
+    sleep: __demoSleep,
+    banner: __demoBanner,
+    hl: __demoHighlight,
+    clearHl: () => document.querySelectorAll(".__taf_demo_hl").forEach((e) => e.classList.remove("__taf_demo_hl")),
+    type: __demoType,
+    // Close an HF autocomplete dropdown (Esc + blur) so it stops covering the fields.
+    closeAuto: (sel) => {
+      const el = document.querySelector(sel);
+      if (el) { el.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); el.blur(); }
+    },
+    click: (sel) => document.querySelector(sel)?.click(),
+    select: (sel, val) => {
+      const el = document.querySelector(sel);
+      if (el) { el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+    // Set a field's value instantly (for pasting JSON blobs — faster than char-by-char type).
+    paste: (sel, text) => {
+      const el = document.querySelector(sel);
+      if (el) { el.focus(); el.value = text; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+    // Open the <details> that contains an element (e.g. a paste textarea) + scroll to it.
+    reveal: (sel) => {
+      const el = document.querySelector(sel);
+      const d = el?.closest("details");
+      if (d && !d.open) d.open = true;
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
+    },
+    mode: (m) => document.querySelector(`.mode-btn[data-mode="${m}"]`)?.click(),
+    scroll: (sel) => document.querySelector(sel)?.scrollIntoView({ block: "center", behavior: "smooth" }),
+    scrollText: (re) => [...document.querySelectorAll("*")].find((e) => re.test(e.textContent || ""))?.scrollIntoView({ block: "center", behavior: "smooth" }),
+    // Open a collapsible <details> whose <summary> matches `re`, then scroll + highlight it.
+    expand: (re) => {
+      const sum = [...document.querySelectorAll("details > summary")].find((s) => re.test(s.textContent || ""));
+      if (!sum) return false;
+      const d = sum.parentElement;
+      if (d && d.tagName === "DETAILS" && !d.open) d.open = true;
+      document.querySelectorAll(".__taf_demo_hl").forEach((e) => e.classList.remove("__taf_demo_hl"));
+      sum.classList.add("__taf_demo_hl");
+      sum.scrollIntoView({ block: "center", behavior: "smooth" });
+      return true;
+    },
+    // Highlight + scroll to a visible heading/block matching `re` (for the result tour).
+    hlText: (re) => {
+      document.querySelectorAll(".__taf_demo_hl").forEach((e) => e.classList.remove("__taf_demo_hl"));
+      const el = [...document.querySelectorAll("h2,h3,h4,summary,strong,b,div")]
+        .find((e) => re.test((e.textContent || "").slice(0, 90)) && e.offsetParent !== null);
+      if (el) { el.classList.add("__taf_demo_hl"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    },
+    waitText: async (re, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms && !re.test(document.body.innerText)) await __demoSleep(400); },
+  };
+}
+
+// Registry: one entry per mode. Add a mode here → it gets a "🎬 Demo" button.
+const DEMOS = {
+  profile: {
+    sectionId: "profile-section",
+    model: "Qwen/Qwen2.5-7B",
+    async run(D) {
+      const total = 4;
+      D.mode("profile"); await D.sleep(450); D.scroll("#profile-hf-id");
+      D.banner(dt("profile.s1"), 1, total); await D.sleep(1500);
+      D.banner(dt("profile.s2"), 2, total); D.hl("#profile-hf-id"); await D.sleep(500);
+      await D.type("#profile-hf-id", this.model); await D.sleep(600);
+      D.closeAuto("#profile-hf-id"); await D.sleep(450);   // close autocomplete so fields are visible
+      D.banner(dt("profile.s3"), 3, total);
+      D.hl("#profile-fetch-btn"); await D.sleep(700); D.click("#profile-fetch-btn"); await D.sleep(3800);
+      D.banner(dt("profile.s4"), 4, total);
+      D.hl("#profile-btn"); await D.sleep(700); D.click("#profile-btn");
+      await D.waitText(/d_horizon|γ_Padé|Anti-Ising|γ_decomposed/i, 45000);
+      D.clearHl(); await D.sleep(900);
+      const tour = [
+        [/Recetas|Recipes/i, dt("profile.tour.recipes")],
+        [/Diagn[óo]sticos|Diagnostics/i, dt("profile.tour.diag")],
+        [/Verificaci[óo]n|Verification/i, dt("profile.tour.verif")],
+        [/Procedencia|Provenance|Compartir|share/i, dt("profile.tour.prov")],
+      ];
+      D.banner(dt("tourintro")); await D.sleep(2200);
+      for (const [re, cap] of tour) {
+        const ok = D.expand(re);
+        if (!ok) { D.scrollText(re); D.hlText(re); }
+        D.banner(cap); await D.sleep(3000);
+      }
+      D.clearHl(); await D.sleep(400);
+      const txt = document.body.innerText;
+      const g = (txt.match(/γ_decomposed[^0-9-]*([0-9]+[.,][0-9]+)/i) ||
+                 txt.match(/γ\s*=\s*([0-9]+[.,][0-9]+)/i) || [])[1];
+      const cls = (txt.match(/Clase[^\n]*?\)/i) || txt.match(/Anti-?Ising[^\n]*?\)/i) ||
+                   txt.match(/Class[^\n]*?\)/i) || txt.match(/Anti-?Ising[^.\n]*/i) || [])[0];
+      const gv = g ? parseFloat(g.replace(",", ".")) : null;
+      let read = dt("profile.x.gammaMid");
+      if (gv != null) read = gv < 1 ? dt("profile.x.gammaLow") : (gv < 1.5 ? dt("profile.x.gammaMid") : dt("profile.x.gammaHigh"));
+      return {
+        title: dt("profile.x.title"),
+        lines: [
+          g ? `<b>γ = ${g}</b> — ${read}` : dt("profile.x.gammaFallback"),
+          cls ? `${dt("profile.x.phasePre")}${cls.trim()}${dt("profile.x.phasePost")}` : null,
+          `<div style="margin-top:.5rem;font-weight:700;color:#9fd0ec">${dt("profile.x.heading")}</div>`,
+          dt("profile.x.recipes"), dt("profile.x.diag"), dt("profile.x.verif"), dt("profile.x.prov"),
+          `<div style="margin-top:.5rem">${dt("x.cta")}</div>`,
+        ].filter(Boolean),
+      };
+    },
+  },
+  contam: {
+    sectionId: "contam-section",
+    async run(D) {
+      const total = 3;
+      D.mode("contam"); await D.sleep(450); D.scroll("#contam-cutoff");
+      D.banner(dt("contam.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("contam.s2"), 2, total); D.hl("#contam-cutoff"); await D.sleep(500);
+      await D.type("#contam-cutoff", "2023-12"); await D.sleep(700);
+      D.banner(dt("contam.s3"), 3, total); D.hl("#contam-run-btn"); await D.sleep(700); D.click("#contam-run-btn");
+      await D.waitText(/risk|riesgo|high|alto|MMLU|benchmark/i, 15000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/MMLU|risk|riesgo|benchmark/i);
+      return { title: dt("contam.x.title"), lines: [dt("contam.x.l1"), dt("contam.x.l2"), dt("contam.x.l3"), dt("contam.x.l4")] };
+    },
+  },
+  drift: {
+    sectionId: "drift-section",
+    async run(D) {
+      const total = 3;
+      D.mode("drift"); await D.sleep(450);
+      D.banner(dt("drift.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("drift.s2"), 2, total); D.hl("#drift-sample-btn"); await D.sleep(600);
+      D.click("#drift-sample-btn"); await D.sleep(900);
+      D.banner(dt("drift.s3"), 3, total); D.hl("#drift-run-btn"); await D.sleep(600); D.click("#drift-run-btn");
+      await D.waitText(/band|banda|gap|verdict|veredicto|bug|noise|ruido/i, 15000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/band|banda|verdict|veredicto|bug/i);
+      return { title: dt("drift.x.title"), lines: [dt("drift.x.l1"), dt("drift.x.l2"), dt("drift.x.l3"), dt("drift.x.l4")] };
+    },
+  },
+  cot: {
+    sectionId: "cot-section",
+    async run(D) {
+      const total = 3;
+      D.mode("cot"); await D.sleep(450);
+      D.banner(dt("cot.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("cot.s2"), 2, total); D.hl("#cot-example-bad-btn"); await D.sleep(600);
+      D.click("#cot-example-bad-btn"); await D.sleep(1200);
+      D.banner(dt("cot.s3"), 3, total); D.scrollText(/anti|reasoning|answer|verdict|suggested|fix/i); await D.sleep(800);
+      D.clearHl(); await D.sleep(400);
+      return { title: dt("cot.x.title"), lines: [dt("cot.x.l1"), dt("cot.x.l2"), dt("cot.x.l3"), dt("cot.x.l4")] };
+    },
+  },
+  diagnose: {
+    sectionId: "diagnose-section",
+    async run(D) {
+      const total = 3;
+      D.mode("diagnose"); await D.sleep(450); D.scroll("#diag-model");
+      D.banner(dt("diagnose.s1"), 1, total); D.hl("#diag-model"); await D.sleep(1600);
+      D.banner(dt("diagnose.s2"), 2, total); D.hl("#diag-build-btn"); await D.sleep(700); D.click("#diag-build-btn");
+      await D.waitText(/diagnose_model\.py|python cli/i, 8000);
+      D.banner(dt("diagnose.s3"), 3, total); D.clearHl(); await D.sleep(700);
+      D.scrollText(/diagnose_model\.py|Generated command|comando/i);
+      return { title: dt("diagnose.x.title"), lines: [dt("diagnose.x.l1"), dt("diagnose.x.l2"), dt("diagnose.x.l3"), dt("diagnose.x.l4")] };
+    },
+  },
+  peft: {
+    sectionId: "peft-section",
+    async run(D) {
+      const total = 2;
+      D.mode("peft"); await D.sleep(450);
+      D.banner(dt("peft.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("peft.s2"), 2, total); D.hl("#peft-example-bug-btn"); await D.sleep(700);
+      D.click("#peft-example-bug-btn");
+      await D.waitText(/finding|hallazgo|ERROR|silent|base|adapter/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/finding|hallazgo|ERROR|silent|base/i);
+      return { title: dt("peft.x.title"), lines: [dt("peft.x.l1"), dt("peft.x.l2"), dt("peft.x.l3"), dt("peft.x.l4")] };
+    },
+  },
+  cache: {
+    sectionId: "cache-section",
+    async run(D) {
+      const total = 2;
+      D.mode("cache"); await D.sleep(450);
+      D.banner(dt("cache.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("cache.s2"), 2, total); D.hl("#cache-example-good-btn"); await D.sleep(700);
+      D.click("#cache-example-good-btn");
+      await D.waitText(/hit|provider|Claude|OpenAI|Gemini|savings|ahorro/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/hit|provider|Claude|OpenAI/i);
+      return { title: dt("cache.x.title"), lines: [dt("cache.x.l1"), dt("cache.x.l2"), dt("cache.x.l3"), dt("cache.x.l4")] };
+    },
+  },
+  longscore: {
+    sectionId: "longscore-section",
+    async run(D) {
+      const total = 2;
+      D.mode("longscore"); await D.sleep(450);
+      D.banner(dt("longscore.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("longscore.s2"), 2, total); D.hl("#longscore-example-mid-btn"); await D.sleep(700);
+      D.click("#longscore-example-mid-btn");
+      await D.waitText(/LongScore|degrad|128K|4K|score/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/LongScore|degrad|128K/i);
+      return { title: dt("longscore.x.title"), lines: [dt("longscore.x.l1"), dt("longscore.x.l2"), dt("longscore.x.l3"), dt("longscore.x.l4")] };
+    },
+  },
+  phase: {
+    sectionId: "phase-section",
+    async run(D) {
+      const total = 2;
+      D.mode("phase"); await D.sleep(1300);   // canvas draws on mode entry
+      D.banner(dt("phase.s1"), 1, total); D.hl("#phase-canvas"); await D.sleep(2400);
+      D.banner(dt("phase.s2"), 2, total); D.scrollText(/Hagedorn|Phase|Padé|γ/i); await D.sleep(1600);
+      D.clearHl(); await D.sleep(400);
+      return { title: dt("phase.x.title"), lines: [dt("phase.x.l1"), dt("phase.x.l2"), dt("phase.x.l3"), dt("phase.x.l4")] };
+    },
+  },
+  hub: {
+    sectionId: "hub-section",
+    async run(D) {
+      const total = 2;
+      D.mode("hub"); await D.sleep(1000);
+      D.banner(dt("hub.s1"), 1, total); await D.sleep(1800);
+      D.banner(dt("hub.s2"), 2, total); D.hl("#hub-search"); await D.sleep(500);
+      await D.type("#hub-search", "RAG"); await D.sleep(1500);
+      D.clearHl(); await D.sleep(400);
+      return { title: dt("hub.x.title"), lines: [dt("hub.x.l1"), dt("hub.x.l2"), dt("hub.x.l3"), dt("hub.x.l4")] };
+    },
+  },
+  saturation: {
+    sectionId: "saturation-section",
+    async run(D) {
+      const total = 3;
+      D.mode("saturation"); await D.sleep(1300);   // initSaturation loads KB
+      D.banner(dt("saturation.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("saturation.s2"), 2, total); D.hl("#saturation-select"); await D.sleep(500);
+      D.select("#saturation-select", "MMLU"); await D.sleep(600);
+      D.banner(dt("saturation.s3"), 3, total); D.hl("#saturation-run-btn"); await D.sleep(600); D.click("#saturation-run-btn");
+      await D.waitText(/saturat|discrimin|spread|MMLU/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/saturat|discrimin|spread/i);
+      return { title: dt("saturation.x.title"), lines: [dt("saturation.x.l1"), dt("saturation.x.l2"), dt("saturation.x.l3"), dt("saturation.x.l4")] };
+    },
+  },
+  arena: {
+    sectionId: "arena-section",
+    async run(D) {
+      const total = 3;
+      D.mode("arena"); await D.sleep(600);
+      D.banner(dt("arena.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("arena.s2"), 2, total); D.hl("#arena-sample-btn"); await D.sleep(600); D.click("#arena-sample-btn"); await D.sleep(900);
+      D.banner(dt("arena.s3"), 3, total); D.hl("#arena-run-btn"); await D.sleep(600); D.click("#arena-run-btn");
+      await D.waitText(/Elo|tie|empate|ranked|95%|CI/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/Elo|tie|empate|ranked/i);
+      return { title: dt("arena.x.title"), lines: [dt("arena.x.l1"), dt("arena.x.l2"), dt("arena.x.l3"), dt("arena.x.l4")] };
+    },
+  },
+  unmask: {
+    sectionId: "unmask-section",
+    async run(D) {
+      const total = 2;
+      D.mode("unmask"); await D.sleep(450); D.reveal("#unmask-paste"); await D.sleep(500);
+      D.banner(dt("unmask.s1"), 1, total); await D.sleep(900);
+      D.paste("#unmask-paste", '{"max_position_embeddings":32768,"sliding_window":4096}'); await D.sleep(400);
+      D.banner(dt("unmask.s2"), 2, total); D.hl("#unmask-paste-btn"); await D.sleep(700); D.click("#unmask-paste-btn");
+      await D.waitText(/inflated|inflado|honest|honesto|effective|efectivo|window|ventana|ratio/i, 10000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/inflated|inflado|effective|efectivo|ratio/i);
+      return { title: dt("unmask.x.title"), lines: [dt("unmask.x.l1"), dt("unmask.x.l2"), dt("unmask.x.l3"), dt("unmask.x.l4")] };
+    },
+  },
+  memreal: {
+    sectionId: "memreal-section",
+    async run(D) {
+      const total = 2;
+      D.mode("memreal"); await D.sleep(450); D.reveal("#memreal-paste"); await D.sleep(500);
+      D.banner(dt("memreal.s1"), 1, total); await D.sleep(900);
+      D.paste("#memreal-paste", '{"model_type":"mamba","state_size":16,"d_conv":4,"num_hidden_layers":64}'); await D.sleep(400);
+      D.banner(dt("memreal.s2"), 2, total); D.hl("#memreal-paste-btn"); await D.sleep(700); D.click("#memreal-paste-btn");
+      await D.waitText(/SSM|RWKV|FULL|memory|memoria|state|recall|recurren/i, 10000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/SSM|FULL|memoria|memory|recall/i);
+      return { title: dt("memreal.x.title"), lines: [dt("memreal.x.l1"), dt("memreal.x.l2"), dt("memreal.x.l3"), dt("memreal.x.l4")] };
+    },
+  },
+  adapter: {
+    sectionId: "adapter-section",
+    async run(D) {
+      const total = 2;
+      D.mode("adapter"); await D.sleep(450); D.reveal("#adapter-paste"); await D.sleep(500);
+      D.banner(dt("adapter.s1"), 1, total); await D.sleep(900);
+      D.paste("#adapter-paste", '{"peft_type":"LORA","r":16,"lora_alpha":32,"target_modules":["q_proj","v_proj"],"base_model_name_or_path":"meta-llama/Meta-Llama-3-8B"}'); await D.sleep(400);
+      D.banner(dt("adapter.s2"), 2, total); D.hl("#adapter-paste-btn"); await D.sleep(700); D.click("#adapter-paste-btn");
+      await D.waitText(/forgetting|olvido|compat|rank|LoRA|adapter/i, 12000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/forgetting|olvido|compat|rank/i);
+      return { title: dt("adapter.x.title"), lines: [dt("adapter.x.l1"), dt("adapter.x.l2"), dt("adapter.x.l3"), dt("adapter.x.l4")] };
+    },
+  },
+  pvr: {
+    sectionId: "pvr-section",
+    async run(D) {
+      const total = 2;
+      D.mode("pvr"); await D.sleep(450); D.reveal("#pvr-paste"); await D.sleep(500);
+      D.banner(dt("pvr.s1"), 1, total); await D.sleep(900);
+      D.paste("#pvr-paste", '{"model":"EleutherAI/pythia-1.4b","theta_nom":10000,"N":2048,"gamma":0.705,"fit_power_law":{"R2":0.84}}'); await D.sleep(400);
+      D.banner(dt("pvr.s2"), 2, total); D.hl("#pvr-paste-btn"); await D.sleep(700); D.click("#pvr-paste-btn");
+      await D.waitText(/Prediction|Predicci[óo]n|Measured|Medido|Δ|delta/i, 10000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/Prediction|Predicci[óo]n|Measured|Medido/i);
+      return { title: dt("pvr.x.title"), lines: [dt("pvr.x.l1"), dt("pvr.x.l2"), dt("pvr.x.l3"), dt("pvr.x.l4")] };
+    },
+  },
+  yarn: {
+    sectionId: "yarn-section",
+    async run(D) {
+      const total = 3;
+      D.mode("yarn"); await D.sleep(450); D.scroll("#yarn-theta");
+      D.banner(dt("yarn.s1"), 1, total); await D.sleep(900);
+      D.banner(dt("yarn.s2"), 2, total);
+      await D.type("#yarn-theta", "500000"); await D.type("#yarn-orig", "8192"); await D.type("#yarn-target", "32768");
+      D.hl("#yarn-target"); await D.sleep(700);
+      D.banner(dt("yarn.s3"), 3, total); D.hl("#yarn-plan-btn"); await D.sleep(700); D.click("#yarn-plan-btn");
+      await D.waitText(/rope_scaling|YaRN|factor|veredicto|verdict|γ_eff/i, 10000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/rope_scaling|YaRN|factor/i);
+      return { title: dt("yarn.x.title"), lines: [dt("yarn.x.l1"), dt("yarn.x.l2"), dt("yarn.x.l3"), dt("yarn.x.l4")] };
+    },
+  },
+  inspector: {
+    sectionId: "inspector-section",
+    explainIn: "profile-output",
+    async run(D) {
+      const total = 2;
+      D.mode("inspector"); await D.sleep(500); D.scroll("#inspector-json");
+      D.banner(dt("inspector.s1"), 1, total); await D.sleep(900);
+      D.paste("#inspector-json", '{"model_type":"llama","rope_theta":500000,"max_position_embeddings":8192,"num_attention_heads":32,"num_key_value_heads":8,"hidden_size":4096,"num_hidden_layers":32,"vocab_size":128256}'); await D.sleep(400);
+      D.banner(dt("inspector.s2"), 2, total); D.hl("#inspector-btn"); await D.sleep(700); D.click("#inspector-btn");
+      await D.waitText(/d_horizon|γ_Padé|Anti-Ising|γ_decomposed|Recetas|Recipes/i, 30000);
+      D.clearHl(); await D.sleep(900); D.scrollText(/d_horizon|γ_decomposed|Recetas|Recipes/i);
+      return { title: dt("inspector.x.title"), lines: [dt("inspector.x.l1"), dt("inspector.x.l2"), dt("inspector.x.l3"), dt("inspector.x.l4")] };
+    },
+  },
+  recipe: {
+    sectionId: "recipe-section",
+    explainIn: "output-section",
+    async run(D) {
+      const total = 3;
+      D.mode("recipe"); await D.sleep(600); D.scroll("#recipe-select");
+      D.banner(dt("recipe.s1"), 1, total); await D.sleep(900);
+      D.banner(dt("recipe.s2"), 2, total); D.hl("#recipe-select"); await D.sleep(500);
+      D.select("#recipe-select", "X-2"); await D.sleep(900);   // builds the param form with defaults
+      D.banner(dt("recipe.s3"), 3, total); D.hl("#run-btn"); await D.sleep(700); D.click("#run-btn");
+      await D.waitText(/Verdict|Veredicto|Computation|Chain|cadena/i, 30000);
+      D.clearHl(); await D.sleep(900); D.scrollText(/Verdict|Veredicto|Computation|cadena/i);
+      return { title: dt("recipe.x.title"), lines: [dt("recipe.x.l1"), dt("recipe.x.l2"), dt("recipe.x.l3"), dt("recipe.x.l4")] };
+    },
+  },
+  compare: {
+    sectionId: "compare-section",
+    explainIn: "compare-output",   // result renders in its own #compare-output section (≠ compare-section)
+    async run(D) {
+      const total = 4;
+      D.mode("compare"); await D.sleep(500); D.scroll("#compare-recipe");
+      D.banner(dt("compare.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("compare.s2"), 2, total); D.hl("#compare-recipe"); await D.sleep(500);
+      D.select("#compare-recipe", "X-2"); await D.sleep(800);   // enables #compare-btn; uses #compare-T_eval=16000
+      D.banner(dt("compare.s3"), 3, total);
+      // NOTE: there are up to 3 .compare-slot blocks. D.type()/D.closeAuto() call querySelector
+      // (first match only), so target each slot explicitly via its data-slot attribute.
+      // Two OPEN models → no HF gating wall. (Spec also suggested nth-of-type; data-slot is unambiguous.)
+      D.hl('.compare-slot[data-slot="1"] .compare-hf-id'); await D.sleep(400);
+      await D.type('.compare-slot[data-slot="1"] .compare-hf-id', "Qwen/Qwen2.5-7B");
+      D.closeAuto('.compare-slot[data-slot="1"] .compare-hf-id'); await D.sleep(450);
+      D.hl('.compare-slot[data-slot="2"] .compare-hf-id'); await D.sleep(400);
+      await D.type('.compare-slot[data-slot="2"] .compare-hf-id', "microsoft/Phi-3.5-mini-instruct");
+      D.closeAuto('.compare-slot[data-slot="2"] .compare-hf-id'); await D.sleep(450);
+      D.banner(dt("compare.s4"), 4, total); D.hl("#compare-btn"); await D.sleep(700); D.click("#compare-btn");
+      await D.waitText(/Verdict|Reason|Shared params|Recipe:/i, 25000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/Verdict|Reason|Shared params/i);
+      return { title: dt("compare.x.title"), lines: [dt("compare.x.l1"), dt("compare.x.l2"), dt("compare.x.l3"), dt("compare.x.l4")] };
+    },
+  },
+  template: {
+    sectionId: "template-section",
+    async run(D) {
+      const total = 3;
+      D.mode("template"); await D.sleep(450); D.scroll("#template-id");
+      D.banner(dt("template.s1"), 1, total); await D.sleep(1100);
+      D.banner(dt("template.s2"), 2, total); D.hl("#template-id"); await D.sleep(500);
+      await D.type("#template-id", "Qwen/Qwen2.5-7B-Instruct"); await D.sleep(500);
+      D.closeAuto("#template-id"); await D.sleep(450);   // close HF autocomplete so the button is visible
+      D.banner(dt("template.s3"), 3, total); D.hl("#template-fetch-btn"); await D.sleep(700); D.click("#template-fetch-btn");
+      await D.waitText(/ChatML|chat.?template|Commands|im_start|family|familia/i, 15000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/ChatML|Commands|chat.?template|family|familia/i);
+      return { title: dt("template.x.title"), lines: [dt("template.x.l1"), dt("template.x.l2"), dt("template.x.l3"), dt("template.x.l4")] };
+    },
+  },
+  niah: {
+    sectionId: "niah-section",
+    async run(D) {
+      const total = 3;
+      D.mode("niah"); await D.sleep(450); D.scroll("#niah-id");
+      D.banner(dt("niah.s1"), 1, total); await D.sleep(1100);
+      D.banner(dt("niah.s2"), 2, total); D.hl("#niah-id"); await D.sleep(500);
+      await D.type("#niah-id", "Qwen/Qwen2.5-7B-Instruct"); await D.sleep(500);
+      D.closeAuto("#niah-id"); await D.sleep(450);   // close HF autocomplete so the run button is visible
+      D.banner(dt("niah.s3"), 3, total); D.hl("#niah-run-btn"); await D.sleep(700); D.click("#niah-run-btn");   // auto-fetches config
+      await D.waitText(/NIAH|Reasoning|Razonamiento|Gap|retrieval|robust|marginal|degraded/i, 20000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/NIAH|Reasoning|Razonamiento|Gap/i);
+      return { title: dt("niah.x.title"), lines: [dt("niah.x.l1"), dt("niah.x.l2"), dt("niah.x.l3"), dt("niah.x.l4")] };
+    },
+  },
+  quant: {
+    sectionId: "quant-section",
+    model: "Qwen/Qwen2.5-7B",
+    async run(D) {
+      const total = 4;
+      D.mode("quant"); await D.sleep(450); D.scroll("#quant-id");
+      D.banner(dt("quant.s1"), 1, total); D.hl("#quant-id"); await D.sleep(900);
+      await D.type("#quant-id", this.model); await D.sleep(600);
+      D.closeAuto("#quant-id"); await D.sleep(450);   // close HF autocomplete so fields are visible
+      D.banner(dt("quant.s2"), 2, total);
+      D.hl("#quant-fetch-btn"); await D.sleep(700); D.click("#quant-fetch-btn"); await D.sleep(3800);
+      D.banner(dt("quant.s3"), 3, total); D.hl("#quant-scheme"); await D.sleep(600);
+      D.select("#quant-scheme", "gguf_q4_km"); await D.sleep(700);
+      D.banner(dt("quant.s4"), 4, total); D.hl("#quant-run-btn"); await D.sleep(700); D.click("#quant-run-btn");
+      await D.waitText(/ΔPPL|d_head|γ shift|γ_Padé/i, 20000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/ΔPPL|d_head|γ shift/i);
+      return { title: dt("quant.x.title"), lines: [dt("quant.x.l1"), dt("quant.x.l2"), dt("quant.x.l3"), dt("quant.x.l4")] };
+    },
+  },
+  launch: {
+    sectionId: "launch-section",
+    model: "Qwen/Qwen2.5-7B",
+    async run(D) {
+      const total = 4;
+      D.mode("launch"); await D.sleep(450); D.scroll("#launch-model");
+      D.banner(dt("launch.s1"), 1, total); D.hl("#launch-model"); await D.sleep(900);
+      await D.type("#launch-model", this.model); await D.sleep(600);
+      D.closeAuto("#launch-model"); await D.sleep(450);   // close HF autocomplete
+      D.banner(dt("launch.s2"), 2, total);
+      D.hl("#launch-fetch-btn"); await D.sleep(700); D.click("#launch-fetch-btn"); await D.sleep(3800);
+      D.banner(dt("launch.s3"), 3, total); D.hl("#launch-ctx"); await D.sleep(500);
+      await D.type("#launch-ctx", "131072"); await D.sleep(700);
+      D.banner(dt("launch.s4"), 4, total); D.hl("#launch-gen-btn"); await D.sleep(700); D.click("#launch-gen-btn");
+      await D.waitText(/llama\.cpp|Ollama|VRAM|-ngl/i, 20000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/llama\.cpp|Ollama|VRAM|-ngl/i);
+      return { title: dt("launch.x.title"), lines: [dt("launch.x.l1"), dt("launch.x.l2"), dt("launch.x.l3"), dt("launch.x.l4")] };
+    },
+  },
+  gguf: {
+    sectionId: "gguf-section",
+    repo: "Qwen/Qwen2.5-7B-Instruct-GGUF",
+    async run(D) {
+      const total = 3;
+      D.mode("gguf"); await D.sleep(450); D.scroll("#gguf-repo");
+      D.banner(dt("gguf.s1"), 1, total); D.hl("#gguf-repo"); await D.sleep(900);
+      await D.type("#gguf-repo", this.repo); await D.sleep(600);
+      D.closeAuto("#gguf-repo"); await D.sleep(450);   // close HF gguf-filtered autocomplete
+      D.banner(dt("gguf.s2"), 2, total); D.hl("#gguf-list-btn"); await D.sleep(700); D.click("#gguf-list-btn");
+      await D.waitText(/q4_k_m|\.gguf/i, 25000);   // wait until files listed + Q4_K_M auto-selected (Analyze enabled)
+      await D.sleep(700);
+      D.banner(dt("gguf.s3"), 3, total); D.hl("#gguf-analyze-btn"); await D.sleep(700); D.click("#gguf-analyze-btn");
+      await D.waitText(/θ=|ΔPPL|γ @|MHA|GQA/i, 40000);   // generous: HTTP Range header read can be slow
+      D.clearHl(); await D.sleep(700); D.scrollText(/θ=|ΔPPL|γ @|MHA|GQA/i);
+      return { title: dt("gguf.x.title"), lines: [dt("gguf.x.l1"), dt("gguf.x.l2"), dt("gguf.x.l3"), dt("gguf.x.l4")] };
+    },
+  },
+  speculative: {
+    sectionId: "speculative-section",
+    async run(D) {
+      const total = 2;
+      D.mode("speculative"); await D.sleep(450); D.scroll("#spec-target-id");
+      D.banner(dt("speculative.s1"), 1, total); await D.sleep(1300);
+      // open-weight cross-family pair (Qwen vs Phi): fills both ids + runs the check.
+      // FRAGILE: network fetch of tokenizer.json from HF (CDN, a few seconds, MB-sized).
+      D.banner(dt("speculative.s2"), 2, total); D.hl("#spec-example-bad-btn"); await D.sleep(700);
+      D.click("#spec-example-bad-btn");
+      await D.waitText(/vocab|tokenizer|speedup|incompatible|compatible|mismatch|token-id/i, 25000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/vocab|tokenizer|speedup|incompatible|compatible|mismatch/i);
+      return { title: dt("speculative.x.title"), lines: [dt("speculative.x.l1"), dt("speculative.x.l2"), dt("speculative.x.l3"), dt("speculative.x.l4")] };
+    },
+  },
+  tax: {
+    sectionId: "tax-section",
+    async run(D) {
+      const total = 2;
+      D.mode("tax"); await D.sleep(450); D.scroll("#tax-input");
+      D.banner(dt("tax.s1"), 1, total); await D.sleep(1300);
+      // sample-zh fills the Chinese paragraph + tokenizes with all 6 tokenizers.
+      // FRAGILE: first run downloads transformers.js + each tokenizer vocab (5-15s).
+      D.banner(dt("tax.s2"), 2, total); D.hl("#tax-sample-zh-btn"); await D.sleep(700);
+      D.click("#tax-sample-zh-btn");
+      await D.waitText(/chars\/tok|ratio|baseline|Qwen2\.5|Phi-3\.5|GPT-4|Gemma/i, 30000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/chars\/tok|ratio|baseline|Qwen2\.5|tokenizer/i);
+      return { title: dt("tax.x.title"), lines: [dt("tax.x.l1"), dt("tax.x.l2"), dt("tax.x.l3"), dt("tax.x.l4")] };
+    },
+  },
+  ask: {
+    sectionId: "ask-section",
+    async run(D) {
+      const total = 2;
+      D.mode("ask"); await D.sleep(450); D.scroll("#question");
+      D.banner(dt("ask.s1"), 1, total); D.hl("#question"); await D.sleep(1400);
+      // example-btn only FILLS the textarea (no run). SOFT demo on purpose:
+      // we do NOT click #ask-btn — Analyze would download a ~350MB LLM via WebGPU.
+      D.banner(dt("ask.s2"), 2, total); D.hl("#example-btn"); await D.sleep(700);
+      D.click("#example-btn"); await D.sleep(1200);
+      D.hl("#ask-btn"); await D.sleep(1600);
+      D.clearHl(); await D.sleep(500);
+      return { title: dt("ask.x.title"), lines: [dt("ask.x.l1"), dt("ask.x.l2"), dt("ask.x.l3"), dt("ask.x.l4")] };
+    },
+  },
+};
+
+function __demoExplainPanel(mode, info) {
+  if (!info) return;
+  const sec = document.getElementById(DEMOS[mode].explainIn || DEMOS[mode].sectionId);
+  if (!sec) return;
+  document.getElementById("__taf_demo_explain")?.remove();
+  const p = document.createElement("div");
+  p.id = "__taf_demo_explain";
+  p.style.cssText = "margin:1rem 0;padding:1rem 1.2rem;border-radius:.7rem;border:1px solid #1d3a52;" +
+    "background:linear-gradient(180deg,#0e1c28,#0a141d);color:#dbe7f0;box-shadow:0 4px 16px rgba(0,0,0,.2);";
+  p.innerHTML = `<div style="font:700 16px Georgia,'Times New Roman',serif;color:#34b3e0;margin-bottom:.5rem">${info.title}</div>` +
+    info.lines.map((l) => `<div style="margin:.28rem 0;line-height:1.5;font-family:Georgia,'Times New Roman',serif">${l}</div>`).join("");
+  sec.appendChild(p);
+  p.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+let __demoRunningMode = null;
+async function runDemoFor(mode) {
+  const cfg = DEMOS[mode];
+  if (!cfg || __demoRunning) return;
+  __demoRunning = true; __demoRunningMode = mode;
+  try {
+    if (!document.getElementById("__taf_demo_css")) {
+      const s = document.createElement("style");
+      s.id = "__taf_demo_css";
+      s.textContent =
+        ".__taf_demo_hl{outline:3px solid #34b3e0!important;outline-offset:3px;" +
+        "border-radius:6px;box-shadow:0 0 0 6px rgba(52,179,224,.25)!important;transition:all .3s;}";
+      document.head.appendChild(s);
+    }
+    const info = await cfg.run(__demoCtx());
+    __demoBanner(dt("done"), 0, 0);
+    const b = document.getElementById("__taf_demo_banner");
+    if (b) { b.style.cursor = "pointer"; b.onclick = __demoHideBanner; }
+    __demoExplainPanel(mode, info);
+    setTimeout(__demoHideBanner, 12000);
+  } catch (e) {
+    console.warn("demo failed:", e);
+    __demoHideBanner();
+  } finally {
+    __demoRunning = false; __demoRunningMode = null;
+  }
+}
+// Back-compat alias (header/global trigger → profile demo)
+function runDemo() { return runDemoFor("profile"); }
+
+// Inject a "🎬 Demo" button into each mode section that has a demo config.
+function injectDemoButtons() {
+  Object.keys(DEMOS).forEach((mode) => {
+    const sec = document.getElementById(DEMOS[mode].sectionId);
+    if (!sec || sec.querySelector(".taf-demo-btn")) return;
+    const h = sec.querySelector("h2");
+    if (!h) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "taf-demo-btn";
+    btn.textContent = "🎬 Demo";
+    btn.title = "Watch a guided simulation of this tool";
+    btn.style.cssText = "margin-left:.6rem;padding:.22rem .7rem;font:700 13px Georgia,serif;" +
+      "color:#fff;border:none;border-radius:1rem;cursor:pointer;vertical-align:middle;" +
+      "background:linear-gradient(135deg,#0072B2,#34b3e0);box-shadow:0 2px 6px rgba(0,114,178,.3);";
+    btn.addEventListener("click", () => runDemoFor(mode));
+    h.appendChild(btn);
+  });
+}
+document.addEventListener("DOMContentLoaded", injectDemoButtons);
+injectDemoButtons();
