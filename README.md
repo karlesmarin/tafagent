@@ -59,6 +59,22 @@ language:
 
 ---
 
+## 🆕 v0.11 — Guided demos for every mode (self-teaching · 4 languages)
+
+Every one of the **28 modes** now has a **🎬 Demo** button that runs a short guided walkthrough — watch the tool work, understand the result, then repeat it with your own data.
+
+| What's new | Detail |
+|------------|--------|
+| 🎬 **Demo button on every mode** | Or open `?demo=<mode>` (e.g. [`?demo=profile`](https://karlesmarin.github.io/tafagent/?demo=profile)). Step banners fill + highlight the inputs, click the real buttons, produce the **real result**, then append a plain-language **"What this tells you"** panel — section by section, with honesty caveats. |
+| 🌍 **Fully localized** | EN / ES / FR / ZH (230 demo strings, idiom-reviewed; standard terms like KV-cache, γ, θ kept in English). |
+| 🔗 **Self-teaching & shareable** | The companion field guide deep-links its *Try it* boxes straight into the matching demo. |
+
+Browser-only, no inference, no new dependencies — `index.html` untouched (buttons inject via JS). Full notes: [`docs/RELEASE_NOTES_v0.11.md`](docs/RELEASE_NOTES_v0.11.md).
+
+[**▶ Try it now**](https://huggingface.co/spaces/karlexmarin/taf-agent)
+
+---
+
 ## 🆕 v0.10 — Architecture-aware + Reality-check (2 new modes + confidence)
 
 Three additions, all browser-only — no inference, no server.
@@ -428,7 +444,7 @@ Sage script: `analysis/sage_recursive_sweep_2026-04-30.sage`
 
 ## How you can help
 
-This tool is at v0.5. There's a long way to go.
+This tool is at v0.11. There's a long way to go.
 
 - **🐛 Report bugs**: https://github.com/karlesmarin/tafagent/issues
 - **🌐 Translate**: add a language to `js/i18n.js`, send a PR
