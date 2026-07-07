@@ -471,7 +471,8 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
     g_pade = gamma_pade(theta, T_eval)
     chain.append(_step(1, "§26.1", "γ_Padé", "γ = (2θ - T√2)/(2θ + T√2)",
                        {"theta": theta, "T_eval": T_eval}, g_pade,
-                       _phase_label(g_pade)))
+                       _phase_label(g_pade),
+                       interp_code=_phase_code(g_pade)))
 
     has_GQA = (n_kv_heads < n_attention_heads)
     decomp = gamma_decompose(g_pade, has_GQA=has_GQA, has_SWA=has_SWA, n_params=n_params)
@@ -495,23 +496,32 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                        "n/a — γ outside (0,1)" if dh is None else
                        (f"closed-form d_h≈{dh:.0f}; but d_horizon(γ_Padé(θ,T_eval))≡T_eval={T_eval} "
                         f"by construction (D-NEW-1) → this verdict is δ-driven, not RoPE geometry. "
-                        f"Native horizon at T_train={T_train}: d_h≈{dh_native:.0f}.")))
+                        f"Native horizon at T_train={T_train}: d_h≈{dh_native:.0f}."),
+                       interp_code=("x2.i.dh_na" if dh is None else "x2.i.dh"),
+                       interp_params=(None if dh is None else
+                                      {"dh": f"{dh:.0f}", "T_eval": T_eval,
+                                       "T_train": T_train, "dh_native": f"{dh_native:.0f}"})))
 
     l_niah = l_niah_c(dh)
     chain.append(_step(4, "§26.5", "L_NIAH^c", "L_NIAH^c = 2·d_horizon",
                        {"d_horizon": dh}, l_niah,
-                       "n/a" if l_niah is None else f"NIAH 50% at L={l_niah:.0f}"))
+                       "n/a" if l_niah is None else f"NIAH 50% at L={l_niah:.0f}",
+                       interp_code=("x2.i.na" if l_niah is None else "x2.i.lniah"),
+                       interp_params=(None if l_niah is None else {"L": f"{l_niah:.0f}"})))
 
     p_hallu = p_hallucinate(T_eval, theta, g_corr)
     chain.append(_step(5, "§26.9", "P_hallucinate", "max(0,1-(d_h/L)^(1-γ))·√χ/(1+√χ)",
                        {"L": T_eval, "theta": theta, "gamma": g_corr}, p_hallu,
-                       "n/a (Phase B)" if p_hallu is None else f"{p_hallu*100:.1f}% predicted"))
+                       "n/a (Phase B)" if p_hallu is None else f"{p_hallu*100:.1f}% predicted",
+                       interp_code=("x2.i.phallu_na" if p_hallu is None else "x2.i.phallu"),
+                       interp_params=(None if p_hallu is None else {"pct": f"{p_hallu*100:.1f}"})))
 
     kv = kv_cache_memory(n_layers, n_kv_heads, d_head, T_eval, bytes_per_element)
     chain.append(_step(6, "§19.1", "KV cache memory", "2·L·n_kv·d_h·seq·B",
                        {"n_layers": n_layers, "n_kv_heads": n_kv_heads, "d_head": d_head,
                         "seq_len": T_eval, "bytes_per_element": bytes_per_element},
-                       kv, f"{kv['GB']:.2f} GB per request"))
+                       kv, f"{kv['GB']:.2f} GB per request",
+                       interp_code="x2.i.kv", interp_params={"gb": f"{kv['GB']:.2f}"}))
 
     if gamma_obs is not None:
         # Non-tautological path: verdict from MEASURED γ_obs (Diagnose CLI).
@@ -527,41 +537,66 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
         if gamma_obs >= 1 or dh_obs is None:
             verdict, reason = "NO", (f"Measured γ_obs={gamma_obs:.3f} ≥ 1 (Phase B): long-context "
                                      f"retrieval fails without NTK extension.")
-            mit = f"Apply NTK extension. α_opt = {alpha_opt(0.85, T_eval, theta):.2f}."
+            _alpha = alpha_opt(0.85, T_eval, theta)
+            mit = f"Apply NTK extension. α_opt = {_alpha:.2f}."
+            _rc, _rp = "x2.r.phaseb_measured", {"gamma_obs": f"{gamma_obs:.3f}"}
+            _mc, _mp = "x2.m.ntk_alpha", {"alpha": f"{_alpha:.2f}"}
         elif T_eval < dh_obs:
             margin = (1 - T_eval / dh_obs) * 100
             verdict, reason = "YES", (f"Measured horizon d_h^obs={dh_obs:.0f} > L={T_eval} "
                                       f"({margin:.0f}% margin, PDI={pdi:.2f}).")
             mit = "None required."
+            _rc, _rp = "x2.r.yes_measured", {"dh": f"{dh_obs:.0f}", "L": T_eval,
+                                             "margin": f"{margin:.0f}", "pdi": f"{pdi:.2f}"}
+            _mc, _mp = "x2.m.none", {}
         elif T_eval < 2 * dh_obs:
             verdict, reason = "DEGRADED", (f"L={T_eval} between measured horizon {dh_obs:.0f} and "
                                            f"NIAH ceiling {2*dh_obs:.0f} (PDI={pdi:.2f}).")
             mit = "Consider context contraction OR NTK extension."
+            _rc, _rp = "x2.r.degraded_measured", {"L": T_eval, "dh": f"{dh_obs:.0f}",
+                                                  "ceil": f"{2*dh_obs:.0f}", "pdi": f"{pdi:.2f}"}
+            _mc, _mp = "x2.m.contract_or_ntk", {}
         else:
             verdict, reason = "NO", (f"L={T_eval} exceeds measured NIAH ceiling {2*dh_obs:.0f} "
                                      f"(PDI={pdi:.2f}).")
-            mit = f"Apply NTK extension; need θ ≈ {theta_design(0.85, T_eval):,.0f} for γ=0.85."
+            _theta_need = theta_design(0.85, T_eval)
+            mit = f"Apply NTK extension; need θ ≈ {_theta_need:,.0f} for γ=0.85."
+            _rc, _rp = "x2.r.no_measured", {"L": T_eval, "ceil": f"{2*dh_obs:.0f}", "pdi": f"{pdi:.2f}"}
+            _mc, _mp = "x2.m.ntk_theta", {"theta": f"{_theta_need:,.0f}"}
     else:
         # Closed-form path: verdict is δ-driven (tautological horizon). Flag it.
         horizon_source = "closed_form_tautological"
         caveats.append("x2_use_measured_gamma")
         if g_corr <= 0 or g_corr >= 1:
             verdict, reason = "NO", "Phase B / geometric collapse (γ_corrected outside (0,1))"
+            _theta_need = theta_design(0.85, T_eval)
+            _alpha = alpha_opt(0.85, T_eval, theta)
             mit = (f"Apply NTK-aware extension. Required θ for γ=0.85: "
-                   f"{theta_design(0.85, T_eval):,.0f}. α_opt = {alpha_opt(0.85, T_eval, theta):.2f} "
-                   f"({'fine-tuning required' if alpha_opt(0.85, T_eval, theta) > 8 else 'zero-shot may work'}).")
+                   f"{_theta_need:,.0f}. α_opt = {_alpha:.2f} "
+                   f"({'fine-tuning required' if _alpha > 8 else 'zero-shot may work'}).")
+            _rc, _rp = "x2.r.phaseb_closed", {}
+            _mc, _mp = ("x2.m.ntk_full_ft" if _alpha > 8 else "x2.m.ntk_full_zs"), \
+                       {"theta": f"{_theta_need:,.0f}", "alpha": f"{_alpha:.2f}"}
         elif dh is not None and T_eval < dh:
             margin = (1 - T_eval / dh) * 100
             verdict, reason = "YES", f"L={T_eval} inside d_horizon={dh:.0f} ({margin:.0f}% margin)."
             mit = "None required."
+            _rc, _rp = "x2.r.yes_closed", {"L": T_eval, "dh": f"{dh:.0f}", "margin": f"{margin:.0f}"}
+            _mc, _mp = "x2.m.none", {}
         elif dh is not None and T_eval < l_niah:
             verdict, reason = "DEGRADED", f"L between d_horizon ({dh:.0f}) and L_NIAH^c ({l_niah:.0f})."
             mit = "Consider context contraction OR NTK extension."
+            _rc, _rp = "x2.r.degraded_closed", {"dh": f"{dh:.0f}", "ceil": f"{l_niah:.0f}"}
+            _mc, _mp = "x2.m.contract_or_ntk", {}
         else:
             verdict, reason = "NO", f"L={T_eval} exceeds NIAH ceiling {l_niah:.0f}."
-            mit = f"Apply NTK extension; need θ ≈ {theta_design(0.85, T_eval):,.0f} for γ=0.85."
+            _theta_need = theta_design(0.85, T_eval)
+            mit = f"Apply NTK extension; need θ ≈ {_theta_need:,.0f} for γ=0.85."
+            _rc, _rp = "x2.r.no_closed", {"L": T_eval, "ceil": f"{l_niah:.0f}"}
+            _mc, _mp = "x2.m.ntk_theta", {"theta": f"{_theta_need:,.0f}"}
 
-    out = _wrap("X-2", "Long Context Viability", locals(), chain, verdict, reason, mit)
+    out = _wrap("X-2", "Long Context Viability", locals(), chain, verdict, reason, mit,
+                reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
     out["caveats"] = caveats
     out["horizon_source"] = horizon_source
     if gamma_obs is not None:
@@ -1027,17 +1062,24 @@ def run_recipe_x23(n_params, gamma_text=None, gamma_random=None, **_unused):
 # ════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ════════════════════════════════════════════════════════════════════════════
-def _step(n, sec, name, formula, inputs, result, interpretation=None, breakdown=None):
+def _step(n, sec, name, formula, inputs, result, interpretation=None, breakdown=None,
+          interp_code=None, interp_params=None):
     s = {"step": n, "section": sec, "name": name, "formula": formula,
          "inputs": inputs, "result": result}
     if interpretation:
         s["interpretation"] = interpretation
     if breakdown:
         s["breakdown"] = breakdown
+    # i18n: message code + params so the UI can localize; the English
+    # `interpretation` text stays as fallback (incremental migration).
+    if interp_code:
+        s["interp_code"] = interp_code
+        s["interp_params"] = interp_params or {}
     return s
 
 
-def _wrap(rid, rname, locals_dict, chain, verdict, reason, mitigation):
+def _wrap(rid, rname, locals_dict, chain, verdict, reason, mitigation,
+          reason_code=None, reason_params=None, mit_code=None, mit_params=None):
     # Clean inputs (drop chain/internal vars)
     inputs = {k: v for k, v in locals_dict.items()
               if not k.startswith("_") and k not in
@@ -1050,9 +1092,17 @@ def _wrap(rid, rname, locals_dict, chain, verdict, reason, mitigation):
                "margin", "months", "months_to_payoff", "name",
                "caveats", "horizon_source", "dh_native", "pdi", "pdi_info",
                "dh_obs", "gamma_obs")}
-    return {"recipe_id": rid, "recipe_name": rname, "inputs": inputs,
-            "chain": chain, "verdict": verdict, "reason": reason,
-            "mitigation": mitigation}
+    out = {"recipe_id": rid, "recipe_name": rname, "inputs": inputs,
+           "chain": chain, "verdict": verdict, "reason": reason,
+           "mitigation": mitigation}
+    # i18n codes (same incremental pattern as _step)
+    if reason_code:
+        out["reason_code"] = reason_code
+        out["reason_params"] = reason_params or {}
+    if mit_code:
+        out["mit_code"] = mit_code
+        out["mit_params"] = mit_params or {}
+    return out
 
 
 def _confidence(factors):
@@ -1077,6 +1127,15 @@ def _phase_label(g):
     if g >= 1:
         return "Phase B / Hagedorn"
     return "Phase B / catastrophic (negative γ — T too large for θ)"
+
+
+def _phase_code(g):
+    """i18n code companion of _phase_label (py.phase.* keys in the UI)."""
+    if 0 < g < 1:
+        return "phase.a"
+    if g >= 1:
+        return "phase.b"
+    return "phase.catastrophic"
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1761,6 +1820,11 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
                 "reason": r.get("reason", r.get("error", "")),
                 "mitigation": r.get("mitigation", ""),
                 "name": r.get("recipe_name", ""),
+                # i18n passthrough — without these the UI cannot localize tiles
+                "reason_code": r.get("reason_code"),
+                "reason_params": r.get("reason_params"),
+                "mit_code": r.get("mit_code"),
+                "mit_params": r.get("mit_params"),
             }
             for rid, r in results.items()
         },
@@ -1791,6 +1855,8 @@ def compare_models(model_specs: list, recipe_id: str = "X-2",
                 "label": label,
                 "verdict": result.get("verdict", "ERROR"),
                 "reason": result.get("reason", ""),
+                "reason_code": result.get("reason_code"),
+                "reason_params": result.get("reason_params"),
                 "key_numbers": _extract_key_numbers(result),
             })
         except Exception as e:

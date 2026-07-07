@@ -4,6 +4,8 @@
 export const DEMO_STRINGS = {
   en: {
     "step": "Step",
+    "demo_btn": "Demo",
+    "demo_btn_tip": "Watch a guided simulation of this tool",
     "done": '✓ Done! Read the explanation below. <span style="opacity:.82">(click to close ✕)</span>',
     "tourintro": "This is what it gives you. Let me show you section by section 👇",
     "x.cta": "👉 <b>Now do it with your model:</b> change the input above and run it again.",
@@ -213,6 +215,16 @@ export const DEMO_STRINGS = {
     "launch.x.l2": "The KV-cache grows with context; switching the cache to q8_0/q4_0 halves or quarters it.",
     "launch.x.l3": "TAF check: asking for a context far above the trained one wastes VRAM on KV the attention can't actually use.",
     "launch.x.l4": "⚠ Overhead/scratch is a rough estimate and the bpw per quant are approximate effective values; the horizon check uses the trained context, not d_horizon.",
+    // ── fitcheck ──
+    "fitcheck.s1": "Open «Fit Check» and paste your model",
+    "fitcheck.s2": "Click «📥 Fetch geometry» — layers, GQA heads, head_dim",
+    "fitcheck.s3": "Ask for the famous 128K context…",
+    "fitcheck.s4": "Click «💾 Check fit» → the full VRAM budget",
+    "fitcheck.x.title": "📊 What you just learned",
+    "fitcheck.x.l1": "Weights are only <b>half</b> the story: the <b>KV cache</b> grows linearly with context — at 128K it can equal the weights.",
+    "fitcheck.x.l2": "The verdict tells you <b>which side</b> is the problem: <i>weights-bound</i> (model too big) vs <i>KV-bound</i> (context too long).",
+    "fitcheck.x.l3": "«Max context that fits» inverts the budget: the largest L your GPU can hold at this precision.",
+    "fitcheck.x.l4": "The suggestions are ordered by cost: quantize the KV cache first, then lower precision, then offload.",
     // ── gguf ──
     "gguf.s1": "Open «GGUF Validity Bridge» and enter a public GGUF repo (Qwen/Qwen2.5-7B-Instruct-GGUF)",
     "gguf.s2": "Click «📂 List quant files» — required first step; it auto-picks Q4_K_M",
@@ -246,6 +258,8 @@ export const DEMO_STRINGS = {
   },
   es: {
     "step": "Paso",
+    "demo_btn": "Demo",
+    "demo_btn_tip": "Mira una simulación guiada de esta herramienta",
     "done": '✓ ¡Listo! Lee la explicación abajo. <span style="opacity:.82">(clic para cerrar ✕)</span>',
     "tourintro": "Esto es lo que te da. Te lo enseño sección por sección 👇",
     "x.cta": "👉 <b>Ahora hazlo con tu modelo:</b> cambia el dato de arriba y vuelve a ejecutar.",
@@ -451,6 +465,16 @@ export const DEMO_STRINGS = {
     "launch.x.l2": "El KV-cache crece con el contexto; cambiar la cache a q8_0/q4_0 lo reduce a la mitad o a un cuarto.",
     "launch.x.l3": "Comprobación TAF: pedir un contexto muy por encima del entrenado malgasta VRAM en KV que la atención no aprovecha.",
     "launch.x.l4": "⚠ El overhead/scratch es una estimación gruesa y los bpw por quant son valores efectivos aproximados; la comprobación de horizonte usa el contexto entrenado, no d_horizon.",
+    // ── fitcheck ──
+    "fitcheck.s1": "Abre «¿Me cabe?» y pega tu modelo",
+    "fitcheck.s2": "Pulsa «📥 Fetch geometry» — capas, cabezas GQA, head_dim",
+    "fitcheck.s3": "Pide el famoso contexto de 128K…",
+    "fitcheck.s4": "Pulsa «💾 Comprobar» → el presupuesto completo de VRAM",
+    "fitcheck.x.title": "📊 Lo que acabas de aprender",
+    "fitcheck.x.l1": "Los pesos son solo <b>la mitad</b> de la historia: la <b>caché KV</b> crece linealmente con el contexto — a 128K puede igualar a los pesos.",
+    "fitcheck.x.l2": "El veredicto te dice <b>qué lado</b> es el problema: <i>limitado por pesos</i> (modelo grande) vs <i>por KV</i> (contexto largo).",
+    "fitcheck.x.l3": "«Contexto máximo que cabe» invierte el presupuesto: el mayor L que tu GPU sostiene con esta precisión.",
+    "fitcheck.x.l4": "Las sugerencias van por coste: primero cuantizar la caché KV, luego bajar precisión, luego offload.",
     // ── gguf ──
     "gguf.s1": "Abre «GGUF Validity Bridge» e introduce un repo GGUF público (Qwen/Qwen2.5-7B-Instruct-GGUF)",
     "gguf.s2": "Pulsa «📂 List quant files» — paso previo obligatorio; elige Q4_K_M automáticamente",
@@ -484,6 +508,8 @@ export const DEMO_STRINGS = {
   },
   fr: {
     "step": "Étape",
+    "demo_btn": "Démo",
+    "demo_btn_tip": "Regardez une simulation guidée de cet outil",
     "done": '✓ Terminé ! Lisez l\'explication ci-dessous. <span style="opacity:.82">(cliquer pour fermer ✕)</span>',
     "tourintro": "Voilà ce que ça vous donne. Je vous montre section par section 👇",
     "x.cta": "👉 <b>À vous maintenant :</b> changez la donnée ci-dessus et relancez.",
@@ -689,6 +715,16 @@ export const DEMO_STRINGS = {
     "launch.x.l2": "Le KV-cache grossit avec le contexte ; passer la cache en q8_0/q4_0 le réduit de moitié ou au quart.",
     "launch.x.l3": "Vérification TAF : demander un contexte bien au-dessus de celui entraîné gaspille de la VRAM en KV que l'attention n'exploite pas.",
     "launch.x.l4": "⚠ L'overhead/scratch est une estimation grossière et les bpw par quant sont des valeurs effectives approximatives ; la vérification d'horizon se base sur le contexte entraîné, pas sur d_horizon.",
+    // ── fitcheck ──
+    "fitcheck.s1": "Ouvrez « Ça rentre ? » et collez votre modèle",
+    "fitcheck.s2": "Cliquez « 📥 Fetch geometry » — couches, têtes GQA, head_dim",
+    "fitcheck.s3": "Demandez le fameux contexte 128K…",
+    "fitcheck.s4": "Cliquez « 💾 Vérifier » → le budget VRAM complet",
+    "fitcheck.x.title": "📊 Ce que vous venez d'apprendre",
+    "fitcheck.x.l1": "Les poids ne sont que <b>la moitié</b> de l'histoire : le <b>cache KV</b> croît linéairement avec le contexte — à 128K il peut égaler les poids.",
+    "fitcheck.x.l2": "Le verdict dit <b>quel côté</b> pose problème : <i>limité par les poids</i> (modèle trop gros) vs <i>par le KV</i> (contexte trop long).",
+    "fitcheck.x.l3": "« Contexte maximal qui rentre » inverse le budget : le plus grand L que votre GPU supporte à cette précision.",
+    "fitcheck.x.l4": "Les suggestions sont triées par coût : d'abord quantifier le cache KV, puis baisser la précision, puis l'offload.",
     // ── gguf ──
     "gguf.s1": "Ouvrez «GGUF Validity Bridge» et saisissez un dépôt GGUF public (Qwen/Qwen2.5-7B-Instruct-GGUF)",
     "gguf.s2": "Cliquez «📂 List quant files» — étape préalable obligatoire ; il choisit Q4_K_M tout seul",
@@ -722,6 +758,8 @@ export const DEMO_STRINGS = {
   },
   zh: {
     "step": "步骤",
+    "demo_btn": "演示",
+    "demo_btn_tip": "观看本工具的引导式演示",
     "done": '✓ 完成！请看下方说明。<span style="opacity:.82">（点击关闭 ✕）</span>',
     "tourintro": "这就是它能给你的。我来逐节展示 👇",
     "x.cta": "👉 <b>现在用你自己的模型试试：</b>改上面的输入再运行一次。",
@@ -927,6 +965,16 @@ export const DEMO_STRINGS = {
     "launch.x.l2": "KV-cache 随上下文增长；把 cache 切到 q8_0/q4_0 可将其减半或减到四分之一。",
     "launch.x.l3": "TAF 检查：把上下文设得远超训练时的长度，会把 VRAM 浪费在注意力根本用不上的 KV 上。",
     "launch.x.l4": "⚠ overhead/scratch 是粗略估计，各 quant 的 bpw 是近似的有效值；horizon 检查依据的是训练时的上下文，而非 d_horizon。",
+    // ── fitcheck ──
+    "fitcheck.s1": "打开「装得下吗」并粘贴你的模型",
+    "fitcheck.s2": "点击「📥 Fetch geometry」— 层数、GQA 头、head_dim",
+    "fitcheck.s3": "输入著名的 128K 上下文……",
+    "fitcheck.s4": "点击「💾 检查」→ 完整的显存预算",
+    "fitcheck.x.title": "📊 你刚学到的",
+    "fitcheck.x.l1": "权重只是故事的<b>一半</b>：<b>KV 缓存</b>随上下文线性增长——128K 时可能与权重一样大。",
+    "fitcheck.x.l2": "结论会告诉你<b>哪一侧</b>是问题：<i>权重受限</i>（模型太大）还是 <i>KV 受限</i>（上下文太长）。",
+    "fitcheck.x.l3": "「可装下的最大上下文」是预算的反解：此精度下你的 GPU 能撑住的最大 L。",
+    "fitcheck.x.l4": "建议按成本排序：先量化 KV 缓存，再降精度，最后卸载。",
     // ── gguf ──
     "gguf.s1": "打开「GGUF Validity Bridge」并输入一个公开的 GGUF 仓库（Qwen/Qwen2.5-7B-Instruct-GGUF）",
     "gguf.s2": "点「📂 List quant files」——必需的前置步骤；它会自动选中 Q4_K_M",
@@ -960,9 +1008,13 @@ export const DEMO_STRINGS = {
   },
 };
 
+import { getLang } from "./i18n.js";
+
 export function dt(key) {
-  let lang = "en";
-  try { lang = localStorage.getItem("tafagent_lang") || "en"; } catch (e) {}
+  // Same language source as the rest of the UI (getLang = i18n currentLang).
+  // Never re-read localStorage here: navigator-detected languages are not
+  // stored, and a storage-only fallback shows English demos on a Spanish UI.
+  const lang = getLang();
   const m = DEMO_STRINGS[lang] || DEMO_STRINGS.en;
   return m[key] ?? DEMO_STRINGS.en[key] ?? key;
 }

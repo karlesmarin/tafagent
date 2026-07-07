@@ -45,6 +45,7 @@ import {
 } from "./longscore.js";
 import { planExtension, suggestRopeType } from "./yarn_planner.js";
 import { listGgufFiles, fetchGgufMetadata, ggufToConfig, quantFromFilename, analyzeGguf } from "./gguf_bridge.js";
+import { checkFit } from "./fit_check.js";
 import { GPU_PRESETS, QUANT_BPW, planLaunch, launchCommands } from "./launch_flags.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
@@ -250,6 +251,7 @@ document.addEventListener("click", (e) => {
       yarn: "yarn-section",
       gguf: "gguf-section",
       launch: "launch-section",
+      fitcheck: "fitcheck-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -274,7 +276,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section", "memreal-section", "adapter-section", "pvr-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section", "fitcheck-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -297,6 +299,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       yarn: "yarn-section",
       gguf: "gguf-section",
       launch: "launch-section",
+      fitcheck: "fitcheck-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -313,6 +316,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "yarn") initYarn();
     if (mode === "gguf") initGguf();
     if (mode === "launch") initLaunch();
+    if (mode === "fitcheck") initFitCheck();
     // Re-scan: any model-id input rendered lazily by an init() above now gets the
     // autocomplete dropdown too. Idempotent (WeakSet) — already-attached inputs are skipped.
     attachAllHfAutocompletes();
@@ -2264,9 +2268,9 @@ function renderResult(r) {
       <div style="font-size:1.6rem; font-weight:800;">${verdictEmoji} ${escapeHtml(verdictStr)}</div>
       <div class="recipe-tag">${escapeHtml(r.recipe_id || "")} — ${escapeHtml(r.recipe_name || "")}</div>
     </div>
-    <div style="margin-bottom:0.5rem;"><strong>Reason:</strong> ${escapeHtml(r.reason || "(none)")}</div>
-    ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe."
-      ? `<div><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
+    <div style="margin-bottom:0.5rem;"><strong>${t("py.label.reason")}</strong> ${escapeHtml(pyMsg(r, "reason", "reason_code", "reason_params") || "(none)")}</div>
+    ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe." && r.mit_code !== "x2.m.none"
+      ? `<div><strong>${t("py.label.action")}</strong> ${escapeHtml(pyMsg(r, "mitigation", "mit_code", "mit_params"))}</div>`
       : ""}
     ${Array.isArray(r.caveats) && r.caveats.length
       ? `<div class="recipe-caveats" style="margin-top:0.6rem; padding:0.5rem 0.7rem; border-left:3px solid #d29922; background:rgba(210,153,34,0.08); font-size:0.85rem; border-radius:4px;">
@@ -2293,7 +2297,7 @@ function renderResult(r) {
       <div class="step-formula">${escapeHtml(step.formula)}</div>
       <div><strong>Inputs:</strong> ${escapeHtml(JSON.stringify(step.inputs))}</div>
       <div class="step-result"><strong>Result:</strong> ${formatResult(step.result)}</div>
-      ${step.interpretation ? `<div class="step-interp">${escapeHtml(step.interpretation)}</div>` : ""}
+      ${(step.interpretation || step.interp_code) ? `<div class="step-interp">${escapeHtml(pyMsg(step, "interpretation", "interp_code", "interp_params") || step.interpretation)}</div>` : ""}
     `;
     cBox.appendChild(div);
   });
@@ -2410,6 +2414,20 @@ async function synthesizeAnswer(result) {
     </div>
   `;
   setStatus("✅ Done.");
+}
+
+// i18n for Python-generated result text: prefer the message code (py.* keys)
+// when a translation exists; fall back to the English text from taf_browser.py.
+// Incremental migration — recipes gain codes one by one (X-2 first).
+function pyMsg(obj, textField, codeField, paramsField) {
+  const code = obj?.[codeField];
+  if (code) {
+    const key = "py." + code;
+    const params = obj?.[paramsField];
+    const txt = params && Object.keys(params).length ? tFmt(key, params) : t(key);
+    if (txt && txt !== key) return txt;
+  }
+  return obj?.[textField] ?? "";
 }
 
 function buildSynthesisPrompt(r) {
@@ -2776,9 +2794,9 @@ function renderProfile(p, params) {
         <span>${escapeHtml(rid)} — <span class="tile-name">${escapeHtml(r.name)}</span></span>
         <span class="tile-verdict">${verdictEmoji(r.verdict)} ${escapeHtml(r.verdict)}</span>
       </div>
-      <div class="tile-reason">${escapeHtml(r.reason || "")}</div>
-      ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe."
-        ? `<div class="tile-reason" style="margin-top:0.4rem; color:var(--fg-dim);"><strong>Action:</strong> ${escapeHtml(r.mitigation)}</div>`
+      <div class="tile-reason">${escapeHtml(pyMsg(r, "reason", "reason_code", "reason_params") || "")}</div>
+      ${r.mitigation && r.mitigation !== "None required." && r.mitigation !== "None — proceed with Chinchilla-optimal recipe." && r.mit_code !== "x2.m.none"
+        ? `<div class="tile-reason" style="margin-top:0.4rem; color:var(--fg-dim);"><strong>${t("py.label.action")}</strong> ${escapeHtml(pyMsg(r, "mitigation", "mit_code", "mit_params"))}</div>`
         : ""}
     </div>
   `).join("");
@@ -3219,7 +3237,7 @@ function renderCompare(cmp) {
     const cls = verdictClass(r.verdict);
     html += `<tr><td><strong>${escapeHtml(r.label)}</strong></td>`;
     html += `<td class="${cls}">${escapeHtml(r.verdict)}</td>`;
-    html += `<td>${escapeHtml(r.reason)}</td>`;
+    html += `<td>${escapeHtml(pyMsg(r, "reason", "reason_code", "reason_params") || r.reason || "")}</td>`;
     allKeys.forEach(k => {
       const v = r.key_numbers ? r.key_numbers[k] : null;
       html += `<td>${v === undefined || v === null ? "—" : (typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 2 }) : escapeHtml(String(v)))}</td>`;
@@ -5516,6 +5534,118 @@ function renderLaunch(p) {
   });
 }
 
+// ── FIT CHECK mode ("will it fit?") ─────────────────────────────────────────
+let _fitcheckWired = false;
+let _fitGeom = null;
+
+function initFitCheck() {
+  if (_fitcheckWired) return;
+  _fitcheckWired = true;
+
+  const gpuSel = $("fitcheck-gpu");
+  if (gpuSel && !gpuSel.options.length) {
+    gpuSel.innerHTML = GPU_PRESETS.map(g => `<option value="${g.vram}">${escapeHtml(g.label)}</option>`).join("");
+    gpuSel.value = "24";
+  }
+
+  const fetchBtn = $("fitcheck-fetch-btn");
+  const modelEl = $("fitcheck-model");
+  if (modelEl) attachHfAutocomplete(modelEl, { onSelect: () => fetchBtn?.click() });
+
+  fetchBtn?.addEventListener("click", async () => {
+    const id = (modelEl.value || "").trim();
+    if (!id) { $("fitcheck-status").textContent = "⚠ " + t("launch.need_id"); return; }
+    $("fitcheck-status").textContent = "⏳ " + t("launch.fetching");
+    fetchBtn.disabled = true;
+    state.lastModelId = id;
+    try {
+      const cfg = await fetchHfConfig(id);
+      const nAttn = cfg.num_attention_heads ?? null;
+      const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
+      _fitGeom = {
+        nLayers: cfg.num_hidden_layers ?? null,
+        nKvHeads: cfg.num_key_value_heads ?? nAttn,
+        headDim: cfg.head_dim ?? (cfg.hidden_size && nAttn ? cfg.hidden_size / nAttn : null),
+        hidden: cfg.hidden_size ?? null,
+        vocab: cfg.vocab_size ?? null,
+        intermediate: cfg.intermediate_size ?? null,
+        tieEmbeddings: cfg.tie_word_embeddings ?? false,
+        nParams: cfg.num_parameters ?? null,
+        ropeTheta: cfg.rope_theta ?? 10000,
+        ctxTrain: rs.original_max_position_embeddings ?? cfg.max_position_embeddings ?? null,
+      };
+      if (!$("fitcheck-ctx").value && _fitGeom.ctxTrain) {
+        $("fitcheck-ctx").value = Math.min(_fitGeom.ctxTrain, 8192);
+      }
+      const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
+      $("fitcheck-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_fitGeom.nLayers} ${t("launch.layers")}, ` +
+        `GQA ${nAttn}:${_fitGeom.nKvHeads}, θ=${_thetaFmt(_fitGeom.ropeTheta)}, ctx ${_yarnFmtK(_fitGeom.ctxTrain)}.`;
+    } catch (err) {
+      $("fitcheck-status").textContent = `❌ ${err.message}`;
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  });
+
+  $("fitcheck-btn")?.addEventListener("click", () => {
+    if (!_fitGeom) { $("fitcheck-status").textContent = "⚠ " + t("launch.need_fetch"); return; }
+    const vram = parseFloat($("fitcheck-vram").value) || parseFloat(gpuSel.value);
+    const r = checkFit(_fitGeom, {
+      precision: $("fitcheck-precision").value,
+      cacheType: $("fitcheck-cache").value,
+      vramGB: vram,
+      targetCtx: parseFloat($("fitcheck-ctx").value),
+    });
+    renderFitCheck(r);
+  });
+}
+
+function _fitSugText(s) {
+  switch (s.code) {
+    case "reduce_ctx":      return tFmt("fitcheck.sug.reduce_ctx", { maxCtx: s.params.maxCtx.toLocaleString() });
+    case "quant_cache":     return t("fitcheck.sug.quant_cache");
+    case "lower_precision": return tFmt("fitcheck.sug.lower_precision", { precision: s.params.precision });
+    case "partial_offload": return tFmt("fitcheck.sug.partial_offload", { ngl: s.params.ngl, nLayers: s.params.nLayers });
+    case "bigger_gpu":      return t("fitcheck.sug.bigger_gpu");
+    default: return s.code;
+  }
+}
+
+function renderFitCheck(r) {
+  const out = $("fitcheck-output");
+  if (!out) return;
+  out.style.display = "";
+  const errMap = { no_geometry: "launch.err.no_geom", no_gpu: "launch.err.no_gpu", no_ctx: "launch.err.no_ctx" };
+  if (!r.ok) { out.innerHTML = `<div class="gc-validity-warning">⚠ ${t(errMap[r.verdict] || "launch.err.no_geom")}</div>`; return; }
+
+  const meta = ({
+    fits_comfortably: { emoji: "✅", cls: "v-yes" },
+    fits_tight:       { emoji: "✅", cls: "v-deg" },
+    kv_bound:         { emoji: "🚨", cls: "v-no"  },
+    weights_bound:    { emoji: "🚨", cls: "v-no"  },
+  })[r.verdictCode] || { emoji: "❓", cls: "v-deg" };
+
+  const td = "padding:3px 12px 3px 0;";
+  const gb = n => (n == null ? "—" : n.toFixed(1) + " GB");
+  const kvPct = (r.kvShare * 100).toFixed(0);
+  const sugHtml = r.suggestions.map(s => `<li>${_fitSugText(s)}</li>`).join("");
+  const warnHtml = (r.warnings || []).map(w => `<li>${_launchWarnText(w)}</li>`).join("");
+
+  out.innerHTML = `
+    <p><span class="verdict-badge ${meta.cls}">${meta.emoji} ${t("fitcheck.verdict." + r.verdictCode)}</span></p>
+    <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
+      <tr><td style="${td}">${t("launch.r.weights")}</td><td>${gb(r.weightsGB)} <span class="subtle">(${r.precision}, ${r.bpw} bpw)</span></td></tr>
+      <tr><td style="${td}">${t("launch.r.kv")}</td><td><strong>${gb(r.kvGB)}</strong> <span class="subtle">(${r.cacheType}, ${r.kvPerTokenKB.toFixed(0)} KB/token — ${kvPct}% ${t("fitcheck.r.kvshare")})</span></td></tr>
+      <tr><td style="${td}">${t("launch.r.overhead")}</td><td>${gb(r.overheadGB)}</td></tr>
+      <tr style="border-top:1px solid var(--border);"><td style="${td}"><strong>${t("launch.r.total")}</strong></td><td><strong>${gb(r.totalGB)}</strong> / ${gb(r.vramGB)} VRAM</td></tr>
+      <tr><td style="${td}">${t("fitcheck.r.headroom")}</td><td>${r.fits ? gb(r.headroomGB) : "—"}</td></tr>
+      <tr><td style="${td}">${t("fitcheck.r.maxctx")}</td><td><strong>${r.maxCtx != null ? r.maxCtx.toLocaleString() : "—"}</strong> tokens</td></tr>
+    </table>
+    ${sugHtml ? `<p style="margin:0.6em 0 0.2em;"><strong>${t("fitcheck.sug.title")}</strong></p><ul style="font-size:0.92em;">${sugHtml}</ul>` : ""}
+    ${warnHtml ? `<ul style="font-size:0.9em;margin-top:0.6em;opacity:0.9;">${warnHtml}</ul>` : ""}
+    <p class="subtle" style="font-size:0.86em;">${t("launch.r.note")}</p>`;
+}
+
 // ════════════════════════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
@@ -6013,6 +6143,25 @@ const DEMOS = {
       return { title: dt("launch.x.title"), lines: [dt("launch.x.l1"), dt("launch.x.l2"), dt("launch.x.l3"), dt("launch.x.l4")] };
     },
   },
+  fitcheck: {
+    sectionId: "fitcheck-section",
+    model: "meta-llama/Llama-3.1-8B-Instruct",
+    async run(D) {
+      const total = 4;
+      D.mode("fitcheck"); await D.sleep(450); D.scroll("#fitcheck-model");
+      D.banner(dt("fitcheck.s1"), 1, total); D.hl("#fitcheck-model"); await D.sleep(900);
+      await D.type("#fitcheck-model", this.model); await D.sleep(600);
+      D.closeAuto("#fitcheck-model"); await D.sleep(450);
+      D.banner(dt("fitcheck.s2"), 2, total);
+      D.hl("#fitcheck-fetch-btn"); await D.sleep(700); D.click("#fitcheck-fetch-btn"); await D.sleep(3800);
+      D.banner(dt("fitcheck.s3"), 3, total); D.hl("#fitcheck-ctx"); await D.sleep(500);
+      await D.type("#fitcheck-ctx", "131072"); await D.sleep(700);
+      D.banner(dt("fitcheck.s4"), 4, total); D.hl("#fitcheck-btn"); await D.sleep(700); D.click("#fitcheck-btn");
+      await D.waitText(/VRAM|KV/i, 20000);
+      D.clearHl(); await D.sleep(700); D.scrollText(/VRAM|KV/i);
+      return { title: dt("fitcheck.x.title"), lines: [dt("fitcheck.x.l1"), dt("fitcheck.x.l2"), dt("fitcheck.x.l3"), dt("fitcheck.x.l4")] };
+    },
+  },
   gguf: {
     sectionId: "gguf-section",
     repo: "Qwen/Qwen2.5-7B-Instruct-GGUF",
@@ -6133,8 +6282,8 @@ function injectDemoButtons() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "taf-demo-btn";
-    btn.textContent = "🎬 Demo";
-    btn.title = "Watch a guided simulation of this tool";
+    btn.textContent = "🎬 " + dt("demo_btn");
+    btn.title = dt("demo_btn_tip");
     btn.style.cssText = "margin-left:.6rem;padding:.22rem .7rem;font:700 13px Georgia,serif;" +
       "color:#fff;border:none;border-radius:1rem;cursor:pointer;vertical-align:middle;" +
       "background:linear-gradient(135deg,#0072B2,#34b3e0);box-shadow:0 2px 6px rgba(0,114,178,.3);";

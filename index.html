@@ -260,6 +260,9 @@
       <p><strong data-i18n="help.v091.gguf.title">🧊 GGUF Validity Bridge</strong></p>
       <p data-i18n="help.v091.gguf.body">The dozen GGUF/VRAM calculators (NyxKrage, oobabooga, …) read a <code>.gguf</code> header to tell you if a quant <em>fits in your GPU</em>. This reads the same header — via HTTP Range, so no multi-GB download — and answers the question they skip: <em>does it fit AND still work?</em> Paste a GGUF repo, pick a quant file; the bridge pulls <code>rope_theta</code>, <code>context_length</code>, the quant scheme (from <code>general.file_type</code> or the filename), and head geometry, then runs TAF's γ_Padé / d_horizon plus the architecture-aware quant-regime γ-shift. Output: effective attention horizon at the trained context, how far the quant erodes γ (and ΔPPL) for <em>this</em> model, and a verdict — HEALTHY / USABLE-WITH-CARE / DEGRADES. <em>Use case</em>: 'unsloth/Qwen3.5-9B-GGUF Q4_K_M fits 8GB — but is it brain-dead past 30K?' → see the horizon and the Q4 γ-penalty before you download 6 GB.</p>
 
+      <p><strong data-i18n="help.v012.fitcheck.title">💾 Fit Check — will it fit? (v0.12)</strong></p>
+      <p data-i18n="help.v012.fitcheck.body">The most recurring pain on the HF forum: "the model card says 16 GB, why is my GPU full?" — because weights are only half the story; the KV cache grows linearly with context and at 128K it can equal the weights. Fit Check takes a model (fetches geometry from <code>config.json</code>), a precision (fp16/bf16/int8/nf4 or any GGUF quant), a GPU and a target context, and shows the full budget: weights + KV + scratch vs your VRAM. If it doesn't fit, it tells you <em>which side is the problem</em> (weights-bound vs KV-bound), the maximum context that DOES fit, and the cheapest rescue: quantize the KV cache, drop precision (it scans the ladder for the first one that fits), partial offload, or a smaller context. Same budget math as Launch Flags — the two can never disagree. <em>Use case</em>: "Llama-3.1-8B fp16 on my 4090 at 128K?" → weights 15 GB + KV 16 GB = no; max context ~66K; q8_0 cache or Q6_K makes it fit.</p>
+
       <p><strong data-i18n="help.v094.launch.title">🚀 Launch-Flag Generator</strong></p>
       <p data-i18n="help.v094.launch.body">The VRAM calculators tell you <em>whether</em> a model fits; they don't hand you the command. This does. Pick a model (fetches geometry from HF <code>config.json</code>), a quant, a GPU and a target context — it computes the VRAM breakdown (weights + KV cache + scratch), how many layers to offload (<code>-ngl</code>), and emits the copy-paste <code>llama-server</code> and Ollama commands with <code>-c</code> context, <code>-fa</code> flash-attention, KV-cache type, and <code>--no-mmap</code> (the Blackwell OOM fix: force all weights into physical VRAM). Plus the TAF reality check no calculator gives: if you're allocating KV for a context past the model's d_horizon, it warns you that memory is wasted — the attention won't reach there. <em>Use case</em>: 'What <code>-ngl</code> for Llama-70B-Q4 on my 4090?' → 39 of 80 layers, exact command, and a note if your context is past the usable horizon.</p>
         </details>
@@ -448,6 +451,7 @@
           <p class="tile-desc" data-i18n="tile.diagnose.desc">Will this specific model work for my use case?</p>
           <div class="tile-modes">
             <button data-mode-link="profile" data-i18n="modes.profile">📇 Profile a model</button>
+            <button data-mode-link="fitcheck" data-i18n="modes.fitcheck">💾 Fit Check</button>
             <button data-mode-link="unmask" data-i18n="modes.unmask">🪟 Unmask</button>
             <button data-mode-link="memreal" data-i18n="modes.memreal">🧠 Memory Reality</button>
             <button data-mode-link="adapter" data-i18n="modes.adapter">🔌 Adapter Reality</button>
@@ -558,6 +562,7 @@
         <button class="mode-btn" data-mode="yarn" role="tab" aria-selected="false" data-i18n="modes.yarn">🧵 YaRN Planner</button>
         <button class="mode-btn" data-mode="gguf" role="tab" aria-selected="false" data-i18n="modes.gguf">🧊 GGUF Bridge</button>
         <button class="mode-btn" data-mode="launch" role="tab" aria-selected="false" data-i18n="modes.launch">🚀 Launch Flags</button>
+        <button class="mode-btn" data-mode="fitcheck" role="tab" aria-selected="false" data-i18n="modes.fitcheck">💾 Fit Check</button>
       </div>
       <p id="mode-desc" class="recipe-desc" data-i18n="modes.desc">
         <strong>Quickest start</strong>: paste any HuggingFace model id (e.g. <code>meta-llama/Meta-Llama-3-8B</code>),
@@ -1528,6 +1533,68 @@
       </div>
       <button id="launch-gen-btn" data-i18n="launch.gen_btn">🚀 Generate flags</button>
       <div id="launch-output" style="display:none; margin-top:1em;"></div>
+    </section>
+
+    <!-- FIT CHECK mode -->
+    <section id="fitcheck-section" style="display:none;">
+      <h2><span data-i18n="fitcheck.title">💾 Fit Check — will it fit?</span>
+        <span class="info"><span class="tooltip" data-i18n="fitcheck.tip">
+          <strong>The #1 surprise on the forums</strong>: weights fit, then the KV cache at long
+          context blows the VRAM (Llama-3.1-8B fp16 = ~15 GB weights <em>plus</em> ~16 GB of KV
+          at 128K). This mode shows the full budget — weights + KV cache + scratch — for any
+          model, precision (fp16/bf16/int8/GGUF quants) and context, BEFORE you download
+          anything. If it doesn't fit it tells you <em>why</em> (weights-bound vs KV-bound) and
+          what rescues it: shorter context, quantized cache, lower precision, or partial offload.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="fitcheck.desc">
+        Model + precision + GPU + context → does it fit, why/why not, the max context that
+        does fit, and what to change if it doesn't. Works for transformers (fp16/bf16/int8)
+        and GGUF quants alike.
+      </p>
+
+      <div class="form-row">
+        <label for="fitcheck-model" data-i18n="launch.model_label">HF model id:</label>
+        <input type="text" id="fitcheck-model" placeholder="meta-llama/Llama-3.1-8B-Instruct">
+        <button id="fitcheck-fetch-btn" class="secondary" data-i18n="launch.fetch_btn">📥 Fetch geometry</button>
+      </div>
+      <span id="fitcheck-status" class="subtle"></span>
+
+      <div class="form-row">
+        <label for="fitcheck-precision" data-i18n="fitcheck.precision_label">Weights precision:</label>
+        <select id="fitcheck-precision">
+          <option value="BF16" selected>bf16 (transformers default)</option>
+          <option value="FP16">fp16</option>
+          <option value="FP32">fp32</option>
+          <option value="INT8">int8 (bitsandbytes)</option>
+          <option value="NF4">nf4 (bitsandbytes 4-bit)</option>
+          <option value="Q8_0">GGUF Q8_0</option>
+          <option value="Q6_K">GGUF Q6_K</option>
+          <option value="Q5_K_M">GGUF Q5_K_M</option>
+          <option value="Q4_K_M">GGUF Q4_K_M</option>
+          <option value="Q3_K_M">GGUF Q3_K_M</option>
+          <option value="Q2_K">GGUF Q2_K</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="fitcheck-gpu" data-i18n="launch.gpu_label">GPU:</label>
+        <select id="fitcheck-gpu"></select>
+        <input type="number" id="fitcheck-vram" placeholder="or custom VRAM (GB)" min="1" style="width:11em;">
+      </div>
+      <div class="form-row">
+        <label for="fitcheck-ctx" data-i18n="launch.ctx_label">Target context L:</label>
+        <input type="number" id="fitcheck-ctx" placeholder="8192" min="256">
+        <span>
+          <label data-i18n="launch.cache_label">KV cache:</label>
+          <select id="fitcheck-cache">
+            <option value="fp16">fp16</option>
+            <option value="q8_0">q8_0 (½ KV)</option>
+            <option value="q4_0">q4_0 (¼ KV)</option>
+          </select>
+        </span>
+      </div>
+      <button id="fitcheck-btn" data-i18n="fitcheck.check_btn">💾 Check fit</button>
+      <div id="fitcheck-output" style="display:none; margin-top:1em;"></div>
     </section>
 
     <!-- Recipe selector (mode=recipe) -->

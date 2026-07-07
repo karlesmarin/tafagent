@@ -25,6 +25,8 @@ jobs:
         run: node tests/prediction_reality.test.mjs
       - name: Adapter-reality unit tests
         run: node tests/adapter_reality.test.mjs
+      - name: Fit-check unit tests
+        run: node tests/fit_check.test.mjs
 
   python:
     name: formula tests
@@ -38,3 +40,20 @@ jobs:
         run: pip install numpy pytest
       - name: Pytest
         run: python -m pytest tests/test_taf_formulas.py -q
+
+  e2e:
+    name: e2e sweep (all modes x 4 langs, 0 JS errors)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Playwright
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: python3 serve.py &
+      - name: Sweep every mode in every language
+        run: node test_sweep.mjs
