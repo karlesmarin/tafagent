@@ -1,7 +1,7 @@
 {
   "name": "tafagent",
-  "version": "1.0.0",
-  "description": "--- title: TAF Agent emoji: 🔬 colorFrom: blue colorTo: green sdk: static pinned: true license: apache-2.0 short_description: 14 anti-bullshit LLM diagnostics in browser. 4 langs. tags:   - transformer   - llm   - evaluation   - diagnostic   - anti-bullshit   - long-context   - sliding-window   - yarn   - chat-template   - arena-elo   - contamination   - quantization   - drift   - ruler   - niah   - lean-mathlib   - formal-verification   - rope   - kv-cache   - viability   - thermodynamics   - free   - browser   - webgpu language:   - en   - es   - fr   - zh ---",
+  "version": "0.11.0",
+  "description": "28 anti-bullshit LLM diagnostics in the browser (zero install, zero telemetry). EN/ES/FR/ZH.",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -23,6 +23,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "type": "commonjs"
 }

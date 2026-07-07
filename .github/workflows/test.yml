@@ -17,6 +17,14 @@ jobs:
         run: node tests/smoke.mjs
       - name: i18n integrity (parity + duplicates + code keys)
         run: node tests/i18n_check.mjs
+      - name: Memory-reality unit tests
+        run: node tests/memory_reality.test.mjs
+      - name: Confidence unit tests
+        run: node tests/confidence.test.mjs
+      - name: Prediction-vs-reality unit tests
+        run: node tests/prediction_reality.test.mjs
+      - name: Adapter-reality unit tests
+        run: node tests/adapter_reality.test.mjs
 
   python:
     name: formula tests

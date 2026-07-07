@@ -2406,7 +2406,7 @@ async function synthesizeAnswer(result) {
   $("answer-box").innerHTML = `
     <div style="white-space:pre-wrap; line-height:1.7;">${escapeHtml(answer)}</div>
     <div style="margin-top:0.75rem; font-size:0.85rem; color:var(--fg-dim);">
-      ↑ Synthesised by Llama-3.2-1B in your browser. Numbers are deterministic Python.
+      ↑ Synthesised by the in-browser LLM (WebLLM). Numbers are deterministic Python.
     </div>
   `;
   setStatus("✅ Done.");
@@ -2511,10 +2511,10 @@ function renderWhatIfSlider(profile, params, targetEl) {
     const T = parseInt($("whatif-slider").value);
     const sqrt2 = Math.SQRT2;
     const g_pade = (2 * params.theta - T * sqrt2) / (2 * params.theta + T * sqrt2);
-    // Apply same decomposition as Python
+    // Apply same decomposition as Python (taf_browser.py gamma_decompose):
+    // delta_SWA intentionally NOT applied — demoted to 0 there (originally fit on n=1).
     const g_corr = g_pade
       + (params.n_kv_heads < params.n_attention_heads ? 0.11 : 0)
-      + (params.has_SWA ? -0.21 : 0)
       + (params.n_params >= 4e8 ? -0.15 : 0);
     let dh = null, niah = null, verdict, vClass;
     if (g_corr > 0 && g_corr < 1) {
@@ -3602,7 +3602,7 @@ async function exportableData(type, data) {
   return {
     _taf_export: true,
     _taf_type: type,
-    _taf_version: "0.2",
+    _taf_version: "0.11",
     _taf_input_hash: hash,        // identical inputs ⇒ identical hash
     _taf_timestamp: new Date().toISOString(),
     payload: data,
