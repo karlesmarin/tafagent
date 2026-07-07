@@ -68,7 +68,7 @@
       "should I train custom or use API?" using deterministic Python formulas (TAF — Thermodynamic Attention Framework).</p>
         </details>
         <details class="inv-card">
-          <summary class="inv-card-title" data-i18n="help.modes.title">How to use — 7 modes</summary>
+          <summary class="inv-card-title" data-i18n="help.modes.title">How to use — the main modes</summary>
       <p data-i18n="help.modes.profile"><strong>📇 Profile</strong>: paste model id → all recipes at once = TAF Card. <strong>Best starting point</strong>.</p>
       <p data-i18n="help.modes.compare"><strong>🆚 Compare</strong>: 2-3 models side-by-side on same recipe. Best when choosing between candidates.</p>
       <p data-i18n="help.modes.inspector"><strong>🔍 Inspect config</strong>: paste raw <code>config.json</code> → tool parses + runs full Profile. For private models, in-development configs, or models not yet on HF Hub.</p>
@@ -79,6 +79,8 @@
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.recipes.title">The 8 recipes available</summary>
+
+      <p data-i18n="help.recipes.where"><em>Where you see them:</em> the <strong>📇 Profile</strong> card runs the <strong>5 decision recipes</strong> (X-1, X-2, X-3, X-5, X-19) at once; the other 3 (X-21, X-22, X-23) are research diagnostics — run them from <strong>📋 Recipe</strong> or <strong>💬 Ask</strong> (their key numbers do appear in the Profile's Diagnostics section).</p>
 
       <p data-i18n="help.recipe.x1.title"><strong>X-1 Custom training vs API</strong> — compares cost of training your own model vs paying for API access.</p>
       <div class="help-example" data-i18n="help.recipe.x1.example">
@@ -260,11 +262,18 @@
       <p><strong data-i18n="help.v091.gguf.title">🧊 GGUF Validity Bridge</strong></p>
       <p data-i18n="help.v091.gguf.body">The dozen GGUF/VRAM calculators (NyxKrage, oobabooga, …) read a <code>.gguf</code> header to tell you if a quant <em>fits in your GPU</em>. This reads the same header — via HTTP Range, so no multi-GB download — and answers the question they skip: <em>does it fit AND still work?</em> Paste a GGUF repo, pick a quant file; the bridge pulls <code>rope_theta</code>, <code>context_length</code>, the quant scheme (from <code>general.file_type</code> or the filename), and head geometry, then runs TAF's γ_Padé / d_horizon plus the architecture-aware quant-regime γ-shift. Output: effective attention horizon at the trained context, how far the quant erodes γ (and ΔPPL) for <em>this</em> model, and a verdict — HEALTHY / USABLE-WITH-CARE / DEGRADES. <em>Use case</em>: 'unsloth/Qwen3.5-9B-GGUF Q4_K_M fits 8GB — but is it brain-dead past 30K?' → see the horizon and the Q4 γ-penalty before you download 6 GB.</p>
 
+      <p><strong data-i18n="help.v094.launch.title">🚀 Launch-Flag Generator</strong></p>
+      <p data-i18n="help.v094.launch.body">The VRAM calculators tell you <em>whether</em> a model fits; they don't hand you the command. This does. Pick a model (fetches geometry from HF <code>config.json</code>), a quant, a GPU and a target context — it computes the VRAM breakdown (weights + KV cache + scratch), how many layers to offload (<code>-ngl</code>), and emits the copy-paste <code>llama-server</code> and Ollama commands with <code>-c</code> context, <code>-fa</code> flash-attention, KV-cache type, and <code>--no-mmap</code> (the Blackwell OOM fix: force all weights into physical VRAM). Plus the TAF reality check no calculator gives: if you're allocating KV for a context past the model's d_horizon, it warns you that memory is wasted — the attention won't reach there. <em>Use case</em>: 'What <code>-ngl</code> for Llama-70B-Q4 on my 4090?' → 39 of 80 layers, exact command, and a note if your context is past the usable horizon.</p>
+        </details>
+        <details class="inv-card">
+          <summary class="inv-card-title" data-i18n="help.v012.title">🆕 v0.12 — Fit Check + everything in your language</summary>
+      <p style="opacity: 0.85;" data-i18n="help.v012.intro"><em>v0.12 (2026-07-07): the #1 recurring forum question — "will this model fit on my GPU?" — answered before you download anything; and the app now speaks YOUR language end-to-end: guided demos, recipe verdicts and explanations follow the browser language (EN/ES/FR/ZH), not just the menus.</em></p>
+
       <p><strong data-i18n="help.v012.fitcheck.title">💾 Fit Check — will it fit? (v0.12)</strong></p>
       <p data-i18n="help.v012.fitcheck.body">The most recurring pain on the HF forum: "the model card says 16 GB, why is my GPU full?" — because weights are only half the story; the KV cache grows linearly with context and at 128K it can equal the weights. Fit Check takes a model (fetches geometry from <code>config.json</code>), a precision (fp16/bf16/int8/nf4 or any GGUF quant), a GPU and a target context, and shows the full budget: weights + KV + scratch vs your VRAM. If it doesn't fit, it tells you <em>which side is the problem</em> (weights-bound vs KV-bound), the maximum context that DOES fit, and the cheapest rescue: quantize the KV cache, drop precision (it scans the ladder for the first one that fits), partial offload, or a smaller context. Same budget math as Launch Flags — the two can never disagree. <em>Use case</em>: "Llama-3.1-8B fp16 on my 4090 at 128K?" → weights 15 GB + KV 16 GB = no; max context ~66K; q8_0 cache or Q6_K makes it fit.</p>
 
-      <p><strong data-i18n="help.v094.launch.title">🚀 Launch-Flag Generator</strong></p>
-      <p data-i18n="help.v094.launch.body">The VRAM calculators tell you <em>whether</em> a model fits; they don't hand you the command. This does. Pick a model (fetches geometry from HF <code>config.json</code>), a quant, a GPU and a target context — it computes the VRAM breakdown (weights + KV cache + scratch), how many layers to offload (<code>-ngl</code>), and emits the copy-paste <code>llama-server</code> and Ollama commands with <code>-c</code> context, <code>-fa</code> flash-attention, KV-cache type, and <code>--no-mmap</code> (the Blackwell OOM fix: force all weights into physical VRAM). Plus the TAF reality check no calculator gives: if you're allocating KV for a context past the model's d_horizon, it warns you that memory is wasted — the attention won't reach there. <em>Use case</em>: 'What <code>-ngl</code> for Llama-70B-Q4 on my 4090?' → 39 of 80 layers, exact command, and a note if your context is past the usable horizon.</p>
+      <p><strong data-i18n="help.v012.lang.title">🌍 Demos and results in your language</strong></p>
+      <p data-i18n="help.v012.lang.body">Until v0.11 the menus were translated but the guided demos and the recipe results (reasons, actions, step interpretations) came out in English. v0.12 fixes it at the root: the demos follow the browser language automatically, and the Python recipe engine now emits message codes that the UI localizes into all four languages — with the English text always kept as fallback. Verified with a real-browser regression test (Spanish locale, clean storage) that runs a full demo and a full Profile and asserts no English residue.</p>
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.audit.title">The audit chain</summary>
@@ -391,6 +400,13 @@
           </ul>
         </details>
         <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.v012.title">🆕 v0.12 — Fit Check &amp; your language</summary>
+          <ul>
+            <li data-i18n="inv.v012.fitcheck"><strong>💾 Fit Check</strong> — will it fit on your GPU at your context? Weights + KV cache + scratch, before downloading anything</li>
+            <li data-i18n="inv.v012.lang"><strong>🌍 Your language</strong> — guided demos and recipe results follow your browser language (EN/ES/FR/ZH), not just the menus</li>
+          </ul>
+        </details>
+        <details class="inv-card" open>
           <summary class="inv-card-title" data-i18n="inv.v07.title">🆕 v0.7 anti-bullshit pack</summary>
           <ul>
             <li data-i18n="inv.v07.unmask"><strong>🪟 Unmask</strong> — config.json claims 32k? See if it actually attends that far</li>
@@ -441,7 +457,7 @@
     <!-- v0.7.7 — Task tiles: friendlier entry point, groups 14 modes by user intent. -->
     <section id="task-tiles" aria-labelledby="tiles-title">
       <h2 id="tiles-title" data-i18n="tiles.title">🎯 What do you want to do?</h2>
-      <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of 22 modes.</p>
+      <p class="recipe-desc" data-i18n="tiles.subtitle">Pick a task. Each one opens the right tool below. Or scroll down for the full list of modes.</p>
       <div class="tiles-grid">
         <div class="task-tile">
           <h3>
@@ -523,7 +539,7 @@
     <!-- Mode toggle -->
     <section id="mode-section">
       <h2><span data-i18n="modes.title">🎯 Mode</span>
-        <span class="info"><span class="tooltip" data-i18n="modes.tip"><strong>7 modes available.</strong> Most users want 📇 Profile (one-click full diagnosis).<br>
+        <span class="info"><span class="tooltip" data-i18n="modes.tip"><strong>All modes at a glance.</strong> Most users want 📇 Profile (one-click full diagnosis).<br>
         <strong>📇 Profile</strong>: paste a model id → 5-recipe TAF Card.<br>
         <strong>🆚 Compare</strong>: 2-3 models side-by-side on one recipe.<br>
         <strong>🔍 Inspect</strong>: paste raw config.json to debug parameters.<br>

@@ -343,6 +343,19 @@ def emergent_threshold(N_params: float) -> str:
     return "below 100M — domain-specific tasks only"
 
 
+def _emerg_tier(N_params: float) -> str:
+    """i18n code companion of emergent_threshold (py.x3.i.emerg_* keys)."""
+    if N_params >= 1e11:
+        return "100b"
+    if N_params >= 1e10:
+        return "10b"
+    if N_params >= 1e9:
+        return "1b"
+    if N_params >= 1e8:
+        return "100m"
+    return "sub100m"
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # §19 — Inference economics
 # ════════════════════════════════════════════════════════════════════════════
@@ -630,20 +643,27 @@ def run_recipe_x1(N_params, D_tokens=None, gpu="H100 SXM", n_gpus=8, mfu=0.45,
         D_tokens = chinchilla_optimal_tokens(N_params)
     chain.append(_step(1, "§17.30", "Chinchilla optimal D", "D = 20·N",
                        {"N_params": N_params}, D_tokens,
-                       f"recommended D = {D_tokens:.2e} tokens"))
+                       f"recommended D = {D_tokens:.2e} tokens",
+                       interp_code="x1.i.chinchilla",
+                       interp_params={"D": f"{D_tokens:.2e}"}))
 
     # Step 2: training FLOPs
     flops = training_flops(N_params, D_tokens)
     chain.append(_step(2, "§17.10", "Training FLOPs", "C = 6·N·D",
                        {"N": N_params, "D": D_tokens}, flops,
-                       f"{flops:.2e} FLOPs total"))
+                       f"{flops:.2e} FLOPs total",
+                       interp_code="x1.i.flops",
+                       interp_params={"flops": f"{flops:.2e}"}))
 
     # Step 3: training cost
     cost = cost_per_training_run(N_params, D_tokens, gpu=gpu, n_gpus=n_gpus, mfu=mfu)
     chain.append(_step(3, "§20.11", "Training cost",
                        "hours·USD/h·n_gpus = total $",
                        {"gpu": gpu, "n_gpus": n_gpus, "mfu": mfu}, cost,
-                       f"${cost['USD']:,.0f} over {cost['days']:.1f} days"))
+                       f"${cost['USD']:,.0f} over {cost['days']:.1f} days",
+                       interp_code="x1.i.cost",
+                       interp_params={"usd": f"{cost['USD']:,.0f}",
+                                      "days": f"{cost['days']:.1f}"}))
 
     # Step 4: model_GB and decode throughput
     model_GB = N_params * 2 / 1e9  # BF16
@@ -651,7 +671,9 @@ def run_recipe_x1(N_params, D_tokens=None, gpu="H100 SXM", n_gpus=8, mfu=0.45,
     chain.append(_step(4, "§19.9 / §20.12", "Self-inference $/Mtok",
                        "BW / model_GB → tok/s → $/Mtok",
                        {"model_GB": model_GB, "gpu": gpu}, inf,
-                       f"${inf['USD_per_Mtok']:.2f} per million tokens (single user)"))
+                       f"${inf['USD_per_Mtok']:.2f} per million tokens (single user)",
+                       interp_code="x1.i.selfinf",
+                       interp_params={"usd": f"{inf['USD_per_Mtok']:.2f}"}))
 
     # Step 5: API blended price
     api = API_PRICING.get(api_model, {"input": 2.0, "output": 8.0})
@@ -659,32 +681,50 @@ def run_recipe_x1(N_params, D_tokens=None, gpu="H100 SXM", n_gpus=8, mfu=0.45,
     chain.append(_step(5, "§24.X", f"{api_model} blended price",
                        "(input + output) / 2 USD/Mtok",
                        {"api_model": api_model}, api_blend,
-                       f"${api_blend:.2f}/Mtok blended"))
+                       f"${api_blend:.2f}/Mtok blended",
+                       interp_code="x1.i.apiblend",
+                       interp_params={"usd": f"{api_blend:.2f}"}))
 
     # Step 6: break-even
     be = break_even_volume(cost["USD"], inf["USD_per_Mtok"], api_blend)
+    if "error" in be:
+        _be_ic, _be_ip = "x1.i.be_never", {}
+    else:
+        _be_months = be["Mtok_breakeven"] / max(monthly_tokens_M, 0.001)
+        _be_ic = "x1.i.be"
+        _be_ip = {"mtok": f"{be['Mtok_breakeven']:.0f}",
+                  "months": f"{_be_months:.1f}", "monthly": monthly_tokens_M}
     chain.append(_step(6, "§24.3", "Break-even tokens", "training$ / (api - self) = Mtok",
                        {"training_cost": cost["USD"]}, be,
-                       _be_interp(be, monthly_tokens_M)))
+                       _be_interp(be, monthly_tokens_M),
+                       interp_code=_be_ic, interp_params=_be_ip))
 
     # Verdict
     if "error" in be:
         verdict, reason = "NO", be["error"]
         mit = f"Stick with {api_model} API."
+        _rc, _rp = "x1.r.never", {}
+        _mc, _mp = "x1.m.stick_api", {"api_model": api_model}
     elif monthly_tokens_M >= be["Mtok_breakeven"]:
         verdict = "YES (custom)"
         months_to_payoff = be["Mtok_breakeven"] / monthly_tokens_M
         reason = (f"At {monthly_tokens_M} M tokens/month, break-even in "
                   f"{months_to_payoff:.1f} months. Long-term custom is cheaper.")
         mit = f"Train at {gpu}×{n_gpus}; serve self-hosted."
+        _rc, _rp = "x1.r.yes", {"monthly": monthly_tokens_M,
+                                "months": f"{months_to_payoff:.1f}"}
+        _mc, _mp = "x1.m.train_self", {"gpu": gpu, "n_gpus": n_gpus}
     else:
         months = be["Mtok_breakeven"] / monthly_tokens_M
         verdict = "NO (API)"
         reason = (f"At {monthly_tokens_M} M tokens/month, break-even in "
                   f"{months:.1f} months — too slow.")
         mit = f"Use {api_model} API (cheaper for your volume)."
+        _rc, _rp = "x1.r.no", {"monthly": monthly_tokens_M, "months": f"{months:.1f}"}
+        _mc, _mp = "x1.m.use_api", {"api_model": api_model}
 
-    return _wrap("X-1", "Custom training vs API", locals(), chain, verdict, reason, mit)
+    return _wrap("X-1", "Custom training vs API", locals(), chain, verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 def _be_interp(be, monthly):
@@ -706,14 +746,18 @@ def run_recipe_x3(USD_budget=5000.0, gpu="H100 SXM", mfu=0.45, n_gpus=1, **_unus
     hours = USD_budget / (info["usd_h"] * n_gpus)
     chain.append(_step(1, "§20.11", "Affordable GPU-hours", "USD / ($/h·n_gpus)",
                        {"USD": USD_budget, "gpu": gpu, "n_gpus": n_gpus}, hours,
-                       f"{hours:.0f} GPU-hours total ({hours/24:.1f} days at full use)"))
+                       f"{hours:.0f} GPU-hours total ({hours/24:.1f} days at full use)",
+                       interp_code="x3.i.hours",
+                       interp_params={"hours": f"{hours:.0f}", "days": f"{hours/24:.1f}"}))
 
     # Step 2: max FLOPs
     max_flops = info["flops"] * 1e12 * mfu * n_gpus * hours * 3600
     chain.append(_step(2, "§17.10", "Max training FLOPs",
                        "peak·MFU·n_gpus·seconds",
                        {"peak_TFLOPs": info["flops"], "MFU": mfu}, max_flops,
-                       f"{max_flops:.2e} effective FLOPs"))
+                       f"{max_flops:.2e} effective FLOPs",
+                       interp_code="x3.i.flops",
+                       interp_params={"flops": f"{max_flops:.2e}"}))
 
     # Step 3: Chinchilla-optimal N (with D=20N)
     # 6·N·D = max_flops, D=20N → 120·N² = max_flops → N = sqrt(max_flops/120)
@@ -722,12 +766,17 @@ def run_recipe_x3(USD_budget=5000.0, gpu="H100 SXM", mfu=0.45, n_gpus=1, **_unus
     chain.append(_step(3, "§17.30", "Chinchilla-optimal N",
                        "N = √(C/120) at D=20N", {"max_FLOPs": max_flops},
                        N_chinchilla,
-                       f"N ≈ {N_chinchilla:.2e} params with D = {D_chinchilla:.2e} tokens"))
+                       f"N ≈ {N_chinchilla:.2e} params with D = {D_chinchilla:.2e} tokens",
+                       interp_code="x3.i.chinchilla",
+                       interp_params={"N": f"{N_chinchilla:.2e}",
+                                      "D": f"{D_chinchilla:.2e}"}))
 
     # Step 4: emergence check
     emerg = emergent_threshold(N_chinchilla)
+    _tier = _emerg_tier(N_chinchilla)
     chain.append(_step(4, "§17.60", "Emergence threshold", "Wei 2022 capability",
-                       {"N": N_chinchilla}, emerg, emerg))
+                       {"N": N_chinchilla}, emerg, emerg,
+                       interp_code=f"x3.i.emerg_{_tier}"))
 
     # Step 5: memory budget check
     mem = training_memory_16N(N_chinchilla)
@@ -736,23 +785,35 @@ def run_recipe_x3(USD_budget=5000.0, gpu="H100 SXM", mfu=0.45, n_gpus=1, **_unus
                        "model + grads + AdamW",
                        {"N": N_chinchilla}, mem,
                        f"{mem['GB']:.1f} GB needed; "
-                       f"{'fits in ' if fits else 'EXCEEDS '}{info['vram_GB']} GB VRAM"))
+                       f"{'fits in ' if fits else 'EXCEEDS '}{info['vram_GB']} GB VRAM",
+                       interp_code=("x3.i.mem_fits" if fits else "x3.i.mem_exceeds"),
+                       interp_params={"gb": f"{mem['GB']:.1f}",
+                                      "vram": info["vram_GB"]}))
 
     # Verdict
     if N_chinchilla < 1e8:
         verdict, reason = "TINY-MODEL", f"Budget supports only ~{N_chinchilla:.0e} params"
         mit = "Use LoRA fine-tuning of larger pretrained model instead."
+        _rc, _rp = "x3.r.tiny", {"N": f"{N_chinchilla:.0e}"}
+        _mc, _mp = "x3.m.lora", {}
     elif not fits:
         verdict, reason = "MEMORY-LIMITED", f"Chinchilla N ({N_chinchilla:.1e}) doesn't fit one {gpu}"
         mit = f"Use ZeRO-3 across multiple GPUs (need ≥{math.ceil(mem['GB']/info['vram_GB'])}× {gpu}) OR train smaller N undertrained."
+        _rc, _rp = "x3.r.memlimit", {"N": f"{N_chinchilla:.1e}", "gpu": gpu}
+        _mc, _mp = "x3.m.zero3", {"n": math.ceil(mem['GB']/info['vram_GB']), "gpu": gpu}
     else:
         verdict = "GO"
         reason = (f"At ${USD_budget}, train {N_chinchilla:.1e}-param model on "
                   f"{D_chinchilla:.1e} tokens in ~{hours/24:.1f} days. "
                   f"Capability tier: {emerg.split('—')[0].strip()}.")
         mit = "None — proceed with Chinchilla-optimal recipe."
+        _rc = f"x3.r.go_{_tier}"
+        _rp = {"budget": USD_budget, "N": f"{N_chinchilla:.1e}",
+               "D": f"{D_chinchilla:.1e}", "days": f"{hours/24:.1f}"}
+        _mc, _mp = "x3.m.none", {}
 
-    return _wrap("X-3", "Budget pre-flight", locals(), chain, verdict, reason, mit)
+    return _wrap("X-3", "Budget pre-flight", locals(), chain, verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -769,7 +830,9 @@ def run_recipe_x5(N_params, T_eval=4096, n_layers=32, n_kv_heads=8, d_head=128,
     chain.append(_step(1, "§19.X", "Model weights memory",
                        "N · bytes_per_weight",
                        {"N": N_params, "bytes": bytes_per_weight}, w_mem,
-                       f"{w_mem['GB']:.1f} GB for weights"))
+                       f"{w_mem['GB']:.1f} GB for weights",
+                       interp_code="x5.i.weights",
+                       interp_params={"gb": f"{w_mem['GB']:.1f}"}))
 
     # Step 2: KV cache per request
     kv = kv_cache_memory(n_layers, n_kv_heads, d_head, T_eval, bytes_per_weight)
@@ -777,13 +840,17 @@ def run_recipe_x5(N_params, T_eval=4096, n_layers=32, n_kv_heads=8, d_head=128,
                        "2·L·n_kv·d_h·seq·B",
                        {"n_layers": n_layers, "n_kv": n_kv_heads,
                         "d_head": d_head, "seq": T_eval}, kv,
-                       f"{kv['GB']:.2f} GB per concurrent request"))
+                       f"{kv['GB']:.2f} GB per concurrent request",
+                       interp_code="x5.i.kv",
+                       interp_params={"gb": f"{kv['GB']:.2f}"}))
 
     # Step 3: total memory needed
     total_GB = w_mem["GB"] + kv["GB"] * concurrent_users
     chain.append(_step(3, "§20.3", "Total GPU memory",
                        "weights + KV·n_concurrent", {}, {"GB": total_GB},
-                       f"{total_GB:.1f} GB for {concurrent_users} concurrent users"))
+                       f"{total_GB:.1f} GB for {concurrent_users} concurrent users",
+                       interp_code="x5.i.total",
+                       interp_params={"gb": f"{total_GB:.1f}", "n": concurrent_users}))
 
     # Step 4: scan GPU catalog
     candidates = []
@@ -806,21 +873,30 @@ def run_recipe_x5(N_params, T_eval=4096, n_layers=32, n_kv_heads=8, d_head=128,
     chain.append(_step(4, "§20", f"Eligible GPUs (≥{total_GB:.0f}GB)",
                        "filter + rank by $/Mtok",
                        {"min_VRAM": total_GB}, candidates[:5],
-                       f"{len(candidates)} GPUs fit; cheapest: {candidates[0]['gpu'] if candidates else 'NONE'}"))
+                       f"{len(candidates)} GPUs fit; cheapest: {candidates[0]['gpu'] if candidates else 'NONE'}",
+                       interp_code=("x5.i.fit" if candidates else "x5.i.fit_none"),
+                       interp_params=({"n": len(candidates), "gpu": candidates[0]["gpu"]}
+                                      if candidates else {})))
 
     # Verdict
     if not candidates:
         verdict, reason = "NO", f"No single GPU has ≥{total_GB:.0f} GB VRAM."
         mit = (f"Use tensor parallelism across multiple GPUs "
                f"(e.g. 2× H100 = 160GB), or quantize to INT8 (halves memory).")
+        _rc, _rp = "x5.r.no", {"gb": f"{total_GB:.0f}"}
+        _mc, _mp = "x5.m.tp_or_quant", {}
     else:
         best = candidates[0]
         verdict = "YES"
         reason = (f"Best GPU: {best['gpu']} at ${best['USD_per_Mtok']:.2f}/Mtok. "
                   f"Supports {best['users_supported']:.1f}× your daily target.")
         mit = f"Provision {best['gpu']}, expected {best['tok_per_sec']:.0f} tok/s decode."
+        _rc, _rp = "x5.r.yes", {"gpu": best["gpu"], "usd": f"{best['USD_per_Mtok']:.2f}",
+                                "x": f"{best['users_supported']:.1f}"}
+        _mc, _mp = "x5.m.provision", {"gpu": best["gpu"], "toks": f"{best['tok_per_sec']:.0f}"}
 
-    return _wrap("X-5", "Hardware selection for serving", locals(), chain, verdict, reason, mit)
+    return _wrap("X-5", "Hardware selection for serving", locals(), chain, verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -834,7 +910,8 @@ def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
     # Step 1: γ_Padé
     g_pade = gamma_pade(theta, T_eval)
     chain.append(_step(1, "§26.1", "γ_Padé", "(2θ-T√2)/(2θ+T√2)",
-                       {"theta": theta, "T_eval": T_eval}, g_pade, _phase_label(g_pade)))
+                       {"theta": theta, "T_eval": T_eval}, g_pade, _phase_label(g_pade),
+                       interp_code=_phase_code(g_pade)))
 
     # Step 2: γ-decomposition
     has_GQA = n_kv_heads < n_attention_heads
@@ -851,21 +928,28 @@ def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                        "[(1-f)+fN^(1-γ)]^(1/(1-γ))",
                        {"gamma": g_corr, "N": T_eval, "f": 0.9}, df,
                        f"D_f = {df}" if df_zone_ok
-                       else f"NOT applicable (γ={g_corr:.3f} outside [0.65, 0.85])"))
+                       else f"NOT applicable (γ={g_corr:.3f} outside [0.65, 0.85])",
+                       interp_code=("x19.i.df" if df_zone_ok else "x19.i.df_na"),
+                       interp_params=({"df": df} if df_zone_ok
+                                      else {"gamma": f"{g_corr:.3f}"})))
 
     # Step 4: §26.8 soft decay régimen
     regime = kv_soft_decay_regime(theta, g_corr, T_train)
     dh = d_horizon(theta, g_corr)
     dh_str = f"{dh:.0f}" if dh is not None else "n/a"
+    _regime_ic = {"applies": "x19.i.regime_applies",
+                  "borderline": "x19.i.regime_borderline"}.get(regime, "x19.i.regime_hard")
     chain.append(_step(4, "§26.8", "Soft decay régimen", "d_h ≳ T_train/2",
                        {"theta": theta, "gamma": g_corr, "T_train": T_train}, regime,
-                       f"d_horizon={dh_str}; regime: {regime}"))
+                       f"d_horizon={dh_str}; regime: {regime}",
+                       interp_code=_regime_ic, interp_params={"dh": dh_str}))
 
     # Step 5: KV cache memory baseline
     kv = kv_cache_memory(n_layers, n_kv_heads, d_head, T_eval)
     chain.append(_step(5, "§19.1", "Baseline KV memory", "2·L·n_kv·d_h·seq·B",
                        {"L": n_layers, "n_kv": n_kv_heads, "d_h": d_head, "seq": T_eval},
-                       kv, f"{kv['GB']:.2f} GB without compression"))
+                       kv, f"{kv['GB']:.2f} GB without compression",
+                       interp_code="x19.i.kv", interp_params={"gb": f"{kv['GB']:.2f}"}))
 
     # Verdict
     if regime == "applies" and df_zone_ok:
@@ -873,24 +957,35 @@ def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
         reason = (f"d_horizon ≳ T_train/2 AND γ in compression zone. "
                   f"Soft decay (1-d/d_h)^γ best (-21% PPL vs hard cutoff per F17).")
         mit = "Implement as 4D attention_mask additive bias with eager attention."
+        _rc, _rp = "x19.r.soft", {}
+        _mc, _mp = "x19.m.soft", {}
     elif df_zone_ok:
         verdict = "USE D_f HARD CUTOFF"
         reason = f"γ in [0.65, 0.85] zone but d_h < T_train/2. Hard truncation at D_f={df} works."
         mit = "Set cache_max_len = D_f."
+        _rc, _rp = "x19.r.df", {"df": df}
+        _mc, _mp = "x19.m.df", {}
     elif regime == "applies":
         verdict = "USE SOFT DECAY (caveat)"
         reason = "Régimen applies but γ outside D_f validity zone. Soft decay only."
         mit = "Soft decay; do not use D_f window."
+        _rc, _rp = "x19.r.soft_caveat", {}
+        _mc, _mp = "x19.m.soft_only", {}
     elif g_corr >= 1 or g_corr <= 0:
         verdict = "USE LITERATURE METHODS"
         reason = f"γ={g_corr:.3f} outside Phase A. Our formulas don't apply."
         mit = "Use SnapKV / PyramidKV / FastGen (literature heuristics)."
+        _rc, _rp = "x19.r.lit", {"gamma": f"{g_corr:.3f}"}
+        _mc, _mp = "x19.m.lit", {}
     else:
         verdict = "USE HARD T_train CUTOFF"
         reason = "Régimen not met AND γ outside zone. Cap context at T_train."
         mit = f"Set seq_len ≤ {T_train}, no extension."
+        _rc, _rp = "x19.r.hard", {}
+        _mc, _mp = "x19.m.hard", {"T_train": T_train}
 
-    return _wrap("X-19", "KV compression decision", locals(), chain, verdict, reason, mit)
+    return _wrap("X-19", "KV compression decision", locals(), chain, verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -913,7 +1008,8 @@ def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
     g_pade = gamma_pade(theta, T_eval)
     chain.append(_step(1, "§26.1", "γ_Padé", "(2θ-T√2)/(2θ+T√2)",
                        {"theta": theta, "T_eval": T_eval}, g_pade,
-                       _phase_label(g_pade)))
+                       _phase_label(g_pade),
+                       interp_code=_phase_code(g_pade)))
 
     # Step 2: predicted imprint shift
     n_params_M = n_params / 1e6
@@ -921,28 +1017,37 @@ def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
     chain.append(_step(2, "§28.1", "Imprint shift", "ν·log_10(P/P_0), ν=−1/(2π)",
                        {"P_M": n_params_M, "P_0_M": P_0_IMPRINT_M, "nu": NU_IMPRINT},
                        imprint_shift,
-                       f"Bigger model → stronger imprint (more negative shift)."))
+                       f"Bigger model → stronger imprint (more negative shift).",
+                       interp_code="x21.i.shift"))
 
     # Step 3: predicted γ_random
     g_pred = g_pade + imprint_shift
     chain.append(_step(3, "§28.1", "γ_random predicted", "γ_pade + ν·log_10(P/P_0)",
                        {"gamma_pade": g_pade, "imprint": imprint_shift}, g_pred,
-                       f"Predicted γ_random = {g_pred:.4f} ± 0.18 (95% CI)"))
+                       f"Predicted γ_random = {g_pred:.4f} ± 0.18 (95% CI)",
+                       interp_code="x21.i.pred",
+                       interp_params={"g": f"{g_pred:.4f}"}))
 
     # Step 4: purity diagnostic if observed value provided
     if gamma_random_obs is not None:
         purity = imprint_purity(gamma_random_obs, theta, T_eval, n_params_M)
+        _res = purity["imprint_residual"]
+        _purity_ic = ("x21.i.purity_clean" if abs(_res) < 0.18 else
+                      ("x21.i.purity_over" if _res < 0 else "x21.i.purity_under"))
         chain.append(_step(4, "§28.2", "Imprint purity",
                            "obs − pred (purity = within ±0.18)",
                            {"gamma_random_obs": gamma_random_obs,
                             "gamma_random_pred": g_pred},
-                           purity["imprint_residual"], purity["purity"]))
+                           purity["imprint_residual"], purity["purity"],
+                           interp_code=_purity_ic))
         verdict = "CLEAN" if abs(purity["imprint_residual"]) < 0.18 else \
                   ("OVER-IMPRINTED" if purity["imprint_residual"] < 0 else "UNDER-IMPRINTED")
         reason = (f"Residual γ_random_obs − γ_pred = {purity['imprint_residual']:+.4f}. "
                   f"95% CI is ±0.18.")
         mit = ("Models far from prediction may have anomalous training (e.g. heavy "
                "fine-tuning, format conversion). Compare to native checkpoint.")
+        _rc, _rp = "x21.r.residual", {"res": f"{purity['imprint_residual']:+.4f}"}
+        _mc, _mp = "x21.m.check_native", {}
     else:
         verdict = "PREDICTION ONLY"
         reason = (f"Predicted γ_random = {g_pred:.4f}. Provide gamma_random_obs to "
@@ -950,9 +1055,12 @@ def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
         mit = ("To measure: run a 150-prompt forward pass on RANDOM-token sequences "
                "across distances d=10..1000 and fit power law. "
                "(See https://github.com/karlesmarin/tafagent for E4 protocol.)")
+        _rc, _rp = "x21.r.pred_only", {"g": f"{g_pred:.4f}"}
+        _mc, _mp = "x21.m.measure", {}
 
     return _wrap("X-21", "Imprint Purity Diagnostic", locals(), chain,
-                 verdict, reason, mit)
+                 verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -979,26 +1087,36 @@ def run_recipe_x22(theta, T_train, n_params, gamma_obs, D_tokens=None,
                        {"gamma": gamma_obs, "N": n_params, "D": D_tokens},
                        inv["K"],
                        f"K = {inv['K']:.2f} (panel mean {inv['panel_mean']:.1f} ± "
-                       f"{inv['panel_std']:.1f})"))
+                       f"{inv['panel_std']:.1f})",
+                       interp_code="x22.i.k",
+                       interp_params={"K": f"{inv['K']:.2f}",
+                                      "mean": f"{inv['panel_mean']:.1f}",
+                                      "std": f"{inv['panel_std']:.1f}"}))
 
     # Step 2: z-score interpretation
+    _z_ic = ("x22.i.z_inband" if inv["in_distribution"] else
+             ("x22.i.z_high" if inv["z_score"] > 0 else "x22.i.z_low"))
     chain.append(_step(2, "§29", "z-score vs panel", "(K − μ)/σ",
                        {"K": inv["K"], "mean": inv["panel_mean"],
                         "std": inv["panel_std"]},
                        inv["z_score"],
-                       inv["interpretation"]))
+                       inv["interpretation"],
+                       interp_code=_z_ic))
 
     # Step 3: γ_pade comparison (anomaly test)
     g_pade = gamma_pade(theta, T_eval)
     pade_diff = gamma_obs - g_pade
     chain.append(_step(3, "§26.1", "γ deviation from Padé", "γ_obs − γ_pade",
                        {"gamma_obs": gamma_obs, "gamma_pade": g_pade}, pade_diff,
-                       "negative = anomaly (sub-Padé); positive = supra-Padé"))
+                       "negative = anomaly (sub-Padé); positive = supra-Padé",
+                       interp_code="x22.i.pade"))
 
     if inv["in_distribution"]:
         verdict = "IN-BAND"
         reason = f"K = {inv['K']:.2f} within ±1σ of panel mean {inv['panel_mean']:.1f}."
         mit = "Model conforms to compute-context invariant. No action needed."
+        _rc, _rp = "x22.r.inband", {"K": f"{inv['K']:.2f}", "mean": f"{inv['panel_mean']:.1f}"}
+        _mc, _mp = "x22.m.none", {}
     else:
         verdict = "OUTLIER"
         reason = (f"K = {inv['K']:.2f} ({inv['interpretation']}). "
@@ -1006,9 +1124,13 @@ def run_recipe_x22(theta, T_train, n_params, gamma_obs, D_tokens=None,
         mit = ("High-K (over-concentrating attention for given compute) or low-K "
                "(under-using compute for attention concentration). Check tokenizer, "
                "training recipe, fine-tuning history.")
+        _rc = "x22.r.outlier_high" if inv["z_score"] > 0 else "x22.r.outlier_low"
+        _rp = {"K": f"{inv['K']:.2f}", "z": f"{abs(inv['z_score']):.2f}"}
+        _mc, _mp = "x22.m.outlier", {}
 
     return _wrap("X-22", "Compute-Context Invariant", locals(), chain,
-                 verdict, reason, mit)
+                 verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -1032,31 +1154,44 @@ def run_recipe_x23(n_params, gamma_text=None, gamma_random=None, **_unused):
     # Step 2: γ-based discrimination if both gammas given
     if gamma_text is not None and gamma_random is not None:
         check = ih_phase_check(gamma_text, gamma_random, n_params_M)
+        _obs_ic = {"post-IH": "x23.i.obs_post",
+                   "pre-IH": "x23.i.obs_pre"}.get(check["phase_observed"], "x23.i.obs_amb")
         chain.append(_step(2, "§30", "Δγ discriminator", "sign(γ_text − γ_random)",
                            {"gamma_text": gamma_text, "gamma_random": gamma_random},
                            check["delta_gamma"],
-                           f"observed phase: {check['phase_observed']}"))
+                           f"observed phase: {check['phase_observed']}",
+                           interp_code=_obs_ic))
 
         if check["consistent"]:
             verdict = f"CONFIRMED {check['phase_observed'].upper()}"
             reason = (f"Δγ = {check['delta_gamma']:+.3f} sign matches size-prediction "
                       f"({expected}).")
             mit = "Phase confirmed. Use this checkpoint for downstream tasks accordingly."
+            _rc = "x23.r.confirmed"
+            _rp = {"delta": f"{check['delta_gamma']:+.3f}", "expected": expected}
+            _mc, _mp = "x23.m.confirmed", {}
         else:
             verdict = "ANOMALY"
             reason = (f"Δγ = {check['delta_gamma']:+.3f} suggests {check['phase_observed']}, "
                       f"but size predicts {expected}. Investigate.")
             mit = ("Possible causes: incomplete training, anomalous fine-tuning, "
                    "format conversion, tokenizer corruption (cf. F5 OLMo Δγ=0.30).")
+            _rc = "x23.r.anomaly"
+            _rp = {"delta": f"{check['delta_gamma']:+.3f}",
+                   "obs": check["phase_observed"], "expected": expected}
+            _mc, _mp = "x23.m.anomaly", {}
     else:
         verdict = f"PREDICTED {expected.upper()}"
         reason = (f"Only size given: P = {n_params_M:.0f}M. "
                   f"Provide gamma_text + gamma_random to verify via Δγ probe.")
         mit = ("Run E4 protocol with corpus=mongo and corpus=random; "
                "compare γ values.")
+        _rc, _rp = "x23.r.pred_only", {"P": f"{n_params_M:.0f}"}
+        _mc, _mp = "x23.m.pred_only", {}
 
     return _wrap("X-23", "IH-Phase Detector", locals(), chain,
-                 verdict, reason, mit)
+                 verdict, reason, mit,
+                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
 
 # ════════════════════════════════════════════════════════════════════════════

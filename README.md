@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: 27 anti-bullshit LLM diagnostics in browser. 4 langs.
+short_description: 29 anti-bullshit LLM diagnostics in browser. 4 langs.
 tags:
   - transformer
   - llm
@@ -58,6 +58,26 @@ language:
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
+
+## 🆕 v0.12 — Fit Check + everything in your language
+
+Two things, both born from what the community actually asked for:
+
+**💾 Fit Check ("will it fit?")** — the #1 recurring question on the HF forum, answered
+before you download anything. Model + precision (fp16/bf16/int8/nf4 or any GGUF quant) +
+GPU + target context → the full VRAM budget (weights + **KV cache** + scratch), a verdict
+that tells you *which side* is the problem (weights-bound vs **KV-bound** — at 128K the KV
+cache of an 8B model can equal its weights), the **max context that does fit**, and the
+cheapest rescue (quantized cache → lower precision → partial offload). Same budget math as
+Launch Flags — the two can never disagree. Try it: [`?demo=fitcheck`](https://karlesmarin.github.io/tafagent/?demo=fitcheck).
+
+**🌍 Demos and results in your language** — until v0.11 the menus were translated but the
+guided demos and the recipe results (reasons, actions, step interpretations) came out in
+English. Fixed at the root: demos follow the browser language automatically, and the
+Python recipe engine now emits **message codes** the UI localizes into EN/ES/FR/ZH (all 8
+recipes migrated; English kept as fallback). Guarded by a real-browser regression test
+(`test_lang.mjs`: Spanish locale, clean storage, full demo + full Profile, zero English
+residue) and a new CI job that sweeps every mode in every language on each push.
 
 ## 🆕 v0.11 — Guided demos for every mode (self-teaching · 4 languages)
 

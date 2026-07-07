@@ -70,6 +70,35 @@ ok(!/inside d_horizon|exceeds NIAH ceiling|None required\./i.test(profileText),
    "sin frases inglesas de X-2 residuales");
 ok(/Fase A|Fase B/i.test(profileText), "etiquetas de fase en ES (cadena)");
 
+// X-1 (custom vs API): con los defaults del Profile sale NO (API)
+ok(/demasiado lento|break-even en .* meses/i.test(profileText), "razón X-1 en ES");
+ok(/Usa la API de/i.test(profileText), "mitigación X-1 en ES");
+ok(!/too slow|cheaper for your volume/i.test(profileText), "sin frases inglesas de X-1");
+
+// X-3 (pre-flight $5K): Llama-3-8B sale MEMORY-LIMITED
+ok(/no cabe en una sola|El presupuesto solo da|Nivel de capacidad/i.test(profileText),
+   "razón X-3 en ES");
+ok(/Usa ZeRO-3 en varias GPUs|fine-tuning LoRA|receta Chinchilla-óptima/i.test(profileText),
+   "mitigación X-3 en ES");
+ok(!/doesn't fit one|Budget supports only|Capability tier/i.test(profileText),
+   "sin frases inglesas de X-3");
+
+// X-5 (hardware para servir): sale YES
+ok(/Mejor GPU:|Ninguna GPU individual/i.test(profileText), "razón X-5 en ES");
+ok(/Aprovisiona|paralelismo tensorial/i.test(profileText), "mitigación X-5 en ES");
+ok(!/Best GPU:|your daily target|No single GPU has/i.test(profileText),
+   "sin frases inglesas de X-5");
+
+// X-19 (compresión KV): Llama-3-8B sale USE SOFT DECAY (caveat)
+ok(/Solo decay suave|zona de compresión|El truncado duro|fuera de la Fase A|Limita el contexto/i.test(profileText),
+   "razón X-19 en ES");
+ok(/no uses la ventana D_f|bias aditivo|Fija cache_max_len|heurísticas de la literatura|sin extensión/i.test(profileText),
+   "mitigación X-19 en ES");
+ok(!/Soft decay only\.|compression zone|Our formulas don't apply|Cap context at/i.test(profileText),
+   "sin frases inglesas de X-19");
+// (las interpretaciones de cadena no se renderizan en el profile-box — solo
+// reason/action por tile; las cadenas se cubren en el modo Recipes.)
+
 // ── [3] dt() resolves per browser locale in all 4 languages ─────────────────
 console.log("[3] Resolución de idioma de las demos por locale del navegador");
 const EXPECT = {
