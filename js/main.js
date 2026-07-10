@@ -22,6 +22,7 @@ import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
 import { predictQuantShift, predictAllSchemes, QUANT_SCHEMES } from "./quant_regime.js";
 import { attachAllHfAutocompletes, attachHfAutocomplete } from "./hf_autocomplete.js";
 import { dt } from "./demo_i18n.js";
+import "./depth.js";  // Depth mode (Part III): config-derived depth-axis landmarks; self-binds on load.
 import { computeDriftBound, FRAMEWORKS as DRIFT_FRAMEWORKS, DTYPES as DRIFT_DTYPES } from "./cross_drift.js";
 import { predictNIAHReasoning, sweepContextLengths, loadRulerKB, calibrateNIAH, listRulerModels } from "./niah_reasoning.js";
 import {
@@ -252,6 +253,7 @@ document.addEventListener("click", (e) => {
       gguf: "gguf-section",
       launch: "launch-section",
       fitcheck: "fitcheck-section",
+      depth: "depth-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -276,7 +278,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section", "memreal-section", "adapter-section", "pvr-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section", "fitcheck-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section", "fitcheck-section", "depth-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -300,6 +302,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       gguf: "gguf-section",
       launch: "launch-section",
       fitcheck: "fitcheck-section",
+      depth: "depth-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -5762,6 +5765,29 @@ function __demoCtx() {
 
 // Registry: one entry per mode. Add a mode here → it gets a "🎬 Demo" button.
 const DEMOS = {
+  depth: {
+    sectionId: "depth-section",
+    model: "Qwen/Qwen2.5-3B",
+    async run(D) {
+      const total = 4;
+      D.mode("depth"); await D.sleep(450); D.scroll("#depth-hf-id");
+      D.banner(dt("depth.s1"), 1, total); await D.sleep(1300);
+      D.banner(dt("depth.s2"), 2, total); D.hl("#depth-hf-id"); await D.sleep(500);
+      await D.type("#depth-hf-id", this.model); await D.sleep(600);
+      D.closeAuto("#depth-hf-id"); await D.sleep(400);
+      D.banner(dt("depth.s3"), 3, total); D.hl("#depth-fetch-btn"); await D.sleep(700); D.click("#depth-fetch-btn"); await D.sleep(2600);
+      D.banner(dt("depth.s4"), 4, total); D.hl("#depth-btn"); await D.sleep(700); D.click("#depth-btn");
+      await D.waitText(/L_crit|r[ée]gim|attention regime|机制|axes|ejes/i, 15000);
+      D.clearHl(); await D.sleep(800); D.scrollText(/L_crit|axes|ejes|Two axes|Dos ejes/i);
+      return {
+        title: dt("depth.x.title"),
+        lines: [
+          dt("depth.x.axes"), dt("depth.x.lcrit"), dt("depth.x.notknee"), dt("depth.x.delta"), dt("depth.x.measured"),
+          `<div style="margin-top:.5rem">${dt("x.cta")}</div>`,
+        ],
+      };
+    },
+  },
   profile: {
     sectionId: "profile-section",
     model: "Qwen/Qwen2.5-7B",

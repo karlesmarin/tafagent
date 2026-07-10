@@ -1008,6 +1008,56 @@ export const DEMO_STRINGS = {
   },
 };
 
+// ── Depth mode (Part III) demo strings — merged so the guided walkthrough ships in 4 langs. ──
+Object.assign(DEMO_STRINGS.en, {
+  "depth.s1": "Open «🪜 Depth map»",
+  "depth.s2": "Paste a HuggingFace model (e.g. Qwen/Qwen2.5-3B)",
+  "depth.s3": "Click «📥 Fetch» — it reads θ, T, d_head, N from the config",
+  "depth.s4": "Click «🪜 Map the depth axis» → the two axes + the landmark",
+  "depth.x.title": "📊 What this tells you",
+  "depth.x.axes": "Two independent geometric axes from (θ,T): the <b>distance</b> axis (γ, how attention decays) and the <b>depth</b> axis (L_crit, the layer where the attention regime changes).",
+  "depth.x.lcrit": "<b>L_crit</b> marks the <b>attention-regime</b> transition — a real, causally-validated depth (Part I).",
+  "depth.x.notknee": "⚠ Honest: L_crit is <b>not</b> the readability/commitment «knee» where the model locks its answer — that's a <b>family property</b>, not predictable from config (Part III refuted it). Two distinct depth transitions.",
+  "depth.x.delta": "If the model is in our γ atlas, <b>δ = γ_obs − γ_geom</b> is a tentative lead for where a J-lens «band» sits — 🟡 exploratory (H16, n=7).",
+  "depth.x.measured": "The three depth observables (transport/writing/commitment) need <b>running</b> the model — see Part III / the field guide.",
+});
+Object.assign(DEMO_STRINGS.es, {
+  "depth.s1": "Abre «🪜 Mapa de profundidad»",
+  "depth.s2": "Pega un modelo de HuggingFace (ej. Qwen/Qwen2.5-3B)",
+  "depth.s3": "Pulsa «📥 Cargar» — lee θ, T, d_head, N de la config",
+  "depth.s4": "Pulsa «🪜 Mapear el eje de profundidad» → los dos ejes + el landmark",
+  "depth.x.title": "📊 Qué te dice esto",
+  "depth.x.axes": "Dos ejes geométricos independientes desde (θ,T): el eje de <b>distancia</b> (γ, cómo decae la atención) y el eje de <b>profundidad</b> (L_crit, la capa donde cambia el régimen de atención).",
+  "depth.x.lcrit": "<b>L_crit</b> marca la transición de <b>régimen de atención</b> — una profundidad real, validada causalmente (Part I).",
+  "depth.x.notknee": "⚠ Honesto: L_crit <b>no</b> es el «knee» de legibilidad/commitment donde el modelo fija su respuesta — eso es <b>propiedad de familia</b>, no predecible desde config (Part III lo refutó). Dos transiciones de profundidad distintas.",
+  "depth.x.delta": "Si el modelo está en nuestro atlas γ, <b>δ = γ_obs − γ_geom</b> es una pista tentativa de dónde está la «banda» del J-lens — 🟡 exploratorio (H16, n=7).",
+  "depth.x.measured": "Los tres observables de profundidad (transporte/escritura/commitment) requieren <b>correr</b> el modelo — ver Part III / la guía de campo.",
+});
+Object.assign(DEMO_STRINGS.fr, {
+  "depth.s1": "Ouvrez « 🪜 Carte de profondeur »",
+  "depth.s2": "Collez un modèle HuggingFace (ex. Qwen/Qwen2.5-3B)",
+  "depth.s3": "Cliquez « 📥 Charger » — il lit θ, T, d_head, N depuis la config",
+  "depth.s4": "Cliquez « 🪜 Cartographier l'axe de profondeur » → les deux axes + le repère",
+  "depth.x.title": "📊 Ce que cela vous dit",
+  "depth.x.axes": "Deux axes géométriques indépendants depuis (θ,T) : l'axe de <b>distance</b> (γ, comment l'attention décroît) et l'axe de <b>profondeur</b> (L_crit, la couche où le régime d'attention change).",
+  "depth.x.lcrit": "<b>L_crit</b> marque la transition de <b>régime d'attention</b> — une profondeur réelle, validée causalement (Part I).",
+  "depth.x.notknee": "⚠ Honnête : L_crit n'est <b>pas</b> le « knee » de lisibilité/commitment où le modèle verrouille sa réponse — c'est une <b>propriété de famille</b>, non prévisible depuis la config (Part III l'a réfuté). Deux transitions de profondeur distinctes.",
+  "depth.x.delta": "Si le modèle est dans notre atlas γ, <b>δ = γ_obs − γ_geom</b> est un indice provisoire de l'endroit où se trouve la « bande » du J-lens — 🟡 exploratoire (H16, n=7).",
+  "depth.x.measured": "Les trois observables de profondeur (transport/écriture/commitment) nécessitent d'<b>exécuter</b> le modèle — voir Part III / le guide de terrain.",
+});
+Object.assign(DEMO_STRINGS.zh, {
+  "depth.s1": "打开「🪜 深度图」",
+  "depth.s2": "粘贴一个 HuggingFace 模型（例如 Qwen/Qwen2.5-3B）",
+  "depth.s3": "点击「📥 获取」—— 它从 config 读取 θ、T、d_head、N",
+  "depth.s4": "点击「🪜 绘制深度轴」→ 两个轴 + 地标",
+  "depth.x.title": "📊 这告诉你什么",
+  "depth.x.axes": "从 (θ,T) 得到两个独立的几何轴：<b>距离</b>轴 (γ，注意力如何衰减) 和<b>深度</b>轴 (L_crit，注意力机制改变的层)。",
+  "depth.x.lcrit": "<b>L_crit</b> 标记<b>注意力机制</b>转变 —— 一个真实的、经因果验证的深度 (Part I)。",
+  "depth.x.notknee": "⚠ 诚实：L_crit <b>不是</b>模型锁定答案的可读性/commitment「knee」—— 那是<b>家族属性</b>，无法从 config 预测（Part III 已反驳）。两个不同的深度转变。",
+  "depth.x.delta": "如果模型在我们的 γ 图谱中，<b>δ = γ_obs − γ_geom</b> 是 J-lens「带」位置的初步线索 —— 🟡 探索性 (H16，n=7)。",
+  "depth.x.measured": "三个深度可观测量（传输/写入/commitment）需要<b>运行</b>模型 —— 见 Part III / 实地指南。",
+});
+
 import { getLang } from "./i18n.js";
 
 export function dt(key) {

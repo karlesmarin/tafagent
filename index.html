@@ -76,6 +76,7 @@
       <p data-i18n="help.modes.recipe"><strong>📋 Recipe + form</strong>: manual selection, full parameter control. Best when you want exact control.</p>
       <p data-i18n="help.modes.diagnose"><strong>🩺 Diagnose CLI</strong>: generate Python command to measure γ on your local machine (transformers + numpy). Fast ≈5 min CPU; full ≈20–60 min GPU. Output JSON re-uploadable via Inspect.</p>
       <p data-i18n="help.modes.phase"><strong>📊 Phase diagram</strong>: scatter plot of 23 panel models on (log θ, γ) plane. Hagedorn line γ=1 separates Phase A from Phase B. Click a dot to load that model into Recipe form.</p>
+      <p data-i18n="help.modes.depth"><strong>🪜 Depth map (Part III)</strong>: the depth-axis companion to γ — from config it gives L_crit (the attention-regime transition layer), the two geometric axes (distance γ ⟂ depth L_crit), the three RoPE scales, and the δ band-position lead for atlas models. Config-only, no inference; honest that L_crit is NOT the commitment knee.</p>
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.recipes.title">The 8 recipes available</summary>
@@ -276,6 +277,25 @@
       <p data-i18n="help.v012.lang.body">Until v0.11 the menus were translated but the guided demos and the recipe results (reasons, actions, step interpretations) came out in English. v0.12 fixes it at the root: the demos follow the browser language automatically, and the Python recipe engine now emits message codes that the UI localizes into all four languages — with the English text always kept as fallback. Verified with a real-browser regression test (Spanish locale, clean storage) that runs a full demo and a full Profile and asserts no English residue.</p>
         </details>
         <details class="inv-card">
+          <summary class="inv-card-title" data-i18n="help.v013.title">🆕 v0.13 — 🪜 Depth map (Part III)</summary>
+      <p style="opacity: 0.85;" data-i18n="help.v013.intro"><em>v0.13 (2026-07-10): the third paper opens a second, orthogonal axis. Everything before this measured a model along <strong>distance</strong> (γ — how far attention reaches); Depth map reads the <strong>depth</strong> axis straight from <code>config.json</code> — at which layer the machinery changes — with Part III's honesty caveats built in. Browser-only, no inference.</em></p>
+
+      <p><strong data-i18n="help.v013.axes.title">🧭 Two independent geometric axes</strong></p>
+      <p data-i18n="help.v013.axes.body">The same (θ, T) that fixes γ (the distance axis — how attention decays) also fixes a depth scale. The mode shows them side by side: <strong>distance γ_geom</strong> ⟂ <strong>depth L_crit/N</strong>. They are orthogonal — a model can reach far yet switch regime early, or the reverse.</p>
+
+      <p><strong data-i18n="help.v013.lcrit.title">🪜 L_crit — the attention-regime transition layer</strong></p>
+      <p data-i18n="help.v013.lcrit.body">From <code>L_crit/N = log_θ(T/2π) · (d_head/64)^(1/√12)</code> the mode names the layer where the attention regime changes (e.g. ≈ L27 / 36). This is the causally-validated transition of Part I — the depth companion to γ.</p>
+
+      <p><strong data-i18n="help.v013.scales.title">📏 The three RoPE scales</strong></p>
+      <p data-i18n="help.v013.scales.body">λ₀ = 2π (the local grain), T_cross = 2π√θ (where mid-range structure turns over) and T_max = 2πθ (the outer reach) — the three length scales RoPE geometry imposes, read straight from θ.</p>
+
+      <p><strong data-i18n="help.v013.delta.title">📐 δ — band-position lead (atlas models only)</strong></p>
+      <p data-i18n="help.v013.delta.body">For models in the shipped γ atlas the mode also reports δ = γ_obs − γ_geom, the trained displacement from pure geometry, as an <em>exploratory</em> hint of where the J-lens advantage band sits (early / mid). Flagged honestly: Part III H16, n=7, correlational — not a frozen prediction.</p>
+
+      <p><strong data-i18n="help.v013.honesty.title">⚠ What it does NOT claim</strong></p>
+      <p data-i18n="help.v013.honesty.body">L_crit is the <em>attention-regime</em> transition — <strong>not</strong> the commitment knee where the model locks its answer (that knee is family-specific and Part III refuted every config-based predictor). The three depth observables (transport / writing / commitment) and the Type A/B chronology are <strong>measured</strong> — they need running the model — and are deliberately not computed here. <em>Use case</em>: 'at what depth does this model's attention machinery change, and where might the J-lens band sit?' → paste an id, get both geometric axes + the honest boundary of what config can tell you.</p>
+        </details>
+        <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.audit.title">The audit chain</summary>
       <p data-i18n="help.audit.body">Every result shows the full <strong>Computation Chain</strong> — each formula step with its inputs,
       output, and interpretation. Click any step to expand. Cite section numbers (§26.1, §19.1, etc.) refer
@@ -329,9 +349,13 @@
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.source.title">Source &amp; paper</summary>
-      <p data-i18n="help.source.body">Source code: <a href="https://github.com/karlesmarin/tafagent" target="_blank">github.com/karlesmarin/tafagent</a><br>
-      Paper: <em>Marin 2026 — Predicting How Transformers Attend</em> (<a href="https://zenodo.org/records/20314038" target="_blank">Zenodo</a>; arXiv forthcoming)<br>
-      Dataset: <a href="https://huggingface.co/datasets/karlexmarin/taf-attention-decay" target="_blank">taf-attention-decay</a> — 58 γ-measurements across 32 models (CC-BY-4.0)</p>
+      <p data-i18n="help.source.body">Source code: <a href="https://github.com/karlesmarin/tafagent" target="_blank">github.com/karlesmarin/tafagent</a><br><br>
+      <strong>Paper series — <em>Predicting How Transformers Attend</em> (Marín 2026):</strong><br>
+      · <a href="https://zenodo.org/records/20314038" target="_blank">Part I</a> — the <b>distance</b> axis: the power-law decay A(d)∝d⁻ᵞ, the closed-form γ_Padé predictor, the γ atlas and the phase structure (the TAF foundation).<br>
+      · <a href="https://zenodo.org/records/19960573" target="_blank">Part II</a> — a <b>six-axis decomposition</b> of γ (learned imprint ν=−1/2π), an NF4 precision rule and a Sage+Lean machine-verified backbone.<br>
+      · <a href="https://zenodo.org/records/21288264" target="_blank">Part III</a> — the <b>depth</b> axis: three observables (transport / writing / commitment), the exact DLA identity and the operator reframe of the J-lens band.<br>
+      · <a href="https://zenodo.org/records/21299266" target="_blank">Formalization</a> — a machine-checked Lean 4 / Mathlib backbone (52 theorems, 0 sorries).<br><br>
+      Dataset: <a href="https://huggingface.co/datasets/karlexmarin/taf-attention-decay" target="_blank">taf-attention-decay</a> — γ atlas measurements (CC-BY-4.0)</p>
       <p data-i18n="help.guide.body">📖 <strong>Guide</strong>: the <strong>📖 Guide</strong> button in the header opens the companion <a href="https://karlesmarin.github.io/transformers-guide/" target="_blank" rel="noopener">Transformers Guide</a> — a longer-form explainer of the concepts behind the diagnostics (attention decay, RoPE, KV cache, quantization, long-context). Opens in a new tab.</p>
         </details>
       </div>
@@ -397,6 +421,15 @@
             <li data-i18n="inv.export.formats"><strong>JSON · Markdown · LaTeX</strong> (paper-ready)</li>
             <li data-i18n="inv.export.share">Reproducible share link (state encoded in URL)</li>
             <li data-i18n="inv.export.registry">Submit to community registry on GitHub</li>
+          </ul>
+        </details>
+        <details class="inv-card" open>
+          <summary class="inv-card-title" data-i18n="inv.v013.title">🆕 v0.13 — 🪜 Depth map (Part III)</summary>
+          <ul>
+            <li data-i18n="inv.v013.axes"><strong>🧭 Two axes</strong> — distance γ ⟂ depth L_crit, the two independent geometric scales, straight from config.json</li>
+            <li data-i18n="inv.v013.lcrit"><strong>🪜 L_crit</strong> — the layer where the attention regime changes, plus the three RoPE scales (λ₀ · T_cross · T_max)</li>
+            <li data-i18n="inv.v013.delta"><strong>📐 δ band lead</strong> — for atlas models, an exploratory hint of where the J-lens advantage band sits (H16, honestly flagged)</li>
+            <li data-i18n="inv.v013.honesty"><strong>⚠ Honest boundary</strong> — L_crit is not the commitment knee; transport / writing / commitment are measured, not derived. No inference.</li>
           </ul>
         </details>
         <details class="inv-card" open>
@@ -520,6 +553,7 @@
           <div class="tile-modes">
             <button data-mode-link="compare" data-i18n="modes.compare">🆚 Compare models</button>
             <button data-mode-link="phase" data-i18n="modes.phase">📊 Phase diagram</button>
+            <button data-mode-link="depth" data-i18n="modes.depth">🪜 Depth map</button>
           </div>
         </div>
         <div class="task-tile">
@@ -557,6 +591,7 @@
         <button class="mode-btn" data-mode="recipe" role="tab" aria-selected="false" data-i18n="modes.recipe">📋 Pick recipe</button>
         <button class="mode-btn" data-mode="diagnose" role="tab" aria-selected="false" data-i18n="modes.diagnose">🩺 Diagnose CLI</button>
         <button class="mode-btn" data-mode="phase" role="tab" aria-selected="false" data-i18n="modes.phase">📊 Phase diagram</button>
+        <button class="mode-btn" data-mode="depth" role="tab" aria-selected="false" data-i18n="modes.depth">🪜 Depth map</button>
         <button class="mode-btn" data-mode="unmask" role="tab" aria-selected="false" data-i18n="modes.unmask">🪟 Unmask</button>
         <button class="mode-btn" data-mode="memreal" role="tab" aria-selected="false" data-i18n="modes.memreal">🧠 Memory Reality</button>
         <button class="mode-btn" data-mode="adapter" role="tab" aria-selected="false" data-i18n="modes.adapter">🔌 Adapter Reality</button>
@@ -866,6 +901,38 @@
       </p>
       <canvas id="phase-canvas" width="900" height="500" style="max-width:100%; background: var(--card-bg); border-radius: 6px;"></canvas>
       <div id="phase-info" class="recipe-desc" style="margin-top:0.6em;"></div>
+    </section>
+
+    <!-- DEPTH mode: config-derived depth-axis landmarks (Part III) — no inference -->
+    <section id="depth-section" style="display:none;">
+      <div class="quickstart-banner" data-i18n="depth.quickstart">
+        💡 Part III opens the depth axis: which layer the attention regime changes at — straight from config, no inference.
+      </div>
+      <h2><span data-i18n="depth.title">🪜 Depth map</span>
+        <span class="info"><span class="tooltip" data-i18n="depth.tip">
+          Config-only. From (θ,T,d_head,N) it gives the two independent geometric axes — distance (γ_geom) and depth (L_crit, the attention-regime transition layer) — plus the three RoPE scales. No inference.
+        </span></span>
+      </h2>
+      <p class="recipe-desc" data-i18n="depth.desc">
+        <strong>Where does the attention regime change?</strong> The depth-axis companion to γ, read straight from config.json — with the honest Part III caveats.
+      </p>
+
+      <div class="form-row">
+        <label for="depth-hf-id" data-i18n="depth.hf_label">HF model id:</label>
+        <input type="text" id="depth-hf-id" data-i18n-placeholder="depth.hf_placeholder" placeholder="e.g. Qwen/Qwen2.5-3B" style="flex:1;" />
+        <button id="depth-fetch-btn" type="button" class="secondary" data-i18n="depth.fetch_btn">📥 Fetch</button>
+      </div>
+      <div id="depth-hf-status" class="subtle" style="margin:-0.5rem 0 1rem; min-height:1.2em;"></div>
+
+      <div class="form-grid" id="depth-form">
+        <div class="form-field"><label><span data-i18n="param.theta">θ (rope_theta)</span></label><input type="number" id="depth-theta" value="1000000" /></div>
+        <div class="form-field"><label><span data-i18n="param.T_train">T_train</span></label><input type="number" id="depth-T" value="32768" /></div>
+        <div class="form-field"><label><span data-i18n="param.d_head">head_dim</span></label><input type="number" id="depth-dhead" value="128" /></div>
+        <div class="form-field"><label><span data-i18n="param.n_layers">n_layers</span></label><input type="number" id="depth-nl" value="36" /></div>
+      </div>
+
+      <button id="depth-btn" data-i18n="depth.btn">🪜 Map the depth axis</button>
+      <div id="depth-out" style="margin-top:1rem;"></div>
     </section>
 
     <!-- Unmask mode: detect misleading max_position_embeddings via SWA / RoPE-scaling -->
@@ -1723,7 +1790,10 @@
     <p>
       <a href="https://github.com/karlesmarin/tafagent" target="_blank">Source on GitHub</a>
       ·
-      <a href="https://zenodo.org/records/20314038" target="_blank">Paper (Zenodo)</a>
+      <a href="https://zenodo.org/records/20314038" target="_blank">Paper I</a> ·
+      <a href="https://zenodo.org/records/19960573" target="_blank">II</a> ·
+      <a href="https://zenodo.org/records/21288264" target="_blank">III</a>
+      · <a href="https://zenodo.org/records/21299266" target="_blank">Lean</a> (Zenodo)
     </p>
     <p class="subtle" data-i18n="footer.tech_stack">
       Computation: Pyodide · Synthesis: WebLLM (Qwen2.5-0.5B local) · Hosting: GitHub Pages · Cost: $0

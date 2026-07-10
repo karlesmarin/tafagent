@@ -54,7 +54,7 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
-**📄 Paper**: [Predicting How Transformers Attend — Marin 2026](https://zenodo.org/records/20314038)
+**📄 Papers**: *Predicting How Transformers Attend* (Marín 2026) — a continuing **I → II → III** series: [Part I](https://zenodo.org/records/20314038) · [Part II](https://zenodo.org/records/19960573) · [Part III](https://zenodo.org/records/21288264) · [Lean formalization](https://zenodo.org/records/21299266) *(each explained below)*
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
@@ -476,18 +476,55 @@ This tool is at v0.11. There's a long way to go.
 - **➕ New preset**: add a popular model to the `PRESETS` dict
 - **📝 Improve docs / examples**: anything that helps the next person
 
+## 📚 The paper series (I → II → III)
+
+TAF Agent is the practical, browser-side tool that closes the loop of a continuing paper
+series — *Predicting How Transformers Attend* (Marín 2026). Each part opens a new axis, and
+the modes here compute from all three:
+
+- **[Part I](https://zenodo.org/records/20314038) — Analytic Power-Law Theory.** The **distance**
+  axis. Attention decays as a power law `A(d) ∝ d^−γ`; a closed-form predictor `γ_Padé(θ,T)`
+  fixes γ from the RoPE geometry alone; the γ **atlas** places dozens of models on one axis, and
+  the phase structure (Hagedorn point γ=1) separates *looks far* from *concentrates*. This is the
+  foundation nearly every mode in the app reads from.
+- **[Part II](https://zenodo.org/records/19960573) — A Six-Axis Decomposition.** Splits the
+  measured γ into **six interpretable axes** (RoPE geometry + training + architecture …), pins the
+  **learned imprint** `ν ≈ −1/2π`, adds an NF4 precision-direction rule, and machine-verifies the
+  algebraic backbone in **Sage + Lean**.
+- **[Part III](https://zenodo.org/records/21288264) — From Attention to Residual Computation.**
+  Opens the orthogonal **depth** axis: three separately-measurable observables
+  (**transport / writing / commitment**), an *exact* direct-logit-attribution identity, and the
+  honest reframe that the J-lens "advantage band" is a property of the transport **operator**, not
+  of stored content. This powers the new **🪜 Depth map** mode.
+- **[Formalization](https://zenodo.org/records/21299266) — A Machine-Checked Backbone.** The
+  load-bearing identities across I–III, verified in **Lean 4 / Mathlib** (52 theorems, zero
+  `sorry`s).
+
 ## Citation
 
 If this tool helps you — paper or code:
 
 ```bibtex
-@article{marin2026Predicting How Transformers Atten,
-  author  = {Marin, Carles},
-  title   = {Predicting How Transformers Attend
-Analytic Power-Law Theory, Phase Transitions, and Practical Compression
-Tools},
-  year    = {2026},
-  url     = {https://zenodo.org/records/20314038},
+@misc{marin2026taf1,
+  author = {Mar\'in, Carles},
+  title  = {Predicting How Transformers Attend: Analytic Power-Law Theory, Phase Transitions, and Practical Compression Tools},
+  year   = {2026},
+  note   = {Part I},
+  url    = {https://zenodo.org/records/20314038},
+}
+
+@misc{marin2026taf2,
+  author = {Mar\'in, Carles},
+  title  = {Predicting How Transformers Attend, Part II: A Six-Axis Decomposition with the Learned Imprint},
+  year   = {2026},
+  url    = {https://zenodo.org/records/19960573},
+}
+
+@misc{marin2026taf3,
+  author = {Mar\'in, Carles},
+  title  = {Predicting How Transformers Attend, Part III: From Attention to Residual Computation},
+  year   = {2026},
+  url    = {https://zenodo.org/records/21288264},
 }
 
 @misc{marin2026tafagent,
