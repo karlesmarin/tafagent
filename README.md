@@ -50,7 +50,7 @@ language:
 # 🔬 TAF Agent
 
 > **Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.**
-> 27 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
+> 28 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
@@ -58,6 +58,30 @@ language:
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
+
+## 🆕 v0.13 — Depth map (Part III) + the papers as a series
+
+The third paper — *Predicting How Transformers Attend, Part III* — opens a **second,
+orthogonal axis**, and this release brings it into the tool.
+
+**🪜 Depth map** — everything before this measured a model along **distance** (γ — how far
+attention reaches). Depth map reads the **depth** axis straight from `config.json`: the two
+independent geometric axes side by side (**distance γ_geom** ⟂ **depth L_crit/N**), the layer
+where the attention regime changes (`L_crit/N = log_θ(T/2π)·(d_head/64)^(1/√12)`), the three
+RoPE scales (λ₀ · T_cross · T_max), and — for models in the shipped γ atlas — the **δ
+band-position lead** (γ_obs − γ_geom) as an *exploratory* hint of where the J-lens advantage
+band sits. Built with Part III's honesty caveats in front: L_crit is **not** the commitment
+knee, and the three depth observables (transport / writing / commitment) are **measured**, not
+derived — so the mode says so and doesn't fake them. Browser-only, no inference, full 4-language
+support (mode + guided demo + autocomplete + manual). Try it:
+[`?demo=depth`](https://karlesmarin.github.io/tafagent/?demo=depth).
+
+**📚 The papers, now as a continuing series** — the docs no longer point at one paper. Manual,
+inventory and README now present *Predicting How Transformers Attend* as a **I → II → III**
+sequence and explain what each part contributes: Part I (the **distance** axis + γ atlas),
+Part II (the **six-axis decomposition** + learned imprint ν = −1/2π), Part III (the **depth**
+axis) and the **Lean 4 / Mathlib** formalization backbone (52 theorems, 0 `sorry`s). New
+dedicated `v0.13` manual card, matching inventory entry, and a fixed/expanded BibTeX.
 
 ## 🆕 v0.12 — Fit Check + everything in your language
 
