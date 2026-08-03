@@ -54,7 +54,7 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
-**📄 Papers**: *Predicting How Transformers Attend* (Marín 2026) — a continuing **I → II → III** series: [Part I](https://zenodo.org/records/20314038) · [Part II](https://zenodo.org/records/19960573) · [Part III](https://zenodo.org/records/21288264) · [Lean formalization](https://zenodo.org/records/21299266) *(each explained below)*
+**📄 Papers**: *Predicting How Transformers Attend* (Marín 2026) — a continuing **I → II → III** series: [Part I](https://doi.org/10.5281/zenodo.19826342) · [Part II](https://doi.org/10.5281/zenodo.19960572) · [Part III](https://doi.org/10.5281/zenodo.21288263) · [Lean formalization](https://doi.org/10.5281/zenodo.21299265) *(each explained below)*
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
@@ -512,21 +512,21 @@ TAF Agent is the practical, browser-side tool that closes the loop of a continui
 series — *Predicting How Transformers Attend* (Marín 2026). Each part opens a new axis, and
 the modes here compute from all three:
 
-- **[Part I](https://zenodo.org/records/20314038) — Analytic Power-Law Theory.** The **distance**
+- **[Part I](https://doi.org/10.5281/zenodo.19826342) — Analytic Power-Law Theory.** The **distance**
   axis. Attention decays as a power law `A(d) ∝ d^−γ`; a closed-form predictor `γ_Padé(θ,T)`
   fixes γ from the RoPE geometry alone; the γ **atlas** places dozens of models on one axis, and
   the phase structure (Hagedorn point γ=1) separates *looks far* from *concentrates*. This is the
   foundation nearly every mode in the app reads from.
-- **[Part II](https://zenodo.org/records/19960573) — A Six-Axis Decomposition.** Splits the
+- **[Part II](https://doi.org/10.5281/zenodo.19960572) — A Six-Axis Decomposition.** Splits the
   measured γ into **six interpretable axes** (RoPE geometry + training + architecture …), pins the
   **learned imprint** `ν ≈ −1/2π`, adds an NF4 precision-direction rule, and machine-verifies the
   algebraic backbone in **Sage + Lean**.
-- **[Part III](https://zenodo.org/records/21288264) — From Attention to Residual Computation.**
+- **[Part III](https://doi.org/10.5281/zenodo.21288263) — From Attention to Residual Computation.**
   Opens the orthogonal **depth** axis: three separately-measurable observables
   (**transport / writing / commitment**), an *exact* direct-logit-attribution identity, and the
   honest reframe that the J-lens "advantage band" is a property of the transport **operator**, not
   of stored content. This powers the new **🪜 Depth map** mode.
-- **[Formalization](https://zenodo.org/records/21299266) — A Machine-Checked Backbone.** The
+- **[Formalization](https://doi.org/10.5281/zenodo.21299265) — A Machine-Checked Backbone.** The
   load-bearing identities across I–III, verified in **Lean 4 / Mathlib** (52 theorems, zero
   `sorry`s).
 
@@ -540,21 +540,24 @@ If this tool helps you — paper or code:
   title  = {Predicting How Transformers Attend: Analytic Power-Law Theory, Phase Transitions, and Practical Compression Tools},
   year   = {2026},
   note   = {Part I},
-  url    = {https://zenodo.org/records/20314038},
+  url    = {https://doi.org/10.5281/zenodo.19826342},
+  doi    = {10.5281/zenodo.19826342},
 }
 
 @misc{marin2026taf2,
   author = {Mar\'in, Carles},
   title  = {Predicting How Transformers Attend, Part II: A Six-Axis Decomposition with the Learned Imprint},
   year   = {2026},
-  url    = {https://zenodo.org/records/19960573},
+  url    = {https://doi.org/10.5281/zenodo.19960572},
+  doi    = {10.5281/zenodo.19960572},
 }
 
 @misc{marin2026taf3,
   author = {Mar\'in, Carles},
   title  = {Predicting How Transformers Attend, Part III: From Attention to Residual Computation},
   year   = {2026},
-  url    = {https://zenodo.org/records/21288264},
+  url    = {https://doi.org/10.5281/zenodo.21288263},
+  doi    = {10.5281/zenodo.21288263},
 }
 
 @misc{marin2026tafagent,
