@@ -117,14 +117,14 @@
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.divider.v04_s29">— v0.4 (sesión 29 findings) —</summary>
 
-      <p data-i18n="help.section.v04"><strong>What's new in v0.4</strong> (sesión 29 findings 2026-04-28): three diagnostic recipes derived from cross-model panel analysis (n=22 LLMs).</p>
+      <p data-i18n="help.section.v04"><strong>What's new in v0.4</strong> (sesión 29 findings 2026-04-28): three diagnostic recipes derived from cross-model panel analysis (n=22 LLMs). <strong>X-21 has since been retired</strong> — see below.</p>
 
-      <p data-i18n="help.recipe.x21.title"><strong>X-21 Imprint Purity Diagnostic</strong> — predicts γ on RANDOM tokens via ν=−1/(2π); how clean is the model's RoPE prediction?</p>
+      <p data-i18n="help.recipe.x21.title"><strong>X-21 Imprint Purity Diagnostic</strong> — <strong>✗ RETIRED</strong>: predicted γ on RANDOM tokens via ν=−1/(2π); the slope is not identified by the data.</p>
       <div class="help-example" data-i18n="help.recipe.x21.example">
         Try: <em>"How clean is the RoPE prediction on Llama-3-8B?"</em><br>
-        Answer: predicted γ_random + purity diagnostic (CLEAN / OVER-IMPRINTED / UNDER-IMPRINTED).
+        Answer: predicted γ_random + purity diagnostic (CLEAN / OVER-IMPRINTED / UNDER-IMPRINTED). <strong>Retired — the verdict is no longer supported.</strong>
       </div>
-      <p data-i18n="help.v04.imprint" style="font-size: 0.9em; opacity: 0.85;"><strong>Learned-imprint slope ν = −1/(2π)</strong>: RoPE rotation period 2π drives a positional bias on weights, proportional to log(N_params). Even random tokens show this scaling. ν is DERIVED — not fitted (empirical err 0.3%).</p>
+      <p data-i18n="help.v04.imprint" style="font-size: 0.9em; opacity: 0.85;"><strong>Learned-imprint slope ν = −1/(2π)</strong>: ✗ <strong>Not identified by the data.</strong> Part II states upfront that "ν remains unconstrained by the current data": bootstrap 95% CI [−0.260, −0.008], with only an 11.1% chance a resampled slope lands within 1% of −1/(2π), and pythia-31m driving much of it. The "0.3% match" framing was withdrawn in Part II. The Lean algebra holds and the AbsPE control behaves as predicted (ν≈0 on GPT-2); the slope is consistent with −1/(2π) but not strongly identified — too weak a footing for a diagnostic. X-21 is retired and kept callable for reproducibility only. See docs/LIMITATIONS.md §2.</p>
 
       <p data-i18n="help.recipe.x22.title"><strong>X-22 Compute-Context Invariant</strong> — does γ × log(N²·D) lie in panel band 51.2 ± 16.8? Detects scaling/training anomalies.</p>
       <div class="help-example" data-i18n="help.recipe.x22.example">
@@ -351,10 +351,10 @@
           <summary class="inv-card-title" data-i18n="help.source.title">Source &amp; paper</summary>
       <p data-i18n="help.source.body">Source code: <a href="https://github.com/karlesmarin/tafagent" target="_blank">github.com/karlesmarin/tafagent</a><br><br>
       <strong>Paper series — <em>Predicting How Transformers Attend</em> (Marín 2026):</strong><br>
-      · <a href="https://zenodo.org/records/20314038" target="_blank">Part I</a> — the <b>distance</b> axis: the power-law decay A(d)∝d⁻ᵞ, the closed-form γ_Padé predictor, the γ atlas and the phase structure (the TAF foundation).<br>
-      · <a href="https://zenodo.org/records/19960573" target="_blank">Part II</a> — a <b>six-axis decomposition</b> of γ (learned imprint ν=−1/2π), an NF4 precision rule and a Sage+Lean machine-verified backbone.<br>
-      · <a href="https://zenodo.org/records/21288264" target="_blank">Part III</a> — the <b>depth</b> axis: three observables (transport / writing / commitment), the exact DLA identity and the operator reframe of the J-lens band.<br>
-      · <a href="https://zenodo.org/records/21299266" target="_blank">Formalization</a> — a machine-checked Lean 4 / Mathlib backbone (52 theorems, 0 sorries).<br><br>
+      · <a href="https://doi.org/10.5281/zenodo.19826342" target="_blank">Part I</a> — the <b>distance</b> axis: the power-law decay A(d)∝d⁻ᵞ, the closed-form γ_Padé predictor, the γ atlas and the phase structure (the TAF foundation).<br>
+      · <a href="https://doi.org/10.5281/zenodo.19960572" target="_blank">Part II</a> — a <b>six-axis decomposition</b> of γ (learned imprint ν=−1/2π), an NF4 precision rule and a Sage+Lean machine-verified backbone.<br>
+      · <a href="https://doi.org/10.5281/zenodo.21288263" target="_blank">Part III</a> — the <b>depth</b> axis: three observables (transport / writing / commitment), the exact DLA identity and the operator reframe of the J-lens band.<br>
+      · <a href="https://doi.org/10.5281/zenodo.21299265" target="_blank">Formalization</a> — a machine-checked Lean 4 / Mathlib backbone (52 theorems, 0 sorries).<br><br>
       Dataset: <a href="https://huggingface.co/datasets/karlexmarin/taf-attention-decay" target="_blank">taf-attention-decay</a> — γ atlas measurements (CC-BY-4.0)</p>
       <p data-i18n="help.guide.body">📖 <strong>Guide</strong>: the <strong>📖 Guide</strong> button in the header opens the companion <a href="https://karlesmarin.github.io/transformers-guide/" target="_blank" rel="noopener">Transformers Guide</a> — a longer-form explainer of the concepts behind the diagnostics (attention decay, RoPE, KV cache, quantization, long-context). Opens in a new tab.</p>
         </details>
@@ -393,7 +393,7 @@
             <li><strong data-i18n="inv.recipes.x3.title">Budget</strong>: <span data-i18n="inv.recipes.x3.body">with $X, what model can you train from scratch?</span></li>
             <li><strong data-i18n="inv.recipes.x5.title">Hardware</strong>: <span data-i18n="inv.recipes.x5.body">which GPU to serve N tokens/day?</span></li>
             <li><strong data-i18n="inv.recipes.x19.title">KV cache</strong>: <span data-i18n="inv.recipes.x19.body">how to compress without breaking quality?</span></li>
-            <li><strong data-i18n="inv.recipes.x21.title">Imprint purity</strong>: <span data-i18n="inv.recipes.x21.body">how clean is the model's positional encoding?</span></li>
+            <li><strong data-i18n="inv.recipes.x21.title">Imprint purity ✗ retired</strong>: <span data-i18n="inv.recipes.x21.body">not identified by the data — the ν slope has a wide CI.</span></li>
             <li><strong data-i18n="inv.recipes.x22.title">Compute-context</strong>: <span data-i18n="inv.recipes.x22.body">does the model fit the empirical band?</span></li>
             <li><strong data-i18n="inv.recipes.x23.title">IH-phase</strong>: <span data-i18n="inv.recipes.x23.body">pre- or post-induction-head?</span></li>
           </ul>

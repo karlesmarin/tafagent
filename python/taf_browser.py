@@ -134,7 +134,13 @@ def kv_soft_decay_regime(theta: float, gamma: float, T_train: int) -> str:
 # ════════════════════════════════════════════════════════════════════════════
 # §28 — Sesión 29 (2026-04-28): learned-imprint, F2 Chinchilla, Δγ-IH probe
 # ════════════════════════════════════════════════════════════════════════════
-NU_IMPRINT = -1.0 / (2 * math.pi)  # §28 — learned-imprint slope (DERIVED, n=22 err 0.3%)
+NU_IMPRINT = -1.0 / (2 * math.pi)  # §28 — learned-imprint slope. ✗ NOT IDENTIFIED
+# BY THE DATA. Part II, verbatim: "nu remains unconstrained by the current data" —
+# bootstrap 95% CI [-0.260, -0.008], only 11.1% of resamples within 1% of -1/(2pi),
+# and pythia-31m drives much of the panel slope. The "0.3% match" framing was
+# withdrawn in Part II. The Lean algebra holds and the AbsPE control passes
+# (GPT-2, no 2pi period -> nu ~ 0). Consistent, but not strongly identified —
+# kept so retired recipe X-21 stays reproducible. Do not build new results on it.
 P_0_IMPRINT_M = 14.0                # baseline pythia-14m (smallest panel reference)
 
 
@@ -230,7 +236,7 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
     """§28.3 — 6-axis decomposition (sesión 29 update with imprint axis).
 
     γ_obs = γ_pade
-           + ν·log_10(P/P_0)·𝟙[corpus=random]    ← NEW imprint axis (DERIVED, n=22, err 0.3%)
+           + ν·log_10(P/P_0)·𝟙[corpus=random]    ← imprint axis. ✗ NOT IDENTIFIED (see NU_IMPRINT)
            + Δ_corpus(text-rand)
            + δ_arch(GQA, SWA)
            + δ_circuit(IH phase)
@@ -994,11 +1000,21 @@ def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
 def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
                    d_head, n_layers, n_params, T_eval=None,
                    gamma_random_obs=None, **_unused):
-    """X-21: how clean is the model's RoPE-Padé prediction?
+    """X-21: how clean is the model's RoPE-Padé prediction?  ✗ RETIRED 2026-08.
 
     Predicts γ on RANDOM-token input via learned-imprint formula:
       γ_random = γ_pade(θ,T) + ν·log_10(P/14M),  ν = −1/(2π) ≈ −0.1592
     If user provides observed γ_random, returns purity diagnostic.
+
+    RETIRED: not because ν is disproved, but because it is *not identified*.
+    Part II states upfront "ν remains unconstrained by the current data":
+    bootstrap 95% CI [−0.260, −0.008], only 11.1% of resamples within 1% of
+    −1/(2π), pythia-31m driving much of the panel slope; and it withdrew the
+    "0.3% match" framing by name. The Lean algebra holds and the AbsPE control
+    passes (GPT-2, no 2π period → ν ≈ 0). A slope that is consistent but not
+    strongly identified is too weak a footing for a shipped diagnostic. The
+    function is kept callable so published runs stay reproducible; its verdict
+    is prefixed "✗ RETIRED" and must not be acted on. See docs/LIMITATIONS.md §2.
     """
     chain = []
     if T_eval is None:
@@ -1058,7 +1074,20 @@ def run_recipe_x21(theta, T_train, n_attention_heads, n_kv_heads,
         _rc, _rp = "x21.r.pred_only", {"g": f"{g_pred:.4f}"}
         _mc, _mp = "x21.m.measure", {}
 
-    return _wrap("X-21", "Imprint Purity Diagnostic", locals(), chain,
+    # ── Retired 2026-08: the ν slope this recipe rests on is not identified by the data.
+    # The verdict is prefixed rather than suppressed so that anyone calling the
+    # function directly (CLI, notebook, cached UI) is told, instead of silently
+    # receiving a number whose basis no longer stands.
+    verdict = f"✗ RETIRED — {verdict}"
+    reason = (f"{reason} ⚠ This recipe rests on the learned-imprint slope "
+              f"ν = −1/(2π), which Part II states is 'unconstrained by the "
+              f"current data' (bootstrap 95% CI [−0.260, −0.008]; 11.1% of "
+              f"resamples within 1% of −1/(2π)). Consistent, but not strongly "
+              f"identified. See docs/LIMITATIONS.md §2.")
+    mit = (f"{mit} Do not act on this verdict. Measure γ directly (Recipe 1) "
+           f"instead of predicting it from ν.")
+
+    return _wrap("X-21", "Imprint Purity Diagnostic ✗ RETIRED", locals(), chain,
                  verdict, reason, mit,
                  reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
 
@@ -1700,12 +1729,13 @@ RECIPES = {
         "uses_sections": ["§26", "§19"],
     },
     "X-21": {
-        "name": "Imprint Purity Diagnostic",
-        "description": "How clean is the model's RoPE-Padé prediction? Predicts γ on RANDOM-token input via ν=−1/(2π).",
+        "name": "Imprint Purity Diagnostic ✗ RETIRED",
+        "description": "RETIRED (2026-08) — rested on the learned-imprint slope ν=−1/(2π), which Part II states is 'unconstrained by the current data' (bootstrap 95% CI [−0.260, −0.008]); the '0.3% match' framing was withdrawn there too. Consistent but not strongly identified. Kept callable for reproducibility only; do not act on its verdict.",
         "fn": run_recipe_x21,
         "params": ["theta", "T_train", "n_attention_heads", "n_kv_heads",
                    "d_head", "n_layers", "n_params", "T_eval", "gamma_random_obs"],
         "category": "diagnostic",
+        "status": "retired",
         "uses_sections": ["§26", "§28"],
     },
     "X-22": {

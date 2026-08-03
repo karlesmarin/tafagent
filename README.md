@@ -205,7 +205,7 @@ Thermodynamic Attention Framework (TAF) formulas:
 - *Soft KV decay or hard cutoff for compression?* → **X-19**
 
 **Diagnostic recipes** (NEW v0.4 — sesión 29 findings 2026-04-28)
-- *How much positional bias did training imprint on this model?* → **X-21**
+- *How much positional bias did training imprint on this model?* → **X-21** (✗ retired — ν is not identified by the data; measure γ directly instead)
 - *Does this model fit the empirical compute-context invariant band?* → **X-22**
 - *Is this checkpoint pre- or post-induction-head?* → **X-23**
 
@@ -314,21 +314,27 @@ paper (343 JSON files, ~5.5 MB). See `data/README.md` for the layout.
 
 Three new diagnostic recipes derived from cross-model panel analysis (n=22 LLMs):
 
-### X-21 — Imprint Purity Diagnostic
-Predicts γ on RANDOM-token input via the **learned-imprint formula**:
+### X-21 — Imprint Purity Diagnostic · ✗ RETIRED (2026-08)
+Predicted γ on RANDOM-token input via the **learned-imprint formula**:
 
 ```
 γ_random = γ_pade(θ, T) + ν · log_10(P / 14M)
-   ν = −1/(2π) ≈ −0.1592   (DERIVED from RoPE rotation period)
+   ν = −1/(2π) ≈ −0.1592
 ```
 
-Even on random tokens, weights apply a learned positional bias proportional
-to log(N_params). The slope ν is **fixed** (not fitted) — derivable from
-RoPE's 2π rotation period. Empirical validation: n=22 LLMs, p=0.022, |err|=0.3%.
+> **✗ Not identified by the data.** Part II says so upfront — *"ν remains
+> unconstrained by the current data"*: bootstrap 95% CI `[−0.260, −0.008]`, only an
+> **11.1%** chance a resampled slope lands within 1% of −1/(2π), and pythia-31m
+> drives much of the panel slope. Part II also withdrew the "0.3% match" framing by
+> name. What *does* hold: the Lean algebra, and the AbsPE falsification control
+> (GPT-2 family, no 2π period → ν ≈ 0, mean |ν| = 0.028 vs RoPE range [−0.5, +0.3]).
+> So the slope is **consistent with −1/(2π) but not strongly identified** — which is
+> too weak a footing for a shipped diagnostic, hence the retirement. The recipe stays
+> callable so published runs remain reproducible; its verdict is prefixed
+> `✗ RETIRED` and must not be acted on. See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) §2.
 
-**Use case**: detect anomalous training, format conversion (e.g. OLMo native
-vs HF Δγ=0.30), or fine-tuning drift by comparing predicted vs measured
-γ_random.
+**Instead**: measure γ directly (Recipe 1 / `cli/diagnose_model.py`) rather than
+predicting it from ν.
 
 ### X-22 — Compute-Context Invariant
 Computes the empirical Chinchilla×attention invariant:
