@@ -2,6 +2,15 @@
 
 ## 25 October: review the evidence behind a result
 
+Architecture, JSON and PEFT-code follow-up complete the ordered checks for all
+eight non-attention routes: 39 priorities and 32 optional scenarios overall.
+Attention retains its protocol checklist. Twelve new scenarios cover schema
+scope and missing metadata, field-order heuristics, and PEFT loading/order/targets/
+scaling with explicit runtime limits. Synthetic architecture examples clear the
+previous model identity and sources. JSON reordering is optional and does not
+certify validity or reasoning. Four-language Manual/overview, README and guide
+chapters 10/28/30/R5 are updated with direct section links and same-host return.
+
 Prompt-cache and evaluation-drift follow-up now use ordered checks too: five
 priorities and five optional examples for each route. Across the five routes,
 there are 27 priorities and 20 scenarios. Cache plans distinguish identical,

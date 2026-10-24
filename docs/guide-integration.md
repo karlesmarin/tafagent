@@ -48,10 +48,12 @@ se prioriza según contexto, referencia y documentación. R4 explica cómo recup
 las condiciones de la ejecución real y R5 cómo abrir el panel y su demo. Los
 enlaces conservan el regreso al mismo formulario, sin restaurar datos pegados.
 
-Memoria, plantillas, adaptadores, caché de prompts y diferencias de evaluación
-añaden tres pasos según los hallazgos actuales: 27 prioridades y veinte escenarios
-de ejemplo. Los capítulos de caché KV (20), PEFT (28), serving (36), evaluación
-(40) y el manual de TAF (R5) explican este seguimiento.
+Ocho rutas (memoria, plantillas, arquitectura, JSON, código PEFT, adaptadores,
+caché y diferencias de evaluación) añaden tres pasos según los hallazgos: 39
+prioridades y 32 escenarios. Atención conserva su lista de protocolo. Los capítulos
+10, 20, 28, 30, 36, 40 y el manual de TAF (R5) explican este seguimiento.
+Arquitectura, JSON y PEFT enlazan a `sec-resolver-architecture`, `sec-resolver-json`
+y `sec-resolver-peft`; el retorno conserva ruta, idioma y alojamiento.
 Recalcular cambia el plan, pero no implica ejecutar las comprobaciones en el
 entorno del usuario. Los enlaces de ida y vuelta conservan su comportamiento.
 

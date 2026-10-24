@@ -1,17 +1,15 @@
 // JSON CoT-aware Linter (v0.8.2 anti-bullshit pack #8)
 //
-// Pain (Solutions Hub `structured_outputs`): JSON schema engines fail
-// silently and CoT models commit to the answer before reasoning when
-// the schema places `answer` before `reasoning` — constrained decoding
-// emits keys in property order, so the model has to commit a final
-// answer first and only then writes the rationale to justify it,
-// defeating Chain-of-Thought entirely.
+// Inspect top-level field names and offer an optional ordering experiment.
+// Some constrained decoders use schema property order; this is not a JSON
+// validity rule or a guarantee of reasoning quality. Decoder behavior and
+// task quality must be checked separately. This is not a schema validator.
 //
 // Source citations:
 //   - https://collinwilkins.com/articles/structured-output (field
 //     ordering anti-pattern explained)
 //   - JSONSchemaBench (10K real schemas) — most are not CoT-aware
-//   - llguidance / Outlines / SGLang grammars — all respect property order
+//   - Decoder ordering is implementation-specific; verify the chosen backend.
 //
 // Pure logic — no human strings. Returns codes+params; main.js does
 // the i18n lookup.
@@ -69,9 +67,8 @@ export function classifyFieldName(name) {
 
 // Decide whether `parsed` is a JSON Schema (has `properties` / `$schema`
 // / `type: object`) or a plain example object. Both have ordered keys
-// in modern JS (ES2015+ insertion-order preservation for non-integer
-// string keys), and constrained decoders honor that order, so the
-// detection works on either form.
+// in modern JS (insertion order for non-integer string keys). Whether a
+// decoder uses that order is an external assumption, not checked here.
 function extractFieldOrder(parsed) {
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { kind: "non_object", fields: [] };
@@ -94,10 +91,9 @@ function buildFieldAnnotations(fields) {
 
 function suggestReorder(annotations) {
   // Strategy: keep relative order within each type bucket, but emit
-  // reasoning fields first, then `other`, then answer fields. That
-  // way CoT runs first, the model can reference any context fields,
-  // and the answer comes last (constrained decoding commits the
-  // answer after the rationale).
+  // explanation-like fields first, then `other`, then answer fields.
+  // This previews one serialization order, without executing a decoder
+  // or establishing how the model reasons or whether quality improves.
   const reasoning = annotations.filter(a => a.type === "reasoning").map(a => a.name);
   const other     = annotations.filter(a => a.type === "other").map(a => a.name);
   const answer    = annotations.filter(a => a.type === "answer").map(a => a.name);
@@ -109,8 +105,8 @@ function suggestReorder(annotations) {
 //   - invalid_json
 //   - non_object
 //   - empty_fields
-//   - good_order        (reasoning before answer — CoT honored)
-//   - anti_pattern      (answer before reasoning — model commits early)
+//   - good_order        (recognized explanation field before answer field)
+//   - anti_pattern      (recognized answer field before explanation field)
 //   - missing_reasoning (answer-like fields present, no reasoning)
 //   - missing_answer    (reasoning fields present, no answer-like field)
 //   - no_cot_fields     (object has fields but none look reasoning/answer)

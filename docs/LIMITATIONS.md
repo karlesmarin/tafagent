@@ -101,7 +101,7 @@ types, scientific appropriateness or truth merely because a field is populated.
 Custom fields affect missing/difference counts without exposing their names or
 values. The next step follows context issues and protocol differences before
 asking for repetition; no missing settings are invented.
-Memory, template, adapter, prompt-cache and drift plans prioritize current findings and
+The eight non-attention routes prioritize current findings and
 provide three verification steps. Their `executed: false` status remains explicit.
 Estimated fit, a present template or matching adapter metadata do not establish
 successful execution. The illustrative scenario controls replace demo inputs;
@@ -111,6 +111,12 @@ or actual reuse. Drift priorities use declared settings and two aggregate scores
 matching template-application flags do not prove identical rendered inputs.
 The band supplies no statistical uncertainty, and the comparability checkbox
 does not verify the task, split, sample set or metric.
+Architecture scope is a boundary of TAF's reviewed input schema, not a verdict on
+engine support. Synthetic architecture scenarios clear model provenance. JSON
+plans concern top-level field-name heuristics, not full schema validity or reasoning
+faithfulness; an explanation field is not required by the checker. PEFT plans
+cannot follow execution paths or certify loaded weights, gradients or optimizers.
+Fixing a lint notice does not establish a measured fix.
 
 The local case report uses schema version 3; its `review` object uses version 1.
 `independently_verified: false` is explicit, including after a user reports that

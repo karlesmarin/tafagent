@@ -34,6 +34,10 @@ try{
    const report=JSON.parse(readFileSync(await (await pending).path(),'utf8'));
    assert.equal(report.demo_scenario,scenario);assert.equal(report.review.checks.priority,code);assert.equal(report.review.checks.executed,false);
    assert.equal(report.summary.checks.priority,code);assert.equal(report.review.independently_verified,false);
+   if(route==='compatibility'){
+    assert.equal(report.model,null);assert.equal(report.revision,null);assert.deepEqual(report.sources,[]);
+    assert.equal(await page.locator('#resolver-model').inputValue(),'');
+   }
    for(const mode of report.review.checks.tools){
     await page.locator(`[data-check-tool="${mode}"]`).click();assert.equal(await page.locator('#resolver-catalog-select').inputValue(),mode);
     assert.ok((await page.locator('#resolver-case-summary').innerText()).includes(tr('check_'+code)));
@@ -58,5 +62,5 @@ try{
  assert.ok(await page.locator('#resolver-dialog').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
  mkdirSync('tmp/resolver',{recursive:true});await page.screenshot({path:'tmp/resolver/checks-mobile.png'});
  assert.equal(hf,0);assert.deepEqual(errors,[]);
- console.log('Resolver checks browser PASS: 20 examples × four languages, ordered checks, recalculation, follow-up, private exports, no HF requests and mobile.');
+ console.log('Resolver checks browser PASS: 32 examples × four languages, synthetic provenance, ordered checks, follow-up, private exports, no HF requests and mobile.');
 }finally{await browser.close();}

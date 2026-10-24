@@ -67,14 +67,18 @@ Attention reports also expose a protocol checklist: 19 named conditions grouped
 by model/data, sampling, execution and fit, with missing/different fields and a
 prioritized next check. The offline attention example demonstrates it. Custom
 field names and protocol values stay out of the case report.
-Memory, chat-template, adapter, prompt-cache and evaluation-drift results include
-**See the verification steps**: 27 priorities based on the supplied evidence and three ordered checks per case. Twenty
+Memory, templates, architecture, JSON, PEFT code, adapters, prompt cache and drift include
+**See the verification steps**: 39 priorities based on the supplied evidence and
+three ordered checks per case. Thirty-two
 optional example situations show how the steps change. The main animated demo
 highlights them; recalculation, follow-up and local reports use the current plan.
 These instructions do not execute a model or certify a fix.
 Cache examples separate text changes from measured reuse; drift examples prioritize
 unknown templates and changed settings before interpreting a score gap. A shared
 text prefix is not a cache-hit measurement, and the drift band is not a confidence interval.
+Architecture, JSON and PEFT examples distinguish configuration scope, field-name
+heuristics and static code findings from actual runtime or schema validation.
+Together with attention's protocol checklist, all nine routes explain a next check.
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):

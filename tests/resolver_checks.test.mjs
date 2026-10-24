@@ -50,12 +50,29 @@ for(const [text,text2,priority] of [['PRIVATE😀','PRIVATE😀','identical'],['
  assert.ok(!JSON.stringify(r).includes('PRIVATE'));
  assert.deepEqual(publicLocalInputs('cache',{text,text2}),{});
 }
+for(const route of ['compatibility','cot','peft'])for(const scenario of CHECK_DEMOS[route]){
+ const e=checkDemo(route,scenario,q);
+ record(route,e.bundle,e.inputs,route+'_'+scenario);
+ if(route==='compatibility'){assert.equal(e.bundle.model,null);assert.equal(e.bundle.revision,null);assert.deepEqual(e.bundle.sources,[]);}
+}
+for(const text of ['{}','{"answer":"PRIVATE"}','{"properties":{"explanation":{"type":"string"}}}','{"properties":{"nested":{"properties":{"answer":{},"reasoning":{}}}}}'])record('cot',local,{text},'cot_unclassified');
+const order=record('cot',local,LOCAL_DEMOS.cot,'cot_order');
+record('cot',local,{text:order.suggestion},'cot_ordered');
+const mixed='adapter_path="PRIVATE/trained_lora"\n'+LOCAL_DEMOS.peft.text;
+const peft=record('peft',local,{text:mixed},'peft_load');
+assert.ok(peft.notices.some(x=>x.key==='peft_qlora_order'));
+assert.ok(!JSON.stringify(peft).includes('PRIVATE'));
+record('peft',local,{text:'# get_peft_model(base, cfg)\ncustom_loader()'},'peft_unrecognized');
+record('compatibility',{origin:'local',config:{...q.config,rope_theta:null}},{},'compatibility_metadata');
+record('compatibility',{origin:'local',config:{...q.config,num_local_experts:4,rope_theta:null}},{},'compatibility_scope');
 for(const state of cases)for(const lang of ['en','es','fr','zh']){
  const summary=buildResolverSummary(state,lang),c=summary.checks;
  assert.equal(c.executed,false);assert.equal(c.instructions.length,3);assert.equal(summary.next,c.instructions[0]);
  for(const mode of c.tools)assert.ok(Object.hasOwn(modeTopics,mode));
  for(const text of [c.title,...c.instructions])assert.ok(text&&!text.includes('undefined')&&!text.includes('PRIVATE'));
  if(['cache','drift'].includes(state.route))assert.equal(new URL(summary.guide.url).hash,'#sec-resolver-'+state.route);
+ const anchors={compatibility:'architecture',cot:'json',peft:'peft'};
+ if(anchors[state.route])assert.equal(new URL(summary.guide.url).hash,'#sec-resolver-'+anchors[state.route]);
 }
 for(const values of Object.values(checksRows))assert.ok(values.length===4&&values.every(Boolean));
 for(const [route,scenarios] of Object.entries(CHECK_DEMOS))for(const scenario of scenarios){
@@ -63,11 +80,12 @@ for(const [route,scenarios] of Object.entries(CHECK_DEMOS))for(const scenario of
  assert.equal(selectResolverChecks({route,result,inputs:example.inputs}).priority,route+'_'+scenario);
 }
 // Initial examples and alternate scenarios must agree on their labels.
-for(const route of ['cache','drift'])assert.equal(selectResolverChecks({route,result:solveCase(route,local,LOCAL_DEMOS[route])}).priority,route+'_'+CHECK_DEMOS[route][0]);
+for(const route of ['cache','drift','cot','peft'])assert.equal(selectResolverChecks({route,result:solveCase(route,local,LOCAL_DEMOS[route])}).priority,route+'_'+CHECK_DEMOS[route][0]);
 assert.throws(()=>checkDemo('memory','kv',{origin:'hf'}));assert.throws(()=>checkDemo('memory','__proto__',q));
 assert.equal(selectResolverChecks({route:'memory',result:{status:'unknown'}}),null);
 assert.equal(selectResolverChecks({route:'template',result:{status:'unknown'}}),null);
 assert.equal(selectResolverChecks({route:'pvr',result:{}}),null);
 assert.equal(selectResolverChecks({route:'cache',result:{}}),null);
 assert.equal(selectResolverChecks({route:'drift',result:{driftEvidence:{templateUnknown:false}}}),null);
-console.log('Resolver checks PASS: 27 priorities, Unicode/prefix boundaries, drift priority order, 20 examples, four languages and unexecuted/private-data-free plans.');
+for(const route of ['compatibility','cot','peft'])assert.equal(selectResolverChecks({route,result:{}}),null);
+console.log('Resolver checks PASS: 39 priorities, 32 examples, schema and static-code boundaries, synthetic provenance, four languages and private-data-free plans.');

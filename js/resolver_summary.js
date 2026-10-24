@@ -36,7 +36,8 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
     template:{es:'sec-evaluacion-contexto',en:'sec-evaluacion-contexto'},
     architecture:{es:'las-familias',en:'the-families'},
   };
-  section=route==='pvr'?'tbl-gamma-protocolo':route==='cache'?'sec-resolver-cache':route==='drift'?'sec-resolver-drift':anchors[why]?.[guideLang]||'';
+  const resolverAnchors={pvr:'tbl-gamma-protocolo',cache:'sec-resolver-cache',drift:'sec-resolver-drift',cot:'sec-resolver-json',peft:'sec-resolver-peft',compatibility:'sec-resolver-architecture'};
+  section=resolverAnchors[route]||anchors[why]?.[guideLang]||'';
   const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));url.hash=section;
   const checks=selectResolverChecks({route,result,inputs});
   const next=tr(checks?checks.steps[0]:result.protocolReview?'protocol_first_'+result.protocolReview.priority:result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));

@@ -139,9 +139,10 @@ No discussion monitoring, webhook service, bot account, automatic replies or
 periodic task is enabled by this feature. This feature provides the resolver
 and the links through which a future authorized integration can introduce users.
 
-## Ordered checks for memory, templates, adapters, cache and drift
+## Ordered checks across the eight configuration and local-inspection routes
 
-`resolver_checks.js` selects one of 27 priorities from the current result:
+`resolver_checks.js` selects one of 39 priorities from the current result.
+The ninth route, attention/PVR, retains its separate protocol checklist.
 
 | Route | Priorities |
 |---|---|
@@ -150,6 +151,9 @@ and the links through which a future authorized integration can introduce users.
 | Adapter | Base unidentified/not compared; base mismatch; family-only match; target modules; saved embeddings; per-module settings; unusual scaling; loading/activation |
 | Prompt cache | Change after a shared prefix; identical text; appended text; shortened text; change from the start |
 | Evaluation drift | Unknown template application; different application states; changed framework/precision/batch; matching supplied settings with gap above or within the descriptive band |
+| Architecture | Outside the reviewed dense schema; incomplete/inconsistent metadata; accepted geometry with runtime verification still required |
+| JSON | Answer-like field before explanation-like field; preferred order recognized; no applicable top-level field-name pattern |
+| PEFT code | Creating versus loading; k-bit preparation order; target modules; scaling convention; no recognized calls; no configured findings |
 
 **See the verification steps** opens three instructions: the priority check,
 what to observe in the user's environment, and how to interpret or redirect an
@@ -160,10 +164,34 @@ Conditional tool buttons open the existing catalog's input/limit explanation,
 preserving the current result; they neither run a tool nor infer another cause.
 
 After loading an example, **Explore another example** offers four memory cases,
-three template cases, three adapter cases, five cache cases and five drift cases. Choosing one resets that demo's
+three template cases, three adapter cases, five cache cases, five drift cases,
+three architecture cases, three JSON cases and six PEFT-code cases. Choosing one resets that demo's
 initial comparison, stays explicitly illustrative and performs no HF lookup or
 model run. Ordinary user-input results do not show these replacement controls.
 The animated memory demo highlights the ordered checks in step five.
+
+The alternate architecture examples use synthetic configs and clear the previous
+model ID, revision and sources. They cannot attribute synthetic geometry to the
+model previously inspected. Architecture limitations take precedence over missing
+dense dimensions: adding invented dense fields does not repair an unsupported
+architecture. Accepted input geometry does not certify runtime support.
+
+JSON guidance explicitly separates property-order experiments from JSON Schema
+validation and reasoning quality. It does not require adding a reasoning field;
+unclassified/nested names remain outside the heuristic. Trying the optional reorder
+recalculates the steps, without running generation or certifying schema compliance.
+
+PEFT guidance uses existing finding codes and line references, never pasted paths
+or code in reports. Load intent takes precedence over call order, targets and
+scaling; all findings remain visible. Regex matches may misread aliases, separate
+functions, strings or custom modules. A clean snippet is not a verified setup,
+and an alpha/r convention is not a correctness rule. The guide sections in chapters
+10/28/30 are linked directly, including a return to the original TAF host.
+
+These boundaries follow the [JSON Schema data model](https://json-schema.org/draft/2020-12/json-schema-core#section-4.2.1),
+the [PEFT quantization workflow](https://huggingface.co/docs/peft/developer_guides/quantization)
+and [PEFT troubleshooting](https://huggingface.co/docs/peft/developer_guides/troubleshooting),
+reviewed on 25 October 2026. No Python, training or generation is executed by the checks.
 
 Schema-3 reports add `summary.checks` and `review.checks` (version 1), containing
 the priority, localized instructions and `executed: false`; `demo_scenario`

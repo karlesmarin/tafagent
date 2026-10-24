@@ -71,6 +71,7 @@ function openChecks(){ $('review').open=true;$('checks').focus({preventScroll:tr
 function changeExample(scenario){
  const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
  if(isLocal())renderLocalFields(example.inputs);
+ else if(route==='compatibility')$('model').value='';
  else if(route==='memory')for(const [key,value] of Object.entries(example.inputs))$(key).value=value;
  lastInputs=example.inputs;result=solveCase(route,bundle,lastInputs);initial={inputs:{...lastInputs},result};feedback='';
  renderResult();openChecks();

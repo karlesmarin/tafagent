@@ -46,6 +46,13 @@ plantillas desconocidas/diferentes y ajustes cambiados antes de la banda
 descriptiva; puntuaciones próximas no prueban equivalencia ni ausencia de errores.
 Solo se exportan categorías y nombres de ajustes, no los prompts originales.
 
+Arquitectura, JSON y código PEFT completan los pasos en ocho rutas: 39 prioridades
+y 32 escenarios seleccionables. Atención conserva el protocolo específico. Los
+ejemplos alternativos de arquitectura eliminan ID/revisión/fuentes anteriores y
+usan configuraciones sintéticas. JSON no exige explicación ni valida todo un
+esquema. PEFT ordena los avisos existentes sin convertir regex o convenciones de
+escala en pruebas causales. Los capítulos 10/28/30 explican estos límites.
+
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|
 | Profile | `main.js`, `python/taf_browser.py:profile_model` | Configuración HF → tarjeta X-2/X-19/X-1/X-3/X-5 | Formulario especializado. Son fórmulas; no inferencia ni calidad medida. Pyodide. |

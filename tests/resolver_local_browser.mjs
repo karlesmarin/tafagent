@@ -40,7 +40,7 @@ try{
    assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_demo']));
    const text=await page.locator('#resolver-result').innerText();
    assert.ok(!text.includes('undefined')&&!/resolver\.|drift\.template\./.test(text),lang+' '+id+': '+text);
-   const next={pvr:'protocol_first_document',adapter:'check_adapter_mismatch',cache:'check_cache_changed',drift:'check_drift_templates'};
+   const next={pvr:'protocol_first_document',adapter:'check_adapter_mismatch',cache:'check_cache_changed',drift:'check_drift_templates',cot:'check_cot_order',peft:'check_peft_order'};
    assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.'+(next[id]||'next_'+id)]));
    if(id==='pvr'){
     await page.locator('#resolver-show-protocol').click();
@@ -62,6 +62,7 @@ try{
     await page.locator('#resolver-try-proposal').click();await page.locator('#resolver-export').waitFor();
     assert.equal(await page.locator('#resolver-try-proposal').count(),0);
     assert.ok((await page.locator('#resolver-case-summary').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.cot_ordered']));
+    assert.ok((await page.locator('#resolver-case-summary').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.check_cot_ordered']));
    }
   }
   await page.locator('#resolver-catalog > details').evaluate(el=>el.open=true);
