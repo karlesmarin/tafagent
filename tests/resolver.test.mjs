@@ -27,7 +27,7 @@ for(const [caseId,bundle,inputs,path] of [
  ['memory',q,{...opts,stage:'load'},'36-serving'],
  ['memory',hybrid,opts,'18-taxonomia'],
  ['template',{tokenizer:{}},{},'40-evaluacion'],
- ['compatibility',q,{},'18-taxonomia'],
+ ['compatibility',q,{},'10-arquitecturas'],
 ]) {
  const result=solveCase(caseId,bundle,inputs);
  const summary=buildResolverSummary({route:caseId,bundle:{...bundle,model:'Owner/Model',origin:'hf'},inputs,result},'en');

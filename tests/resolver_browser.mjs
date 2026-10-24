@@ -54,7 +54,7 @@ try{
    await page.locator('#resolver-demo').click();
    await page.locator('#resolver-export').waitFor();
    const summaryLink=new URL(await page.locator('#resolver-case-summary a').getAttribute('href'));
-   assert.ok(summaryLink.pathname.includes(route==='memory'?'20-kv-cache':route==='template'?'40-evaluacion':'18-taxonomia'));
+   assert.ok(summaryLink.pathname.includes(route==='memory'?'20-kv-cache':route==='template'?'40-evaluacion':'10-arquitecturas'));
    assert.ok((await page.locator('#resolver-result').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_note']));
    if(route==='memory'){
     assert.ok((await page.locator('#resolver-result').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.kv_bound']));
