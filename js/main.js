@@ -7,7 +7,7 @@
 //  4. Modes: Profile (all recipes) + Compare (multi-model side-by-side)
 //  5. i18n: EN/ES/FR/ZH
 
-import { initI18n, setLang, t } from "./i18n.js";
+import { initI18n, setLang, getLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
 import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
 import { loadLeanManifest, badgeHtml, badgesForUiBinding, renderTheoremTable, getManifest } from "./lean_badges.js";
@@ -15,7 +15,7 @@ import { unmaskConfig } from "./swa_unmasker.js";
 import { classifyMemory, compressionPressure, CLASS_LIGHT } from "./memory_reality.js";
 import { parseAdapterConfig, compatChecks, forgettingBand } from "./adapter_reality.js";
 import { computeConfidence } from "./confidence.js";
-import { normalizeMeasured, predictionVsReality, confidenceFromMeasured, contributionRecord, gammaPade as pvrGammaPade } from "./prediction_reality.js";
+import { normalizeMeasured, predictionVsReality, predictionContext, missingProtocolFields, compareProtocols, contributionRecord, gammaPade as pvrGammaPade } from "./prediction_reality.js";
 import { sniffChatTemplate } from "./chat_template_sniffer.js";
 import { parseVotesCSV, computeArenaCI, SAMPLE_VOTES_CSV } from "./arena_ci.js";
 import { rateAllBenchmarks, BENCHMARK_DB } from "./contamination_prior.js";
@@ -1031,6 +1031,7 @@ $("adapter-id")?.addEventListener("keydown", (e) => {
 
 function pvrNum(v) {
   if (v == null) return "—";
+  if (typeof v === "number" && Math.abs(v) < 1e-12) v = 0;
   return typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 4 }) : String(v);
 }
 
@@ -1043,24 +1044,34 @@ function renderPvrPrediction(modelId, theta, T) {
     </div></div>`;
 }
 
+let pvrLastResult = null;
+
 function renderPvrCard(measured, modelId, cfg) {
   const m = normalizeMeasured(measured) || measured;
-  const rows = predictionVsReality(
-    { theta: (cfg && cfg.rope_theta) ?? m.theta, T: (cfg && cfg.max_position_embeddings) ?? m.T }, m);
-  if (!rows.length) {
-    return `<div class="unmask-result"><div class="unmask-hero"><p>${escapeHtml(t("pvr.prediction_only") || "No comparable measurement found.")}</p></div></div>`;
-  }
+  const pred = cfg ? { theta: cfg.rope_theta } : {};
+  const context = predictionContext(m, pred);
+  const rows = predictionVsReality(pred, m);
+  if (!rows.some(r => r.metric === "gamma")) rows.unshift({ metric: "gamma", measured: m.gamma_obs, source: m.source });
   const TH = `style="text-align:left; padding:3px 8px; border-bottom:1px solid rgba(128,128,128,0.35);"`;
   const TD = `style="padding:3px 8px; border-bottom:1px solid rgba(128,128,128,0.18);"`;
   const head = `<tr><th ${TH}>${t("pvr.col.metric")}</th><th ${TH}>${t("pvr.col.prediction")}</th><th ${TH}>${t("pvr.col.measured")}</th><th ${TH}>Δ</th><th ${TH}>${t("pvr.col.source")}</th></tr>`;
   const body = rows.map((r) => {
-    const within = r.within == null ? "" : (r.within ? ` <span style="color:#3fb950">✓</span>` : ` <span style="color:#f85149">✗</span>`);
     const metric = t("pvr.metric." + r.metric) || r.metric;
     const dlt = r.delta == null ? "—" : (r.delta > 0 ? "+" : "") + r.delta.toFixed(3);
-    return `<tr><td ${TD}>${escapeHtml(metric)}</td><td ${TD}>${pvrNum(r.predicted)}</td><td ${TD}>${pvrNum(r.measured)}${within}</td><td ${TD}>${dlt}</td><td ${TD}><code>${escapeHtml(r.source || "")}</code></td></tr>`;
+    return `<tr><td ${TD}>${escapeHtml(metric)}</td><td ${TD}>${pvrNum(r.predicted)}</td><td ${TD}>${pvrNum(r.measured)}</td><td ${TD}>${dlt}</td><td ${TD}><code>${escapeHtml(r.source || "")}</code></td></tr>`;
   }).join("");
-  const conf = computeConfidence(confidenceFromMeasured(m));
-  const contrib = contributionRecord(modelId || m.model, m, cfg);
+  const missing = missingProtocolFields(m);
+  const guideLang = getLang() === "es" ? "es" : "en";
+  const protocolHtml = `<section class="pvr-protocol">
+    <h3>${escapeHtml(t("pvr.lab.protocol"))}</h3>
+    <p>${escapeHtml(t("pvr.lab.fit"))}: <strong>${pvrNum(m.R2)}</strong></p>
+    <p>${escapeHtml(t("pvr.lab.fit_note"))}</p>
+    <p>${escapeHtml(t(missing.length ? "pvr.lab.missing" : "pvr.lab.complete"))}
+      ${missing.length ? `<code>${escapeHtml(missing.join(", "))}</code>` : ""}</p>
+    <details><summary>${escapeHtml(t("pvr.lab.raw"))}</summary><pre>${escapeHtml(JSON.stringify(m, null, 2))}</pre></details>
+    <p><a href="https://karlesmarin.github.io/transformers-guide/${guideLang}/chapters/R4-medir-gamma.html" target="_blank" rel="noopener">${escapeHtml(t("pvr.lab.guide"))}</a></p>
+  </section>`;
+  const contrib = contributionRecord(m.model, m, cfg);
   const contribHtml = `
     <details class="unmask-panel" style="margin-top:0.6rem;">
       <summary class="unmask-panel-title">➕ ${escapeHtml(t("pvr.contribute_btn") || "Contribute this measurement")}</summary>
@@ -1072,18 +1083,46 @@ function renderPvrCard(measured, modelId, cfg) {
     <div class="unmask-result">
       <div class="unmask-hero">
         <div class="unmask-verdict" style="font-size:1.2rem;">📊 ${escapeHtml(modelId || m.model || "")}</div>
-        <table style="width:100%; border-collapse:collapse; margin-top:0.5em; font-size:0.9em;">${head}${body}</table>
+        <div class="pvr-table-wrap"><table style="width:100%; border-collapse:collapse; margin-top:0.5em; font-size:0.9em;">${head}${body}</table></div>
+        <p class="pvr-context" data-context="${context.status}">${escapeHtml(t("pvr.lab.context." + context.status))}</p>
       </div>
       <div class="unmask-details">
-        ${confidenceHtml(conf)}
+        ${protocolHtml}
         ${contribHtml}
       </div>
     </div>`;
 }
 
+function renderPvrResults() {
+  if (!pvrLastResult) return;
+  const { first, second, modelId } = pvrLastResult;
+  let html = renderPvrCard(first, modelId, null);
+  if (second) {
+    const comparison = compareProtocols(first, second);
+    const value = v => {
+      if (v == null) return "—";
+      const text = JSON.stringify(v);
+      return escapeHtml(text.length > 120 ? text.slice(0, 120) + "…" : text);
+    };
+    const rows = comparison.fields.map(f => `<tr><th scope="row"><code>${escapeHtml(f.key)}</code></th>
+      <td>${value(f.first)}</td><td>${value(f.second)}</td><td>${escapeHtml(t("pvr.lab.value." + f.status))}</td></tr>`).join("");
+    html = `<h3>${escapeHtml(t("pvr.lab.first"))}</h3>${html}<h3>${escapeHtml(t("pvr.lab.second"))}</h3>
+      ${renderPvrCard(second, second.model || t("pvr.pasted_label"), null)}
+      <section class="pvr-comparison" data-comparison="${comparison.status}">
+        <h3>${escapeHtml(t("pvr.lab.comparison"))}</h3><p><strong>${escapeHtml(t("pvr.lab." + comparison.status))}</strong></p>
+        <p>${escapeHtml(tFmt("pvr.lab.delta", { delta: pvrNum(second.gamma_obs - first.gamma_obs) }))}</p>
+        <div class="pvr-table-wrap"><table><thead><tr><th>${escapeHtml(t("pvr.lab.field"))}</th>
+        <th>A</th><th>B</th><th>${escapeHtml(t("pvr.lab.status"))}</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </section>`;
+  }
+  $("pvr-output").innerHTML = html;
+  $("pvr-status").textContent = tFmt("pvr.status.done", { modelId });
+}
+
 async function runPvrFromId() {
   const modelId = ($("pvr-id").value || "").trim();
   if (!modelId) { $("pvr-status").textContent = t("pvr.status.empty_id"); return; }
+  pvrLastResult = null;
   $("pvr-status").textContent = tFmt("pvr.status.fetching", { modelId });
   $("pvr-fetch-btn").disabled = true;
   try {
@@ -1110,6 +1149,8 @@ async function runPvrFromId() {
 }
 
 function runPvrFromPaste() {
+  pvrLastResult = null;
+  $("pvr-output").innerHTML = "";
   const raw = ($("pvr-paste").value || "").trim();
   if (!raw) { $("pvr-status").textContent = t("pvr.status.empty_paste"); return; }
   let rec;
@@ -1117,13 +1158,34 @@ function runPvrFromPaste() {
   catch (e) { $("pvr-status").textContent = tFmt("pvr.status.invalid_json", { error: e.message }); return; }
   const m = normalizeMeasured(rec);
   if (!m || m.gamma_obs == null) { $("pvr-status").textContent = t("pvr.status.no_measure"); return; }
+  let second = null;
+  const secondRaw = ($("pvr-reference").value || "").trim();
+  if (secondRaw) {
+    try { second = normalizeMeasured(JSON.parse(secondRaw)); } catch { /* reported below */ }
+    if (!second || second.gamma_obs == null) { $("pvr-status").textContent = t("pvr.lab.invalid_second"); return; }
+  }
   const modelId = m.model || ($("pvr-id").value || "").trim() || t("pvr.pasted_label");
-  $("pvr-output").innerHTML = renderPvrCard(m, modelId, null);
-  $("pvr-status").textContent = tFmt("pvr.status.done", { modelId });
+  pvrLastResult = { first: m, second, modelId };
+  renderPvrResults();
 }
 
 $("pvr-fetch-btn")?.addEventListener("click", runPvrFromId);
 $("pvr-paste-btn")?.addEventListener("click", runPvrFromPaste);
+$("pvr-control-btn")?.addEventListener("click", async () => {
+  $("pvr-control-btn").disabled = true;
+  try {
+    const response = await fetch("data/measurement_examples/uniform_attention.json");
+    if (!response.ok) throw new Error("control unavailable");
+    const record = await response.json();
+    $("pvr-paste").value = JSON.stringify(record, null, 2);
+    $("pvr-reference").value = "";
+    runPvrFromPaste();
+  } catch {
+    $("pvr-status").textContent = t("pvr.lab.control_error");
+  } finally {
+    $("pvr-control-btn").disabled = false;
+  }
+});
 $("pvr-id")?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); runPvrFromId(); }
 });
@@ -3788,6 +3850,7 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     setLang(btn.dataset.lang);
     refreshResearchExplorer();
+    renderPvrResults();
     if (state.currentMode === "research") $("mode-desc").textContent = t("mode_desc.research");
   });
 });
@@ -5661,10 +5724,11 @@ function renderFitCheck(r) {
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
 initI18n();
-// Reading studies needs neither Python nor model inference. Deep-links work even
+// Reading studies and inspecting measurements need neither Python nor inference. Deep-links work even
 // while Pyodide is still loading or its CDN is unavailable.
-if (new URLSearchParams(window.location.search).get("mode") === "research") {
-  document.querySelector('.mode-btn[data-mode="research"]')?.click();
+const immediateMode = new URLSearchParams(window.location.search).get("mode");
+if (["research", "pvr"].includes(immediateMode)) {
+  document.querySelector(`.mode-btn[data-mode="${immediateMode}"]`)?.click();
 }
 // Pyodide-independent panels: render immediately so they survive a Pyodide
 // load failure (CDN blocked / offline / slow region). These use only fetch +

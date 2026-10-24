@@ -13,13 +13,13 @@ Measures:
   ΔH_90         — holographic quality loss at D_90
   KL_grammar    — attention grammar anomaly (deviation from power-law prior)
   θ_eff         — effective RoPE base (Padé diagnostic)
-  γ_pred        — theoretical prediction C/ln(θ) where C=ln(10000)=9.2103
+  γ_pred        — omitted: this probe varies sequence length with distance
 
 Usage:
   python diagnose_model.py --model EleutherAI/pythia-70m
   python diagnose_model.py --model meta-llama/Meta-Llama-3-8B --local /path/to/weights --load_in_4bit
   python diagnose_model.py --model Qwen/Qwen2.5-7B --theta 1000000 --N 1000
-  python diagnose_model.py --model EleutherAI/pythia-70m --fast   # quick mode, 3 distances
+  python diagnose_model.py --model EleutherAI/pythia-70m --fast   # quick mode, 4 distances
 
 Output:
   Prints diagnostic table to stdout.
@@ -206,7 +206,8 @@ def set_seed(seed: int):
 
 
 def measure_attn_distance(model, tokenizer, distance: int, n_prompts: int,
-                           seed: int, device: str, vocab_high: int) -> float:
+                           seed: int, device: str, vocab_high: int,
+                           return_count: bool = False):
     import torch
     set_seed(seed)
     rng = random.Random(seed)
@@ -239,7 +240,36 @@ def measure_attn_distance(model, tokenizer, distance: int, n_prompts: int,
             if vals:
                 attn_values.append(float(np.mean(vals)))
 
-    return float(np.mean(attn_values)) if attn_values else float("nan")
+    mean = float(np.mean(attn_values)) if attn_values else float("nan")
+    return (mean, len(attn_values)) if return_count else mean
+
+
+def measurement_protocol(distances, fitted_distances, samples_by_distance,
+                         n_prompts, vocab_high):
+    """Describe the actual legacy probe; N is not its sequence length.
+
+    Random tokens, last query, fixed key position 49, length d+50. This
+    differs from the guide's fixed-length, single-layer/head estimator.
+    """
+    return {
+        "id": "taf-cli-variable-length-v1",
+        "length_policy": "distance_plus_50",
+        "lengths": {str(d): d + 50 for d in distances},
+        "queries": {str(d): [d + 49] for d in distances},
+        "key_position": 49,
+        "sink_tokens": 0,
+        "distances": list(fitted_distances),
+        "attempted_distances": list(distances),
+        "samples_by_distance": samples_by_distance,
+        "attempted_samples_per_distance": n_prompts,
+        "seed": SEEDS[0],
+        "seed_policy": "reset_same_seed_at_each_distance",
+        "vocab_range_inclusive": [1000, vocab_high],
+        "pooling": "mean_finite_heads_then_layers_then_successful_prompts",
+        "fit": "unweighted_OLS_log_mean_vs_log_distance",
+        "layer": "all_returned", "head": "all_returned",
+        "attention": "post_softmax_eval_mode_no_renormalization",
+    }
 
 
 def fit_power_law(distances: list, means: list) -> dict:
@@ -337,14 +367,17 @@ def run_diagnostic(args) -> dict:
     # ── Measure attention by distance ────────────────────────────────────
     print(f"\nMeasuring attention decay at {len(distances)} distances × {n_prompts} prompts ...")
     attn_by_d = {}
+    samples_by_distance = {}
     for dist in distances:
         if dist > N:
             continue
         t1 = time.time()
-        mean_val = measure_attn_distance(
-            model, tokenizer, dist, n_prompts, SEEDS[0], device, vocab_high
+        mean_val, successful = measure_attn_distance(
+            model, tokenizer, dist, n_prompts, SEEDS[0], device, vocab_high,
+            return_count=True,
         )
         attn_by_d[dist] = mean_val
+        samples_by_distance[str(dist)] = successful
         print(f"  d={dist:5d}  attn={mean_val:.6f}  ({time.time()-t1:.1f}s)")
 
     # ── Fit power law ────────────────────────────────────────────────────
@@ -373,17 +406,12 @@ def run_diagnostic(args) -> dict:
     dH90 = delta_H(theta_nom, D90, N)
     theta_eff = theta_eff_pade(theta_nom, float(N))
 
-    # Theoretical γ prediction — γ_Padé(θ, T_eval) (paper §3.3, supersedes
-    # the earlier shorthand γ ≈ C/lnθ which assumed T = 10000).
-    if theta_nom > 0:
-        T_for_pred = max(distances) if distances else N  # use largest measured T
-        z_sqrt2 = T_for_pred * math.sqrt(2)
-        gamma_pred = (2 * theta_nom - z_sqrt2) / (2 * theta_nom + z_sqrt2)
-    else:
-        gamma_pred = None
+    # No unique T_eval: each distance is measured at a different length d+50.
+    # Neither max(distance) nor integration horizon N supplies a fixed context.
+    gamma_pred = None
 
     # Attention grammar KL
-    kl_ag = grammar_kl(attn_by_d, gamma, log_A)
+    kl_ag = grammar_kl({d: attn_by_d[d] for d in valid_d}, gamma, log_A)
 
     # Phase
     phase = phase_label(gamma)
@@ -393,9 +421,9 @@ def run_diagnostic(args) -> dict:
     print(f"RESULTS")
     print(f"{'='*65}")
     print(f"  γ (gamma)      = {gamma:.4f}   [R²={R2:.4f}]")
-    if gamma_pred is not None:
-        delta_g = gamma - gamma_pred
-        print(f"  γ_Padé(θ,T)    = {gamma_pred:.4f}   Δγ = {delta_g:+.4f}")
+    print("  Protocol       : random tokens; sequence length = distance + 50")
+    print("  γ_Padé         : not compared (no single evaluation length)")
+    print("  R² describes the log-fit; it is not a validation/confidence score.")
     print(f"  Phase          : {phase}")
     print(f"  T_attn = 1/γ   = {T_attn:.4f}")
     print()
@@ -443,25 +471,41 @@ def run_diagnostic(args) -> dict:
     # ── Save ─────────────────────────────────────────────────────────────
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     short = model_name.replace("/", "--")
+    protocol = measurement_protocol(list(attn_by_d), valid_d, samples_by_distance,
+                                    n_prompts, vocab_high)
+    protocol.update({
+        "backend": getattr(model.config, "_attn_implementation", None),
+        "dtype": str(model.dtype),
+        "quantization": "bitsandbytes_4bit" if getattr(model, "is_loaded_in_4bit", False) else "none",
+        "tokenizer_revision": getattr(tokenizer, "init_kwargs", {}).get("_commit_hash"),
+        "device": device,
+        "torch_version": torch.__version__,
+    })
     result = {
         "model": model_name,
         "theta_nom": theta_nom,
         "N": N,
+        "T_eval": None,
+        "revision": getattr(model.config, "_commit_hash", None),
+        "corpus": "uniform_random_token_ids",
+        "source": "diagnose-cli",
+        "protocol": protocol,
         "fast_mode": args.fast,
         "fit_power_law": fit,
         "gamma": gamma,
         "gamma_pred": gamma_pred,
-        "delta_gamma": (gamma - gamma_pred) if gamma_pred else None,
+        "delta_gamma": None,
         "phase": phase,
         "T_attn": T_attn,
         "Z": Z, "U": U, "S": S, "F": F, "Cv": Cv,
         "chi": chi, "xi": xi,
         "D90": D90,
+        "D90_kind": "derived_power_law",
         "D90_frac": D90 / N,
         "delta_H_90": dH90,
         "theta_eff_pade": theta_eff,
         "kl_grammar": kl_ag,
-        "attn_by_distance": {str(d): v for d, v in attn_by_d.items()},
+        "attn_by_distance": {str(d): v if math.isfinite(v) else None for d, v in attn_by_d.items()},
     }
 
     out_path = OUTPUT_DIR / f"{short}.json"

@@ -54,6 +54,44 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 
+### Measurement protocols and reproducible controls — October 2026
+
+**Measurement lab (2026-10-24):** [Prediction vs Reality](https://karlesmarin.github.io/tafagent/?mode=pvr#pvr-section)
+now imports the [guide estimator](https://karlesmarin.github.io/transformers-guide/en/chapters/R4-medir-gamma.html)
+as well as CLI and dataset records. Paste one or two JSON records to inspect γ, log-fit R²,
+preserved curves/residuals and documented protocol differences. Missing conditions remain
+unknown; matching metadata does not establish statistical equivalence. Contributions retain
+the protocol and original measurement fields. R² no longer produces a confidence score here.
+
+The CLI records its actual random-token probe: sequence length **d + 50**, final query,
+key position 49, pooling, successful sample counts and the seed actually used. Its `N` is
+an integration horizon, not a fixed evaluation length. Consequently its output no longer
+claims a single-context Padé comparison (`gamma_pred` and `delta_gamma` are null).
+Its D₉₀ is tagged as a power-law estimate, rather than a measured KV-quality result.
+Older CLI records with the same curve format are recognised by the browser.
+
+The **uniform-attention control** is reproducible with
+`python cli/check_uniform_attention.py`. It computes a causal softmax head with d=128,
+RoPE θ=10000 and zero queries: each allowed row entry is 1/(i+1), giving γ≈0 when
+fitted within the final row at fixed length 128. Padé gives approximately 0.9821.
+This is a mathematical counterexample to an *unrestricted* architecture-only prediction,
+not a training experiment or a test of the paper's empirical panel. The JSON fixture is
+[`data/measurement_examples/uniform_attention.json`](data/measurement_examples/uniform_attention.json).
+
+Two boundaries matter for proposed corrections. Entropy is invariant under permutation
+of attention weights across distances, whereas the fitted γ need not be: entropy alone
+cannot identify γ or validate an additive correction. In [Part II §5](https://doi.org/10.5281/zenodo.19960573),
+ν is a cross-model slope of γ on random-token probes against **log₁₀(parameter count)**,
+not a derivative of training loss with respect to θ. The paper explicitly describes the
+−1/(2π) identification as weak, with a wide bootstrap interval. A proposed correlation
+kernel or a chosen shift δ is not an experimentally established correction. No such
+correction, entropy threshold or invented interval is applied here. The Phase Diagram
+continues to display saved measurements; it does not run a new model forward pass.
+
+Checks: `npm run test:pvr`,
+`python -m pytest tests/test_measurement_protocol.py -q`, and
+`node tests/measurement_browser.mjs` (with a static server on port 8877, or `TAF_URL`).
+
 ### Research connected to the guide — October 2026
 
 [📚 Open the research explorer](https://karlesmarin.github.io/tafagent/?mode=research#research-section)

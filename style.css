@@ -1275,6 +1275,23 @@ footer a:hover { text-decoration: underline; }
   gap: 0.7em;
   margin-top: 0.9em;
 }
+#pvr-section textarea { width: 100%; box-sizing: border-box; font-family: monospace; }
+#pvr-section label[for="pvr-reference"] { display: block; margin-top: 1rem; }
+#pvr-output { overflow-wrap: anywhere; min-width: 0; }
+#pvr-output .unmask-hero, #pvr-output .unmask-details { min-width: 0; }
+.pvr-table-wrap { max-width: 100%; overflow-x: auto; }
+.pvr-table-wrap table { min-width: 540px; }
+.pvr-table-wrap td:nth-child(2), .pvr-table-wrap td:nth-child(3), .pvr-table-wrap td:nth-child(4) { white-space: normal; }
+#pvr-output .unmask-hero td:nth-child(2), #pvr-output .unmask-hero td:nth-child(3), #pvr-output .unmask-hero td:nth-child(4) { white-space: nowrap; }
+.pvr-comparison table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.85rem; table-layout: fixed; }
+.pvr-comparison th { overflow-wrap: normal; }
+.pvr-comparison th, .pvr-comparison td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); }
+.pvr-protocol pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow-y: auto; }
+.pvr-context, .pvr-protocol, .pvr-comparison { margin-top: 1rem; }
+@media (max-width: 600px) {
+  #pvr-section .tooltip { left: auto; right: 0; transform: none; }
+}
+
 .inv-card-title > h3 {        /* the manual's <h3> inherits the inventory card-title look */
   font: inherit;
   margin: 0;

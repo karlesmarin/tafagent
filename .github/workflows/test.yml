@@ -41,7 +41,7 @@ jobs:
       - name: Install deps
         run: pip install numpy pytest
       - name: Pytest
-        run: python -m pytest tests/test_taf_formulas.py -q
+        run: python -m pytest tests/test_taf_formulas.py tests/test_measurement_protocol.py -q
 
   e2e:
     name: e2e sweep (all modes x 4 langs, 0 JS errors)
@@ -61,5 +61,9 @@ jobs:
         run: node test_sweep.mjs
       - name: Research explorer interactions (no Pyodide dependency)
         run: node tests/research_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Measurement protocols and uniform control
+        run: node tests/measurement_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/

@@ -1050,7 +1050,12 @@
         <summary style="cursor:pointer; font-size:0.92em;" data-i18n="pvr.paste_summary">Bring your own data: paste a Diagnose-CLI JSON (or a measured record)</summary>
         <p class="recipe-desc" style="font-size:0.85em; margin:0.3em 0;" data-i18n="pvr.byod_hint">Run <code>python cli/diagnose_model.py --model &lt;id&gt;</code> and paste its JSON here — it carries model, θ, context and the measured γ.</p>
         <textarea id="pvr-paste" rows="6" style="width:100%; font-family:monospace; font-size:0.85em; margin-top:0.4em;" placeholder='{"model": "EleutherAI/pythia-1.4b", "theta_nom": 10000, "N": 2048, "gamma": 0.705, "fit_power_law": {"R2": 0.84}}'></textarea>
-        <button type="button" id="pvr-paste-btn" data-i18n="pvr.paste_btn" style="margin-top:0.4em;">📊 Compare measured vs predicted</button>
+        <button type="button" id="pvr-control-btn" data-i18n="pvr.lab.control">Load uniform-attention control</button>
+        <p class="recipe-desc" data-i18n="pvr.lab.control_note">Synthetic control with zero queries; no trained model. It tests the scope of an architecture-only prediction, not its accuracy on the paper’s empirical panel.</p>
+        <label for="pvr-reference" data-i18n="pvr.lab.reference">Second measurement (optional)</label>
+        <p id="pvr-reference-hint" class="recipe-desc" data-i18n="pvr.lab.reference_hint">Paste another JSON to compare documented conditions. A difference in γ alone does not identify its cause.</p>
+        <textarea id="pvr-reference" rows="5" aria-describedby="pvr-reference-hint" placeholder='{"gamma": 0.8, "protocol": {}}'></textarea>
+        <button type="button" id="pvr-paste-btn" data-i18n="pvr.paste_btn" style="margin-top:0.4em;">Inspect measurements</button>
       </details>
       <div id="pvr-output" style="margin-top: 1em;"></div>
     </section>
