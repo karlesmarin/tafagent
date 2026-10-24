@@ -3,11 +3,17 @@
 .resolver-demo-card { border:1px solid var(--accent,#58a6ff); border-radius:8px; padding:1rem; margin:1rem 0; }
 .resolver-demo-card li + li { margin-top:.6rem; }
 #resolver-result { scroll-margin-top:3.5rem; }
+#resolver-result:empty,#resolver-followup:empty { display:none; }
 #resolver-dialog [hidden] { display:none!important; }
 #resolver-dialog label { display:block; margin:.7rem 0 .2rem; }
 #resolver-dialog input,#resolver-dialog select,#resolver-dialog textarea { box-sizing:border-box; width:100%; max-width:100%; min-width:0; }
 #resolver-dialog fieldset { min-width:0; border:1px solid var(--border,#30363d); border-radius:6px; margin:1rem 0; }
 #resolver-dialog button { white-space:normal; }
+#resolver-dialog input[type="checkbox"] { width:auto; }
+#resolver-dialog pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:20rem; overflow:auto; }
+#resolver-catalog { margin:1rem 0; }
+#resolver-catalog-card { border-left:3px solid var(--accent,#58a6ff); padding-left:1rem; }
+#resolver-catalog-card:empty { display:none; }
 .resolver-actions { display:flex; flex-wrap:wrap; gap:.6rem; margin:1rem 0; }
 #resolver-dialog button[aria-pressed="true"] { outline:3px solid var(--accent,#58a6ff); outline-offset:2px; }
 .resolver-toolbar { position:sticky; top:-1rem; z-index:2; padding:.5rem 0; background:var(--bg,#0d1117); }

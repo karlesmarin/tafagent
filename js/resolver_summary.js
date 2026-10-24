@@ -23,6 +23,10 @@ export function buildResolverSummary({route,bundle,initial,inputs,result},langua
     else if(first.inputs.stage==='load' || first.result.status!=='kv_bound'){topic='memory';index=1;why='serving';}
     else {topic='memory';why='kv';}
   } else if(route==='template'){topic='setup';index=1;why='template';}
+  else if(CASES[route].source==='local') {
+    finding=fill(result.summaryKey,Object.fromEntries(Object.entries(result.summaryParams).map(([k,v])=>[k,typeof v==='number'?v.toLocaleString(lang,{maximumFractionDigits:4}):v])));
+    why='local';index=route==='pvr'||route==='cache'?1:0;
+  }
   const guideLang=guideLanguage(lang);
   const anchors={
     kv:{es:'el-problema',en:'the-problem'},
@@ -31,8 +35,8 @@ export function buildResolverSummary({route,bundle,initial,inputs,result},langua
     template:{es:'sec-evaluacion-contexto',en:'sec-evaluacion-contexto'},
     architecture:{es:'las-familias',en:'the-families'},
   };
-  section=anchors[why][guideLang];
+  section=anchors[why]?.[guideLang]||'';
   const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode}));url.hash=section;
-  const next=tr(route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next');
+  const next=tr(result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));
   return {problem,finding,change,next,guide:{url:url.href,title:chapterTitles[topics[topic].chapters[index]][guideLang],why:tr('summary_why_'+why),language:guideLang,note:lang==='fr'||lang==='zh'?local('fallback',lang):null},demo:bundle.origin==='demo'};
 }

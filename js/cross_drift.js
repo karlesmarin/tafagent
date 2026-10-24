@@ -1,8 +1,8 @@
 // Cross-framework drift bound (v0.7.5 anti-bullshit pack #6)
 // Given two benchmark scores from different (framework, dtype, batch, chat_template)
-// configurations, predicts the maximum allowable drift from numerical noise alone.
-// If the observed gap exceeds this bound, flags it as a real bug — typically
-// chat-template mismatch, KV-cache layout, or aggressive batching.
+// configurations, compares the gap with a hand-set numerical-noise heuristic.
+// This is not a calibrated maximum or confidence interval. Legacy verdict codes
+// containing "bug" request investigation; they do not establish a causal diagnosis.
 //
 // Refs: arxiv 2506.09501 (numerical sources of LLM eval irreproducibility),
 //       lm-evaluation-harness issue #1841 (chat_template auto-apply).
@@ -58,9 +58,8 @@ function dtypeDrift(a, b) {
 
 function frameworkDrift(a, b) {
   if (a === b) return 0.05; // same framework, different runs/seeds
-  // sort the pair so lookup is symmetric
-  const [x, y] = [a, b].sort();
-  return FRAMEWORK_DRIFT[`${x}-${y}`] ?? 0.30; // default upper bound for any cross-framework
+  // Accept either order; table keys are not consistently sorted.
+  return FRAMEWORK_DRIFT[`${a}-${b}`] ?? FRAMEWORK_DRIFT[`${b}-${a}`] ?? 0.30;
 }
 
 function batchDrift(batchA, batchB) {

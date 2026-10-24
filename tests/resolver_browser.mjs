@@ -43,6 +43,7 @@ try{
   await page.goto(base+'?resolve=memory&lang='+lang);
   await page.locator('#resolver-dialog[open]').waitFor();
   assert.equal(await page.locator('#resolver-title span').innerText(),RESOLVER_TRANSLATIONS[lang]['resolver.title']);
+  await page.locator('#resolver-direct').evaluate(el=>el.open=true);
   for(const route of ['memory','template','compatibility']){
    await page.locator(`[data-resolver-case="${route}"]`).click();
    await page.locator('#resolver-demo').click();
@@ -125,3 +126,4 @@ try{
  assert.deepEqual(errors,[]);
  console.log('Resolver browser PASS: 3 offline routes × 4 languages, follow-up, recalculation, pinned live import, export, safe links, dialog autocomplete, mobile and no Pyodide dependency.');
 }finally{await browser.close();}
+await import('./resolver_local_browser.mjs');

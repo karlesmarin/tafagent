@@ -66,5 +66,6 @@ await assert.rejects(()=>fetchResolverBundle(q.id,'memory',{fetcher:async()=>new
 await assert.rejects(()=>fetchResolverBundle(q.id,'memory',{fetcher:async()=>new Response('{"sha":"main"}') }),/revision/);
 const templateBundle=await fetchResolverBundle(q.id,'template',{fetcher:async url=>new Response(url.includes('/api/models/')?JSON.stringify({sha:q.revision}):'',{status:url.includes('/api/models/')?200:404})});
 assert.equal(solveCase('template',templateBundle).status,'missing');assert.equal(templateBundle.sources.filter(s=>s.status===404).length,2);
-assert.equal(Object.keys(CASES).length,3);
-console.log('Resolver PASS: three routes, load/generation distinction, estimate boundaries, template variants, revision provenance, translations and private-data-free links.');
+assert.equal(Object.keys(CASES).length,9);
+await import('./resolver_local.test.mjs');
+console.log('Resolver PASS: nine routes, load/generation distinction, estimate boundaries, template variants, revision provenance, translations and private-data-free links.');

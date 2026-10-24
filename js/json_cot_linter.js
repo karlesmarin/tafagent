@@ -176,7 +176,7 @@ export function reorderJsonText(text, suggestedOrder) {
 
   // Reorder properties within a plain object preserving values.
   const reorderObj = (obj, order) => {
-    const out = {};
+    const out = Object.create(null);
     // First emit suggested keys that exist on the object.
     for (const k of order) {
       if (Object.prototype.hasOwnProperty.call(obj, k)) out[k] = obj[k];
@@ -195,7 +195,8 @@ export function reorderJsonText(text, suggestedOrder) {
     // the keys originally present in `required`.
     if (Array.isArray(parsed.required)) {
       const wasRequired = new Set(parsed.required);
-      parsed.required = suggestedOrder.filter(k => wasRequired.has(k));
+      parsed.required = [...suggestedOrder.filter(k => wasRequired.has(k)),
+        ...parsed.required.filter(k => !suggestedOrder.includes(k))];
     }
     return JSON.stringify(parsed, null, 2);
   }

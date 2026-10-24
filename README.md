@@ -68,18 +68,28 @@ Sharing a tool/model link is optional and does not send anyone a question.
 
 [**Open the resolver**](https://karlesmarin.github.io/tafagent/?resolve=choose&lang=en)
 or [use it on Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=choose&lang=en).
-Three initial routes turn a problem into checks and next actions: **memory**, **chat
-templates**, and **architecture compatibility**. The resolver reuses existing TAF
-modules, asks for inputs, explains its limits, and links to the field guide.
-It works without Pyodide, model weights, a chat service or a support operator.
+Start with a symptom, then answer one focused question: **memory**, **responses**,
+**adapters**, **loading/access**, **long context**, **evaluation** or **performance**.
+The 20 situations route to bounded checks or explain when TAF cannot diagnose the
+case (for example account permissions or distributed training allocation).
+Nine direct checks cover memory, chat templates, architecture, JSON field order,
+PEFT code, prompt prefixes, evaluation drift, attention reports and adapter metadata.
+They run without Pyodide, model weights, a chat service or a support operator.
+All **31 modes** are also available through a searchable selector that explains
+inputs, outputs, limits and dependencies, with specialist-form, demo and guide links.
+Specialist tools retain their own requirements; opening them is not a diagnosis.
 
 Each route has an optional offline example, follow-up checks, a downloadable case
 report and a shareable link. Memory alternatives recalculate estimates without
 modifying the model. Links prefill a route and model ID without running it; pasted
-questions/errors are excluded from links and reports. EN/ES/FR/ZH, keyboard and
+questions/errors are excluded from links and reports. The six local checks also
+exclude pasted code, prompts, measurement files, adapter configs and JSON proposals
+from exports. EN/ES/FR/ZH, keyboard and
 mobile support. Manual and feature overview updated; guide R5 explains the flow
 in ES/EN. No monitoring or automatic posting to discussions is enabled.
-See [scope, inputs and extension instructions](docs/resolver.md).
+See [scope, inputs and extension instructions](docs/resolver.md), the
+[31-mode implementation audit](docs/resolver-module-audit.md) and
+[public discussion sample informing the questions](docs/resolver-community.md).
 
 ### Model examples and architecture boundaries — 24 October 2026
 

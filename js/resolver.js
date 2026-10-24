@@ -3,11 +3,13 @@ import { inspectModel, textConfig } from './model_compatibility.js';
 import { checkFit, FIT_PRECISIONS } from './fit_check.js';
 import { sniffChatTemplate } from './chat_template_sniffer.js';
 import { classifyMemory } from './memory_reality.js';
+import { LOCAL_CASES, solveLocalCase } from './resolver_local.js';
 
 export const CASES = {
   memory: { mode:'fitcheck', topic:'memory', fields:['vram','context','precision','stage'] },
   template: { mode:'template', topic:'setup', fields:[] },
   compatibility: { mode:'memreal', topic:'architecture', fields:[] },
+  ...LOCAL_CASES,
 };
 export function suggestCases(text='') {
   const s=String(text).normalize('NFKC').toLowerCase();
@@ -15,6 +17,12 @@ export function suggestCases(text='') {
     memory:/out.of.memory|\boom\b|vram|cuda.*memory|memoria|mémoire|memory|显存|内存/,
     template:/template|plantilla|gabarit|模板|chat.*format|format.*chat/,
     compatibility:/config|compatib|architecture|arquitectura|架构|配置|兼容|model.type|rope|moe/,
+    cot:/json|schema|esquema|schéma|结构化/,
+    peft:/peft|qlora|lora.*code|código.*lora|代码.*lora/,
+    adapter:/adapter|adaptador|adaptateur|适配器|lora/,
+    cache:/cache|caché|缓存|prefix|prefijo|préfixe/,
+    drift:/drift|discrepan|écart|evaluaci|évaluation|evaluation|评估/,
+    pvr:/gamma|γ|attention.*measur|medici.*atenci|mesur.*attention|注意力测量/,
   }).filter(([,pattern])=>pattern.test(s)).map(([key])=>key);
 }
 export function validResolverModel(id) {
@@ -38,6 +46,7 @@ export function templateInspection(tokenizer={}, standalone=null) {
 }
 export function solveCase(caseId, bundle, inputs={}) {
   if (!Object.hasOwn(CASES,caseId)) throw new Error('case');
+  if (CASES[caseId].source==='local') return solveLocalCase(caseId,inputs);
   if (caseId==='template') return {caseId, ...templateInspection(bundle.tokenizer,bundle.template)};
   const inspection=inspectModel(bundle.config);
   const reasons=[...inspection.reasons];
@@ -64,7 +73,7 @@ export function solveCase(caseId, bundle, inputs={}) {
 }
 
 export async function fetchResolverBundle(model, caseId, {signal, fetcher=fetch}={}) {
-  if (!validResolverModel(model) || !Object.hasOwn(CASES,caseId)) throw new Error('model');
+  if (!validResolverModel(model) || !Object.hasOwn(CASES,caseId) || CASES[caseId].source==='local') throw new Error('model');
   const sources=[];
   async function read(url,optional=false,json=true) {
     const r=await fetcher(url,{signal});

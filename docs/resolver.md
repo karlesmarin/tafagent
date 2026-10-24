@@ -10,13 +10,40 @@ TAF. There is no human support inbox, operator handoff or expected owner reply.
 Users supply inputs and choose whether to apply the suggestions in their own
 runtime; TAF does not remotely change their model or execute repairs.
 
-## Initial routes
+## Symptom-first entry and direct checks
+
+The first selector asks what is going wrong, without requiring module names.
+Seven families contain 20 specific situations. The follow-up distinguishes loading
+from generation/training, template errors from prompt repetition, adapter loading
+from apparently unchanged outputs, and access errors from architecture issues.
+See [the discussion sample and question rationale](resolver-community.md).
+Routing is deterministic and is not a causal diagnosis. Training/distributed
+memory and account authorization receive an explicit boundary and useful reading,
+not a fictitious successful check. Users can also open **I already know what to
+check**, paste an optional error, or browse the 31-mode catalog.
 
 | Route | Reused computation | What it establishes |
 |---|---|---|
 | Memory | `checkFit`, guarded by `inspectModel` | An estimated single-GPU, single-sequence budget; distinguishes loading failures from generation budgets |
 | Chat template | `sniffChatTemplate` plus template-shape normalization | Presence and marker family in inspected files; not execution or validation of the template |
 | Compatibility | `inspectModel`, `classifyMemory` | Architecture, input completeness and limits of the dense schema; not runtime support or model quality |
+| JSON | `lintJsonCot`, `reorderJsonText` | Recognized top-level reasoning/answer order; optional local proposal, not full schema validation |
+| PEFT code | `lintPeftCode` | Regex-based loading/order/target/scaling observations; no Python execution or control-flow analysis |
+| Prompt prefix | `longestCommonPrefix` | Exact UTF-16 text prefix length; no token-cache hit or cost prediction |
+| Evaluation drift | `computeDriftBound` | Comparable score gap and hand-set band; no proven bug or significance test |
+| Attention report | `normalizeMeasured`, `predictionContext`, `compareProtocols` | Imported gamma, documented-context baseline and protocol gaps; no inference |
+| Adapter metadata | `parseAdapterConfig`, `compatChecks` | Base, target and scaling observations; no successful loading or forgetting claim |
+
+The six local checks require pasted data and do not fetch HF. Every direct route
+has a saved/synthetic example. Pasted content is capped at 50,000 characters per
+field. JSON proposals are only copied into this local form when the user chooses
+to check them. Required fields and properties are preserved during reordering.
+
+The catalog connects all 31 modes to their specialized forms and existing demos;
+these may require Pyodide, network metadata/tokenizers, local Python or WebGPU.
+Each entry states inputs, outputs and limitations in EN/ES/FR/ZH. This is navigation
+coverage, not a claim that 31 computations run inside the resolver.
+The [implementation audit](resolver-module-audit.md) records the distinctions.
 
 The optional local text field suggests categories using multilingual keywords.
 The user chooses the route. Text is not sent to an LLM or to HF. Model search
@@ -52,7 +79,9 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
   link is the explicit exception to ordinary route links that do not run a check.
 - `?resolve=memory&model=Qwen%2FQwen3-8B&lang=es` opens the relevant form without
   fetching metadata or running analysis. Routes are `memory`, `template`,
-  `compatibility`, or `choose` for the selection screen.
+  `compatibility`, `cot`, `peft`, `cache`, `drift`, `pvr`, `adapter`, or `choose`
+  for the symptom selection screen. Local routes do not include an unrelated model
+  ID when sharing their navigation link.
 - Every route has an offline example. Memory uses a saved Qwen3-8B configuration;
   compatibility uses Qwen3.8's hybrid; template inspection uses synthetic ChatML.
 - Changing inputs cancels in-flight requests and invalidates the displayed result.
@@ -68,13 +97,15 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 - **It worked** is labelled user feedback, not an independently verified fix.
 - Reports include displayed inputs/results, revision, inspected sources and user
   feedback, the original inputs and case summary with its guide link, excluding
-  pasted questions/errors. Reports are downloaded locally.
+  pasted questions/errors. For the six local checks, reports also omit pasted
+  code/prompts/measurement/config files and proposed JSON, retaining derived facts
+  and explanations only. Reports are downloaded locally (schema version 2).
 - **Share tool and model (optional)** is a navigation link, not a support request.
   Shareable links contain only route, model ID and language. They carry no result,
   hardware details, pasted error or question. Users choose where to post them.
 
 No discussion monitoring, webhook service, bot account, automatic replies or
-periodic task is enabled by this feature. This first release provides the resolver
+periodic task is enabled by this feature. This feature provides the resolver
 and the links through which a future authorized integration can introduce users.
 
 ## Adding a route
@@ -87,5 +118,6 @@ browser checks and update the Manual, feature overview, README and guide R5.
 Do not derive missing architecture facts from a free-form question.
 
 Validation: `npm run test:resolver` covers numerical boundaries, template shapes,
-revision provenance, private-data-free links, three demos in four languages,
-follow-up, recalculation, export, mobile layout and operation without Pyodide.
+revision provenance, private-data-free links, nine examples in four languages,
+the 20 symptom choices, all 31 tool/demo/guide routes, follow-up, recalculation,
+JSON proposal preservation, exports, mobile layout and operation without Pyodide.
