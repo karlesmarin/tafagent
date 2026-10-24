@@ -341,6 +341,14 @@
       <p data-i18n="help.adapter.body">Paste a published LoRA/PEFT adapter id (or its adapter_config.json). From the config alone it reports (A) compatibility — base match, target_modules, α/r scaling, embedding resize; (B) the forgetting evidence for its rank bucket from the literature (Biderman 2024, SMoLoRA, rank trade-offs 2025) as a Δpp range with sources — never a fabricated per-adapter number; and (C) merge &amp; deploy sanity. Browser-only, no inference.</p>
         </details>
         <details class="inv-card">
+          <summary class="inv-card-title" data-i18n="help.entropy.title">Attention entropy and correction policy</summary>
+          <p data-i18n="help.entropy.body">In Diagnose CLI → Advanced, --measure-entropy adds a separate fixed-length probe; --entropy-only skips the distance sweep. Defaults: 4 random-token samples, 128 tokens, layer 0, head 0, final query. Run the generated command locally.</p>
+          <p data-i18n="help.entropy.read">Entropy is measured in bits against a uniform reference. It describes attention dispersion, not the reliability of γ.</p>
+          <p data-i18n="help.entropy.policy">SWA and post-IH are not applied by default. In v2, instruct and the unidentified imprint are also excluded by default. GQA remains an empirical adjustment. Entropy does not automatically change γ.</p>
+          <div class="help-example" data-i18n="help.entropy.example">python cli/diagnose_model.py --model EleutherAI/pythia-70m --cpu --entropy-only</div>
+          <p data-i18n="help.entropy.demos">Optional demos are available in every mode. Dedicated demos cover entropy commands, synthetic protocol comparisons and research filtering. These three demos do not run a model or upload data.</p>
+        </details>
+        <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.verdicts.title">What to look for in verdicts</summary>
       <ul>
         <li data-i18n="help.verdict.yes"><strong style="color:#3fb950;">YES / GO</strong> — proceed with confidence; numbers support the choice.</li>
@@ -813,7 +821,7 @@
 
     <!-- ASK mode (free-form question) -->
     <section id="ask-section" style="display:none;">
-      <h2 data-i18n="ask.title">❓ Your question</h2>
+      <h2><span data-i18n="ask.title">❓ Your question</span></h2>
       <textarea id="question" rows="3"
         data-i18n-placeholder="ask.placeholder"
         placeholder="e.g. Will Mistral-7B handle 16K NIAH retrieval? Or: I have $5,000, what model can I train? Or: Cheapest GPU to serve Llama-70B at 100M tokens/day?"></textarea>
@@ -874,6 +882,12 @@
         <input type="text" id="diag-local" placeholder="/path/to/local/weights">
       </div>
 
+      <details id="diag-entropy-options" class="unmask-panel">
+        <summary data-i18n="diagnose.entropy.advanced">Advanced · experimental measurements</summary>
+        <p><label><input type="checkbox" id="diag-measure-entropy"> <span data-i18n="diagnose.entropy.measure">Measure attention entropy (--measure-entropy)</span></label></p>
+        <p><label><input type="checkbox" id="diag-entropy-only"> <span data-i18n="diagnose.entropy.only">Run only the short entropy probe (--entropy-only)</span></label></p>
+        <p class="recipe-desc" data-i18n="diagnose.entropy.note">Adds a local measurement on actual model weights: 4 forwards, 128 tokens, layer 0 / head 0. Loading the model can still require substantial memory and time. This builder does not run inference or correct γ.</p>
+      </details>
       <button id="diag-build-btn" data-i18n="diagnose.build_btn">📋 Build command</button>
 
       <div id="diag-output" style="display:none; margin-top:1em;">
@@ -1464,7 +1478,7 @@
     </section>
 
     <section id="research-section" style="display:none;">
-      <h2 data-i18n="research.title">📚 Research connected to the guide</h2>
+      <h2><span data-i18n="research.title">📚 Research connected to the guide</span></h2>
       <p class="recipe-desc" data-i18n="research.intro">From paper to experiment: explore what each study adds, read the corresponding chapter and decide what to test in TAF.</p>
       <p class="research-note" data-i18n="research.note">Curated reading list, updated manually. These studies do not establish validation of TAF. Related tools show current functionality; proposed experiments have not been run here.</p>
       <p id="research-reviewed" class="subtle"></p>
@@ -1716,7 +1730,7 @@
 
     <!-- Recipe selector (mode=recipe) -->
     <section id="recipe-section" style="display:none;">
-      <h2 data-i18n="recipe.title">📋 Recipe</h2>
+      <h2><span data-i18n="recipe.title">📋 Recipe</span></h2>
       <select id="recipe-select" disabled>
         <option value="" data-i18n="recipe.default">— select a recipe —</option>
       </select>

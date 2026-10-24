@@ -3,6 +3,7 @@
 // Persist user choice in localStorage.
 import { RESEARCH_TRANSLATIONS } from "./research_i18n.js";
 import { MEASUREMENT_TRANSLATIONS } from "./measurement_i18n.js";
+import { ENTROPY_TRANSLATIONS } from "./entropy_i18n.js";
 
 export const LANGUAGES = [
   { code: "en", flag: "🇬🇧", label: "English" },
@@ -6591,6 +6592,9 @@ Object.assign(TRANSLATIONS.zh, {
   "inv.v013.honesty": "<strong>⚠ 诚实边界</strong> —— L_crit 不是 commitment knee；传输 / 写入 / commitment 是测量的，不是推导的。无推理。",
 });
 for (const [language, entries] of Object.entries(MEASUREMENT_TRANSLATIONS)) {
+  Object.assign(TRANSLATIONS[language], entries);
+}
+for (const [language, entries] of Object.entries(ENTROPY_TRANSLATIONS)) {
   Object.assign(TRANSLATIONS[language], entries);
 }
 for (const [language, entries] of Object.entries(RESEARCH_TRANSLATIONS)) {

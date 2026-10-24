@@ -20,10 +20,13 @@ Usage:
   python diagnose_model.py --model meta-llama/Meta-Llama-3-8B --local /path/to/weights --load_in_4bit
   python diagnose_model.py --model Qwen/Qwen2.5-7B --theta 1000000 --N 1000
   python diagnose_model.py --model EleutherAI/pythia-70m --fast   # quick mode, 4 distances
+  python diagnose_model.py --model EleutherAI/pythia-70m --cpu --entropy-only
+  python diagnose_model.py --model EleutherAI/pythia-70m --cpu --fast --measure-entropy
 
 Output:
   Prints diagnostic table to stdout.
   Saves JSON to ./diagnose_results/{model_short}.json
+  --entropy-only saves {model_short}.entropy.json; entropy does not correct gamma.
 """
 
 import sys
@@ -36,6 +39,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+from attention_entropy import measure_model_entropy
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 C_THEORY     = math.log(10000)       # 9.2103 — γ × ln(θ) = C for standard RoPE
@@ -359,6 +363,22 @@ def run_diagnostic(args) -> dict:
     model.eval()
     print(f"  Loaded in {time.time()-t0:.1f}s  device={device}")
 
+    entropy = None
+    if args.measure_entropy or args.entropy_only:
+        print(f"Measuring attention entropy: {args.entropy_samples} forwards × {args.entropy_tokens} tokens ...")
+        entropy = measure_model_entropy(model, length=args.entropy_tokens, samples=args.entropy_samples,
+                                        layer=args.entropy_layer, head=args.entropy_head, seed=SEEDS[0])
+        print(f"  H = {entropy['mean_entropy_bits']:.6f} bits; diagnostic only, no gamma correction")
+        if args.entropy_only:
+            record = {"model": model_name, "source": "diagnose-cli",
+                      "revision": getattr(model.config, "_commit_hash", None),
+                      "attention_entropy": entropy}
+            OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+            path = OUTPUT_DIR / f"{model_name.replace('/', '--')}.entropy.json"
+            path.write_text(json.dumps(record, indent=2, allow_nan=False), encoding="utf-8")
+            print(f"  Saved: {path}")
+            return record
+
     vocab_high = min(tokenizer.vocab_size - 1, 49_000)
     distances = DISTANCES_FAST if args.fast else DISTANCES_FULL
     n_prompts = N_PROMPTS if args.fast else N_PROMPTS_FULL
@@ -507,6 +527,8 @@ def run_diagnostic(args) -> dict:
         "kl_grammar": kl_ag,
         "attn_by_distance": {str(d): v if math.isfinite(v) else None for d, v in attn_by_d.items()},
     }
+    if entropy is not None:
+        result["attention_entropy"] = entropy
 
     out_path = OUTPUT_DIR / f"{short}.json"
     out_path.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
@@ -534,6 +556,16 @@ def main():
                         help="Load model in 4-bit quantization (requires bitsandbytes)")
     parser.add_argument("--cpu",    action="store_true",
                         help="Force CPU even if CUDA available")
+    parser.add_argument("--measure-entropy", action="store_true",
+                        help="Also measure actual attention entropy in a separate fixed-length probe; no gamma correction")
+    parser.add_argument("--entropy-only", action="store_true",
+                        help="Run only the short entropy probe, without the distance sweep")
+    parser.add_argument("--entropy-tokens", type=int, default=128,
+                        help="Fixed entropy-probe sequence length (default 128)")
+    parser.add_argument("--entropy-samples", type=int, default=4,
+                        help="Number of random-token forwards (default 4)")
+    parser.add_argument("--entropy-layer", type=int, default=0, help="Zero-based layer index (default 0)")
+    parser.add_argument("--entropy-head", type=int, default=0, help="Zero-based head index (default 0)")
     args = parser.parse_args()
 
     # Validate numeric inputs: N is used as a divisor (D90/N) and inside
@@ -542,6 +574,8 @@ def main():
         parser.error("--N must be >= 1 (it is used as a divisor and in log terms).")
     if args.theta is not None and args.theta <= 0:
         parser.error("--theta must be > 0.")
+    if args.entropy_tokens < 2 or args.entropy_samples < 1 or args.entropy_layer < 0 or args.entropy_head < 0:
+        parser.error("Entropy probe requires tokens >= 2, samples >= 1 and nonnegative layer/head indices.")
 
     try:
         run_diagnostic(args)

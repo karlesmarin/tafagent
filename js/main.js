@@ -353,6 +353,8 @@ function buildDiagnoseCommand() {
   if (fast) parts.push("--fast");
   if (cpu) parts.push("--cpu");
   if (fourbit) parts.push("--load_in_4bit");
+  if ($("diag-entropy-only")?.checked) parts.push("--entropy-only");
+  else if ($("diag-measure-entropy")?.checked) parts.push("--measure-entropy");
   return parts.join(" \\\n  ");
 }
 
@@ -2599,10 +2601,9 @@ function renderWhatIfSlider(profile, params, targetEl) {
     const sqrt2 = Math.SQRT2;
     const g_pade = (2 * params.theta - T * sqrt2) / (2 * params.theta + T * sqrt2);
     // Apply same decomposition as Python (taf_browser.py gamma_decompose):
-    // delta_SWA intentionally NOT applied — demoted to 0 there (originally fit on n=1).
+    // SWA and exploratory post-IH are disabled by default, as in Python.
     const g_corr = g_pade
-      + (params.n_kv_heads < params.n_attention_heads ? 0.11 : 0)
-      + (params.n_params >= 4e8 ? -0.15 : 0);
+      + (params.n_kv_heads < params.n_attention_heads ? 0.11 : 0);
     let dh = null, niah = null, verdict, vClass;
     if (g_corr > 0 && g_corr < 1) {
       dh = params.theta * (1 - g_corr) * sqrt2 / (1 + g_corr);
@@ -2876,7 +2877,7 @@ function renderProfile(p, params) {
 
   const numbersHtml = `
     <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.")}</span><span class="num-value">${formatN(kn.gamma_pade)}</span></div>
-    <div class="num-row"><span class="num-label">γ_decomposed ${ttip("tooltip.gamma_decomposed", "γ from full architectural decomposition: Padé baseline + GQA shift + SWA shift + post-IH shift.")}</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
+    <div class="num-row"><span class="num-label">γ_decomposed ${ttip("tooltip.gamma_decomposed", "Padé baseline plus empirical GQA shift. SWA and post-IH disabled by default.")}</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
     <div class="num-row"><span class="num-label">d_horizon ${ttip("tooltip.d_horizon", "Effective attention horizon at T_eval. Beyond this, attention scores fall below the noise floor (paper §26).")}</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
     <div class="num-row"><span class="num-label">L_NIAH ceiling ${ttip("tooltip.L_NIAH", "Predicted ceiling for needle-in-a-haystack retrieval reliability at the current d_horizon.")}</span><span class="num-value">${formatN(kn.L_NIAH_ceiling)}</span></div>
     <div class="num-row"><span class="num-label">χ susceptibility ${ttip("tooltip.chi", "Susceptibility exponent χ = 1/(1−γ). Diverges at the Hagedorn line γ=1.")}</span><span class="num-value">${formatN(kn.chi_susceptibility)}</span></div>
@@ -3851,6 +3852,10 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
     setLang(btn.dataset.lang);
     refreshResearchExplorer();
     renderPvrResults();
+    document.querySelectorAll(".taf-demo-btn").forEach(button => {
+      button.textContent = "🎬 " + dt(button.dataset.demoLabel || "demo_btn");
+      button.title = dt("demo_btn_tip");
+    });
     if (state.currentMode === "research") $("mode-desc").textContent = t("mode_desc.research");
   });
 });
@@ -5727,7 +5732,7 @@ initI18n();
 // Reading studies and inspecting measurements need neither Python nor inference. Deep-links work even
 // while Pyodide is still loading or its CDN is unavailable.
 const immediateMode = new URLSearchParams(window.location.search).get("mode");
-if (["research", "pvr"].includes(immediateMode)) {
+if (["research", "pvr", "diagnose"].includes(immediateMode)) {
   document.querySelector(`.mode-btn[data-mode="${immediateMode}"]`)?.click();
 }
 // Pyodide-independent panels: render immediately so they survive a Pyodide
@@ -5842,6 +5847,52 @@ function __demoCtx() {
 
 // Registry: one entry per mode. Add a mode here → it gets a "🎬 Demo" button.
 const DEMOS = {
+  research: {
+    sectionId: "research-section",
+    async run(D) {
+      D.mode("research"); await initResearchExplorer();
+      D.click("#research-clear");
+      if (!document.querySelector(".research-card")) throw new Error("Research catalog unavailable");
+      D.banner(dt("research.s1"), 1, 2); D.click("#research-clear"); await D.sleep(700);
+      D.select("#research-topic", "compression"); D.hl("#research-topic"); await D.sleep(1100);
+      D.banner(dt("research.s2"), 2, 2); D.select("#research-publication", "published"); await D.sleep(700);
+      D.click(".research-card summary"); D.scroll(".research-card"); D.clearHl();
+      return { title: t("research.title"), lines: [t("research.note"), t("research.help")] };
+    },
+  },
+  entropy: {
+    sectionId: "diagnose-section", buttonLabel: "entropy.demo_btn",
+    async run(D) {
+      D.mode("diagnose"); D.reveal("#diag-entropy-options summary");
+      $("diag-entropy-options").open = true;
+      D.banner(dt("entropy.s1"), 1, 2); D.hl("#diag-entropy-only");
+      if (!$("diag-entropy-only").checked) D.click("#diag-entropy-only");
+      await D.sleep(1000);
+      D.banner(dt("entropy.s2"), 2, 2); D.click("#diag-build-btn"); await D.sleep(700);
+      D.clearHl(); D.scroll("#diag-output");
+      return { title: t("help.entropy.title"), lines: [t("diagnose.entropy.note"), t("help.entropy.read"), t("help.entropy.example")] };
+    },
+  },
+  protocol: {
+    sectionId: "pvr-section", buttonLabel: "protocol.demo_btn",
+    async run(D) {
+      D.mode("pvr"); D.reveal("#pvr-paste");
+      const response = await fetch("data/measurement_examples/uniform_attention.json");
+      if (!response.ok) throw new Error("Uniform control unavailable");
+      const first = await response.json();
+      // Exact analytic uniform control at a second length, not a model training run.
+      const length = 64;
+      const second = { ...first, source: "analytic_uniform_control_length64", T_eval: length, gamma: 0,
+        distance: Array.from({length:length-1}, (_,i)=>i+1),
+        mean_attention: Array(length-1).fill(1/length), residual_log: Array(length-1).fill(0),
+        protocol: {...first.protocol,length,queries:[length-1]} };
+      D.banner(dt("protocol.s1"), 1, 2); D.paste("#pvr-paste", JSON.stringify(first,null,2));
+      D.paste("#pvr-reference", JSON.stringify(second,null,2)); await D.sleep(1000);
+      D.banner(dt("protocol.s2"), 2, 2); D.click("#pvr-paste-btn"); await D.sleep(700);
+      D.scroll(".pvr-comparison");
+      return { title: t("pvr.lab.comparison"), lines: [dt("protocol.explain"), t("pvr.lab.fit_note"), t("pvr.lab.reference_hint")] };
+    },
+  },
   depth: {
     sectionId: "depth-section",
     model: "Qwen/Qwen2.5-3B",
@@ -6102,6 +6153,7 @@ const DEMOS = {
       const total = 2;
       D.mode("pvr"); await D.sleep(450); D.reveal("#pvr-paste"); await D.sleep(500);
       D.banner(dt("pvr.s1"), 1, total); await D.sleep(900);
+      D.paste("#pvr-reference", "");
       D.paste("#pvr-paste", '{"model":"EleutherAI/pythia-1.4b","theta_nom":10000,"N":2048,"gamma":0.705,"fit_power_law":{"R2":0.84}}'); await D.sleep(400);
       D.banner(dt("pvr.s2"), 2, total); D.hl("#pvr-paste-btn"); await D.sleep(700); D.click("#pvr-paste-btn");
       await D.waitText(/Prediction|Predicci[óo]n|Measured|Medido|Δ|delta/i, 10000);
@@ -6346,9 +6398,11 @@ function __demoExplainPanel(mode, info) {
 }
 
 let __demoRunningMode = null;
+let __demoHideTimer = null;
 async function runDemoFor(mode) {
   const cfg = DEMOS[mode];
   if (!cfg || __demoRunning) return;
+  clearTimeout(__demoHideTimer);
   __demoRunning = true; __demoRunningMode = mode;
   try {
     if (!document.getElementById("__taf_demo_css")) {
@@ -6364,7 +6418,7 @@ async function runDemoFor(mode) {
     const b = document.getElementById("__taf_demo_banner");
     if (b) { b.style.cursor = "pointer"; b.onclick = __demoHideBanner; }
     __demoExplainPanel(mode, info);
-    setTimeout(__demoHideBanner, 12000);
+    __demoHideTimer = setTimeout(__demoHideBanner, 12000);
   } catch (e) {
     console.warn("demo failed:", e);
     __demoHideBanner();
@@ -6379,13 +6433,15 @@ function runDemo() { return runDemoFor("profile"); }
 function injectDemoButtons() {
   Object.keys(DEMOS).forEach((mode) => {
     const sec = document.getElementById(DEMOS[mode].sectionId);
-    if (!sec || sec.querySelector(".taf-demo-btn")) return;
+    if (!sec || sec.querySelector(`.taf-demo-btn[data-demo-mode="${mode}"]`)) return;
     const h = sec.querySelector("h2");
     if (!h) return;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "taf-demo-btn";
-    btn.textContent = "🎬 " + dt("demo_btn");
+    btn.dataset.demoMode = mode;
+    btn.dataset.demoLabel = DEMOS[mode].buttonLabel || "demo_btn";
+    btn.textContent = "🎬 " + dt(btn.dataset.demoLabel);
     btn.title = dt("demo_btn_tip");
     btn.style.cssText = "margin-left:.6rem;padding:.22rem .7rem;font:700 13px Georgia,serif;" +
       "color:#fff;border:none;border-radius:1rem;cursor:pointer;vertical-align:middle;" +

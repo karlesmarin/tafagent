@@ -1,6 +1,7 @@
 // Measurement lab labels and updates to the existing Prediction vs Reality panel.
 export const MEASUREMENT_TRANSLATIONS = {
   en: {
+    "caveat.x2_delta_postih_disabled": "The exploratory post-IH correction is not applied. Parameter count is only a proxy for circuit phase, not a measurement.",
     "pvr.paste_summary": "Import a measurement: CLI, guide estimator or dataset JSON",
     "pvr.byod_hint": "Paste the complete JSON to keep its protocol, curve and residuals. The guide estimator is accepted directly; add model, revision, corpus and θ when known. The CLI samples random tokens at varying sequence lengths.",
     "pvr.paste_btn": "Inspect measurements",
@@ -39,6 +40,7 @@ export const MEASUREMENT_TRANSLATIONS = {
     "help.v09.pvr.example": "Paste one or two measurement JSON records → inspect γ, fit, curve, missing conditions and protocol differences. The contribution record preserves the metadata; nothing is uploaded automatically.",
   },
   es: {
+    "caveat.x2_delta_postih_disabled": "La corrección post-IH exploratoria no se aplica. El número de parámetros es solo un indicador aproximado de la fase del circuito, no una medición.",
     "pvr.paste_summary": "Importar una medición: JSON del CLI, del estimador de la guía o del dataset",
     "pvr.byod_hint": "Pega el JSON completo para conservar su protocolo, curva y residuos. Se acepta directamente el estimador de la guía; añade modelo, revisión, corpus y θ cuando los conozcas. El CLI muestrea tokens aleatorios con longitudes de secuencia variables.",
     "pvr.paste_btn": "Examinar mediciones",
@@ -77,6 +79,7 @@ export const MEASUREMENT_TRANSLATIONS = {
     "help.v09.pvr.example": "Pega uno o dos registros JSON → examina γ, ajuste, curva, condiciones ausentes y diferencias de protocolo. El registro de contribución conserva los metadatos; nada se sube automáticamente.",
   },
   fr: {
+    "caveat.x2_delta_postih_disabled": "La correction post-IH exploratoire n’est pas appliquée. Le nombre de paramètres n’est qu’un indicateur approximatif de la phase du circuit, pas une mesure.",
     "pvr.paste_summary": "Importer une mesure : JSON du CLI, de l’estimateur du guide ou du jeu de données",
     "pvr.byod_hint": "Collez le JSON complet pour conserver protocole, courbe et résidus. L’estimateur du guide est accepté directement ; ajoutez modèle, révision, corpus et θ si connus. Le CLI échantillonne des tokens aléatoires avec des longueurs de séquence variables.",
     "pvr.paste_btn": "Examiner les mesures",
@@ -115,6 +118,7 @@ export const MEASUREMENT_TRANSLATIONS = {
     "help.v09.pvr.example": "Collez un ou deux JSON → examinez γ, ajustement, courbe, conditions manquantes et différences de protocole. La contribution conserve les métadonnées ; aucun envoi automatique.",
   },
   zh: {
+    "caveat.x2_delta_postih_disabled": "未应用探索性的 post-IH 修正。参数量只是电路阶段的近似指标，并非测量结果。",
     "pvr.paste_summary": "导入测量：CLI、指南估计器或数据集 JSON",
     "pvr.byod_hint": "粘贴完整 JSON 以保留协议、曲线和残差。可直接导入指南估计器结果；已知时请补充模型、版本、语料和 θ。CLI 使用随机词元，并随距离改变序列长度。",
     "pvr.paste_btn": "检查测量",

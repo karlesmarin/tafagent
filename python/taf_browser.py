@@ -21,7 +21,8 @@ def gamma_pade(theta: float, T_eval: int) -> float:
     return (2 * theta - z_sqrt2) / (2 * theta + z_sqrt2)
 
 
-def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0) -> dict:
+def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0,
+                    *, apply_exploratory=False) -> dict:
     """§26.10 — 5-axis decomposition (n=23 OLS, paper sesión 28).
 
     Calibration audit (2026-05-02 panel re-check):
@@ -31,25 +32,38 @@ def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0) 
                               Returning δ_SWA = 0 with `delta_SWA_status: 'exploratory_n1'`
                               instead of applying an unreliable correction.
       δ_post_IH  = -0.15   ⚠ does NOT replicate (group-mean ≈ 0 on n=16/6);
-                              kept but flagged 'exploratory'.
+                              recorded as a candidate; disabled by default.
       δ_instruct  not in this v1; v2 has -0.10 with n=3, p=0.06 caveat.
     """
+    if not isinstance(apply_exploratory, bool):
+        raise TypeError("apply_exploratory must be an explicit boolean")
     delta_GQA = +0.11 if has_GQA else 0.0
     # SWA: demoted — original constant rested on n=1.
     delta_SWA = 0.0
     delta_SWA_status = "exploratory_n1_disabled" if has_SWA else "not_applicable"
-    delta_post_IH = -0.15 if n_params >= 4e8 else 0.0
+    post_candidate = -0.15 if n_params >= 4e8 else 0.0
+    delta_post_IH = post_candidate if apply_exploratory else 0.0
     return {
         "pade_centroid":         gamma_pade_val,
         "delta_GQA":             delta_GQA,
         "delta_SWA":             delta_SWA,
         "delta_SWA_status":      delta_SWA_status,
         "delta_post_IH":         delta_post_IH,
-        "delta_post_IH_status":  "exploratory_no_replication" if delta_post_IH != 0 else "not_applicable",
+        "delta_post_IH_status":  "exploratory_no_replication" if post_candidate else "not_applicable",
+        "corrections": {
+            "SWA": {"candidate": -0.21 if has_SWA else 0.0, "applied": False,
+                    "applied_value": 0.0, "status": delta_SWA_status},
+            "post_IH": {"candidate": post_candidate, "applied": bool(apply_exploratory and post_candidate),
+                        "applied_value": delta_post_IH, "status": "exploratory_no_replication",
+                        "eligibility": "parameter_count_proxy_only"},
+            "GQA": {"candidate": delta_GQA, "applied": bool(delta_GQA),
+                    "applied_value": delta_GQA, "status": "empirical_panel_correction"},
+        },
+        "experimental_corrections_requested": bool(apply_exploratory),
         "gamma_corrected":       gamma_pade_val + delta_GQA + delta_SWA + delta_post_IH,
         "calibration_warning":  ("SWA correction disabled (originally fit on n=1). "
-                                 "post_IH correction marked exploratory (group-mean ≈ 0 in re-audit). "
-                                 "GQA correction replicates."),
+                                 "post_IH is exploratory and requires explicit opt-in (group-mean ≈ 0). "
+                                 "GQA remains an empirical panel correction, not universal calibration."),
     }
 
 
@@ -232,7 +246,8 @@ def ih_phase_check(gamma_text: float, gamma_random: float,
 
 def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
                        has_GQA: bool = False, has_SWA: bool = False,
-                       corpus: str = "text", is_instruct: bool = False) -> dict:
+                       corpus: str = "text", is_instruct: bool = False,
+                       *, apply_exploratory=False) -> dict:
     """§28.3 — 6-axis decomposition (sesión 29 update with imprint axis).
 
     γ_obs = γ_pade
@@ -246,13 +261,17 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
     Calibration audit 2026-05-02:
       δ_GQA solid; δ_SWA demoted (n=1); δ_post_IH exploratory; δ_instruct exploratory (n=3).
     """
-    delta_imprint = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M) \
+    imprint_candidate = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M) \
                     if corpus == "random" else 0.0
+    delta_imprint = 0.0  # Not identified; do not reactivate through the exploratory flag.
     delta_GQA = +0.11 if has_GQA else 0.0
     # SWA disabled: originally fit on n=1.
     delta_SWA = 0.0
-    delta_post_IH = -0.15 if n_params_M >= 400 else 0.0
-    delta_instruct = -0.10 if is_instruct else 0.0  # F9 tentative (n=3, p=0.06)
+    base = gamma_decompose(gamma_pade_val, has_GQA, has_SWA, n_params_M * 1e6,
+                           apply_exploratory=apply_exploratory)
+    delta_post_IH = base["delta_post_IH"]
+    instruct_candidate = -0.10 if is_instruct else 0.0  # F9 tentative (n=3, p=0.06)
+    delta_instruct = instruct_candidate if apply_exploratory else 0.0
     return {
         "pade_centroid":       gamma_pade_val,
         "delta_imprint":       delta_imprint,
@@ -260,15 +279,22 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
         "delta_SWA":           delta_SWA,
         "delta_SWA_status":    "exploratory_n1_disabled" if has_SWA else "not_applicable",
         "delta_post_IH":       delta_post_IH,
-        "delta_post_IH_status": "exploratory_no_replication" if delta_post_IH != 0 else "not_applicable",
+        "delta_post_IH_status": base["delta_post_IH_status"],
         "delta_instruct":      delta_instruct,
-        "delta_instruct_status": "tentative_n3_p0.06" if delta_instruct != 0 else "not_applicable",
+        "delta_instruct_status": "tentative_n3_p0.06" if is_instruct else "not_applicable",
+        "delta_imprint_status": "not_identified_disabled" if corpus == "random" else "not_applicable",
+        "corrections": {**base["corrections"],
+            "instruct": {"candidate": instruct_candidate, "applied": bool(apply_exploratory and instruct_candidate),
+                         "applied_value": delta_instruct, "status": "tentative_n3_p0.06"},
+            "imprint": {"candidate": imprint_candidate, "applied": False,
+                        "applied_value": 0.0, "status": "not_identified_disabled"}},
+        "experimental_corrections_requested": bool(apply_exploratory),
         "gamma_corrected":     gamma_pade_val + delta_imprint + delta_GQA
                                 + delta_SWA + delta_post_IH + delta_instruct,
         "corpus":              corpus,
         "axes":                ["pade", "imprint", "GQA", "SWA", "IH", "instruct"],
-        "calibration_warning":  ("SWA disabled (n=1). post_IH/instruct marked exploratory. "
-                                 "GQA + imprint axes are the most reliable."),
+        "calibration_warning":  ("SWA and unidentified imprint disabled. post_IH/instruct require explicit opt-in. "
+                                 "GQA remains an empirical panel correction, not universal calibration."),
     }
 
 
@@ -508,8 +534,8 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
     caveats = ["x2_closed_form_tautology"]
     if has_SWA:
         caveats.append("x2_delta_swa_disabled")
-    if decomp.get("delta_post_IH", 0.0) != 0.0:
-        caveats.append("x2_delta_postih_exploratory")
+    if decomp["corrections"]["post_IH"]["candidate"] != 0.0:
+        caveats.append("x2_delta_postih_disabled")
     chain.append(_step(3, "§26.2", "d_horizon", "d_h = θ(1-γ)√2/(1+γ)",
                        {"theta": theta, "gamma": g_corr, "T_train": T_train}, dh,
                        "n/a — γ outside (0,1)" if dh is None else
@@ -630,7 +656,7 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
         conf_factors.append(("gamma_closed", "warn"))
         conf_factors.append(("benchmark_no", "warn"))
     conf_factors.append(("validity_ok", "ok") if 0 < g_corr < 1 else ("validity_out", "miss"))
-    _exploratory = any(c in caveats for c in ("x2_delta_postih_exploratory", "x2_delta_swa_disabled"))
+    _exploratory = any(c in caveats for c in ("x2_delta_postih_exploratory", "x2_delta_postih_disabled", "x2_delta_swa_disabled"))
     conf_factors.append(("calib_exploratory", "warn") if _exploratory else ("calib_reliable", "ok"))
     out["confidence"] = _confidence(conf_factors)
     return out

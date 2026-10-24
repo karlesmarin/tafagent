@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { attentionRowEntropy, estimateAttentionEntropy, uniformAttentionEntropy } from '../js/entropy_scanner.js';
+const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} != ${b}`);
+close(uniformAttentionEntropy(4),2);
+assert.throws(()=>uniformAttentionEntropy(0));
+const uniform=attentionRowEntropy([.25,.25,.25,.25]);
+close(uniform.entropy_bits,2); close(uniform.normalized_entropy,1); close(uniform.kl_to_uniform_bits,0);
+const spike=attentionRowEntropy([1,0,0,0]);
+close(spike.entropy_bits,0); close(spike.kl_to_uniform_bits,2);
+assert.equal(attentionRowEntropy([1,0],{allowedKeys:[true,false]}).normalized_entropy,null);
+close(attentionRowEntropy([.5,.5,0],{allowedKeys:[true,true,false]}).entropy_bits,1);
+const mixed=estimateAttentionEntropy([[1,0],[0,1]],{protocol:{id:'synthetic'}});
+close(mixed.mean_entropy_bits,0); // Not the entropy of the averaged row.
+assert.equal(mixed.gamma_correction.applied,false);
+assert.equal(mixed.protocol.row_count,2);
+close(attentionRowEntropy([.6,.3,.1]).entropy_bits,attentionRowEntropy([.1,.3,.6]).entropy_bits);
+for(const values of [[],[-.1,1.1],[NaN,1],[Infinity,0],[0,0],[.2,.2]]) assert.throws(()=>attentionRowEntropy(values));
+assert.throws(()=>attentionRowEntropy([.5,.5],{allowedKeys:[true,false]}));
+assert.throws(()=>estimateAttentionEntropy([[1]],{allowedKeysByRow:[]}));
+assert.throws(()=>attentionRowEntropy([1],{sumTolerance:1}));
+assert.throws(()=>estimateAttentionEntropy([]));
+assert.throws(()=>estimateAttentionEntropy({model:'not-attention'}));
+console.log('Entropy scanner: numerical limits, causal masks, validation, pooling and no gamma correction PASS');

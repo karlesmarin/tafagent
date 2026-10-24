@@ -1059,6 +1059,11 @@ Object.assign(DEMO_STRINGS.zh, {
 });
 
 import { getLang } from "./i18n.js";
+import { ENTROPY_DEMO_TRANSLATIONS } from "./entropy_i18n.js";
+
+for (const [language, entries] of Object.entries(ENTROPY_DEMO_TRANSLATIONS)) {
+  Object.assign(DEMO_STRINGS[language], entries);
+}
 
 export function dt(key) {
   // Same language source as the rest of the UI (getLang = i18n currentLang).

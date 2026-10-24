@@ -1,7 +1,8 @@
 # Proposal — 📊 Prediction vs Reality + Bring-Your-Own-Data (BYOD) + community
 
-> Status: DESIGN. The honest, server-less version of the external-review "#1 auto-run benchmarks"
-> (which is impossible browser-only) + Carles's community angle. Builds on Confidence (#5).
+> Status: historical design, superseded in October 2026 by the protocol-aware measurement
+> lab. Measured γ no longer implies a downstream benchmark or a confidence score.
+> See README and [the entropy diagnostic](../entropy-correction.md) for current behavior.
 
 ## The constraint that shapes everything
 
@@ -26,8 +27,9 @@ Measured values come from three honest sources (in priority order):
 3. **Harvested published benchmarks** — a small curated table (In-Place TTT, RULER paper, etc.), like
    the Stage-0 harvest, shipped as static JSON.
 
-When a measurement exists, the **Confidence (#5) flips `benchmark_no → benchmark_yes`** automatically,
-so reality-checking a prediction visibly raises its confidence. That closes the loop the review wanted.
+The original proposal promoted a measured γ to benchmark evidence. That behavior has
+been removed: the current lab shows protocol gaps and R² as a fit diagnostic, without
+inferring calibrated confidence or downstream task performance.
 
 ## 2. Bring-Your-Own-Data (the input path)
 

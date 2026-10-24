@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "attention_entropy_diagnostic",
+  "status": "experimental_measurement",
+  "integration": "command_descriptor_only",
+  "enabled_by_default": false,
+  "runtime": "local_python_pytorch_transformers",
+  "entrypoint": "cli/diagnose_model.py",
+  "flags": ["--entropy-only"],
+  "defaults": {"entropy_tokens": 128, "entropy_samples": 4, "entropy_layer": 0, "entropy_head": 0},
+  "output": "attention_entropy",
+  "unit": "bits",
+  "gamma_correction_applied": false,
+  "documentation": "docs/entropy-correction.md"
+}

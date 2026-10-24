@@ -56,6 +56,23 @@ language:
 
 ### Measurement protocols and reproducible controls — October 2026
 
+**Attention entropy (experimental measurement):** `--measure-entropy` adds a separate
+fixed-length probe to the CLI; `--entropy-only` runs just that short probe. The **Diagnose
+CLI → Advanced** builder exposes both options, initially unchecked. It generates commands;
+it does not run model inference in the browser. Entropy is measured in bits on actual
+attention rows, with an explicit uniform reference and full protocol metadata. It does
+**not** correct γ or certify Padé. See [the protocol and usage guide](docs/entropy-correction.md).
+
+SWA remains disabled; post-IH is now disabled by default in Python and the browser's
+what-if calculation. The v2 decomposition also defaults instruct and unidentified imprint
+to zero. JSON separates candidate terms from applied terms; `apply_exploratory=True`
+opts into post-IH/instruct only. GQA remains a panel-based empirical adjustment.
+The help, guided demos and calibration tooltips describe these boundaries in EN/ES/FR/ZH.
+Every mode offers an optional demo. Added walkthroughs cover the research explorer,
+the short entropy command and two uniform controls with different context lengths.
+The latter illustrates protocol comparison with explicitly synthetic data; neither
+demo runs model inference in the browser. Demo labels follow language changes.
+
 **Measurement lab (2026-10-24):** [Prediction vs Reality](https://karlesmarin.github.io/tafagent/?mode=pvr#pvr-section)
 now imports the [guide estimator](https://karlesmarin.github.io/transformers-guide/en/chapters/R4-medir-gamma.html)
 as well as CLI and dataset records. Paste one or two JSON records to inspect γ, log-fit R²,
@@ -344,13 +361,14 @@ python -m http.server 8000
 
 The directory `cli/diagnose_model.py` is the command-line companion
 described in the paper *Predicting How Transformers Attend* (Marin 2026).
-It characterises any causal language model from HuggingFace in
-minutes on CPU and produces the raw `gamma_obs`, `R²`, and
-thermodynamic profile used in the manuscript.
+It measures attention on supported causal language models with Transformers' eager
+attention outputs. Runtime and memory depend on the model and hardware. Its distance
+sweep produces `gamma`, fit `R2`, protocol metadata and a thermodynamic profile.
 
 ```bash
 pip install torch transformers numpy
 python cli/diagnose_model.py --model EleutherAI/pythia-2.8b --fast --cpu
+python cli/diagnose_model.py --model EleutherAI/pythia-70m --entropy-only --cpu
 ```
 
 ### Reproducibility data
@@ -417,7 +435,7 @@ detect anomalous checkpoints.
 
 ### Other v0.4 additions
 
-- `gamma_decompose_v2(...)` — 6-axis decomposition with the new imprint axis
+- `gamma_decompose_v2(...)` — decomposition with candidate/applied terms; unidentified imprint disabled
 - `famous_constant_proximity(...)` — detects γ-cluster on famous constants
   (e.g. CodeLlama-13b γ=0.382 ≈ 1−1/φ golden conjugate)
 
@@ -458,12 +476,13 @@ panel revealed:
 |---|---|---|---|
 | δ_GQA | +0.11 | +0.115 | ✓ replicates |
 | δ_SWA | −0.21 | originally fit on **n=1 model** | ✗ disabled (insufficient data) |
-| δ_post_IH | −0.15 | group-mean ≈ 0 (n=16 yes / 6 no) | ⚠ flagged exploratory |
-| δ_instruct (v2) | −0.10 | n=3, p=0.06 (already noted) | ⚠ flagged exploratory |
+| δ_post_IH | −0.15 | group-mean ≈ 0 (n=16 yes / 6 no) | ⚠ exploratory, disabled by default |
+| δ_instruct (v2) | −0.10 | n=3, p=0.06 (already noted) | ⚠ exploratory, disabled by default |
 
 `gamma_decompose` and `gamma_decompose_v2` now return per-axis status fields
 (`delta_SWA_status`, `delta_post_IH_status`, etc.) and a top-level
-`calibration_warning` so consumers can detect which corrections are reliable.
+`calibration_warning`, plus candidate/applied metadata. These labels describe the
+evidence and policy; they do not certify a prediction's reliability.
 
 The TAF Card UI now displays a collapsible **"v0.5.3 — Calibration audit"
 banner** in all four supported languages (EN/ES/FR/ZH) explaining this.

@@ -29,6 +29,8 @@ jobs:
         run: node tests/fit_check.test.mjs
       - name: Research catalog and evidence boundaries
         run: node tests/research_studies.test.mjs
+      - name: Attention entropy diagnostics
+        run: node tests/entropy_scanner.test.mjs
 
   python:
     name: formula tests
@@ -41,7 +43,22 @@ jobs:
       - name: Install deps
         run: pip install numpy pytest
       - name: Pytest
-        run: python -m pytest tests/test_taf_formulas.py tests/test_measurement_protocol.py -q
+        run: python -m pytest tests/test_taf_formulas.py tests/test_measurement_protocol.py tests/test_attention_entropy.py -q
+
+  cpu-attention:
+    name: Real attention on tiny CPU models (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install transformers==5.13.0 numpy pytest
+      - run: python -m pytest tests/test_entropy_models.py -q
+        env:
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
 
   e2e:
     name: e2e sweep (all modes x 4 langs, 0 JS errors)
@@ -65,5 +82,9 @@ jobs:
           TAF_URL: http://127.0.0.1:8000/
       - name: Measurement protocols and uniform control
         run: node tests/measurement_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Entropy help, command builder and demos in four languages
+        run: node tests/entropy_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
