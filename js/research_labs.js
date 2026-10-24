@@ -45,7 +45,7 @@ export function mountResearchLab(host, kind, lang='en') {
       function line(p,color,label,labelOffset=0){const end=project(p),l=document.createElementNS(ns,'line');
         for(const [k,v] of Object.entries({x1:origin[0],y1:origin[1],x2:end[0],y2:end[1],stroke:color,'stroke-width':3})) l.setAttribute(k,v);
         const c=document.createElementNS(ns,'circle');c.setAttribute('cx',end[0]);c.setAttribute('cy',end[1]);c.setAttribute('r',5);c.setAttribute('fill',color);
-        const text=document.createElementNS(ns,'text');text.setAttribute('x',end[0]+7);text.setAttribute('y',end[1]-7-labelOffset);text.setAttribute('fill','currentColor');text.textContent=label;svg.append(l,c,text);}
+        const text=document.createElementNS(ns,'text');text.setAttribute('x',end[0]+7+labelOffset);text.setAttribute('y',Math.max(16,end[1]-7));text.setAttribute('fill','currentColor');text.textContent=label;svg.append(l,c,text);}
       [[scale,0,0],[0,scale,0],[0,0,scale]].forEach((p,i)=>line(p,'#888',['x','y','z'][i]));
       r.points.forEach((p,i)=>line(p,['#0072B2','#D55E00','#009E73'][i],String(i+1),i*14));
       output.append(svg);pair(dl,t.matrix,r.matrix.map(row=>row.map(v=>v.toFixed(3)).join('  ')).join('\n'));
