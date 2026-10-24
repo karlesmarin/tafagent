@@ -54,6 +54,10 @@ prioridades y 32 escenarios. Atención conserva su lista de protocolo. Los capí
 10, 20, 28, 30, 36, 40 y el manual de TAF (R5) explican este seguimiento.
 Arquitectura, JSON y PEFT enlazan a `sec-resolver-architecture`, `sec-resolver-json`
 y `sec-resolver-peft`; el retorno conserva ruta, idioma y alojamiento.
+El panel opcional **Seguir mis comprobaciones** registra declaraciones por paso
+y prioriza discrepancias, bloqueos y pendientes sin modificar la evidencia.
+R5 (`sec-resolver-progress`) explica su demo y sus límites: las marcas permanecen
+en la pestaña original, no viajan con los enlaces ni se restauran desde el informe.
 Recalcular cambia el plan, pero no implica ejecutar las comprobaciones en el
 entorno del usuario. Los enlaces de ida y vuelta conservan su comportamiento.
 

@@ -66,6 +66,34 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 
 ## Navigation and user control
 
+**Track my checks** is an optional follow-up panel on all nine routes. Three steps
+reuse the current ordered plan; attention reuses its protocol priority followed
+by observation and interpretation instructions. Users can mark a step pending,
+reviewed without a discrepancy, discrepant, or blocked. The next action follows
+the first discrepancy, then first blockage, then first pending step. A focus button
+opens the corresponding control. Marking everything reviewed does not certify a fix;
+the panel asks for a check of the original task and preserves counterexamples.
+
+Marks are declarations. They neither alter findings/protocol metadata nor mark a
+repair verified. **It still fails** incorporates the declared next action alongside
+the original evidence-based plan. The guide link remains tied to the case.
+Marks stay only in the current tab's memory: closing/reopening the resolver or
+changing language preserves them. Input changes, reruns, adjusted estimates,
+alternative examples and route changes clear them, even when priority is unchanged.
+Reloading the page loses the case and marks; no storage or report-import mechanism
+is added. Returning via a guide link opens a fresh form, so retain the original tab.
+
+Each saved example offers **Simulate a blocked check**: one reviewed step, one
+blocked step and one pending step. This action exists only for illustrative cases.
+The narrated resolver demo shows it in step five. Real inputs have no simulation
+button. **Clear my marks** resets only the declarations, preserving the result.
+
+Case report schema 3 adds `progress` version 1: fixed step keys, localized
+instructions/status labels, counts and the selected next action, with
+`source: illustrative | user_reported`, `independently_verified: false` and
+`executed_by_taf: false`. No free-text notes, pasted inputs or runtime evidence
+are copied into this object. A downloaded report is not a restorable session.
+
 - Header and Ask mode expose **Solve my problem**.
 - **🎬 Demo**, beside the resolver heading and in the Manual/feature overview,
   uses the shared `DEMOS` player, like the other TAF tools. It selects the memory

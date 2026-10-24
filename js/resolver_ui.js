@@ -5,6 +5,7 @@ import { buildResolverSummary } from './resolver_summary.js';
 import { buildResolverReview } from './resolver_review.js';
 import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
 import { CHECK_DEMOS,checkDemo } from './resolver_checks.js';
+import { PROGRESS_STATES,progressReport,markProgress,demoProgress } from './resolver_progress.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
 import { TOOL_CATALOG } from './resolver_catalog.js';
@@ -16,11 +17,12 @@ const tr=key=>t('resolver.'+key);
 let route='',bundle=null,result=null,feedback='',controller=null,request=0,lastInputs=null,initial=null;
 let catalogUI=null;
 let triageUI=null;
+let progressMarks=null;
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;
+  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
@@ -60,6 +62,7 @@ function renderFeedback() {
   if(feedback)$('followup').append(node('p',tr(feedback==='worked'?'solved':'followup')));
   if(feedback==='failed') {
     $('followup').append(node('p',summaryData().next));
+    if(progressMarks){const p=progressData();$('followup').append(node('p',tr('progress_next_'+p.next_kind)),button(tr('progress_title'),openProgress));}
     if(summaryData().checks)$('followup').append(node('p',summaryData().checks.instructions[2]),button(tr('checks_open'),openChecks));
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
   }
@@ -67,8 +70,45 @@ function renderFeedback() {
 function resultState() {return {route,bundle,initial,inputs:lastInputs,result,app:location.origin===new URL(HF_BASE).origin?'hf':'github'};}
 function summaryData() {return buildResolverSummary(resultState(),getLang());}
 function reviewData() {return buildResolverReview(resultState(),getLang());}
+function progressData(){
+ const report=progressReport(resultState(),progressMarks);if(!report)return null;
+ return {...report,steps:report.steps.map(s=>({...s,instruction:tr(s.key),label:tr('progress_'+s.status)})),next_instruction:tr('progress_next_'+report.next_kind)};
+}
+function openProgress(){ $('progress').open=true;$('progress').querySelector('summary').focus();$('progress').scrollIntoView({block:'start'}); }
+function updateProgressView(){
+ const report=progressData();if(!report||!$('progress-next'))return;
+ $('progress-count').textContent=tr('progress_count')+': '+report.checked_count+' / '+report.steps.length;
+ $('progress-next').textContent=report.next_instruction;
+ $('progress-go').hidden=report.next_index===null;
+ for(const [i,step] of report.steps.entries())$('progress-step-'+i).value=step.status;
+ renderFeedback();
+}
+export function simulateResolverProgress(){
+ progressMarks=demoProgress(resultState());openProgress();updateProgressView();
+ $('progress-next').scrollIntoView({block:'nearest'});
+}
+function createProgress(){
+ const report=progressData();if(!report)return null;
+ const box=node('details');box.id='resolver-progress';box.append(node('summary',tr('progress_title')),node('p',tr(bundle.origin==='demo'?'progress_demo_note':'progress_note')));
+ const list=node('ol');
+ for(const [i,step] of report.steps.entries()){
+  const li=node('li'),label=node('label',tr('progress_step')+' '+(i+1)+': '+step.instruction),select=node('select');
+  select.id='resolver-progress-step-'+i;label.htmlFor=select.id;
+  for(const status of PROGRESS_STATES)select.append(new Option(tr('progress_'+status),status));select.value=step.status;
+  select.addEventListener('change',()=>{progressMarks=markProgress(resultState(),progressMarks,i,select.value);updateProgressView();});
+  li.append(label,select);list.append(li);
+ }
+ const count=node('p',tr('progress_count')+': '+report.checked_count+' / '+report.steps.length);count.id='resolver-progress-count';
+ const next=node('p',report.next_instruction);next.id='resolver-progress-next';next.setAttribute('role','status');
+ const go=button(tr('progress_open'),()=>{const i=progressData().next_index;if(i!==null){$('progress-step-'+i).focus();$('progress-step-'+i).scrollIntoView({block:'center'});}},'progress-go');go.hidden=report.next_index===null;
+ const actions=node('div');actions.className='resolver-actions';actions.append(go,button(tr('progress_clear'),()=>{progressMarks=null;updateProgressView();},'progress-clear'));
+ if(bundle.origin==='demo')actions.append(button(tr('progress_demo'),simulateResolverProgress,'progress-demo'));
+ const a=node('a',summaryData().guide.title);a.href=summaryData().guide.url;a.target='_blank';a.rel='noopener';
+ box.append(list,count,next,actions,a);return box;
+}
 function openChecks(){ $('review').open=true;$('checks').focus({preventScroll:true});$('checks').scrollIntoView({block:'start'}); }
 function changeExample(scenario){
+ progressMarks=null;
  const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
  if(isLocal())renderLocalFields(example.inputs);
  else if(route==='compatibility')$('model').value='';
@@ -158,7 +198,7 @@ function renderResult() {
       dl.append(node('dt',t(label)),node('dd',value.toLocaleString(getLang(),{maximumFractionDigits:2})+' GiB'));
     }out.append(dl,node('p',tr('memory_note')));
     const controls=node('div');controls.className='resolver-actions';
-    const change=(key,value)=>{ $(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
+    const change=(key,value)=>{ progressMarks=null;$(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
     if(result.smallerContext)controls.append(button(`${tr('reduce')} · ${result.smallerContext}`,()=>change('context',result.smallerContext),'reduce'));
     for(const alt of result.alternatives)controls.append(button(`${tr('quant')} · ${alt.precision}`,()=>change('precision',alt.precision)));
     out.append(controls,node('p',tr('change_note')));
@@ -168,6 +208,7 @@ function renderResult() {
   out.append(createResolverSummary());
   if(summaryData().checks)out.append(button(tr('checks_open'),openChecks,'show-checks'));
   out.append(createResolverReview());
+  const progress=createProgress();if(progress)out.append(progress);
   if(bundle.origin==='demo'&&CHECK_DEMOS[route]){
    const examples=node('details');examples.id='resolver-check-examples';examples.append(node('summary',tr('checks_examples')));
    const actions=node('div');actions.className='resolver-actions';
@@ -186,7 +227,7 @@ function renderResult() {
 function download() {
   if(!result)return;
   const {suggestion,...publicResult}=result;
-  const report={schema_version:3,review:reviewData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
+  const report={schema_version:3,review:reviewData(),progress:progressData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
     sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -195,7 +236,7 @@ async function run(demo=false) {
   if(!route)return;
   if(!demo && ((!isLocal()&&!validResolverModel($('model').value.trim())) || !$('form').reportValidity())) {$('status').textContent=tr(isLocal()?'local_invalid':'invalid');return;}
   cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
-  const id=$('model').value.trim();result=null;feedback='';$('result').replaceChildren();$('followup').replaceChildren();
+  const id=$('model').value.trim();result=null;feedback='';progressMarks=null;$('result').replaceChildren();$('followup').replaceChildren();
   $('status').textContent=tr('loading');$('run').disabled=true;$('demo').disabled=true;
   try {
     let next=bundle;

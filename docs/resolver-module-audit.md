@@ -53,6 +53,13 @@ usan configuraciones sintéticas. JSON no exige explicación ni valida todo un
 esquema. PEFT ordena los avisos existentes sin convertir regex o convenciones de
 escala en pruebas causales. Los capítulos 10/28/30 explican estos límites.
 
+`resolver_progress.js` añade seguimiento declarado a las nueve rutas. Reutiliza
+los pasos existentes y selecciona primero discrepancias, luego bloqueos y después
+pendientes. No altera resultados ni condiciones del protocolo. Los ejemplos
+simulan marcas y las exportan como ilustrativas; las marcas reales se etiquetan
+como declaraciones del usuario, nunca pruebas verificadas. Se descartan al
+cambiar datos o recalcular, y no se guardan fuera de la memoria de la pestaña.
+
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|
 | Profile | `main.js`, `python/taf_browser.py:profile_model` | Configuración HF → tarjeta X-2/X-19/X-1/X-3/X-5 | Formulario especializado. Son fórmulas; no inferencia ni calidad medida. Pyodide. |

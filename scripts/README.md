@@ -1,5 +1,11 @@
 # scripts/
 
+## `build_sitemaps.py`
+
+Regenerate public XML sitemaps with `python scripts/build_sitemaps.py --taf-root .`.
+Use `--guide-root /path/to/rendered/guide` for the ES/EN guide, or `--check` to
+detect drift without writing. See [sitemap maintenance](../docs/sitemaps.md).
+
 ## `check_lean_manifest.py`
 
 Cross-checks `data/lean_status.json` against the actual `lean-taf` Lean source repo. Run before pushing to catch:

@@ -117,6 +117,12 @@ plans concern top-level field-name heuristics, not full schema validity or reaso
 faithfulness; an explanation field is not required by the checker. PEFT plans
 cannot follow execution paths or certify loaded weights, gradients or optimizers.
 Fixing a lint notice does not establish a measured fix.
+Optional step tracking records user declarations, or simulated marks on a demo.
+It cannot verify that a check was performed. All-reviewed status does not certify
+a repair, and neither tracking nor feedback changes the underlying evidence.
+Marks are scoped to the current result and cleared on input changes/recalculation.
+They live only in tab memory, without persistence, report import or transmission
+through guide links. Retain the original tab to keep the full case.
 
 The local case report uses schema version 3; its `review` object uses version 1.
 `independently_verified: false` is explicit, including after a user reports that

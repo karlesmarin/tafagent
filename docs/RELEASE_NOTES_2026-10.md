@@ -2,6 +2,20 @@
 
 ## 25 October: review the evidence behind a result
 
+Public sitemaps are regenerated for TAF on GitHub Pages and Hugging Face, and
+for the ES/EN guide (103 pages with reciprocal language alternatives). A
+standard-library generator and CI drift check replace stale blanket dates.
+See [sitemap maintenance and public URLs](sitemaps.md).
+
+Optional **Track my checks** now accompanies all nine routes. Users can mark a
+step pending, reviewed, discrepant or blocked; follow-up prioritizes discrepancies,
+then blocked checks, then pending work. Declarations remain separate from TAF's
+findings and never verify a repair. Closing the panel and language changes retain
+marks; changed inputs, recalculation, new examples or routes clear them. Reports
+add `progress` v1 without raw inputs. Saved examples and the narrated demo simulate
+a blocked check. Manual, feature overview, translations and guide R5 explain
+tab-only retention and the absence of report/session restoration.
+
 Architecture, JSON and PEFT-code follow-up complete the ordered checks for all
 eight non-attention routes: 39 priorities and 32 optional scenarios overall.
 Attention retains its protocol checklist. Twelve new scenarios cover schema

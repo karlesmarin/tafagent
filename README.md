@@ -79,6 +79,17 @@ text prefix is not a cache-hit measurement, and the drift band is not a confiden
 Architecture, JSON and PEFT examples distinguish configuration scope, field-name
 heuristics and static code findings from actual runtime or schema validation.
 Together with attention's protocol checklist, all nine routes explain a next check.
+**Public sitemaps:** [GitHub Pages](https://karlesmarin.github.io/tafagent/sitemap.xml),
+[Hugging Face](https://karlexmarin-taf-agent.static.hf.space/sitemap-hf.xml),
+and the [ES/EN guide](https://karlesmarin.github.io/transformers-guide/sitemap.xml).
+[Regeneration and checks](docs/sitemaps.md) keep the published page inventory current.
+
+**Track my checks** adds optional per-step declarations to all nine routes:
+pending, reviewed, discrepancy or blocked. TAF prioritizes discrepancies, then
+blocked checks, then pending work. Marks stay in the current tab, survive closing
+the panel/language changes, and clear on new inputs or recalculation. They are
+exported as unverified declarations, never as executed repairs. Saved examples
+and the narrated demo illustrate a blocked check without running a model.
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):
