@@ -60,6 +60,9 @@ language:
 evidence, what remains unverified and the next practical check, with a contextual
 guide link. This optional panel appears in the narrated demo and downloaded
 report (schema 3). Available in EN/ES/FR/ZH; no additional model run is implied.
+The guide's return link now opens the same problem form on the original TAF host
+(GitHub or Hugging Face), preserving the UI language without transferring pasted
+inputs or running another check. Keep the original tab for the complete result.
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):

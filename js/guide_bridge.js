@@ -7,6 +7,9 @@ export const BRIDGE_VERSION = 1;
 export const GUIDE_BASE = 'https://karlesmarin.github.io/transformers-guide/';
 export const TAF_BASE = 'https://karlesmarin.github.io/tafagent/';
 export const HF_BASE = 'https://karlexmarin-taf-agent.static.hf.space/';
+// Navigation-only identifiers. Keep aligned with resolver CASES (unit tested).
+export const resolverModes={memory:'fitcheck',template:'template',compatibility:'memreal',cot:'cot',peft:'peft',cache:'cache',drift:'drift',pvr:'pvr',adapter:'adapter'};
+function resolverRoute(value,mode){return Object.hasOwn(resolverModes,value)&&resolverModes[value]===mode?value:null;}
 export const modeNames={diagnose:'Diagnose CLI',longscore:'LongScore',fitcheck:'Fit Check',pvr:'Prediction vs Reality',depth:'Depth map',phase:'Phase Diagram',quant:'Quant',template:'Chat-template Sniffer',adapter:'Adapter Reality',memreal:'Memory Reality',tax:'Token Tax'};
 const languages = ['en', 'es', 'fr', 'zh'];
 export const words = {
@@ -15,6 +18,7 @@ export const words = {
   read: ['Read the explanation', 'Leer la explicación', 'Lire les explications', '阅读解释'],
   next: ['Next step', 'Siguiente paso', 'Étape suivante', '下一步'],
   back: ['Return to TAF', 'Volver a TAF', 'Retour à TAF', '返回 TAF'],
+  backResolver: ['Return to this problem’s form', 'Volver al formulario de este problema', 'Revenir au formulaire de ce problème', '返回此问题的表单'],
   route: ['Choose a route', 'Elegir una ruta', 'Choisir un parcours', '选择路径'],
   guide: ['Guide', 'Guía', 'Guide', '指南'],
   fallback: ['Guide: English / Spanish.', 'Guía: español / inglés.', 'Guide disponible en anglais et en espagnol ; liens en anglais.', '指南提供英文和西班牙文；以下链接为英文。'],
@@ -134,15 +138,17 @@ export function readContext(search) {
   const value = raw !== null && raw.trim() !== '' && Number.isFinite(Number(raw)) ? Number(raw) : null;
   return {mode,topic:metric && value !== null ? metrics[metric].topic : topic,metric:metric && value !== null ? metric : null,value,
     model:validModel(q.get('model')) ? q.get('model') : '',lang:languages.includes(q.get('lang')) ? q.get('lang') : null,
-    app:q.get('app')==='hf'?'hf':'github'};
+    app:q.get('app')==='hf'?'hf':'github',resolve:resolverRoute(q.get('resolve'),mode)};
 }
-export function tafLink({mode='profile',model='',lang='en',demo=false,app='github'}={}, base=app==='hf'?HF_BASE:TAF_BASE) {
+export function tafLink({mode='profile',model='',lang='en',demo=false,app='github',resolve=null}={}, base=app==='hf'?HF_BASE:TAF_BASE) {
   const url = new URL(base);
   url.search=''; url.hash='';
   url.searchParams.set('mode',Object.hasOwn(modeTopics,mode)?mode:'profile');
-  if(validModel(model)) url.searchParams.set('model',model);
+  const route=resolverRoute(resolve,mode);
+  if(route)url.searchParams.set('resolve',route);
+  if(validModel(model)&&(!route||['memory','template','compatibility'].includes(route))) url.searchParams.set('model',model);
   if(languages.includes(lang)) url.searchParams.set('lang',lang);
-  if(demo) url.searchParams.set('demo',mode);
+  if(demo&&!route) url.searchParams.set('demo',mode);
   return url.href;
 }
 export function guideLink(topic, chapterIndex=0, context={}) {
@@ -150,7 +156,9 @@ export function guideLink(topic, chapterIndex=0, context={}) {
   const url=new URL(`${guideLanguage(context.lang)}/chapters/${route.chapters[chapterIndex] || route.chapters[0]}.html`,GUIDE_BASE);
   url.searchParams.set('topic',Object.hasOwn(topics,topic)?topic:'gamma');
   if(Object.hasOwn(modeTopics,context.mode)) url.searchParams.set('mode',context.mode);
-  if(validModel(context.model)) url.searchParams.set('model',context.model);
+  const resolve=resolverRoute(context.resolve,context.mode);
+  if(resolve)url.searchParams.set('resolve',resolve);
+  if(validModel(context.model)&&(!resolve||['memory','template','compatibility'].includes(resolve))) url.searchParams.set('model',context.model);
   if(languages.includes(context.lang)) url.searchParams.set('lang',context.lang);
   if(context.app==='hf') url.searchParams.set('app','hf');
   if(Object.hasOwn(metrics,context.metric) && typeof context.value==='number' && Number.isFinite(context.value)) {
@@ -198,7 +206,7 @@ export function initGuidePage() {
     panel.append(node('h2',local('title',lang)));
     const body=node('div'); explanation(body,ctx.topic,ctx,lang); panel.append(body);
     if(ctx.metric) panel.append(node('small',local('snapshot',lang)));
-    panel.append(node('p')); panel.lastChild.append(link(local('back',lang),tafLink({...ctx,lang:ctx.lang || lang})));
+    panel.append(node('p')); panel.lastChild.append(link(local(ctx.resolve?'backResolver':'back',lang),tafLink({...ctx,lang:ctx.lang || lang})));
     panel.append(node('p',local('returnNote',lang)));
     const routeURL=new URL(`${lang}/chapters/R5-tafagent.html`,GUIDE_BASE);
     if(ctx.model) routeURL.searchParams.set('model',ctx.model);

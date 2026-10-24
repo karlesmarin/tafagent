@@ -132,3 +132,4 @@ try{
  console.log('Resolver browser PASS: 3 offline routes × 4 languages, follow-up, recalculation, pinned live import, export, safe links, dialog autocomplete, mobile and no Pyodide dependency.');
 }finally{await browser.close();}
 await import('./resolver_local_browser.mjs');
+await import('./resolver_return_browser.mjs');

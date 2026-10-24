@@ -1,6 +1,6 @@
 import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle, resolverLink } from './resolver.js';
 import { t, getLang } from './i18n.js';
-import { tafLink } from './guide_bridge.js';
+import { tafLink, HF_BASE } from './guide_bridge.js';
 import { buildResolverSummary } from './resolver_summary.js';
 import { buildResolverReview } from './resolver_review.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
@@ -61,8 +61,9 @@ function renderFeedback() {
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
   }
 }
-function summaryData() {return buildResolverSummary({route,bundle,initial,inputs:lastInputs,result},getLang());}
-function reviewData() {return buildResolverReview({route,bundle,initial,inputs:lastInputs,result},getLang());}
+function resultState() {return {route,bundle,initial,inputs:lastInputs,result,app:location.origin===new URL(HF_BASE).origin?'hf':'github'};}
+function summaryData() {return buildResolverSummary(resultState(),getLang());}
+function reviewData() {return buildResolverReview(resultState(),getLang());}
 function createResolverReview() {
  const review=reviewData(),box=node('details');box.id='resolver-review';
  box.append(node('summary',tr('review_title')),node('p',review.provenance));

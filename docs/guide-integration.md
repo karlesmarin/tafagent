@@ -35,6 +35,12 @@ comprobación. El enlace contextual utiliza la misma selección de capítulo que
 el resumen; conserva el idioma ES/EN y el aviso de lectura inglesa para FR/ZH.
 El panel se recalcula al cambiar el resultado y desaparece al modificar entradas.
 No transmite a la guía el informe, los prompts ni el código pegado.
+El contexto añade una ruta `resolve` de la lista admitida, coherente con el modo,
+y `app=hf` cuando corresponde. **Volver al formulario de este problema** conserva
+la ruta, idioma de TAF y alojamiento original. No ejecuta una comprobación ni
+restaura datos pegados; la pestaña original conserva el resultado completo.
+Las rutas desconocidas o incompatibles con el modo se ignoran. Los ejemplos y
+las rutas locales no transportan un ID de modelo ajeno al caso.
 
 La demo `?demo=resolver&lang=es` abre la revisión en su quinto paso, antes del
 seguimiento. R5 explica este recorrido en ambos idiomas. El informe descargado

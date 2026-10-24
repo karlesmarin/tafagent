@@ -1,5 +1,6 @@
 // Evidence descriptions are deliberately separate from diagnostic verdicts.
 export const reviewRows={
+ return_help:['From the guide, return to the same problem form on your original TAF host and in your UI language. Returning does not run a check or restore pasted inputs; keep the original tab for its full result.','Desde la guía puedes volver al formulario del mismo problema, en el alojamiento e idioma de TAF de origen. Volver no ejecuta una comprobación ni restaura datos pegados; conserva la pestaña original para consultar el resultado completo.','Depuis le guide, revenez au formulaire du même problème, sur votre hébergement TAF et dans votre langue d’origine. Le retour ne lance aucune vérification et ne restaure pas les données collées ; gardez l’onglet original pour le résultat complet.','可从指南返回同一问题的表单，保留原 TAF 网站和界面语言。返回不会执行检查或恢复粘贴输入；请保留原标签页以查看完整结果。'],
  review_title:['Review this result','Revisar este resultado','Examiner ce résultat','复核此结果'],
  review_basis:['What supports it','En qué se apoya','Sur quoi il repose','依据'],
  review_limit:['What remains unverified','Qué falta verificar','Ce qui reste à vérifier','尚未验证'],

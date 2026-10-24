@@ -91,6 +91,10 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
   guide link points to a relevant section on KV growth, quantization, serving,
   evaluation controls or attention families, with a sentence explaining its use.
   ES opens the Spanish guide; EN/FR/ZH use English (explicitly noted for FR/ZH).
+  Returning from that reading preserves the resolver route, TAF UI language and
+  original GitHub/Hugging Face host. It prepares the form without running a check;
+  the original tab retains the complete result. Local inputs are not transmitted
+  or restored, and saved demos do not carry an asserted user-model ID.
   The summary is built from recorded inputs and estimates, never inferred from
   pasted error text. Starting another check clears the previous comparison.
 - **It still fails** offers additional checks and lets the user bring an error

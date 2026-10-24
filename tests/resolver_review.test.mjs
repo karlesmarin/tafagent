@@ -4,6 +4,7 @@ import {buildResolverReview} from '../js/resolver_review.js';
 import {solveCase} from '../js/resolver.js';
 import {LOCAL_DEMOS} from '../js/resolver_local.js';
 import {reviewRows} from '../js/resolver_review_i18n.js';
+import {readContext,tafLink} from '../js/guide_bridge.js';
 const catalog=JSON.parse(readFileSync(new URL('../data/model_catalog.json',import.meta.url)));
 const model=catalog.models.find(m=>m.id==='Qwen/Qwen3-8B');
 const memory={vram:24,context:131072,precision:'BF16',stage:'generate'};
@@ -12,7 +13,9 @@ for(const values of Object.values(reviewRows))assert.ok(values.length===4&&value
 for(const lang of ['en','es','fr','zh'])for(const [route,{bundle,inputs}] of Object.entries(examples)) {
  const result=solveCase(route,bundle,inputs);
  for(const origin of ['demo',route in LOCAL_DEMOS?'local':'hf']) {
-  const r=buildResolverReview({route,bundle:{...bundle,origin},inputs,result},lang);
+  const r=buildResolverReview({route,bundle:{...bundle,origin},inputs,result,app:'hf'},lang);
+  const back=new URL(tafLink(readContext(new URL(r.guide.url).search)));
+  assert.equal(back.hostname,'karlexmarin-taf-agent.static.hf.space');assert.equal(back.searchParams.get('resolve'),route);
   assert.equal(r.independently_verified,false);
   assert.equal(r.demonstration,origin==='demo');
   for(const key of ['basis','provenance','limitation','next_check'])assert.ok(r[key]?.length>0&&!r[key].includes('undefined'),`${lang}/${route}/${key}`);

@@ -2,6 +2,12 @@
 
 ## 25 October: review the evidence behind a result
 
+Navigation follow-up: guide links from a resolver summary or review now return
+to the same problem form, language and original TAF host (GitHub or Hugging Face).
+Return links never run a check or restore pasted inputs. The original tab retains
+the full result. Unknown or mismatched route identifiers are ignored. Browser
+tests exercise real return-link clicks in all four languages on both hostnames.
+
 All nine direct **Solve my problem** checks now offer **Review this result**:
 
 - Where the evidence comes from and what was actually calculated or inspected.

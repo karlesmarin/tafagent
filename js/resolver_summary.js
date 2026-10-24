@@ -4,7 +4,7 @@ import { chapterTitles } from './guide_chapters.js';
 import { CASES } from './resolver.js';
 
 // Summarize recorded inputs and estimates only; never infer a cause from pasted text.
-export function buildResolverSummary({route,bundle,initial,inputs,result},language='en') {
+export function buildResolverSummary({route,bundle,initial,inputs,result,app='github'},language='en') {
   const lang=Object.hasOwn(RESOLVER_TRANSLATIONS,language)?language:'en';
   const tr=k=>RESOLVER_TRANSLATIONS[lang]['resolver.'+k];
   const n=v=>v.toLocaleString(lang,{maximumFractionDigits:2});
@@ -36,7 +36,7 @@ export function buildResolverSummary({route,bundle,initial,inputs,result},langua
     architecture:{es:'las-familias',en:'the-families'},
   };
   section=anchors[why]?.[guideLang]||'';
-  const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode}));url.hash=section;
+  const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));url.hash=section;
   const next=tr(result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));
   return {problem,finding,change,next,guide:{url:url.href,title:chapterTitles[topics[topic].chapters[index]][guideLang],why:tr('summary_why_'+why),language:guideLang,note:lang==='fr'||lang==='zh'?local('fallback',lang):null},demo:bundle.origin==='demo'};
 }

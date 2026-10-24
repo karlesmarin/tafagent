@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {modeTopics,topics,metrics,words,tasks,validModel,readContext,guideLink,tafLink} from '../js/guide_bridge.js';
+import {modeTopics,topics,metrics,words,tasks,validModel,readContext,guideLink,tafLink,resolverModes} from '../js/guide_bridge.js';
+import {CASES} from '../js/resolver.js';
 import {chapterTitles} from '../js/guide_chapters.js';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const modes=[...html.matchAll(/class="mode-btn[^"\n]*"[^>]*data-mode="([a-z]+)"/g)].map(m=>m[1]);
@@ -30,4 +31,17 @@ const malicious=readContext('?mode=__proto__&topic=constructor&metric=toString&v
 assert.equal(malicious.mode,null); assert.equal(malicious.metric,null); assert.equal(malicious.model,'');
 assert.equal(readContext('?metric=gamma_obs&value=').metric,null);
 assert.equal(new URL(tafLink({mode:'bad',model:'../private'})).search,'?mode=profile&lang=en');
+assert.deepEqual(resolverModes,Object.fromEntries(Object.entries(CASES).map(([id,c])=>[id,c.mode])));
+for(const [resolve,mode] of Object.entries(resolverModes))for(const app of ['hf','github'])for(const lang of ['en','es','fr','zh']){
+ const ctx=readContext(new URL(guideLink(CASES[resolve].topic,0,{mode,resolve,app,lang,model:'Qwen/Qwen3-8B'})).search);
+ const back=new URL(tafLink({...ctx,demo:true}));
+ assert.equal(back.searchParams.get('resolve'),resolve);assert.equal(back.searchParams.get('lang'),lang);
+ assert.equal(back.hostname,app==='hf'?'karlexmarin-taf-agent.static.hf.space':'karlesmarin.github.io');
+ assert.equal(back.searchParams.has('demo'),false,'Returning must never start a demo');
+ assert.equal(back.searchParams.has('model'),CASES[resolve].source!=='local');
+}
+for(const resolve of ['__proto__','constructor','https://evil.test','../memory','memory']){
+ const ctx=readContext('?mode=pvr&resolve='+encodeURIComponent(resolve)+'&app=https://evil.test');
+ assert.equal(ctx.resolve,null);assert.equal(new URL(tafLink(ctx)).hostname,'karlesmarin.github.io');
+}
 console.log('Guide bridge: 31 modes, bilingual chapters, 4 languages, safe links and measurement provenance PASS');
