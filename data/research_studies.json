@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-24",
+  "update_policy": "curated_manual",
+  "papers": [
+    {
+      "id": "lurch",
+      "title": "Beyond Context Length: Characterising the Difficulty of Long-Context Reasoning",
+      "date": "2026-10-15",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2610.22067v1",
+      "topics": [
+        "context",
+        "evaluation"
+      ],
+      "modes": [
+        "niah",
+        "longscore"
+      ],
+      "guide": {
+        "chapter": "19-contexto-largo",
+        "anchor": "sec-contexto-evidencia"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "Separa cantidad de evidencia necesaria, dispersión y pasos de razonamiento: dos tareas de igual longitud pueden tener dificultades distintas.",
+          "limit": "Los resultados corresponden a las tareas y modelos evaluados. No convierten γ en un predictor de razonamiento ni validan TAF.",
+          "experiment": "Mantener longitud y respuesta; comparar pistas juntas y dispersas. Registrar acierto por tarea, posiciones y pasos de razonamiento junto a γ medido."
+        },
+        "en": {
+          "summary": "Separates evidence scope, dispersion and reasoning depth: tasks of equal length can have different difficulty.",
+          "limit": "Results concern the evaluated tasks and models. They neither turn γ into a reasoning predictor nor validate TAF.",
+          "experiment": "Hold length and answer fixed; compare clustered and scattered clues. Record accuracy by task, positions and reasoning depth alongside measured γ."
+        },
+        "fr": {
+          "summary": "Distingue quantité de preuves nécessaires, dispersion et profondeur du raisonnement : deux tâches de même longueur peuvent avoir des difficultés différentes.",
+          "limit": "Les résultats concernent les tâches et modèles évalués. Ils ne font pas de γ un prédicteur du raisonnement et ne valident pas TAF.",
+          "experiment": "Fixer longueur et réponse ; comparer indices regroupés et dispersés. Relever précision par tâche, positions et étapes de raisonnement avec γ mesuré."
+        },
+        "zh": {
+          "summary": "区分所需证据量、证据分散程度和推理深度：上下文长度相同的任务，难度也可能不同。",
+          "limit": "结论限于所评估的任务和模型，不能使 γ 成为推理能力预测器，也不构成对 TAF 的验证。",
+          "experiment": "固定长度和答案，对比集中与分散的线索；按任务记录正确率、位置、推理步骤以及实测 γ。"
+        }
+      }
+    },
+    {
+      "id": "valuediff",
+      "title": "ValueDiff: Value-Geometric KV Cache Eviction for Sink-Suppressed LLMs",
+      "date": "2026-10-06",
+      "status": "preprint",
+      "venue": "arXiv v2",
+      "url": "https://arxiv.org/abs/2609.23314v2",
+      "topics": [
+        "compression",
+        "sinks"
+      ],
+      "modes": [
+        "recipe",
+        "quant"
+      ],
+      "guide": {
+        "chapter": "20-kv-cache",
+        "anchor": "sec-kv-evidencia"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "En modelos con sumideros atenuados, propone seleccionar entradas KV por cuánto se aparta su vector de valor de la media de la caché.",
+          "limit": "La ventaja depende de arquitectura, tarea y presupuesto. No demuestra que conservar masa de atención garantice fidelidad ni que D_f sea superior.",
+          "experiment": "Comparar caché completa, ventana D_f y selección por valores a igual memoria efectiva. Medir recuperación, razonamiento, error de salida y coste."
+        },
+        "en": {
+          "summary": "For models with attenuated sinks, proposes selecting KV entries by each value vector’s deviation from the cache mean.",
+          "limit": "Benefits depend on architecture, task and budget. It does not establish that retaining attention mass guarantees fidelity or that D_f is superior.",
+          "experiment": "Compare full cache, a D_f window and value-based selection at matched effective memory. Measure retrieval, reasoning, output error and cost."
+        },
+        "fr": {
+          "summary": "Pour les modèles aux puits atténués, propose de sélectionner les entrées KV selon l’écart du vecteur de valeur à la moyenne du cache.",
+          "limit": "Le gain dépend de l’architecture, de la tâche et du budget. Conserver la masse d’attention ne garantit pas la fidélité ; la supériorité de D_f reste à établir.",
+          "experiment": "Comparer cache complet, fenêtre D_f et sélection par valeurs à mémoire effective égale. Mesurer récupération, raisonnement, erreur de sortie et coût."
+        },
+        "zh": {
+          "summary": "针对注意力汇聚减弱的模型，按每个值向量偏离缓存均值的程度选择 KV 条目。",
+          "limit": "收益取决于架构、任务和预算。论文未证明保留注意力质量即可保证输出保真度，也未证明 D_f 更优。",
+          "experiment": "在相同有效内存预算下，对比完整缓存、D_f 窗口和值向量选择；测量检索、推理、输出误差和成本。"
+        }
+      }
+    },
+    {
+      "id": "sinks",
+      "title": "It’s Not RoPE that Creates Sinks: The Role of Self-Concentration and Value-Non-Mixing in Attention",
+      "date": "2026-09-08",
+      "status": "accepted",
+      "venue": "EMNLP 2026 · arXiv v1",
+      "url": "https://arxiv.org/abs/2609.09085v1",
+      "topics": [
+        "sinks"
+      ],
+      "modes": [
+        "profile",
+        "depth"
+      ],
+      "guide": {
+        "chapter": "17-sumideros",
+        "anchor": "sec-sumideros-mecanismo"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "Aporta evidencia sobre autoconcentración por máscara causal y falta de mezcla de valores como mecanismos que contribuyen a sumideros y activaciones masivas.",
+          "limit": "Un mecanismo observado en los modelos estudiados no establece independencia universal entre sumidero, RoPE y γ.",
+          "experiment": "Medir por capa masa inicial, atención al propio token, normas de V y pendiente de cola. Separar intervenciones sobre máscara y sobre θ."
+        },
+        "en": {
+          "summary": "Provides evidence for causal-mask self-concentration and value non-mixing as mechanisms contributing to sinks and massive activations.",
+          "limit": "A mechanism observed in the studied models does not establish universal independence among sinks, RoPE and γ.",
+          "experiment": "Measure initial-token mass, self-attention, V norms and tail slope per layer. Separate mask interventions from changes to θ."
+        },
+        "fr": {
+          "summary": "Apporte des preuves sur l’autoconcentration liée au masque causal et le non-mélange des valeurs, qui contribuent aux puits et activations massives.",
+          "limit": "Un mécanisme observé dans ces modèles ne prouve pas une indépendance universelle entre puits, RoPE et γ.",
+          "experiment": "Mesurer par couche masse initiale, attention au token lui-même, normes de V et pente de queue. Séparer interventions sur le masque et sur θ."
+        },
+        "zh": {
+          "summary": "提供证据表明，因果掩码引起的自集中和后续值向量缺乏混合，会促成注意力汇聚及巨大激活。",
+          "limit": "在所研究模型中发现的机制，并不证明注意力汇聚、RoPE 与 γ 在所有架构中相互独立。",
+          "experiment": "逐层测量初始 token 的注意力质量、自注意力、V 范数及尾部斜率；分别考察掩码干预和 θ 变化。"
+        }
+      }
+    },
+    {
+      "id": "shotkv",
+      "title": "Semantic Integrity Matters: Benchmarking and Preserving High-Density Reasoning in KV Cache Compression",
+      "date": "2026-07",
+      "status": "published",
+      "venue": "ICML 2026 · PMLR 306",
+      "url": "https://proceedings.mlr.press/v306/liu26dz.html",
+      "topics": [
+        "compression",
+        "evaluation"
+      ],
+      "modes": [
+        "recipe",
+        "niah"
+      ],
+      "guide": {
+        "chapter": "20-kv-cache",
+        "anchor": "sec-kv-evidencia"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "KVFundaBench evalúa razonamiento denso bajo compresión. ShotKV conserva ejemplos como unidades semánticas y distingue prefill de decode.",
+          "limit": "Recuperar una clave no demuestra que se conserve una cadena de razonamiento. Sus mejoras no son una garantía para cualquier modelo o política de caché.",
+          "experiment": "Comparar recuperación y razonamiento con presupuestos equivalentes. Registrar el efecto de conservar ejemplos completos y separar prefill y decode."
+        },
+        "en": {
+          "summary": "KVFundaBench evaluates dense reasoning under compression. ShotKV preserves examples as semantic units and distinguishes prefill from decode.",
+          "limit": "Retrieving a key does not establish preservation of reasoning. Reported gains are not guarantees for every model or cache policy.",
+          "experiment": "Compare retrieval and reasoning under comparable budgets. Record the effect of preserving intact examples and separate prefill from decode."
+        },
+        "fr": {
+          "summary": "KVFundaBench évalue le raisonnement dense sous compression. ShotKV préserve les exemples comme unités sémantiques et distingue prefill et décodage.",
+          "limit": "Retrouver une clé ne prouve pas que le raisonnement est préservé. Les gains rapportés ne sont pas garantis pour tout modèle ou politique de cache.",
+          "experiment": "Comparer récupération et raisonnement à budgets comparables. Mesurer l’effet des exemples conservés entiers et séparer prefill et décodage."
+        },
+        "zh": {
+          "summary": "KVFundaBench 评估压缩下的高密度推理。ShotKV 将示例作为完整语义单元保留，并区分预填充与解码阶段。",
+          "limit": "能够检索出键值，不等于推理链得到保留。论文报告的收益不是对所有模型或缓存策略的保证。",
+          "experiment": "以可比预算测试检索和推理，记录完整保留示例的效果，并分别测量预填充与解码。"
+        }
+      }
+    },
+    {
+      "id": "mem2act",
+      "title": "Mem2ActBench: A Benchmark for Evaluating Long-Term Memory Utilization in Task-Oriented Autonomous Agents",
+      "date": "2026-07",
+      "status": "published",
+      "venue": "ACL 2026",
+      "url": "https://aclanthology.org/2026.acl-long.370/",
+      "topics": [
+        "memory",
+        "evaluation"
+      ],
+      "modes": [],
+      "guide": {
+        "chapter": "32-agentes",
+        "anchor": "sec-memoria-accion"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "Evalúa si un agente usa memoria a largo plazo para elegir herramientas y completar sus parámetros, además de recuperar hechos.",
+          "limit": "La memoria externa de un agente no es la caché KV ni el residual. TAF no ejecuta este benchmark ni predice su puntuación desde config.json.",
+          "experiment": "Comparar sin memoria, memoria recuperada y evidencia pertinente entregada directamente. Evaluar herramienta, parámetros y estado final en un entorno de prueba."
+        },
+        "en": {
+          "summary": "Tests whether an agent uses long-term memory to choose tools and fill their parameters, beyond retrieving facts.",
+          "limit": "External agent memory is neither KV cache nor residual state. TAF does not run this benchmark or predict its score from config.json.",
+          "experiment": "Compare no memory, retrieved memory and directly supplied relevant evidence. Evaluate tool choice, parameters and final state in a test environment."
+        },
+        "fr": {
+          "summary": "Teste si un agent utilise sa mémoire à long terme pour choisir des outils et renseigner leurs paramètres, au-delà du rappel de faits.",
+          "limit": "La mémoire externe d’un agent n’est ni le cache KV ni le résidu. TAF n’exécute pas ce benchmark et ne prédit pas son score depuis config.json.",
+          "experiment": "Comparer absence de mémoire, mémoire récupérée et preuves pertinentes fournies directement. Évaluer outil, paramètres et état final en environnement de test."
+        },
+        "zh": {
+          "summary": "检验智能体能否利用长期记忆选择工具并填写参数，而不只是回忆事实。",
+          "limit": "智能体的外部记忆不同于 KV 缓存和残差状态。TAF 不运行此基准，也不根据 config.json 预测其得分。",
+          "experiment": "对比无记忆、检索记忆、直接提供相关证据三种条件；在测试环境中评估工具选择、参数和最终状态。"
+        }
+      }
+    },
+    {
+      "id": "blockgtq",
+      "title": "RoPE-Aware Bit Allocation for KV-Cache Quantization",
+      "date": "2026-06-23",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2606.24033v1",
+      "topics": [
+        "quantization",
+        "compression"
+      ],
+      "modes": [
+        "quant",
+        "fitcheck"
+      ],
+      "guide": {
+        "chapter": "35-compresion",
+        "anchor": "sec-kv-bits-rope"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "Block-GTQ reparte bits entre bloques de claves asociados a RoPE según su energía, por capa y cabeza KV, en vez de usar precisión uniforme.",
+          "limit": "Menor error de logits no garantiza una mejora igual en cualquier tarea o motor. Hay que contar escalas, metadatos y soporte del kernel.",
+          "experiment": "A igual presupuesto de bytes, comparar bits uniformes y asignación por bloques. Cruzar cuantización sola, recorte solo y ambos; medir calidad y latencia."
+        },
+        "en": {
+          "summary": "Block-GTQ allocates bits across RoPE key blocks using their energy per layer and KV head, instead of uniform precision.",
+          "limit": "Lower logit error does not guarantee equal gains on every task or engine. Count scales, metadata and kernel support.",
+          "experiment": "At matched byte budgets, compare uniform bits with block allocation. Cross quantization alone, truncation alone and both; measure quality and latency."
+        },
+        "fr": {
+          "summary": "Block-GTQ répartit les bits entre blocs de clés RoPE selon leur énergie, par couche et tête KV, plutôt que d’utiliser une précision uniforme.",
+          "limit": "Une erreur de logits réduite ne garantit pas les mêmes gains partout. Compter échelles, métadonnées et prise en charge par le kernel.",
+          "experiment": "À budget en octets égal, comparer bits uniformes et allocation par blocs. Croiser quantification seule, troncature seule et les deux ; mesurer qualité et latence."
+        },
+        "zh": {
+          "summary": "Block-GTQ 根据每层、每个 KV 头中 RoPE 键块的能量分配位数，而非使用统一精度。",
+          "limit": "logit 误差降低并不保证所有任务或引擎均有同等收益；还需计入缩放系数、元数据和算子支持。",
+          "experiment": "在相同字节预算下比较均匀位数与分块分配；交叉测试仅量化、仅截断和两者结合，并测量质量与延迟。"
+        }
+      }
+    },
+    {
+      "id": "cre",
+      "title": "Positional Failures in Long-Context LLMs: A Blind Spot in Reasoning Benchmarks",
+      "date": "2026-05-22",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2605.23170v1",
+      "topics": [
+        "context",
+        "evaluation"
+      ],
+      "modes": [
+        "niah",
+        "longscore",
+        "yarn"
+      ],
+      "guide": {
+        "chapter": "19-contexto-largo",
+        "anchor": "sec-contexto-evidencia"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "es": {
+          "summary": "CRE controla posición de la tarea, contenido de relleno y longitud para detectar fallos que una puntuación global de razonamiento puede ocultar.",
+          "limit": "La sensibilidad posicional varía entre modelos y tipos de relleno. No se debe convertir una caída concreta en una penalización universal.",
+          "experiment": "Mover la misma pregunta entre principio, centro y final; mantener respuesta y longitud. Repetir con varios rellenos y publicar resultados por condición."
+        },
+        "en": {
+          "summary": "CRE controls task position, filler content and length to expose failures that an aggregate reasoning score can hide.",
+          "limit": "Positional sensitivity varies across models and filler types. A particular drop must not become a universal penalty.",
+          "experiment": "Move the same question between start, middle and end while holding answer and length fixed. Repeat with different fillers and report each condition."
+        },
+        "fr": {
+          "summary": "CRE contrôle position de la tâche, contenu de remplissage et longueur pour révéler des échecs masqués par un score global de raisonnement.",
+          "limit": "La sensibilité à la position varie selon le modèle et le remplissage. Une chute particulière ne doit pas devenir une pénalité universelle.",
+          "experiment": "Déplacer la même question au début, au milieu et à la fin, à réponse et longueur fixes. Varier les remplissages et publier chaque condition."
+        },
+        "zh": {
+          "summary": "CRE 控制任务位置、填充内容和上下文长度，揭示总体推理得分可能掩盖的失败。",
+          "limit": "位置敏感性因模型和填充类型而异，不能将某次得分下降转化为通用惩罚系数。",
+          "experiment": "固定答案与长度，把相同问题放在开头、中间和结尾；更换填充内容重复测试，并按条件报告结果。"
+        }
+      }
+    }
+  ]
+}

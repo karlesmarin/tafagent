@@ -48,6 +48,7 @@ import { planExtension, suggestRopeType } from "./yarn_planner.js";
 import { listGgufFiles, fetchGgufMetadata, ggufToConfig, quantFromFilename, analyzeGguf } from "./gguf_bridge.js";
 import { checkFit } from "./fit_check.js";
 import { GPU_PRESETS, QUANT_BPW, planLaunch, launchCommands } from "./launch_flags.js";
+import { initResearchExplorer, refreshResearchExplorer } from "./research_explorer.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -254,6 +255,7 @@ document.addEventListener("click", (e) => {
       launch: "launch-section",
       fitcheck: "fitcheck-section",
       depth: "depth-section",
+      research: "research-section",
     }[targetMode];
     if (sectionId) {
       const sec = document.getElementById(sectionId);
@@ -278,7 +280,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
      "diagnose-section", "phase-section", "unmask-section", "memreal-section", "adapter-section", "pvr-section",
      "template-section", "arena-section", "contam-section",
      "quant-section", "drift-section", "niah-section",
-     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section", "fitcheck-section", "depth-section"].forEach(id => {
+     "saturation-section", "cot-section", "peft-section", "cache-section", "speculative-section", "tax-section", "longscore-section", "hub-section", "yarn-section", "gguf-section", "launch-section", "fitcheck-section", "depth-section", "research-section"].forEach(id => {
       const el = $(id);
       if (el) el.style.display = "none";
     });
@@ -303,6 +305,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
       launch: "launch-section",
       fitcheck: "fitcheck-section",
       depth: "depth-section",
+      research: "research-section",
     };
     const sectionId = sectionMap[mode];
     if (sectionId) $(sectionId).style.display = "";
@@ -320,6 +323,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
     if (mode === "gguf") initGguf();
     if (mode === "launch") initLaunch();
     if (mode === "fitcheck") initFitCheck();
+    if (mode === "research") initResearchExplorer();
     // Re-scan: any model-id input rendered lazily by an init() above now gets the
     // autocomplete dropdown too. Idempotent (WeakSet) — already-attached inputs are skipped.
     attachAllHfAutocompletes();
@@ -3781,7 +3785,11 @@ document.addEventListener("DOMContentLoaded", () => {
 // Language switcher
 // ════════════════════════════════════════════════════════════════════
 document.querySelectorAll(".lang-btn").forEach(btn => {
-  btn.addEventListener("click", () => setLang(btn.dataset.lang));
+  btn.addEventListener("click", () => {
+    setLang(btn.dataset.lang);
+    refreshResearchExplorer();
+    if (state.currentMode === "research") $("mode-desc").textContent = t("mode_desc.research");
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -5653,6 +5661,11 @@ function renderFitCheck(r) {
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
 initI18n();
+// Reading studies needs neither Python nor model inference. Deep-links work even
+// while Pyodide is still loading or its CDN is unavailable.
+if (new URLSearchParams(window.location.search).get("mode") === "research") {
+  document.querySelector('.mode-btn[data-mode="research"]')?.click();
+}
 // Pyodide-independent panels: render immediately so they survive a Pyodide
 // load failure (CDN blocked / offline / slow region). These use only fetch +
 // DOM, never state.pyodide — must NOT be gated behind enableUI().

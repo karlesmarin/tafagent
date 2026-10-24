@@ -53,6 +53,23 @@ language:
 > 28 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
+
+### Research connected to the guide — October 2026
+
+[📚 Open the research explorer](https://karlesmarin.github.io/tafagent/?mode=research#research-section)
+to browse seven studies on long context, KV compression, attention sinks, quantization and
+agent memory. Search or filter by topic/publication status, read the original source and
+the corresponding [guide](https://karlesmarin.github.io/transformers-guide/) chapter, and
+download a selection with proposed experiments. Explanations follow EN/ES/FR/ZH; guide
+links use Spanish or English, labelled explicitly.
+
+This is a manually curated snapshot reviewed on **2026-10-24**, not an automatic literature
+feed. Each entry separates the paper's contribution, its limits and an experiment that
+**has not been run in TAF**. The panel needs no model inference or Pyodide. Existing
+diagnostic formulas and scores are unchanged.
+
+The catalog is [`data/research_studies.json`](data/research_studies.json); `npm run test:research`
+checks its provenance fields, translated text, filtering and export boundaries.
 **📦 Source**: https://github.com/karlesmarin/tafagent  ·  Lean repo: https://github.com/karlesmarin/lean-taf
 **📄 Papers**: *Predicting How Transformers Attend* (Marín 2026) — a continuing **I → II → III** series: [Part I](https://doi.org/10.5281/zenodo.19826342) · [Part II](https://doi.org/10.5281/zenodo.19960572) · [Part III](https://doi.org/10.5281/zenodo.21288263) · [Lean formalization](https://doi.org/10.5281/zenodo.21299265) *(each explained below)*
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)

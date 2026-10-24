@@ -27,6 +27,8 @@ jobs:
         run: node tests/adapter_reality.test.mjs
       - name: Fit-check unit tests
         run: node tests/fit_check.test.mjs
+      - name: Research catalog and evidence boundaries
+        run: node tests/research_studies.test.mjs
 
   python:
     name: formula tests
@@ -57,3 +59,7 @@ jobs:
         run: python3 serve.py &
       - name: Sweep every mode in every language
         run: node test_sweep.mjs
+      - name: Research explorer interactions (no Pyodide dependency)
+        run: node tests/research_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
