@@ -92,6 +92,10 @@ jobs:
         run: node tests/research_labs_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
+      - name: Guide model picker interactions
+        run: node tests/guide_models_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
       - name: Real Profile metric explanations
         run: node tests/guide_profile_browser.mjs
         env:

@@ -18,7 +18,7 @@ for lang in ('en','es'):
         parser.error(f'Not a bilingual guide source tree: {guide}')
 different=[]
 for lang in ('en','es'):
-    for name in ('guide_bridge.js','guide_chapters.js','research_labs.js','research_lab_math.js','research_lab_i18n.js'):
+    for name in ('guide_bridge.js','guide_chapters.js','hf_autocomplete.js','guide_hf.css','research_labs.js','research_lab_math.js','research_lab_i18n.js'):
         source=root/'js'/name
         target=guide/lang/'assets'/name
         if not target.is_file() or source.read_bytes()!=target.read_bytes():

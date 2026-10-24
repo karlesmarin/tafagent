@@ -2,6 +2,7 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdirSync} from 'node:fs';
 import {words,modeTopics,local} from '../js/guide_bridge.js';
+import {RESEARCH_TRANSLATIONS} from '../js/research_i18n.js';
 const base=process.env.TAF_URL || 'http://127.0.0.1:8877/';
 const guide=process.env.GUIDE_URL;
 const browser=await chromium.launch({headless:true});
@@ -45,7 +46,16 @@ try {
     assert.ok((await pvr.innerText()).includes(local('measured',lang)));
     await page.locator('#help-btn').click();
     assert.equal(await page.locator('#guide-help-body').textContent(),local('help',lang));
+    for(const key of ['title','guide','studies','demos','data','open_guide']) {
+      assert.equal(await page.locator(`#manual-updates [data-i18n="updates.${key}"]`).textContent(),RESEARCH_TRANSLATIONS[lang][`updates.${key}`]);
+    }
     await page.locator('#help-close').click();
+    await page.locator('#inventory-btn').click();
+    for(const key of ['title','guide','studies','demos','data','open_guide']) {
+      assert.equal(await page.locator(`#inventory-updates [data-i18n="updates.${key}"]`).textContent(),RESEARCH_TRANSLATIONS[lang][`updates.${key}`]);
+    }
+    assert.ok((await page.locator('#inventory-updates a').getAttribute('href')).includes(`/${lang==='es'?'es':'en'}/chapters/R5-tafagent.html`));
+    await page.locator('#inventory-close').click();
     for(const mode of Object.keys(modeTopics)) {
       await page.locator(`.mode-btn[data-mode="${mode}"]`).evaluate(el=>el.click());
       assert.equal(await page.locator(`#guide-for-${mode}-section`).isVisible(),true,mode);
@@ -92,7 +102,7 @@ try {
       assert.equal(await open.getAttribute('href'),null);
       await g.locator('[data-taf-selector] button').click();
       assert.equal(await g.locator('#taf-route-task').inputValue(),'diagnose');
-      assert.ok((await g.locator('[role="status"]').innerText()).includes(local('demoNote',lang)));
+      assert.ok((await g.locator('[data-taf-selector] [role="status"]').innerText()).includes(local('demoNote',lang)));
       await g.setViewportSize({width:390,height:844});
       assert.equal(await g.locator('[data-taf-selector] section').evaluate(e=>e.scrollWidth>e.clientWidth+2),false);
       if(process.env.TAF_SCREENSHOTS){await g.locator('[data-taf-selector]').scrollIntoViewIfNeeded();await g.screenshot({path:`${process.env.TAF_SCREENSHOTS}/guide-selector-${lang}.png`});}

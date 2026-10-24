@@ -43,6 +43,17 @@ TAF mantiene EN/ES/FR/ZH. La guía mantiene ES/EN. Los enlaces FR/ZH indican que
 lectura está en inglés. La procedencia científica se fija por métrica, no por un
 parámetro de URL que pudiera presentarla como una medición.
 
+El campo opcional de modelo de R5 comparte `hf_autocomplete.js` con TAF. Al enfocarlo
+muestra modelos populares; al escribir consulta HF, ordenando por descargas. La
+caché dura cinco minutos y distingue consulta, filtro y límite. No consulta al cargar
+la página ni descarga configuración o pesos al seleccionar. Mantiene entrada manual
+si falla la red y prepara el enlace a TAF. La guía explica el envío de la consulta a
+HF, el criterio de ordenación y que la lista no certifica compatibilidad.
+El desplegable admite teclado, se adapta al móvil y descarta respuestas antiguas.
+`guide_hf.css` conserva el estilo claro de la guía. Ambos archivos se sincronizan
+con los módulos compartidos. Prueba: `node tests/guide_models_browser.mjs` (acepta
+`GUIDE_URL` para comprobar las páginas reales ES/EN).
+
 `js/guide_bridge.js` es el catálogo y comportamiento compartido; `js/guide_panel.js`
 integra los resultados de TAF. `js/guide_chapters.js` contiene los títulos reales de
 los capítulos de Quarto para evitar referencias por números aproximados.

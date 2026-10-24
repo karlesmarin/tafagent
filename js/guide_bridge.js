@@ -1,6 +1,8 @@
-// Shared by TAF and the Quarto guide. No inference, tracking or remote requests.
+// Shared by TAF and the Quarto guide. No inference or tracking.
+// The optional guide model picker queries HF only when the user focuses/types.
 // All navigation and interpretation use this versioned, deterministic catalog.
 import { chapterTitles } from './guide_chapters.js';
+import { attachHfAutocomplete } from './hf_autocomplete.js';
 export const BRIDGE_VERSION = 1;
 export const GUIDE_BASE = 'https://karlesmarin.github.io/transformers-guide/';
 export const TAF_BASE = 'https://karlesmarin.github.io/tafagent/';
@@ -18,6 +20,12 @@ export const words = {
   fallback: ['Guide: English / Spanish.', 'Guía: español / inglés.', 'Guide disponible en anglais et en espagnol ; liens en anglais.', '指南提供英文和西班牙文；以下链接为英文。'],
   task: ['What do you want to do?', '¿Qué quieres hacer?', 'Que voulez-vous faire ?', '你想做什么？'],
   model: ['Hugging Face model ID (optional)', 'ID de modelo de Hugging Face (opcional)', 'Identifiant du modèle Hugging Face (facultatif)', 'Hugging Face 模型 ID（可选）'],
+  modelSearchNote: ['Click to see popular models or type to search Hugging Face. Results are ordered by downloads, not release date. Selection does not confirm TAF compatibility or start analysis.', 'Pulsa para ver modelos populares o escribe para buscar en Hugging Face. Se ordenan por descargas, no por fecha. Elegir un modelo no confirma su compatibilidad con TAF ni inicia el análisis.', 'Cliquez pour voir les modèles populaires ou saisissez une recherche Hugging Face. Tri par téléchargements, pas par date. Le choix ne confirme pas la compatibilité TAF et ne lance aucune analyse.', '点击查看热门模型，或输入文字搜索 Hugging Face。结果按下载量而非发布日期排序。选择模型不代表 TAF 兼容性确认，也不会启动分析。'],
+  modelLoading: ['Searching Hugging Face…', 'Buscando en Hugging Face…', 'Recherche Hugging Face…', '正在搜索 Hugging Face…'],
+  modelEmpty: ['No matches. Try another name or type the full ID.', 'Sin coincidencias. Prueba otro nombre o escribe el ID completo.', 'Aucun résultat. Essayez un autre nom ou saisissez l’identifiant complet.', '无匹配结果。请尝试其他名称或输入完整 ID。'],
+  modelError: ['Search unavailable. You can still type the full model ID; click the field to retry.', 'Búsqueda no disponible. Puedes escribir el ID completo; pulsa el campo para reintentar.', 'Recherche indisponible. Vous pouvez saisir l’identifiant complet ; cliquez dans le champ pour réessayer.', '搜索暂不可用。仍可输入完整模型 ID；点击输入框重试。'],
+  modelRate: ['Hugging Face is limiting requests. Wait a moment or type the full ID.', 'Hugging Face está limitando las consultas. Espera un momento o escribe el ID completo.', 'Hugging Face limite les requêtes. Patientez ou saisissez l’identifiant complet.', 'Hugging Face 正在限制请求。请稍候或输入完整 ID。'],
+  modelPrivacy: ['Search text is sent to huggingface.co/api · results cached in this tab for 5 min.', 'La búsqueda se envía a huggingface.co/api · resultados en caché en esta pestaña durante 5 min.', 'La recherche est envoyée à huggingface.co/api · résultats conservés dans cet onglet pendant 5 min.', '搜索文字发送至 huggingface.co/api；结果在当前标签页缓存 5 分钟。'],
   noModel: ['This tool does not need a model ID. Configure its inputs in TAF.', 'Esta herramienta no necesita un ID de modelo. Configura sus entradas en TAF.', 'Cet outil ne nécessite pas d’identifiant de modèle. Configurez ses entrées dans TAF.', '此工具不需要模型 ID。请在 TAF 中配置输入。'],
   open: ['Open the tool', 'Abrir la herramienta', 'Ouvrir l’outil', '打开工具'],
   demo: ['Try an example', 'Probar un ejemplo', 'Essayer un exemple', '试用示例'],
@@ -232,7 +240,17 @@ export function initGuidePage() {
     };
     select.addEventListener('change',update); model.addEventListener('input',update);
     demo.addEventListener('click',()=>{select.value='diagnose'; model.value='EleutherAI/pythia-70m'; update(); message.textContent=local('demoNote',lang);});
-    section.append(node('p',local('note',lang)),label,select,modelLabel,model,info,actions,message);
+    const searchNote=node('small',`${local('modelSearchNote',lang)} ${local('modelPrivacy',lang)}`);
+    searchNote.id='taf-route-model-help'; model.setAttribute('aria-describedby',searchNote.id);
+    section.append(node('p',local('note',lang)),label,select,modelLabel,model,searchNote,info,actions,message);
     host.append(section); update();
+    if (!document.querySelector('link[data-guide-hf]')) {
+      const css=node('link'); css.rel='stylesheet'; css.href=new URL('./guide_hf.css',import.meta.url).href;
+      css.dataset.guideHf=''; document.head.append(css);
+    }
+    attachHfAutocomplete(model,{onSelect:update,dropdownClass:'hf-guide-dropdown',messages:{
+      loading:local('modelLoading',lang),empty:local('modelEmpty',lang),error:local('modelError',lang),
+      rateLimited:local('modelRate',lang),privacy:local('modelPrivacy',lang),
+    }});
   });
 }

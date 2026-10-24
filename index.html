@@ -62,6 +62,14 @@
     <div class="help-content">
       <button class="help-close" id="help-close" aria-label="Close help">×</button>
       <h2 id="help-modal-title" data-i18n="help.title">📘 TAF Agent — User Manual</h2>
+      <section class="guide-updates" id="manual-updates">
+        <h3 data-i18n="updates.title">Guide, studies and optional demos</h3>
+        <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
+        <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
+        <p data-i18n="updates.demos">Optional Float32 and residual-mixing demos explain mechanisms; they do not replicate training.</p>
+        <p data-i18n="updates.data">HF search is live; presets, atlas measurements and benchmark tables are stored references, not automatically updated.</p>
+        <a data-guide-selector-link data-i18n="updates.open_guide" href="https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#taf-routes" target="_blank" rel="noopener">Open the guide's task and model selector</a>
+      </section>
       <div class="help-cards">
         <details class="inv-card">
           <summary class="inv-card-title" id="guide-help-title">Understand this result</summary>
@@ -405,6 +413,14 @@
       <button class="help-close" id="inventory-close" aria-label="Close inventory">×</button>
       <h2 id="inv-modal-title" data-i18n="inv.title">🧰 What this tool gives you</h2>
       <div class="inventory-grid">
+        <details class="inv-card" id="inventory-updates" open>
+          <summary class="inv-card-title" data-i18n="updates.title">Guide, studies and optional demos</summary>
+          <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
+          <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
+          <p data-i18n="updates.demos">Optional Float32 and residual-mixing demos explain mechanisms; they do not replicate training.</p>
+          <p data-i18n="updates.data">HF search is live; presets, atlas measurements and benchmark tables are stored references, not automatically updated.</p>
+          <a data-guide-selector-link data-i18n="updates.open_guide" href="https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#taf-routes" target="_blank" rel="noopener">Open the guide's task and model selector</a>
+        </details>
         <details class="inv-card" open>
           <summary class="inv-card-title" data-i18n="inv.recipes.title">🎯 8 recipes &mdash; does this model fit your use case?</summary>
           <ul>

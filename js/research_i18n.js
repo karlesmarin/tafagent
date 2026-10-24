@@ -1,6 +1,13 @@
 // Labels for the research explorer; paper titles remain in their original language.
 export const RESEARCH_TRANSLATIONS = {
   en: {
+    "updates.title": "Guide, studies and optional demos",
+    "updates.guide": "The guide explains TAF results and helps you choose a task. Its optional model field searches Hugging Face, ordered by downloads. Selecting a model prepares the TAF form without starting analysis or confirming compatibility.",
+    "updates.studies": "15 curated studies link to guide chapters, primary sources, evidence limits and proposed experiments. Filter and export your reading list.",
+    "updates.demos": "Optional Float32-gradient and residual-mixing demos (rotatable 3D projection) explain mechanisms. They are illustrative calculations, not training replications.",
+    "updates.data": "HF search is live, with a five-minute cache. Presets, atlas measurements and benchmark tables are stored references; they do not update automatically.",
+    "updates.open_guide": "Open the guide’s task and model selector (English)",
+
     "modes.research": "📚 Research",
     "mode_desc.research": "Recent studies, their limits and experiments to assess their relevance to TAF.",
     "research.title": "📚 Research connected to the guide",
@@ -41,6 +48,13 @@ export const RESEARCH_TRANSLATIONS = {
     "research.help": "A dated selection on context, KV compression, sinks, quantization, memory, architectures, training and numerical precision. Filter by topic or publication status, open the original source and the corresponding guide chapter, or download your selection with its proposed experiments. No model execution or automatic updates. Optional demos explain Float32 gradient rounding and residual-stream mixing. They are illustrative calculations, not paper replications.",
   },
   es: {
+    "updates.title": "Guía, estudios y demos opcionales",
+    "updates.guide": "La guía explica los resultados de TAF y ayuda a elegir una tarea. Su campo opcional de modelo busca en Hugging Face, ordenando por descargas. Elegir un modelo prepara el formulario de TAF sin iniciar análisis ni confirmar compatibilidad.",
+    "updates.studies": "15 estudios seleccionados enlazan a capítulos de la guía, fuentes primarias, límites de evidencia y experimentos propuestos. Puedes filtrar y exportar tus lecturas.",
+    "updates.demos": "Demos opcionales de gradientes Float32 y mezcla residual (proyección 3D giratoria) explican mecanismos. Son cálculos ilustrativos, no reproducciones de entrenamiento.",
+    "updates.data": "La búsqueda HF es en directo, con caché de cinco minutos. Los ejemplos, las mediciones del atlas y las tablas de benchmarks son referencias guardadas; no se actualizan automáticamente.",
+    "updates.open_guide": "Abrir el selector de tareas y modelos de la guía (español)",
+
     "modes.research": "📚 Estudios",
     "mode_desc.research": "Estudios recientes, sus límites y experimentos para valorar su incorporación a TAF.",
     "research.title": "📚 Estudios conectados con la guía",
@@ -81,6 +95,13 @@ export const RESEARCH_TRANSLATIONS = {
     "research.help": "Selección fechada sobre contexto, compresión KV, sumideros, cuantización, memoria, arquitecturas, entrenamiento y precisión numérica. Filtra por tema o estado de publicación, abre la fuente original y el capítulo correspondiente de la guía, o descarga tu selección con sus experimentos propuestos. Sin ejecución de modelos ni actualizaciones automáticas. Demos opcionales explican el redondeo de gradientes Float32 y la mezcla de flujos residuales. Son cálculos ilustrativos, no reproducciones de los artículos.",
   },
   fr: {
+    "updates.title": "Guide, études et démos facultatives",
+    "updates.guide": "Le guide explique les résultats TAF et aide à choisir une tâche. Son champ de modèle facultatif recherche sur Hugging Face, par téléchargements. Le choix prépare le formulaire TAF sans analyse ni confirmation de compatibilité.",
+    "updates.studies": "15 études sélectionnées renvoient aux chapitres, sources primaires, limites des preuves et expériences proposées. Filtrez et exportez vos lectures.",
+    "updates.demos": "Des démos facultatives des gradients Float32 et du mélange résiduel (projection 3D orientable) expliquent les mécanismes. Ce sont des illustrations, pas des réplications d’entraînement.",
+    "updates.data": "La recherche HF est en direct, avec un cache de cinq minutes. Exemples, mesures de l’atlas et tableaux de benchmarks sont des références enregistrées ; ils ne se mettent pas à jour automatiquement.",
+    "updates.open_guide": "Ouvrir le sélecteur de tâches et modèles du guide (anglais)",
+
     "modes.research": "📚 Études",
     "mode_desc.research": "Études récentes, limites et expériences pour évaluer leur intérêt pour TAF.",
     "research.title": "📚 Études reliées au guide",
@@ -121,6 +142,13 @@ export const RESEARCH_TRANSLATIONS = {
     "research.help": "Sélection datée sur le contexte, la compression KV, les puits, la quantification, la mémoire, les architectures, l’entraînement et la précision numérique. Filtrez par sujet ou statut, ouvrez la source et le chapitre associé, ou téléchargez votre sélection avec les expériences proposées. Sans exécution de modèle ni mise à jour automatique. Des démos facultatives expliquent l’arrondi des gradients Float32 et le mélange des flux résiduels. Ce sont des illustrations, pas des réplications des articles.",
   },
   zh: {
+    "updates.title": "指南、研究与可选演示",
+    "updates.guide": "指南解释 TAF 结果并帮助选择任务。可选模型输入框搜索 Hugging Face，按下载量排序。选择模型只预填 TAF 表单，不启动分析，也不确认兼容性。",
+    "updates.studies": "15 项精选研究链接到指南章节、原始来源、证据局限与建议实验。可以筛选并导出阅读列表。",
+    "updates.demos": "可选 Float32 梯度及残差混合演示（可旋转三维投影）说明机制。这些是示意计算，并非训练复现。",
+    "updates.data": "HF 搜索实时查询，缓存五分钟。预设示例、图谱测量和基准表是已保存的参考数据，不会自动更新。",
+    "updates.open_guide": "打开指南的任务与模型选择器（英文）",
+
     "modes.research": "📚 研究",
     "mode_desc.research": "查看近期研究、局限及评估其对 TAF 价值的实验方案。",
     "research.title": "📚 与指南相连的研究",

@@ -42,6 +42,9 @@ function renderPanel(panel) {
 }
 
 export function refreshGuidePanels() {
+  for (const a of document.querySelectorAll('[data-guide-selector-link]')) {
+    a.href = `https://karlesmarin.github.io/transformers-guide/${language()==='es'?'es':'en'}/chapters/R5-tafagent.html#taf-routes`;
+  }
   document.querySelectorAll('[data-guide-mode]').forEach(renderPanel);
   const title=document.getElementById('guide-help-title'),body=document.getElementById('guide-help-body');
   if(title) title.textContent=local('title',language());

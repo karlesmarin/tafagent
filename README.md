@@ -146,6 +146,14 @@ checks its provenance fields, translated text, filtering and export boundaries.
 
 ## Research update · 2026-10-24
 
+The guide's optional Hugging Face model field now shares TAF's live autocomplete:
+popular models on focus, search while typing, keyboard selection and manual entry
+when offline. Results are sorted by downloads, cached for five minutes and only
+prefill TAF; selecting a model does not run inference or certify compatibility.
+Both **Manual & examples** and **What it gives you** describe the guide, 15 studies,
+optional demos and the distinction between live HF searches and stored reference data,
+in EN/ES/FR/ZH.
+
 Eight additional primary-source studies connect TAF Research to the ES/EN guide:
 Softmax/Cross-Entropy numerical stability, competing learning in hybrids, KronLSTM,
 SPIN, Octopus, Engram, mHC and exploratory SympFormer. The catalogue now contains
