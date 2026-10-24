@@ -23,5 +23,7 @@
 #resolver-result dl { display:grid; grid-template-columns:1fr auto; gap:.4rem; }
 #resolver-result dd { margin:0; font-variant-numeric:tabular-nums; }
 #resolver-result details { overflow-wrap:anywhere; }
+#resolver-review { border-left:3px solid var(--accent,#58a6ff); padding:.6rem 1rem; margin:1rem 0; }
+#resolver-review > summary { cursor:pointer; font-weight:600; }
 #resolver-dialog :focus-visible { outline:2px solid var(--accent,#58a6ff); outline-offset:3px; }
 @media(max-width:600px) { #resolver-dialog { padding:1rem; } .resolver-actions { flex-direction:column; } }

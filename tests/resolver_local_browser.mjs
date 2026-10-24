@@ -35,6 +35,9 @@ try{
    await page.locator(`[data-resolver-case="${id}"]`).click();
    assert.equal(await page.locator('#resolver-hf-fields').isVisible(),false);
    await page.locator('#resolver-demo').click();await page.locator('#resolver-export').waitFor();
+   await page.locator('#resolver-review > summary').click();
+   assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_'+id+'_limit']));
+   assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_demo']));
    const text=await page.locator('#resolver-result').innerText();
    assert.ok(!text.includes('undefined')&&!/resolver\.|drift\.template\./.test(text),lang+' '+id+': '+text);
    assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.next_'+id]));
@@ -44,6 +47,8 @@ try{
    const pending=page.waitForEvent('download');await page.locator('#resolver-export').click();
    const download=await pending,report=JSON.parse(readFileSync(await download.path(),'utf8'));
    assert.equal(report.origin,'local');assert.equal(report.route,id);assert.equal(report.result.suggestion,undefined);
+   assert.equal(report.schema_version,3);assert.equal(report.review.demonstration,false);assert.equal(report.review.independently_verified,false);
+   assert.ok(!JSON.stringify(report.review).includes(LOCAL_DEMOS[id].text||'PRIVATE_UNSET'));
    assert.ok(!Object.hasOwn(report.inputs,'text')&&!Object.hasOwn(report.initial_inputs,'text'));
    if(id==='cot'){
     await page.locator('#resolver-result details').first().locator('summary').click();
@@ -84,6 +89,9 @@ try{
  await page.setViewportSize({width:390,height:844});
  await page.locator('#resolver-direct').evaluate(el=>el.open=true);
  await page.locator('[data-resolver-case="drift"]').click();await page.locator('#resolver-demo').click();await page.locator('#resolver-export').waitFor();
+ await page.locator('#resolver-review > summary').click();
+ await page.locator('#resolver-review').scrollIntoViewIfNeeded();
+ await page.locator('#resolver-review').screenshot({path:'tmp/resolver/review-mobile.png'});
  assert.ok(await page.locator('#resolver-dialog').evaluate(x=>x.scrollWidth<=x.clientWidth+1));
  await page.locator('#resolver-dialog').screenshot({path:'tmp/resolver/local-mobile.png'});
  await page.goto(base+'?resolve=choose&lang=es');await page.locator('#resolver-dialog[open]').waitFor();

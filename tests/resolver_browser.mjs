@@ -28,6 +28,8 @@ try{
   if(lang==='es')await page.locator('.taf-demo-btn[data-demo-mode="resolver"]').click();
   await page.locator('#resolver-dialog #__taf_demo_explain').waitFor({timeout:35000});
   const finalSummary=page.locator('#resolver-demo-summary');
+  assert.equal(await page.locator('#resolver-review').evaluate(el=>el.open),true);
+  assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_memory_limit']));
   assert.ok((await finalSummary.innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.summary_problem']));
   assert.ok((await finalSummary.innerText()).includes('→'));
   const finalLink=new URL(await finalSummary.locator('a').getAttribute('href'));

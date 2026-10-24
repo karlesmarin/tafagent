@@ -100,7 +100,18 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
   feedback, the original inputs and case summary with its guide link, excluding
   pasted questions/errors. For the six local checks, reports also omit pasted
   code/prompts/measurement/config files and proposed JSON, retaining derived facts
-  and explanations only. Reports are downloaded locally (schema version 2).
+  and explanations only. Reports are downloaded locally (schema version 3).
+- **Review this result** accompanies all nine direct checks with the evidence
+  type, provenance, unverified assumptions, next check and contextual guide link.
+  It distinguishes configuration estimates, static inspections, heuristic score
+  comparisons and imported attention measurements. Saved/synthetic demos remain
+  labelled examples. Missing protocol counts and existing protocol notices remain
+  visible, even when a numerical comparison can be calculated. No confidence
+  score, probability of failure or independent verification is invented.
+  This optional panel uses the current result, performs no additional inference,
+  and is included in the local report under `review` (version 1). The narrated
+  demo opens it before showing follow-up checks. Recalculation and language
+  changes rebuild it; changing inputs clears it with the previous result.
 - **Share tool and model (optional)** is a navigation link, not a support request.
   Shareable links contain only route, model ID and language. They carry no result,
   hardware details, pasted error or question. Users choose where to post them.

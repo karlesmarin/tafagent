@@ -68,4 +68,5 @@ const templateBundle=await fetchResolverBundle(q.id,'template',{fetcher:async ur
 assert.equal(solveCase('template',templateBundle).status,'missing');assert.equal(templateBundle.sources.filter(s=>s.status===404).length,2);
 assert.equal(Object.keys(CASES).length,9);
 await import('./resolver_local.test.mjs');
+await import('./resolver_review.test.mjs');
 console.log('Resolver PASS: nine routes, load/generation distinction, estimate boundaries, template variants, revision provenance, translations and private-data-free links.');

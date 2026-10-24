@@ -2,6 +2,7 @@ import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle
 import { t, getLang } from './i18n.js';
 import { tafLink } from './guide_bridge.js';
 import { buildResolverSummary } from './resolver_summary.js';
+import { buildResolverReview } from './resolver_review.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
 import { TOOL_CATALOG } from './resolver_catalog.js';
@@ -61,6 +62,19 @@ function renderFeedback() {
   }
 }
 function summaryData() {return buildResolverSummary({route,bundle,initial,inputs:lastInputs,result},getLang());}
+function reviewData() {return buildResolverReview({route,bundle,initial,inputs:lastInputs,result},getLang());}
+function createResolverReview() {
+ const review=reviewData(),box=node('details');box.id='resolver-review';
+ box.append(node('summary',tr('review_title')),node('p',review.provenance));
+ for(const [label,value] of [['review_basis',review.basis],['review_limit',review.limitation],['review_test',review.next_check]]) {
+  const p=node('p');p.append(node('strong',tr(label)+': '),node('span',value));box.append(p);
+ }
+ if(review.missing_protocol_fields!=null)box.append(node('p',tr('missing_fields')+': '+review.missing_protocol_fields));
+ if(review.observations.length){const ul=node('ul');for(const text of review.observations)ul.append(node('li',text));box.append(ul);}
+ const a=node('a',review.guide.title);a.href=review.guide.url;a.target='_blank';a.rel='noopener';box.append(a);
+ if(review.guide.note)box.append(node('p',review.guide.note));
+ return box;
+}
 export function createResolverSummary(id='resolver-case-summary') {
   const summary=summaryData(),box=node('section');box.id=id;box.className='resolver-demo-card';
   box.append(node('h4',tr('summary_title')));
@@ -115,7 +129,7 @@ function renderResult() {
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
-  out.append(createResolverSummary());
+  out.append(createResolverSummary(),createResolverReview());
   const links=node('p');
   for(const [label,url] of [[tr('module'),tafLink({mode:CASES[route].mode,model:bundle.origin==='demo'?'':bundle.model,lang:getLang()},location.href)]]) {
     const a=node('a',label);a.href=url;a.target='_blank';a.rel='noopener';links.append(a,node('br'));
@@ -129,7 +143,7 @@ function renderResult() {
 function download() {
   if(!result)return;
   const {suggestion,...publicResult}=result;
-  const report={schema_version:2,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
+  const report={schema_version:3,review:reviewData(),route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
     sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

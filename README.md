@@ -56,6 +56,11 @@ language:
 
 ### Solve my problem — automatic guided help
 
+**2026-10-25 — Review this result:** every direct resolver check now explains its
+evidence, what remains unverified and the next practical check, with a contextual
+guide link. This optional panel appears in the narrated demo and downloaded
+report (schema 3). Available in EN/ES/FR/ZH; no additional model run is implied.
+
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):
 uses the same automatic demo player as the other tools: highlighted controls,
