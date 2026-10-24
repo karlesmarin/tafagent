@@ -63,6 +63,8 @@ controls, six narrated steps and a final explanation. It loads a saved memory
 example, reduces context and shows follow-up. No input or model download required.
 The final case summary preserves the original problem and before/after estimates,
 states what remains unverified, and links directly to the relevant guide section.
+TAF generates these responses automatically, with no human support handoff.
+Sharing a tool/model link is optional and does not send anyone a question.
 
 [**Open the resolver**](https://karlesmarin.github.io/tafagent/?resolve=choose&lang=en)
 or [use it on Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=choose&lang=en).
