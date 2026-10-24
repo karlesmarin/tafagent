@@ -2,6 +2,7 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFileSync,mkdirSync} from 'node:fs';
 import {RESOLVER_TRANSLATIONS} from '../js/resolver_i18n.js';
+import {DEMO_STRINGS} from '../js/demo_i18n.js';
 const base=process.env.TAF_URL||'http://127.0.0.1:8877/';
 const catalog=JSON.parse(readFileSync(new URL('../data/model_catalog.json',import.meta.url)));
 const q=catalog.models.find(x=>x.id==='Qwen/Qwen3-8B');
@@ -10,27 +11,32 @@ const browser=await chromium.launch({headless:true,timeout:20000});
 try{
  const page=await browser.newPage({viewport:{width:1150,height:950}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{
+  window.resolverDemoSteps=[];
+  new MutationObserver(()=>{
+   const text=document.getElementById('__taf_demo_banner')?.textContent;
+   if(text && !window.resolverDemoSteps.includes(text))window.resolverDemoSteps.push(text);
+  }).observe(document,{childList:true,subtree:true,characterData:true});
+ });
  await page.route('**/pyodide.js',r=>r.fulfill({contentType:'text/javascript',body:'window.loadPyodide=()=>new Promise(()=>{});'}));
  let metadataRequests=0;
  await page.route('https://huggingface.co/api/models?**',r=>r.fulfill({json:[{id:q.id,downloads:100}]}));
  await page.route('https://huggingface.co/api/models/**',async r=>{metadataRequests++;return r.fulfill({json:{sha:q.revision}});});
  await page.route('https://huggingface.co/**/resolve/**',r=>r.fulfill({json:q.config}));
  for(const lang of ['es','en','fr','zh']){
-  await page.goto(base+'?resolve=choose&lang='+lang);
-  await page.locator('#resolver-start-demo').click();
-  await page.locator('#resolver-walkthrough').waitFor();
-  assert.ok((await page.locator('#resolver-walkthrough').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_action']));
-  await page.locator('#resolver-reduce').click();
-  assert.ok((await page.locator('#resolver-walkthrough').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_changed']));
+  await page.goto(base+(lang==='es'?'?resolve=choose':lang==='fr'?'?resolve=demo':'?demo=resolver')+'&lang='+lang);
+  if(lang==='es')await page.locator('.taf-demo-btn[data-demo-mode="resolver"]').click();
+  await page.locator('#resolver-dialog #__taf_demo_explain').waitFor({timeout:35000});
+  const steps=await page.evaluate(()=>window.resolverDemoSteps);
+  for(let i=1;i<=6;i++)assert.ok(steps.some(s=>s.includes(DEMO_STRINGS[lang]['resolver.s'+i])),`Narrated step ${i}, ${lang}`);
+  assert.ok(Number(await page.locator('#resolver-context').inputValue())<131072);
+  assert.ok((await page.locator('#resolver-followup').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.followup']));
   await page.locator('#resolver-own-case').click();
   for(const id of ['model','vram','context'])assert.equal(await page.locator('#resolver-'+id).inputValue(),'');
   assert.equal(await page.locator('#resolver-export').count(),0);
-  await page.goto(base+'?resolve=demo&lang='+lang);
-  await page.locator('#resolver-walkthrough').waitFor();
-  assert.equal(await page.locator('#resolver-context').inputValue(),'131072');
   await page.goto(base+'?resolve=memory&lang='+lang);
   await page.locator('#resolver-dialog[open]').waitFor();
-  assert.equal(await page.locator('#resolver-title').innerText(),RESOLVER_TRANSLATIONS[lang]['resolver.title']);
+  assert.equal(await page.locator('#resolver-title span').innerText(),RESOLVER_TRANSLATIONS[lang]['resolver.title']);
   for(const route of ['memory','template','compatibility']){
    await page.locator(`[data-resolver-case="${route}"]`).click();
    await page.locator('#resolver-demo').click();
@@ -48,6 +54,21 @@ try{
   }
  }
  assert.equal(metadataRequests,0,'Offline examples must not fetch model metadata');
+ // Closing during animated typing stops the script; replay remains available.
+ await page.goto(base+'?demo=resolver&lang=es');
+ await page.locator('#resolver-dialog #__taf_demo_banner').waitFor();
+ await page.locator('#resolver-close').click();
+ const stoppedText=await page.locator('#resolver-description').inputValue();
+ await page.waitForTimeout(250);
+ assert.equal(await page.locator('#resolver-description').inputValue(),stoppedText);
+ assert.equal(await page.locator('#resolver-dialog #__taf_demo_explain').count(),0);
+ await page.locator('[data-resolver-open]').first().click();
+ await page.locator('#resolver-start-demo').click();
+ await page.locator('#resolver-dialog #__taf_demo_banner').waitFor();
+ await page.locator('#resolver-description').fill('My own question');
+ await page.locator('#resolver-description').press('End');
+ await page.waitForTimeout(250);
+ assert.equal(await page.locator('#resolver-description').inputValue(),'My own question');
  await page.goto(base+'?resolve=memory&lang=es&model=Qwen%2FQwen3-8B');
  await page.locator('#resolver-form').waitFor();assert.equal(metadataRequests,0,'Deep link does not run');
  await page.locator('#resolver-vram').fill('24');await page.locator('#resolver-context').fill('131072');

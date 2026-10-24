@@ -35,11 +35,14 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 ## Navigation and user control
 
 - Header and Ask mode expose **Solve my problem**.
-- **See how it works**, visible before choosing a route, runs a guided memory
-  example without filling any fields. It explains the starting budget, invites
-  the user to reduce context and compare the new estimate, then points to the
-  guide, follow-up and report. **Start my own case** clears the example inputs.
-- `?resolve=demo&lang=es` opens and runs this saved example directly. It fetches
+- **🎬 Demo**, beside the resolver heading and in the Manual/feature overview,
+  uses the shared `DEMOS` player, like the other TAF tools. It types a sample
+  problem, chooses a route, loads a saved example, reduces context and shows
+  follow-up, with six step banners, highlighted controls and a final explanation.
+  Closing the dialog or taking control with the mouse/keyboard interrupts playback.
+  **Start my own case** clears the example inputs.
+- `?demo=resolver&lang=es` (also the older `?resolve=demo&lang=es`) starts playback
+  without waiting for Pyodide. It fetches
   only the site's saved catalog, never HF metadata or model weights. This demo
   link is the explicit exception to ordinary route links that do not run a check.
 - `?resolve=memory&model=Qwen%2FQwen3-8B&lang=es` opens the relevant form without

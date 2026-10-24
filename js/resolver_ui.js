@@ -10,6 +10,7 @@ function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
   cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;
+  $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
 function choose(id) {
@@ -33,15 +34,9 @@ function renderResult() {
   out.append(node('h3',tr('result')));
   if(bundle.origin==='demo')out.append(node('p',tr('demo_note')));
   if(bundle.origin==='demo' && route==='memory') {
-    const walkthrough=node('aside');walkthrough.id='resolver-walkthrough';walkthrough.className='resolver-demo-card';
-    walkthrough.append(node('h4',tr('demo_walkthrough')));
-    const steps=node('ol');
-    const changed=lastInputs.context!==131072 || lastInputs.precision!=='BF16';
-    for(const key of ['demo_setup',changed?'demo_changed':'demo_action','demo_finish'])steps.append(node('li',tr(key)));
-    walkthrough.append(steps,button(tr('demo_own'),()=>{
+    out.append(button(tr('demo_own'),()=>{
       choose('memory');for(const id of ['model','vram','context'])$(id).value='';$('model').focus();
     },'own-case'));
-    out.append(walkthrough);
   }
   out.append(node('p',bundle.model||'—'),node('p',tr(result.status)));
   if(result.reasons) {
@@ -115,12 +110,20 @@ export function refreshResolver() {
   renderResult();renderFeedback();
   if(!$('share-value').hidden)$('share-value').value=resolverLink(route,$('model').value.trim(),location.href,getLang());
 }
-export function initResolver() {
+export function openResolverForDemo() {
+  invalidate(true);route='';$('form').hidden=true;$('description').value='';
+  document.querySelectorAll('[data-resolver-case]').forEach(b=>b.setAttribute('aria-pressed','false'));
+  if(!$('dialog').open)$('dialog').showModal();
+}
+export async function loadResolverExample() {
+  await run(true);
+  if(!result || bundle?.origin!=='demo')throw new Error('Resolver example unavailable');
+}
+export function initResolver(onDemo) {
   const dialog=node('dialog');dialog.id='resolver-dialog';dialog.setAttribute('aria-labelledby','resolver-title');
   const label=(id,key,input)=>`<label for="resolver-${id}" data-i18n="resolver.${key}"></label>${input}`;
   dialog.innerHTML=`<div class="resolver-toolbar"><button type="button" id="resolver-close" data-i18n="resolver.close"></button></div>
-    <h2 id="resolver-title" data-i18n="resolver.title"></h2><p data-i18n="resolver.intro"></p>
-    <div class="resolver-demo-card"><button type="button" id="resolver-start-demo" data-i18n="resolver.demo_start"></button><p data-i18n="resolver.demo_intro"></p></div>
+    <h2 id="resolver-title"><span data-i18n="resolver.title"></span></h2><p data-i18n="resolver.intro"></p>
     <h3 data-i18n="resolver.problem"></h3>
     ${label('description','error_text','<textarea id="resolver-description" rows="2" maxlength="8000"></textarea>')}
     <button type="button" id="resolver-suggest" data-i18n="resolver.suggest"></button><div id="resolver-suggestions" role="status"></div>
@@ -157,12 +160,9 @@ export function initResolver() {
   $('model').addEventListener('change',()=>invalidate(true));
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));
-  const startDemo=()=>{choose('memory');return run(true);};
-  $('start-demo').addEventListener('click',startDemo);
-  document.querySelectorAll('[data-resolver-demo-open]').forEach(b=>b.addEventListener('click',()=>{open(false);startDemo();}));
+  document.querySelectorAll('[data-resolver-demo-open]').forEach(b=>b.addEventListener('click',()=>onDemo()));
   $('share').addEventListener('click',()=>{const field=$('share-value');field.value=resolverLink(route,$('model').value.trim(),location.href,getLang());field.hidden=false;field.focus();field.select();});
   window.__taf_applyTranslations?.();
   const params=new URLSearchParams(location.search), entry=params.get('resolve');
   if(entry){if(Object.hasOwn(CASES,entry))choose(entry);if(validResolverModel(params.get('model')))$('model').value=params.get('model');open(false);}
-  if(entry==='demo')startDemo();
 }

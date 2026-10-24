@@ -1068,6 +1068,19 @@ for (const [language, entries] of Object.entries(ENTROPY_DEMO_TRANSLATIONS)) {
   Object.assign(DEMO_STRINGS[language], entries);
 }
 
+const resolverDemoRows={
+  question:['My model runs out of memory','Mi modelo se queda sin memoria','Mon modèle manque de mémoire','我的模型显存不足'],
+  s1:['Describe the problem — the demo types an example','Describe el problema: la demo escribe un ejemplo','Décrivez le problème : la démo saisit un exemple','描述问题：演示会输入示例'],
+  s2:['Find a route and choose memory','Busca una ruta y elige memoria','Trouvez un parcours et choisissez la mémoire','寻找路线并选择内存问题'],
+  s3:['Load the saved example: 24 GiB, BF16, 131,072 tokens','Carga el ejemplo guardado: 24 GiB, BF16, 131.072 tokens','Chargez l’exemple : 24 Gio, BF16, 131 072 tokens','加载已保存示例：24 GiB、BF16、131,072 个词元'],
+  s4:['Compare memory, reduce context and watch the estimate change','Compara la memoria, reduce el contexto y observa la nueva estimación','Comparez la mémoire, réduisez le contexte et observez l’estimation','比较内存、缩短上下文，观察估算变化'],
+  s5:['Still failing? TAF suggests what to check next','¿Sigue fallando? TAF propone qué comprobar después','Toujours un échec ? TAF propose les vérifications suivantes','仍然失败？TAF 会建议下一步检查'],
+  s6:['Continue with the guide or download the case report','Continúa con la guía o descarga el informe del caso','Continuez avec le guide ou téléchargez le rapport','继续阅读指南或下载案例报告'],
+  'x.title':['What the resolver just showed you','Qué te acaba de mostrar el resolutor','Ce que le parcours vient de montrer','刚才演示了什么'],
+  'x.learned':['A described problem leads to a route, a bounded estimate, an adjustment and follow-up. No GPU execution or automatic fix is claimed.','Un problema descrito lleva a una ruta, una estimación con límites, un ajuste y un seguimiento. No se ha ejecutado una GPU ni aplicado una reparación automática.','Un problème décrit mène à un parcours, une estimation limitée, un ajustement et un suivi. Aucun calcul GPU ni réparation automatique n’a été effectué.','从问题描述进入路线，得到有适用范围的估算、调整及后续检查。未运行 GPU，也未自动修复模型。'],
+};
+for(const [i,lang] of ['en','es','fr','zh'].entries())for(const [key,values] of Object.entries(resolverDemoRows))DEMO_STRINGS[lang]['resolver.'+key]=values[i];
+
 export function dt(key) {
   // Same language source as the rest of the UI (getLang = i18n currentLang).
   // Never re-read localStorage here: navigator-detected languages are not

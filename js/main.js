@@ -9,6 +9,7 @@
 
 import { presetFromConfig } from "./model_compatibility.js";
 import { initResolver, refreshResolver } from './resolver_ui.js';
+import { runResolverDemo } from './resolver_demo.js';
 import { initModelReview, refreshModelReview } from "./model_review.js";
 import { initI18n, setLang, getLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
@@ -183,7 +184,7 @@ function enableUI() {
   // Auto-play a guided demo when launched with ?demo=<mode> (or ?demo=1 → profile).
   // Used by the field guide to deep-link straight into a simulation.
   const __demoParam = new URLSearchParams(window.location.search).get("demo");
-  if (__demoParam && __demoParam !== 'guide') {
+  if (__demoParam && !['guide','resolver'].includes(__demoParam)) {
     const __m = __demoParam === "1" ? "profile" : __demoParam;
     if (DEMOS[__m]) setTimeout(() => runDemoFor(__m), 900);
   }
@@ -5770,7 +5771,7 @@ initI18n();
 // Navigation and prefill do not wait for Python and never start a model fetch.
 applyGuideDeepLink(getLang, setLang);
 initGuidePanels(getLang);
-initResolver();
+initResolver(()=>runDemoFor('resolver'));
 // Pyodide-independent panels: render immediately so they survive a Pyodide
 // load failure (CDN blocked / offline / slow region). These use only fetch +
 // DOM, never state.pyodide — must NOT be gated behind enableUI().
@@ -5800,8 +5801,13 @@ function __demoBanner(text, step, total) {
       "font:700 18px Georgia,'Times New Roman',serif;color:#fff;text-align:center;" +
       "background:linear-gradient(135deg,#0072B2,#34b3e0);box-shadow:0 2px 14px rgba(0,0,0,.35);" +
       "transition:opacity .3s;";
-    document.body.appendChild(el);
   }
+  const host=__demoRunningMode && DEMOS[__demoRunningMode]?.bannerHost;
+  const parent=host ? document.querySelector(host) : document.body;
+  if(el.parentElement!==parent)parent.appendChild(el);
+  el.style.position=host?'static':'fixed';
+  el.style.fontSize=host?'16px':'18px';
+  el.setAttribute('role','status');
   el.innerHTML = (step ? `<span style="opacity:.82">${dt("step")} ${step}/${total} · </span>` : "") + text;
   el.style.opacity = "1";
 }
@@ -5814,15 +5820,17 @@ function __demoHighlight(sel) {
   const el = document.querySelector(sel);
   if (el) { el.classList.add("__taf_demo_hl"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
 }
-async function __demoType(sel, text) {
+async function __demoType(sel, text, check=()=>{}) {
   const el = document.querySelector(sel);
   if (!el) return;
   el.focus(); el.value = "";
   for (const ch of text) {
+    check();
     el.value += ch;
     el.dispatchEvent(new Event("input", { bubbles: true }));
     await __demoSleep(55);
   }
+  check();
   el.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
@@ -5883,6 +5891,10 @@ function __demoCtx() {
 
 // Registry: one entry per mode. Add a mode here → it gets a "🎬 Demo" button.
 const DEMOS = {
+  resolver: {
+    sectionId:'resolver-dialog', buttonId:'resolver-start-demo',
+    bannerHost:'#resolver-dialog .resolver-toolbar', run:runResolverDemo,
+  },
   guide: {
     sectionId: 'profile-section', buttonLabel:'guide.demo_btn',
     async run(D) {
@@ -6452,6 +6464,8 @@ async function runDemoFor(mode) {
   const cfg = DEMOS[mode];
   if (!cfg || __demoRunning) return;
   clearTimeout(__demoHideTimer);
+  document.getElementById('__taf_demo_banner')?.remove();
+  document.getElementById('__taf_demo_explain')?.remove();
   __demoRunning = true; __demoRunningMode = mode;
   try {
     if (!document.getElementById("__taf_demo_css")) {
@@ -6469,9 +6483,10 @@ async function runDemoFor(mode) {
     __demoExplainPanel(mode, info);
     __demoHideTimer = setTimeout(__demoHideBanner, 12000);
   } catch (e) {
-    console.warn("demo failed:", e);
+    if(e.name!=='AbortError')console.warn("demo failed:", e);
     __demoHideBanner();
   } finally {
+    document.querySelectorAll('.__taf_demo_hl').forEach(el=>el.classList.remove('__taf_demo_hl'));
     __demoRunning = false; __demoRunningMode = null;
   }
 }
@@ -6487,6 +6502,7 @@ function injectDemoButtons() {
     if (!h) return;
     const btn = document.createElement("button");
     btn.type = "button";
+    if(DEMOS[mode].buttonId)btn.id=DEMOS[mode].buttonId;
     btn.className = "taf-demo-btn";
     btn.dataset.demoMode = mode;
     btn.dataset.demoLabel = DEMOS[mode].buttonLabel || "demo_btn";
@@ -6497,8 +6513,13 @@ function injectDemoButtons() {
       "background:linear-gradient(135deg,#0072B2,#34b3e0);box-shadow:0 2px 6px rgba(0,114,178,.3);";
     btn.addEventListener("click", () => runDemoFor(mode));
     h.appendChild(btn);
+    if(mode==='resolver')document.querySelectorAll('[data-resolver-demo-open]').forEach(entry=>{
+      entry.removeAttribute('data-i18n');entry.className=btn.className;entry.dataset.demoLabel=btn.dataset.demoLabel;
+      entry.textContent=btn.textContent;entry.title=btn.title;entry.style.cssText=btn.style.cssText;
+    });
   });
 }
 document.addEventListener("DOMContentLoaded", injectDemoButtons);
 injectDemoButtons();
 if (new URLSearchParams(location.search).get('demo') === 'guide') setTimeout(()=>runDemoFor('guide'),300);
+if (new URLSearchParams(location.search).get('demo') === 'resolver' || new URLSearchParams(location.search).get('resolve') === 'demo') setTimeout(()=>runDemoFor('resolver'),300);
