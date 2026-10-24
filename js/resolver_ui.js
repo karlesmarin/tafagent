@@ -3,6 +3,7 @@ import { t, getLang } from './i18n.js';
 import { tafLink, HF_BASE } from './guide_bridge.js';
 import { buildResolverSummary } from './resolver_summary.js';
 import { buildResolverReview } from './resolver_review.js';
+import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
 import { TOOL_CATALOG } from './resolver_catalog.js';
@@ -57,7 +58,7 @@ function renderFeedback() {
   $('followup').replaceChildren();
   if(feedback)$('followup').append(node('p',tr(feedback==='worked'?'solved':'followup')));
   if(feedback==='failed') {
-    $('followup').append(node('p',tr(result?.nextKey||(route==='template'?'template_next':route==='memory'?'memory_next':'compatibility_next'))));
+    $('followup').append(node('p',summaryData().next));
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
   }
 }
@@ -67,11 +68,25 @@ function reviewData() {return buildResolverReview(resultState(),getLang());}
 function createResolverReview() {
  const review=reviewData(),box=node('details');box.id='resolver-review';
  box.append(node('summary',tr('review_title')),node('p',review.provenance));
- for(const [label,value] of [['review_basis',review.basis],['review_limit',review.limitation],['review_test',review.next_check]]) {
+ for(const [label,value] of [['review_basis',review.basis],['review_limit',review.limitation],[review.protocol?'protocol_title':'review_test',review.next_check]]) {
   const p=node('p');p.append(node('strong',tr(label)+': '),node('span',value));box.append(p);
  }
  if(review.missing_protocol_fields!=null)box.append(node('p',tr('missing_fields')+': '+review.missing_protocol_fields));
  if(review.observations.length){const ul=node('ul');for(const text of review.observations)ul.append(node('li',text));box.append(ul);}
+ if(review.protocol){
+  const details=node('details');details.id='resolver-protocol';details.append(node('summary',tr('protocol_details')),node('p',tr('protocol_legend')),node('p',tr('protocol_scope')));
+  for(const [group,keys] of Object.entries(PROTOCOL_GROUPS)){
+   details.append(node('h5',tr('protocol_'+group)));const ul=node('ul');
+   for(const key of keys){const field=review.protocol.fields.find(f=>f.key===key);const li=node('li');
+    li.append(node('code',PROTOCOL_PATHS[key]),node('br'),node('span',tr(field.documented?'protocol_documented':'protocol_absent')));
+    if(field.comparison)li.append(node('span',' · '+tr('protocol_pair_'+field.comparison)));ul.append(li);
+   }details.append(ul);
+  }
+  for(const [key,label] of [['missing_in_first','missing'],['different','different'],['unknown','unknown']]){
+   const count=review.protocol.additional_fields[key];if(count)details.append(node('p',tr('protocol_extra_'+label)+': '+count));
+  }
+  box.append(details);
+ }
  const a=node('a',review.guide.title);a.href=review.guide.url;a.target='_blank';a.rel='noopener';box.append(a);
  if(review.guide.note)box.append(node('p',review.guide.note));
  return box;
@@ -80,7 +95,7 @@ export function createResolverSummary(id='resolver-case-summary') {
   const summary=summaryData(),box=node('section');box.id=id;box.className='resolver-demo-card';
   box.append(node('h4',tr('summary_title')));
   if(summary.demo)box.append(node('p',tr('demo_note')));
-  for(const [label,value] of [['summary_problem',summary.problem],['summary_check',summary.finding],['summary_change',summary.change],['summary_next',summary.next]]) {
+  for(const [label,value] of [['summary_problem',summary.problem],['summary_check',summary.finding],['summary_change',summary.change],[result.protocolReview?'protocol_title':'summary_next',summary.next]]) {
     if(!value)continue;
     const p=node('p');p.append(node('strong',tr(label)+': '),node('span',value));box.append(p);
   }
@@ -103,6 +118,9 @@ function renderResult() {
   if(isLocal()) {
     const dl=node('dl');for(const {key,value} of result.facts)dl.append(node('dt',tr(key)),node('dd',typeof value==='number'?value.toLocaleString(getLang(),{maximumFractionDigits:4}):String(value)));out.append(dl);
     const ul=node('ul');for(const notice of result.notices)ul.append(node('li',tr(notice.key)+(notice.line?' · #'+notice.line:'')));out.append(ul);
+    if(result.protocolReview)out.append(button(tr('protocol_details'),()=>{
+      $('review').open=true;$('protocol').open=true;$('protocol').querySelector('summary').focus();$('protocol').scrollIntoView({block:'start'});
+    },'show-protocol'));
     if(result.suggestion){
       const details=node('details');details.append(node('summary',tr('proposal')),node('pre',result.suggestion));
       details.append(button(tr('try_proposal'),()=>{const proposal=result.suggestion;$('local-text').value=proposal;run();},'try-proposal'));out.append(details);

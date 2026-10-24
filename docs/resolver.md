@@ -116,6 +116,21 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
   and is included in the local report under `review` (version 1). The narrated
   demo opens it before showing follow-up checks. Recalculation and language
   changes rebuild it; changing inputs clears it with the previous result.
+- In the attention route, **Show protocol details** opens the review directly.
+  Nineteen fixed conditions are grouped by model/data, sampling, execution and
+  aggregation/fit. Each shows whether A documents it and, when B is supplied,
+  whether the declared values match, differ or lack documentation. This is not
+  validation of those values. Additional custom fields are counted without
+  exporting their names or values. The existing offline example demonstrates
+  missing conditions; zero indices and seeds remain valid, as does explicit
+  `none` for disabled quantization.
+- **What to check first** prioritizes A's context issue, then B's context issue,
+  then differing conditions, then incomplete documentation; otherwise it asks
+  for curve/fit inspection and controlled repetition. It never fills unknown
+  settings or turns a variable-length sweep into an invented fixed-length run.
+  The summary, review and **It still fails** use the same priority. Schema 3
+  reports add `result.protocolReview` and `review.protocol` (each version 1),
+  containing field-status codes and counts only, not pasted protocol values.
 - **Share tool and model (optional)** is a navigation link, not a support request.
   Shareable links contain only route, model ID and language. They carry no result,
   hardware details, pasted error or question. Users choose where to post them.

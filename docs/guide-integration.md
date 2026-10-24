@@ -42,6 +42,12 @@ restaura datos pegados; la pestaña original conserva el resultado completo.
 Las rutas desconocidas o incompatibles con el modo se ignoran. Los ejemplos y
 las rutas locales no transportan un ID de modelo ajeno al caso.
 
+En la ruta de atención, **Ver detalles del protocolo** enumera condiciones
+ausentes o diferentes sin transmitir sus valores a la guía. El siguiente paso
+se prioriza según contexto, referencia y documentación. R4 explica cómo recuperar
+las condiciones de la ejecución real y R5 cómo abrir el panel y su demo. Los
+enlaces conservan el regreso al mismo formulario, sin restaurar datos pegados.
+
 La demo `?demo=resolver&lang=es` abre la revisión en su quinto paso, antes del
 seguimiento. R5 explica este recorrido en ambos idiomas. El informe descargado
 incluye la revisión (esquema 3); no es una medición nueva ni una certificación.

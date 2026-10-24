@@ -26,6 +26,12 @@ proceden del resultado actual. No ejecuta los 31 modos, asigna riesgo ni verific
 de forma independiente una medición. La demo abre el panel y la descarga lo
 incluye como `review` versión 1 dentro del informe de caso versión 3.
 
+En PVR, `resolver_protocol.js` reutiliza la detección de contexto y comparación
+de protocolos. Enumera 19 condiciones conocidas, sin sus valores, y cuenta los
+campos personalizados sin mostrar sus nombres. Prioriza contexto de A, contexto
+de B, diferencias, documentación pendiente y repetición controlada, por ese orden.
+No valida la exactitud de los metadatos ni modifica los informes originales.
+
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|
 | Profile | `main.js`, `python/taf_browser.py:profile_model` | Configuración HF → tarjeta X-2/X-19/X-1/X-3/X-5 | Formulario especializado. Son fórmulas; no inferencia ni calidad medida. Pyodide. |

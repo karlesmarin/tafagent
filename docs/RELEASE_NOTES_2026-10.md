@@ -2,6 +2,13 @@
 
 ## 25 October: review the evidence behind a result
 
+Attention follow-up: **Show protocol details** lists 19 known conditions across
+four groups, marks missing documentation and reference differences, and chooses
+the next check from five explicit priorities. Custom field names and protocol
+values are not exported. The attention example, four-language help and guide
+R4/R5 explain the workflow. Browser tests cover all priorities, follow-up,
+private exports, invalidated results and mobile layout.
+
 Navigation follow-up: guide links from a resolver summary or review now return
 to the same problem form, language and original TAF host (GitHub or Hugging Face).
 Return links never run a check or restore pasted inputs. The original tab retains

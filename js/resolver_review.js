@@ -21,6 +21,7 @@ export function buildResolverReview(state,language='en') {
   observations:(result.notices||[]).map(n=>tr(n.key)),
   missing_protocol_fields:route==='pvr'?result.facts.find(f=>f.key==='missing_fields')?.value??null:null,
   next_check:summary.next,guide:summary.guide,
+  protocol:result.protocolReview??null,
   independently_verified:false,
  };
 }

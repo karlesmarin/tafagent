@@ -63,6 +63,10 @@ report (schema 3). Available in EN/ES/FR/ZH; no additional model run is implied.
 The guide's return link now opens the same problem form on the original TAF host
 (GitHub or Hugging Face), preserving the UI language without transferring pasted
 inputs or running another check. Keep the original tab for the complete result.
+Attention reports also expose a protocol checklist: 19 named conditions grouped
+by model/data, sampling, execution and fit, with missing/different fields and a
+prioritized next check. The offline attention example demonstrates it. Custom
+field names and protocol values stay out of the case report.
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):

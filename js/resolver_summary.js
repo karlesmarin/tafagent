@@ -35,8 +35,8 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
     template:{es:'sec-evaluacion-contexto',en:'sec-evaluacion-contexto'},
     architecture:{es:'las-familias',en:'the-families'},
   };
-  section=anchors[why]?.[guideLang]||'';
+  section=route==='pvr'?'tbl-gamma-protocolo':anchors[why]?.[guideLang]||'';
   const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));url.hash=section;
-  const next=tr(result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));
+  const next=tr(result.protocolReview?'protocol_first_'+result.protocolReview.priority:result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));
   return {problem,finding,change,next,guide:{url:url.href,title:chapterTitles[topics[topic].chapters[index]][guideLang],why:tr('summary_why_'+why),language:guideLang,note:lang==='fr'||lang==='zh'?local('fallback',lang):null},demo:bundle.origin==='demo'};
 }

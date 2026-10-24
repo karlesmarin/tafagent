@@ -5,6 +5,7 @@ import {longestCommonPrefix} from './prompt_cache_diff.js';
 import {computeDriftBound,FRAMEWORKS,DTYPES} from './cross_drift.js';
 import {normalizeMeasured,predictionContext,predictionVsReality,missingProtocolFields,compareProtocols} from './prediction_reality.js';
 import {parseAdapterConfig,compatChecks} from './adapter_reality.js';
+import {reviewProtocol} from './resolver_protocol.js';
 
 const textField=(id,label,required=true)=>({id,label,type:'textarea',required});
 export const LOCAL_CASES={
@@ -77,10 +78,12 @@ export function solveLocalCase(id,inputs){
    const row=predictionVsReality({},m).find(x=>x.metric==='gamma');
    if(row&&Number.isFinite(row.predicted)&&Number.isFinite(row.delta)){out.summaryKey='pvr_compared';out.summaryParams={measured:row.measured,predicted:row.predicted,delta:row.delta};fact('gamma_baseline',row.predicted);fact('gamma_delta',row.delta);}
   }
+  let reference=null;
   if(inputs.text2?.trim()){
-   const reference=normalizeMeasured(parseObject(inputs.text2));if(!reference||!Number.isFinite(reference.gamma_obs))throw new Error('inputs');
+   reference=normalizeMeasured(parseObject(inputs.text2));if(!reference||!Number.isFinite(reference.gamma_obs))throw new Error('inputs');
    const comparison=compareProtocols(m,reference);out.notices.push({key:'protocol_'+comparison.status});
   }
+  out.protocolReview=reviewProtocol(m,reference);
  }else if(id==='adapter'){
   const cfg=parseObject(inputs.text);
   if(typeof cfg.peft_type!=='string'||!cfg.peft_type.trim()||(cfg.r!=null&&(!Number.isInteger(cfg.r)||cfg.r<=0))||(cfg.lora_alpha!=null&&(!Number.isFinite(cfg.lora_alpha)||cfg.lora_alpha<0)))throw new Error('inputs');

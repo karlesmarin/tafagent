@@ -25,5 +25,8 @@
 #resolver-result details { overflow-wrap:anywhere; }
 #resolver-review { border-left:3px solid var(--accent,#58a6ff); padding:.6rem 1rem; margin:1rem 0; }
 #resolver-review > summary { cursor:pointer; font-weight:600; }
+#resolver-protocol { scroll-margin-top:4rem; }
+#resolver-protocol li { margin:.6rem 0; }
+#resolver-protocol code { white-space:normal; overflow-wrap:anywhere; }
 #resolver-dialog :focus-visible { outline:2px solid var(--accent,#58a6ff); outline-offset:3px; }
 @media(max-width:600px) { #resolver-dialog { padding:1rem; } .resolver-actions { flex-direction:column; } }

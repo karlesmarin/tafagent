@@ -95,6 +95,12 @@ It distinguishes configuration estimates, static inspections, heuristic score
 comparisons and imported attention measurements. It reuses current inputs/results,
 retains protocol notices and missing-field counts, and links to the next check
 and a relevant guide chapter. No additional inference is run.
+The attention checklist marks 19 known conditions as documented or missing and
+compares their declared values with an optional reference. It does not validate
+types, scientific appropriateness or truth merely because a field is populated.
+Custom fields affect missing/difference counts without exposing their names or
+values. The next step follows context issues and protocol differences before
+asking for repetition; no missing settings are invented.
 
 The local case report uses schema version 3; its `review` object uses version 1.
 `independently_verified: false` is explicit, including after a user reports that

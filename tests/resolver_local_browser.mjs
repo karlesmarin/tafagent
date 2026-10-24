@@ -40,7 +40,13 @@ try{
    assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_demo']));
    const text=await page.locator('#resolver-result').innerText();
    assert.ok(!text.includes('undefined')&&!/resolver\.|drift\.template\./.test(text),lang+' '+id+': '+text);
-   assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.next_'+id]));
+   assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.'+(id==='pvr'?'protocol_first_document':'next_'+id)]));
+   if(id==='pvr'){
+    await page.locator('#resolver-show-protocol').click();
+    const protocol=await page.locator('#resolver-protocol').innerText();
+    assert.ok(protocol.includes('protocol.seed')&&protocol.includes('protocol.tokenizer_revision'));
+    assert.ok(protocol.includes(RESOLVER_TRANSLATIONS[lang]['resolver.protocol_absent']));
+   }
    const url=new URL(await page.locator('#resolver-case-summary a').getAttribute('href'));
    assert.ok(url.pathname.includes('/'+(lang==='es'?'es':'en')+'/chapters/'));
    await page.locator('#resolver-run').click();await page.locator('#resolver-export').waitFor();
