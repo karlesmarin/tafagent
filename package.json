@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs && node tests/adapter_reality.test.mjs && node tests/fit_check.test.mjs && node tests/research_studies.test.mjs && node tests/entropy_scanner.test.mjs && node tests/guide_bridge.test.mjs && node tests/research_labs.test.mjs && node tests/model_compatibility.test.mjs",
+    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs && node tests/adapter_reality.test.mjs && node tests/fit_check.test.mjs && node tests/research_studies.test.mjs && node tests/entropy_scanner.test.mjs && node tests/guide_bridge.test.mjs && node tests/research_labs.test.mjs && node tests/model_compatibility.test.mjs && node tests/resolver.test.mjs",
     "test:guide": "node tests/guide_bridge.test.mjs && node tests/guide_bridge_browser.mjs",
     "test:entropy": "node tests/entropy_scanner.test.mjs && python -m pytest tests/test_attention_entropy.py -q",
     "test:research": "node tests/research_studies.test.mjs && node tests/research_labs.test.mjs",
@@ -20,7 +20,8 @@
     "test:confidence": "node tests/confidence.test.mjs",
     "test:pvr": "node tests/prediction_reality.test.mjs",
     "test:formulas": "python -m pytest tests/test_taf_formulas.py -q",
-    "test:models": "node tests/model_compatibility.test.mjs && node tests/model_review_browser.mjs"
+    "test:models": "node tests/model_compatibility.test.mjs && node tests/model_review_browser.mjs",
+    "test:resolver": "node tests/resolver.test.mjs && node tests/resolver_browser.mjs"
   },
   "repository": {
     "type": "git",

@@ -8,6 +8,7 @@
 //  5. i18n: EN/ES/FR/ZH
 
 import { presetFromConfig } from "./model_compatibility.js";
+import { initResolver, refreshResolver } from './resolver_ui.js';
 import { initModelReview, refreshModelReview } from "./model_review.js";
 import { initI18n, setLang, getLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
@@ -3872,6 +3873,7 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
     setLang(btn.dataset.lang);
     refreshGuidePanels();
     refreshModelReview();
+    refreshResolver();
     refreshResearchExplorer();
     renderPvrResults();
     document.querySelectorAll(".taf-demo-btn").forEach(button => {
@@ -5768,6 +5770,7 @@ initI18n();
 // Navigation and prefill do not wait for Python and never start a model fetch.
 applyGuideDeepLink(getLang, setLang);
 initGuidePanels(getLang);
+initResolver();
 // Pyodide-independent panels: render immediately so they survive a Pyodide
 // load failure (CDN blocked / offline / slow region). These use only fetch +
 // DOM, never state.pyodide — must NOT be gated behind enableUI().

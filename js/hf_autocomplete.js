@@ -71,7 +71,8 @@ export function attachHfAutocomplete(inputEl, options = {}) {
   inputEl.setAttribute("aria-expanded", "false");
   inputEl.autocomplete = "off";
   dropdown.style.display = "none";
-  document.body.appendChild(dropdown);
+  // Native dialogs occupy the top layer; their suggestions must live there too.
+  (inputEl.closest('dialog') || document.body).appendChild(dropdown);
 
   let timeoutId = null;
   let activeIndex = -1;

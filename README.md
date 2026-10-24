@@ -54,6 +54,23 @@ language:
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 
+### Solve my problem — automatic guided help
+
+[**Open the resolver**](https://karlesmarin.github.io/tafagent/?resolve=choose&lang=en)
+or [use it on Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=choose&lang=en).
+Three initial routes turn a problem into checks and next actions: **memory**, **chat
+templates**, and **architecture compatibility**. The resolver reuses existing TAF
+modules, asks for inputs, explains its limits, and links to the field guide.
+It works without Pyodide, model weights, a chat service or a support operator.
+
+Each route has an optional offline example, follow-up checks, a downloadable case
+report and a shareable link. Memory alternatives recalculate estimates without
+modifying the model. Links prefill a route and model ID without running it; pasted
+questions/errors are excluded from links and reports. EN/ES/FR/ZH, keyboard and
+mobile support. Manual and feature overview updated; guide R5 explains the flow
+in ES/EN. No monitoring or automatic posting to discussions is enabled.
+See [scope, inputs and extension instructions](docs/resolver.md).
+
 ### Model examples and architecture boundaries — 24 October 2026
 
 Profile now includes an optional [reviewed-model explorer](https://karlesmarin.github.io/tafagent/?mode=profile&example=Qwen%2FQwen3-0.6B):

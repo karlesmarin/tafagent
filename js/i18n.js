@@ -2,6 +2,7 @@
 // Add languages by extending TRANSLATIONS. Set data-i18n="key" on any element.
 // Persist user choice in localStorage.
 import { MODEL_TRANSLATIONS } from "./model_i18n.js";
+import { RESOLVER_TRANSLATIONS } from "./resolver_i18n.js";
 import { RESEARCH_TRANSLATIONS } from "./research_i18n.js";
 import { MEASUREMENT_TRANSLATIONS } from "./measurement_i18n.js";
 import { ENTROPY_TRANSLATIONS } from "./entropy_i18n.js";
@@ -6604,6 +6605,7 @@ for (const [language, entries] of Object.entries(RESEARCH_TRANSLATIONS)) {
 
 for (const [language, entries] of Object.entries(MODEL_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 
+for (const [language, entries] of Object.entries(RESOLVER_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 let currentLang = "en";
 
 export function getLang() {

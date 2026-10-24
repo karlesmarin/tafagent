@@ -25,6 +25,7 @@
 
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="css/research_labs.css" />
+  <link rel="stylesheet" href="css/resolver.css" />
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
@@ -49,6 +50,7 @@
       Built by an independent researcher. Open source. Not affiliated with any model vendor.
     </p>
     <p class="hero-buttons">
+      <button type="button" data-resolver-open data-i18n="resolver.title">Solve my problem</button>
       <button id="quickstart-btn" type="button" data-i18n="hero.quickstart_btn">⚡ Quick start</button>
       <button id="inventory-btn" type="button" data-i18n="hero.inventory_btn">🧰 What it gives you</button>
       <button id="help-btn" type="button" data-i18n="hero.help">📘 Manual &amp; examples</button>
@@ -63,6 +65,8 @@
       <button class="help-close" id="help-close" aria-label="Close help">×</button>
       <h2 id="help-modal-title" data-i18n="help.title">📘 TAF Agent — User Manual</h2>
       <section class="guide-updates" id="manual-updates">
+        <h3 data-i18n="resolver.title">Solve my problem</h3>
+        <p data-i18n="resolver.help"></p>
         <h3 data-i18n="updates.title">Guide, studies and optional demos</h3>
         <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
         <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
@@ -416,6 +420,7 @@
       <div class="inventory-grid">
         <details class="inv-card" id="inventory-updates" open>
           <summary class="inv-card-title" data-i18n="updates.title">Guide, studies and optional demos</summary>
+          <p data-i18n="resolver.help"></p>
           <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
           <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
           <p data-i18n="updates.demos">Optional Float32 and residual-mixing demos explain mechanisms; they do not replicate training.</p>
@@ -860,6 +865,7 @@
 
     <!-- ASK mode (free-form question) -->
     <section id="ask-section" style="display:none;">
+      <button type="button" data-resolver-open="ask" data-i18n="resolver.title">Solve my problem</button>
       <h2><span data-i18n="ask.title">❓ Your question</span></h2>
       <textarea id="question" rows="3"
         data-i18n-placeholder="ask.placeholder"
