@@ -7,6 +7,8 @@
 //  4. Modes: Profile (all recipes) + Compare (multi-model side-by-side)
 //  5. i18n: EN/ES/FR/ZH
 
+import { presetFromConfig } from "./model_compatibility.js";
+import { initModelReview, refreshModelReview } from "./model_review.js";
 import { initI18n, setLang, getLang, t } from "./i18n.js";
 import { initPhaseDiagram } from "./phase_diagram.js";
 import { gammaCheckAll, REGIME_META } from "./gamma_check.js";
@@ -55,6 +57,7 @@ import { guideLink, modeTopics, local as guideText } from "./guide_bridge.js";
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
 attachAllHfAutocompletes();
+initModelReview();
 
 const TAF_BROWSER_URL = "python/taf_browser.py";
 const ENABLE_WEBLLM = true;
@@ -71,6 +74,8 @@ const state = {
   recipes: [],
   recipesById: {},
   currentMode: "ask",
+  recipeBoundId: "",
+  recipeRequest: 0,
   currentRecipe: null,
 };
 
@@ -407,6 +412,9 @@ $("recipe-select").addEventListener("change", (e) => {
 });
 
 function buildDynamicForm(recipe) {
+  state.recipeBoundId = ''; state.recipeRequest++;
+  if ($('hf-id')) $('hf-id').value = '';
+  if ($('preset')) $('preset').value = '';
   const container = $("dynamic-form");
   container.innerHTML = "";
   const defaults = getRecipeDefaults(recipe.id);
@@ -495,6 +503,7 @@ function getRecipeDefaults(recipeId) {
 // Preset autofill (works in recipe mode)
 // ════════════════════════════════════════════════════════════════════
 $("preset").addEventListener("change", (e) => {
+  state.recipeRequest++; state.recipeBoundId = e.target.value;
   if (!e.target.value) return;
   const modelId = e.target.value;
   state.lastModelId = modelId;  // remember for filename/hash
@@ -592,7 +601,13 @@ async function fetchHfConfig(modelId) {
   throw new Error(`HTTP ${r.status} — config.json not found at https://huggingface.co/${modelId}/resolve/main/config.json`);
 }
 
+$('hf-id').addEventListener('input', () => { state.recipeRequest++; state.recipeBoundId = ''; });
+$('dynamic-form').addEventListener('input', () => {
+  state.recipeRequest++; state.recipeBoundId = ''; $('hf-id').value = ''; $('preset').value = '';
+  state.lastModelId = ''; $('hf-status').textContent = t('models.manual_note');
+});
 $("hf-fetch-btn").addEventListener("click", async () => {
+  const request = ++state.recipeRequest; state.recipeBoundId = '';
   const modelId = $("hf-id").value.trim();
   if (!modelId) {
     $("hf-status").textContent = "⚠ Enter a model id like 'Qwen/Qwen2.5-32B-Instruct'";
@@ -603,9 +618,11 @@ $("hf-fetch-btn").addEventListener("click", async () => {
   state.lastModelId = modelId;  // remember for filename/hash
   try {
     const cfg = await fetchHfConfig(modelId);
+    if (request !== state.recipeRequest || $('hf-id').value.trim() !== modelId) return;
     const preset = configToPreset(cfg, modelId);
+    state.recipeBoundId = modelId;
     fillRecipeForm(preset);
-    $("hf-status").innerHTML = `✅ Config loaded for <strong>${escapeHtml(modelId)}</strong> (family: ${preset._family}). Verify values, click Analyze.`;
+    $("hf-status").textContent = `✓ ${modelId} · ${t("models.import_note")}`;
   } catch (err) {
     $("hf-status").textContent = `❌ ${err.message}`;
   } finally {
@@ -2153,43 +2170,16 @@ $("niah-id")?.addEventListener("keydown", (e) => {
 });
 
 function configToPreset(cfg, modelId) {
-  const n_attn = cfg.num_attention_heads || cfg.n_head || 0;
-  const n_kv = cfg.num_key_value_heads || cfg.num_attention_heads || cfg.n_head || 0;
-  const hidden = cfg.hidden_size || cfg.d_model || cfg.n_embd || 0;
-  const d_head = cfg.head_dim || (n_attn > 0 ? Math.floor(hidden / n_attn) : 0);
-  const theta = cfg.rope_theta || cfg.rotary_emb_base ||
-                (cfg.alibi ? null : (cfg.position_embedding_type === "absolute" ? null : 10000));
-  const T_train = cfg.max_position_embeddings || cfg.max_sequence_length ||
-                  cfg.n_positions || cfg.n_ctx || 0;
-  const n_layers = cfg.num_hidden_layers || cfg.n_layer || 0;
-  const has_SWA = !!(cfg.sliding_window || cfg.use_sliding_window);
-
-  let family = "rope-mha";
-  if (cfg.alibi) family = "alibi";
-  else if (cfg.model_type === "mamba" || cfg.model_type === "mamba2") family = "ssm";
-  else if (theta == null) family = "abspe";
-  else if (n_kv < n_attn) family = "rope-gqa";
-
-  const n_params_est = estimateParams(cfg);
-  return {
-    theta: theta || 10000, T_train: T_train || 2048,
-    n_attention_heads: n_attn, n_kv_heads: n_kv, d_head: d_head,
-    n_layers: n_layers, n_params: n_params_est, has_SWA: has_SWA,
-    _family: family, _model_id: modelId,
-  };
-}
-
-function estimateParams(cfg) {
-  const h = cfg.hidden_size || cfg.d_model || 0;
-  const L = cfg.num_hidden_layers || cfg.n_layer || 0;
-  const V = cfg.vocab_size || 32000;
-  return Math.round(12 * h * h * L + 2 * V * h);
+  return presetFromConfig(cfg, modelId, t);
 }
 
 // ════════════════════════════════════════════════════════════════════
 // Run recipe (manual mode)
 // ════════════════════════════════════════════════════════════════════
 $("run-btn").addEventListener("click", async () => {
+  if ($('hf-id').value.trim() !== state.recipeBoundId) {
+    $('hf-status').textContent = t('models.pending'); return;
+  }
   if (!state.currentRecipe) {
     alert("Select a recipe first.");
     return;
@@ -2533,6 +2523,7 @@ function formatResultPlain(r) {
 // INSPECTOR mode (paste raw config.json)
 // ════════════════════════════════════════════════════════════════════
 $("inspector-btn").addEventListener("click", async () => {
+  $("profile-output").style.display = 'none';
   const raw = $("inspector-json").value.trim();
   if (!raw) {
     $("inspector-status").textContent = "⚠ Paste a config.json first";
@@ -2568,7 +2559,7 @@ json.dumps(result)
     renderProfile(profile, params);
     state.lastResult = { type: "profile", params };
     state.lastFullResult = profile;
-    $("inspector-status").innerHTML = `✅ Profiled: <strong>${preset._family}</strong> (${preset.n_params.toExponential(2)} params)`;
+    $("inspector-status").textContent = t("models.import_note");
   } catch (err) {
     $("inspector-status").textContent = `❌ ${err.message}`;
     console.error(err);
@@ -2759,69 +2750,88 @@ function relativeTime(d) {
 // ════════════════════════════════════════════════════════════════════
 // PROFILE mode
 // ════════════════════════════════════════════════════════════════════
+let profileBoundId = '', profileRequest = 0;
+function fillProfile(p) {
+  for (const [id, key] of Object.entries({theta:'theta', T_train:'T_train', n_attn:'n_attention_heads', n_kv:'n_kv_heads', d_head:'d_head', n_layers:'n_layers', n_params:'n_params', has_swa:'has_SWA'})) {
+    $("profile-" + id).value = String(p[key] ?? '');
+  }
+}
+function invalidateProfile() {
+  profileRequest++; profileBoundId = ''; state.lastModelId = '';
+  $("profile-output").style.display = 'none';
+}
+$("profile-hf-id").addEventListener('input', invalidateProfile);
+$("profile-hf-id").addEventListener('change', invalidateProfile);
+$("profile-manual").addEventListener('click', () => {
+  invalidateProfile(); $("profile-hf-id").value = ''; $("profile-preset").value = '';
+  $("profile-import-note").hidden = true;
+  $("profile-hf-status").textContent = t('models.manual_note');
+});
+$("profile-form").addEventListener('input', e => {
+  if (e.target.id !== 'profile-T_eval') $("profile-manual").click();
+});
 $("profile-preset").addEventListener("change", (e) => {
   if (!e.target.value) return;
+  invalidateProfile();
   const modelId = e.target.value;
-  state.lastModelId = modelId;  // remember for filename/hash
-  // Preset keys ARE valid HF model ids (e.g. "meta-llama/Llama-3.2-1B"). Auto-fill
-  // the HF id input so the user can also click 📥 Fetch to refresh from HF Hub
-  // without retyping. Status hint clarifies the dual source of truth.
-  if ($("profile-hf-id")) {
-    $("profile-hf-id").value = modelId;
-    if ($("profile-hf-status")) {
-      $("profile-hf-status").textContent = tFmt("profile.preset_loaded", { id: modelId });
-    }
-  }
   const proxy = state.pyodide.runPython(`get_preset(${JSON.stringify(modelId)})`);
   const p = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
-  if (!p || Object.keys(p).length === 0) return;
-  $("profile-theta").value = p.theta;
-  $("profile-T_train").value = p.T_train;
-  $("profile-n_attn").value = p.n_attention_heads;
-  $("profile-n_kv").value = p.n_kv_heads;
-  $("profile-d_head").value = p.d_head;
-  $("profile-n_layers").value = p.n_layers;
-  $("profile-n_params").value = p.n_params.toExponential(2);
-  $("profile-has_swa").value = String(p.has_SWA);
+  proxy.destroy?.();
+  if (!p || !Object.keys(p).length) return;
+  fillProfile(p); profileBoundId = modelId; state.lastModelId = modelId;
+  $("profile-hf-id").value = modelId;
+  $("profile-import-note").hidden = true;
+  $("profile-hf-status").textContent = `${modelId} · ${t('models.preset_note')}`;
 });
-
+document.addEventListener('taf:reviewed-model', ({detail:r}) => {
+  invalidateProfile();
+  const p = configToPreset(r.config, r.id);
+  fillProfile({...p, T_train:r.reference_context, n_params:r.reference_parameters});
+  profileBoundId = r.id; state.lastModelId = r.id;
+  $("profile-hf-id").value = r.id; $("profile-preset").value = r.id;
+  $("profile-import-note").hidden = true;
+  $("profile-hf-status").textContent = `${r.id} · ${t('models.preset_note')}`;
+});
 $("profile-fetch-btn").addEventListener("click", async () => {
   const id = $("profile-hf-id").value.trim();
-  if (!id) { $("profile-hf-status").textContent = "⚠ Enter a model id"; return; }
-  $("profile-hf-status").textContent = `⏳ Fetching ${id}...`;
+  if (!id) return;
+  invalidateProfile(); const ticket = profileRequest;
+  $("profile-hf-status").textContent = `⏳ ${id}`;
   $("profile-fetch-btn").disabled = true;
-  state.lastModelId = id;  // remember for filename/hash
   try {
     const cfg = await fetchHfConfig(id);
+    if (ticket !== profileRequest || $("profile-hf-id").value.trim() !== id) return;
     const p = configToPreset(cfg, id);
-    $("profile-theta").value = p.theta;
-    $("profile-T_train").value = p.T_train;
-    $("profile-n_attn").value = p.n_attention_heads;
-    $("profile-n_kv").value = p.n_kv_heads;
-    $("profile-d_head").value = p.d_head;
-    $("profile-n_layers").value = p.n_layers;
-    $("profile-n_params").value = p.n_params.toExponential(2);
-    $("profile-has_swa").value = String(p.has_SWA);
-    $("profile-hf-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong> (${p._family})`;
+    fillProfile(p); profileBoundId = id; state.lastModelId = id;
+    $("profile-preset").value = '';
+    $("profile-import-note").hidden = false;
+    $("profile-hf-status").textContent = `✓ ${id}${cfg.__via_mirror ? ' · ' + cfg.__via_mirror : ''}`;
   } catch (err) {
-    $("profile-hf-status").textContent = `❌ ${err.message}`;
-  } finally {
-    $("profile-fetch-btn").disabled = false;
-  }
+    if (ticket === profileRequest) $("profile-hf-status").textContent = `⚠ ${err.message}`;
+  } finally { $("profile-fetch-btn").disabled = false; }
 });
 
 $("profile-btn").addEventListener("click", async () => {
+  if ($("profile-hf-id").value.trim() !== profileBoundId) {
+    $("profile-hf-status").textContent = t('models.pending'); return;
+  }
+  state.lastModelId = profileBoundId;
   const params = {
     theta: parseFloat($("profile-theta").value),
-    T_train: parseInt($("profile-T_train").value),
-    T_eval: parseInt($("profile-T_eval").value),
-    n_attention_heads: parseInt($("profile-n_attn").value),
-    n_kv_heads: parseInt($("profile-n_kv").value),
-    d_head: parseInt($("profile-d_head").value),
-    n_layers: parseInt($("profile-n_layers").value),
+    T_train: Number($("profile-T_train").value),
+    T_eval: Number($("profile-T_eval").value),
+    n_attention_heads: Number($("profile-n_attn").value),
+    n_kv_heads: Number($("profile-n_kv").value),
+    d_head: Number($("profile-d_head").value),
+    n_layers: Number($("profile-n_layers").value),
     n_params: parseFloat($("profile-n_params").value),
     has_SWA: $("profile-has_swa").value === "true",
   };
+  if (Object.entries(params).some(([k,v]) => k !== 'has_SWA' && (!Number.isFinite(v) || v <= 0)) || params.theta <= 1 ||
+      ['T_train','T_eval','n_attention_heads','n_kv_heads','d_head','n_layers'].some(k => !Number.isInteger(params[k])) ||
+      params.n_attention_heads % params.n_kv_heads !== 0) {
+    $("profile-hf-status").textContent = t('models.invalid'); return;
+  }
   setStatus("🧮 Profiling — running all 5 recipes...");
   $("profile-btn").disabled = true;
   try {
@@ -3228,6 +3238,8 @@ document.querySelectorAll(".compare-preset").forEach(sel => {
 });
 
 $("compare-btn").addEventListener("click", async () => {
+  $('compare-output').style.display = 'none';
+  $('compare-import-notes').textContent = '';
   const recipeId = $("compare-recipe").value;
   if (!recipeId) { alert("Pick a recipe first."); return; }
   const T_eval = parseInt($("compare-T_eval").value);
@@ -3252,6 +3264,7 @@ $("compare-btn").addEventListener("click", async () => {
       specs.push({ ...preset, label: id.split("/").pop() });
     } catch (err) {
       console.error("compare fetch fail for", id, err);
+      $('compare-import-notes').append(document.createTextNode(`${id}: ${err.message}\n`));
       setStatus(`⚠ Skipped ${id}: ${err.message}`);
     }
   }
@@ -3858,6 +3871,7 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     setLang(btn.dataset.lang);
     refreshGuidePanels();
+    refreshModelReview();
     refreshResearchExplorer();
     renderPvrResults();
     document.querySelectorAll(".taf-demo-btn").forEach(button => {
@@ -5521,15 +5535,21 @@ function initLaunch() {
   // Picking from autocomplete auto-fetches geometry (matches the other modes).
   if (modelEl) attachHfAutocomplete(modelEl, { onSelect: () => fetchBtn?.click() });
 
+  const invalidate = () => { _launchGeom = null; $('launch-output').style.display = 'none'; };
+  modelEl?.addEventListener('input', invalidate);
+  modelEl?.addEventListener('change', invalidate);
   fetchBtn?.addEventListener("click", async () => {
     const id = (modelEl.value || "").trim();
     if (!id) { $("launch-status").textContent = "⚠ " + t("launch.need_id"); return; }
     $("launch-status").textContent = "⏳ " + t("launch.fetching");
     fetchBtn.disabled = true;
+    invalidate();
     state.lastModelId = id;
     try {
       const cfg = await fetchHfConfig(id);
-      const nAttn = cfg.num_attention_heads ?? null;
+      if (modelEl.value.trim() !== id) return;
+      const reviewed = configToPreset(cfg, id);
+      const nAttn = reviewed.n_attention_heads;
       const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
       _launchGeom = {
         nLayers: cfg.num_hidden_layers ?? null,
@@ -5539,14 +5559,15 @@ function initLaunch() {
         vocab: cfg.vocab_size ?? null,
         intermediate: cfg.intermediate_size ?? null,
         tieEmbeddings: cfg.tie_word_embeddings ?? false,
-        nParams: cfg.num_parameters ?? null,
-        ropeTheta: cfg.rope_theta ?? 10000,
-        ctxTrain: rs.original_max_position_embeddings ?? cfg.max_position_embeddings ?? null,
+        nParams: reviewed.n_params,
+        ropeTheta: reviewed.theta,
+        ctxTrain: reviewed.T_train,
       };
       if (!$("launch-ctx").value && _launchGeom.ctxTrain) $("launch-ctx").value = _launchGeom.ctxTrain;
       const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
       $("launch-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_launchGeom.nLayers} ${t("launch.layers")}, ` +
         `GQA ${nAttn}:${_launchGeom.nKvHeads}, θ=${_thetaFmt(_launchGeom.ropeTheta)}, ctx ${_yarnFmtK(_launchGeom.ctxTrain)}. ${t("launch.fetched_hint")}`;
+      $("launch-status").append(document.createTextNode(" " + t("models.import_note")));
     } catch (err) {
       $("launch-status").textContent = `❌ ${err.message}`;
     } finally {
@@ -5639,15 +5660,21 @@ function initFitCheck() {
   const modelEl = $("fitcheck-model");
   if (modelEl) attachHfAutocomplete(modelEl, { onSelect: () => fetchBtn?.click() });
 
+  const invalidate = () => { _fitGeom = null; $('fitcheck-output').style.display = 'none'; };
+  modelEl?.addEventListener('input', invalidate);
+  modelEl?.addEventListener('change', invalidate);
   fetchBtn?.addEventListener("click", async () => {
     const id = (modelEl.value || "").trim();
     if (!id) { $("fitcheck-status").textContent = "⚠ " + t("launch.need_id"); return; }
     $("fitcheck-status").textContent = "⏳ " + t("launch.fetching");
     fetchBtn.disabled = true;
+    invalidate();
     state.lastModelId = id;
     try {
       const cfg = await fetchHfConfig(id);
-      const nAttn = cfg.num_attention_heads ?? null;
+      if (modelEl.value.trim() !== id) return;
+      const reviewed = configToPreset(cfg, id);
+      const nAttn = reviewed.n_attention_heads;
       const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
       _fitGeom = {
         nLayers: cfg.num_hidden_layers ?? null,
@@ -5657,9 +5684,9 @@ function initFitCheck() {
         vocab: cfg.vocab_size ?? null,
         intermediate: cfg.intermediate_size ?? null,
         tieEmbeddings: cfg.tie_word_embeddings ?? false,
-        nParams: cfg.num_parameters ?? null,
-        ropeTheta: cfg.rope_theta ?? 10000,
-        ctxTrain: rs.original_max_position_embeddings ?? cfg.max_position_embeddings ?? null,
+        nParams: reviewed.n_params,
+        ropeTheta: reviewed.theta,
+        ctxTrain: reviewed.T_train,
       };
       if (!$("fitcheck-ctx").value && _fitGeom.ctxTrain) {
         $("fitcheck-ctx").value = Math.min(_fitGeom.ctxTrain, 8192);
@@ -5667,6 +5694,7 @@ function initFitCheck() {
       const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
       $("fitcheck-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_fitGeom.nLayers} ${t("launch.layers")}, ` +
         `GQA ${nAttn}:${_fitGeom.nKvHeads}, θ=${_thetaFmt(_fitGeom.ropeTheta)}, ctx ${_yarnFmtK(_fitGeom.ctxTrain)}.`;
+      $("fitcheck-status").append(document.createTextNode(" " + t("models.import_note")));
     } catch (err) {
       $("fitcheck-status").textContent = `❌ ${err.message}`;
     } finally {

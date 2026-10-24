@@ -19,6 +19,8 @@ jobs:
         run: node tests/i18n_check.mjs
       - name: Memory-reality unit tests
         run: node tests/memory_reality.test.mjs
+      - name: Reviewed config boundaries and provenance
+        run: node tests/model_compatibility.test.mjs
       - name: Confidence unit tests
         run: node tests/confidence.test.mjs
       - name: Prediction-vs-reality unit tests
@@ -98,6 +100,10 @@ jobs:
           TAF_URL: http://127.0.0.1:8000/
       - name: Real Profile metric explanations
         run: node tests/guide_profile_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Reviewed model examples and guarded imports
+        run: node tests/model_review_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
       - name: Measurement protocols and uniform control

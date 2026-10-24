@@ -1,6 +1,7 @@
 // TAF Agent i18n — minimal translation system.
 // Add languages by extending TRANSLATIONS. Set data-i18n="key" on any element.
 // Persist user choice in localStorage.
+import { MODEL_TRANSLATIONS } from "./model_i18n.js";
 import { RESEARCH_TRANSLATIONS } from "./research_i18n.js";
 import { MEASUREMENT_TRANSLATIONS } from "./measurement_i18n.js";
 import { ENTROPY_TRANSLATIONS } from "./entropy_i18n.js";
@@ -1362,7 +1363,7 @@ export const TRANSLATIONS = {
     "param.theta":         "θ (rope_theta)",
     "param.theta.tip":     "<strong>RoPE base frequency</strong> from <code>config.rope_theta</code>. Higher = more long-range capacity.",
     "param.T_train":       "T_train",
-    "param.T_train.tip":   "<strong>Max training context</strong>. From <code>max_position_embeddings</code>. Beyond this is extrapolation.",
+    "param.T_train.tip":   "<strong>Reference context for the formulas</strong>. Check the model card. <code>max_position_embeddings</code> is a configuration limit, not proof of training length.",
     "param.T_eval":        "T_eval (your target)",
     "param.T_eval.tip":    "<strong>Your target inference context</strong>. The whole question is: will the model behave well at THIS length?",
     "param.n_attn":        "n_attention_heads",
@@ -3099,7 +3100,7 @@ export const TRANSLATIONS = {
     "param.theta":         "θ (rope_theta)",
     "param.theta.tip":     "<strong>Frecuencia base RoPE</strong> de <code>config.rope_theta</code>. Mayor = más capacidad de largo alcance.",
     "param.T_train":       "T_train",
-    "param.T_train.tip":   "<strong>Contexto máximo de entrenamiento</strong>. De <code>max_position_embeddings</code>. Más allá es extrapolación.",
+    "param.T_train.tip":   "<strong>Contexto de referencia de las fórmulas</strong>. Comprueba la ficha del modelo. <code>max_position_embeddings</code> es un límite de configuración, no una prueba de la longitud de entrenamiento.",
     "param.T_eval":        "T_eval (tu objetivo)",
     "param.T_eval.tip":    "<strong>Tu contexto de inferencia objetivo</strong>. La pregunta clave: ¿se comportará bien el modelo a ESTA longitud?",
     "param.n_attn":        "n_attention_heads",
@@ -4687,7 +4688,7 @@ export const TRANSLATIONS = {
     "param.theta":         "θ (rope_theta)",
     "param.theta.tip":     "<strong>Fréquence de base RoPE</strong> de <code>config.rope_theta</code>. Plus haut = plus de capacité longue portée.",
     "param.T_train":       "T_train",
-    "param.T_train.tip":   "<strong>Contexte max d'entraînement</strong>. De <code>max_position_embeddings</code>. Au-delà c'est de l'extrapolation.",
+    "param.T_train.tip":   "<strong>Contexte de référence des formules</strong>. Consultez la fiche du modèle. <code>max_position_embeddings</code> est une limite de configuration, pas une preuve de la longueur d’entraînement.",
     "param.T_eval":        "T_eval (votre cible)",
     "param.T_eval.tip":    "<strong>Votre contexte d'inférence cible</strong>. La question clé : le modèle se comportera-t-il bien à CETTE longueur ?",
     "param.n_attn":        "n_attention_heads",
@@ -6275,7 +6276,7 @@ export const TRANSLATIONS = {
     "param.theta":         "θ (rope_theta)",
     "param.theta.tip":     "<strong>RoPE 基础频率</strong> 来自 <code>config.rope_theta</code>。越高 = 长程能力越强。",
     "param.T_train":       "T_train",
-    "param.T_train.tip":   "<strong>训练最大上下文</strong>。来自 <code>max_position_embeddings</code>。超出此范围属于外推。",
+    "param.T_train.tip":   "<strong>公式的参考上下文</strong>。请查阅模型卡。<code>max_position_embeddings</code> 是配置限制，并非训练长度的证据。",
     "param.T_eval":        "T_eval (您的目标)",
     "param.T_eval.tip":    "<strong>您的目标推理上下文</strong>。关键问题: 模型在 <em>这个</em> 长度下表现是否良好?",
     "param.n_attn":        "n_attention_heads",
@@ -6600,6 +6601,8 @@ for (const [language, entries] of Object.entries(ENTROPY_TRANSLATIONS)) {
 for (const [language, entries] of Object.entries(RESEARCH_TRANSLATIONS)) {
   Object.assign(TRANSLATIONS[language], entries);
 }
+
+for (const [language, entries] of Object.entries(MODEL_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 
 let currentLang = "en";
 

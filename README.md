@@ -49,10 +49,26 @@ language:
 
 # 🔬 TAF Agent
 
-> **Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.**
+> **Explore LLM diagnostics and their limits. Free. No GPU. No signup.**
 > 28 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
+
+### Model examples and architecture boundaries — 24 October 2026
+
+Profile now includes an optional [reviewed-model explorer](https://karlesmarin.github.io/tafagent/?mode=profile&example=Qwen%2FQwen3-0.6B):
+**8 public configurations pinned to HF revisions**, plus **2 restricted configurations
+left unverified**. Two new Qwen3 dense presets join the 11 historical scenarios.
+Each reviewed example shows its source and import limits; no weights are downloaded.
+
+Automatic dense imports in Profile, recipes, Inspector, Compare, Depth, Fit Check
+and Launch now stop on unsupported hybrid, MoE, MLA, mixed-window, positional or
+multimodal assumptions instead of inventing missing geometry. Memory Reality
+recognizes nested text configs and explicit linear/full attention layer maps.
+Configured context is distinguished from training evidence; reviewed examples
+are not new measurements or validation of the theoretical predictions.
+The Manual and feature overview cover these changes in EN/ES/FR/ZH.
+See [scope, sources and checks](docs/model-review.md). Atlas and benchmarks are unchanged.
 
 ### TAF ↔ field guide: explanations that follow the result — October 2026
 

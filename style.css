@@ -642,6 +642,14 @@ h2 { margin-top: 0; font-size: 1.2rem; color: var(--accent); }
 
 .recipe-desc { color: var(--fg-dim); margin: 0.5rem 0 0 0; }
 
+#model-review-select { width: 100%; min-width: 0; max-width: 100%; }
+#model-review-detail { overflow-wrap: anywhere; }
+#model-review-detail button { white-space: normal; }
+#falsification-table { max-width: 100%; overflow-x: auto; }
+@media (max-width: 600px) {
+  .info .tooltip { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; top: auto; width: auto; max-width: calc(100vw - 2rem); transform: none; }
+  .info .tooltip::after { display: none; }
+}
 .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; }
 .form-row label { min-width: 120px; }
 

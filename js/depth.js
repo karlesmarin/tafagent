@@ -7,11 +7,13 @@
 // J-lens advantage band, Type A/B) needs running the model and is NOT computed here — the
 // mode says so, honestly (see caveat.depth_*). Localized via t(); strings in i18n.js.
 import { t } from "./i18n.js";
+import { presetFromConfig } from './model_compatibility.js';
 import { attachHfAutocomplete } from "./hf_autocomplete.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const TWO_PI = 2 * Math.PI;
+let depthBoundId = '', depthRequest = 0;
 
 // γ_geom = Padé baseline  (2 − z)/(2 + z),  z = T·√2/θ  (identical to the profile whatif).
 function gammaGeom(theta, T) {
@@ -47,6 +49,9 @@ const row = (label, value) => `<div class="num-row"><span class="num-label">${la
 
 async function runDepth() {
   const out = $("depth-out"); if (!out) return;
+  if (($("depth-hf-id")?.value || '').trim() !== depthBoundId) {
+    out.textContent = t('models.pending'); return;
+  }
   const theta = num("depth-theta", 1e6), T = num("depth-T", 32768), dhead = num("depth-dhead", 128), NL = Math.round(num("depth-nl", 36));
   const gg = gammaGeom(theta, T), lf = lcritFrac(theta, T, dhead);
   const layer = isFinite(lf) ? Math.max(1, Math.min(NL, Math.round(lf * NL))) : NaN;
@@ -89,21 +94,22 @@ async function fetchDepthConfig() {
   const id = (($("depth-hf-id") || {}).value || "").trim();
   const st = $("depth-hf-status");
   if (!id) { if (st) st.textContent = ""; return; }
+  depthBoundId = ''; const ticket = ++depthRequest;
+  if ($('depth-out')) $('depth-out').replaceChildren();
   if (st) st.textContent = t("depth.status.fetching") || "⏳ Fetching config.json…";
   try {
     const r = await fetch(`https://huggingface.co/${id}/resolve/main/config.json`);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const c = await r.json();
-    const nh = c.num_attention_heads || c.n_head || 32;
-    const theta = c.rope_theta || (c.rope_scaling && c.rope_scaling.original_max_position_embeddings ? 10000 : 10000);
-    const T = c.max_position_embeddings || c.n_positions || 4096;
-    const dh = c.head_dim || (c.hidden_size ? Math.round(c.hidden_size / nh) : 128);
-    const nl = c.num_hidden_layers || c.n_layer || 32;
+    if (ticket !== depthRequest || $('depth-hf-id').value.trim() !== id) return;
+    const p = presetFromConfig(c, id, t);
+    const theta = p.theta, T = p.T_train, dh = p.d_head, nl = p.n_layers;
     const set = (id2, v) => { if ($(id2)) $(id2).value = v; };
-    set("depth-theta", c.rope_theta || theta); set("depth-T", T); set("depth-dhead", dh); set("depth-nl", nl);
-    if (st) st.textContent = `${t("depth.status.ok") || "✓ Loaded"} · θ=${c.rope_theta || theta}, T=${T}, d_head=${dh}, N=${nl}`;
+    set("depth-theta", theta); set("depth-T", T); set("depth-dhead", dh); set("depth-nl", nl);
+    depthBoundId = id;
+    if (st) st.textContent = `${t("depth.status.ok")} · θ=${theta}, T=${T}, d_head=${dh}, N=${nl} · ${t('models.import_note')}`;
   } catch (e) {
-    if (st) st.textContent = `${t("depth.status.err") || "⚠ Could not fetch config.json"} (${e.message})`;
+    if (st && ticket === depthRequest) st.textContent = `${t("depth.status.err")} (${e.message})`;
   }
 }
 
@@ -111,6 +117,11 @@ function bindDepth() {
   const fb = $("depth-fetch-btn"), rb = $("depth-btn"), inp = $("depth-hf-id");
   if (fb) fb.addEventListener("click", fetchDepthConfig);
   if (rb) rb.addEventListener("click", runDepth);
+  inp?.addEventListener('input', () => { depthBoundId = ''; depthRequest++; });
+  for (const id of ['depth-theta','depth-T','depth-dhead','depth-nl']) $(id)?.addEventListener('input', () => {
+    depthBoundId = ''; depthRequest++; if (inp) inp.value = '';
+    if ($('depth-hf-status')) $('depth-hf-status').textContent = t('models.manual_note');
+  });
   // HF model-id autocomplete dropdown (same as every other mode); picking a suggestion auto-fetches.
   if (inp) { try { attachHfAutocomplete(inp, { onSelect: () => { const b = $("depth-fetch-btn"); if (b) b.click(); } }); } catch (e) {} }
 }

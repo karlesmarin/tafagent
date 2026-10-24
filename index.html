@@ -67,6 +67,7 @@
         <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
         <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
         <p data-i18n="updates.demos">Optional Float32 and residual-mixing demos explain mechanisms; they do not replicate training.</p>
+        <p data-i18n="models.help"></p>
         <p data-i18n="updates.data">HF search is live; presets, atlas measurements and benchmark tables are stored references, not automatically updated.</p>
         <a data-guide-selector-link data-i18n="updates.open_guide" href="https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#taf-routes" target="_blank" rel="noopener">Open the guide's task and model selector</a>
       </section>
@@ -418,7 +419,8 @@
           <p data-i18n="updates.guide">The guide helps you choose a task and search Hugging Face models. Selecting one prepares TAF without starting analysis.</p>
           <p data-i18n="updates.studies">15 curated studies link to guide chapters, primary sources, limits and proposed experiments.</p>
           <p data-i18n="updates.demos">Optional Float32 and residual-mixing demos explain mechanisms; they do not replicate training.</p>
-          <p data-i18n="updates.data">HF search is live; presets, atlas measurements and benchmark tables are stored references, not automatically updated.</p>
+          <p data-i18n="models.help"></p>
+        <p data-i18n="updates.data">HF search is live; presets, atlas measurements and benchmark tables are stored references, not automatically updated.</p>
           <a data-guide-selector-link data-i18n="updates.open_guide" href="https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#taf-routes" target="_blank" rel="noopener">Open the guide's task and model selector</a>
         </details>
         <details class="inv-card" open>
@@ -695,6 +697,16 @@
       </div>
       <div id="profile-hf-status" class="subtle" style="margin: -0.5rem 0 1rem; min-height:1.2em;"></div>
 
+      <details id="model-review" class="card" style="margin:1rem 0;padding:1rem">
+        <summary data-i18n="models.title">Reviewed model examples · 2026-10-24</summary>
+        <p data-i18n="models.intro"></p>
+        <label for="model-review-select" data-i18n="models.choose">Choose an example</label>
+        <select id="model-review-select"></select>
+        <div id="model-review-detail" aria-live="polite"></div>
+      </details>
+      <p class="subtle" data-i18n="models.preset_note"></p>
+      <p id="profile-import-note" class="subtle" hidden data-i18n="models.import_note"></p>
+      <button id="profile-manual" type="button" data-i18n="models.manual">Use a manual scenario</button>
       <div class="form-grid" id="profile-form">
         <div class="form-field">
           <label><span data-i18n="param.theta">θ (rope_theta)</span> <span class="info"><span class="tooltip" data-i18n="param.theta.tip">RoPE base frequency from <code>config.rope_theta</code>.</span></span></label>
@@ -742,6 +754,8 @@
 
     <!-- INSPECTOR mode (paste config.json directly) -->
     <section id="inspector-section" style="display:none;">
+      <p class="subtle" data-i18n="models.import_note"></p>
+      <p class="subtle" data-i18n="models.preset_note"></p>
       <div class="quickstart-banner" data-i18n="inspector.quickstart">
         💡 Use case: you have a private model not on HF Hub, or a config you're designing. Paste the raw JSON below and get a full TAF profile.
       </div>
@@ -778,6 +792,9 @@
 
     <!-- COMPARE mode -->
     <section id="compare-section" style="display:none;">
+      <p id="compare-import-notes" role="status" style="white-space:pre-line;overflow-wrap:anywhere"></p>
+      <p class="subtle" data-i18n="models.import_note"></p>
+      <p class="subtle" data-i18n="models.preset_note"></p>
       <div class="quickstart-banner" data-i18n="compare.example">
         💡 Try: paste 3 popular 7-8B models (Meta-Llama-3-8B, Mistral-7B-v0.1, Qwen/Qwen2.5-7B), pick recipe X-2, T_eval=16000. See which best handles long context.
       </div>
@@ -1761,6 +1778,8 @@
 
     <!-- Form (mode=recipe) -->
     <section id="form-section" style="display:none;">
+      <p class="subtle" data-i18n="models.import_note"></p>
+      <p class="subtle" data-i18n="models.preset_note"></p>
       <h2 data-i18n="recipe.input_title">🎯 Inputs</h2>
 
       <div class="form-row">

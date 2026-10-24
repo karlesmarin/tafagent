@@ -1806,6 +1806,19 @@ def run_recipe(recipe_id: str, **params) -> dict:
 # Known model presets
 # ════════════════════════════════════════════════════════════════════════════
 PRESETS = {
+    # Reviewed 2026-10-24. Geometry: pinned configs in data/model_catalog.json.
+    # T_train is the model-card native reference (32768), not config max (40960).
+    # Parameter counts are rounded model-card values, not stored tensor counts.
+    "Qwen/Qwen3-0.6B": {
+        "theta": 1000000, "T_train": 32768,
+        "n_attention_heads": 16, "n_kv_heads": 8,
+        "d_head": 128, "n_layers": 28, "n_params": 0.6e9, "has_SWA": False,
+    },
+    "Qwen/Qwen3-8B": {
+        "theta": 1000000, "T_train": 32768,
+        "n_attention_heads": 32, "n_kv_heads": 8,
+        "d_head": 128, "n_layers": 36, "n_params": 8.2e9, "has_SWA": False,
+    },
     "EleutherAI/pythia-2.8b": {
         "theta": 10000, "T_train": 2048,
         "n_attention_heads": 32, "n_kv_heads": 32,

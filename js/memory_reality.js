@@ -3,6 +3,8 @@
 // Detection rules validated 2026-06-14 against 13 live HF configs (tests/fixtures/memory_reality_configs.json).
 // Spec: docs/proposals/memory-reality-check.md
 
+import { textConfig } from './model_compatibility.js';
+const FULL_MT = new Set(['llama', 'mistral', 'mixtral', 'qwen2', 'qwen3', 'qwen3_moe', 'qwen2_moe', 'smollm3', 'gemma', 'phi3', 'phi', 'gpt_neox', 'gpt2', 'falcon', 'deepseek_v2', 'deepseek_v3', 'deepseek_v32', 'ministral3']);
 const HYBRID_MT = new Set([
   "jamba", "zamba", "zamba2", "nemotron_h", "granitemoehybrid",
   "bamba", "falcon_h1", "minimax", "minimax_text_01",
@@ -27,7 +29,7 @@ export const CLASS_LIGHT = {
 };
 
 function moeInfo(cfg) {
-  const experts = cfg.num_experts ?? cfg.num_local_experts ?? null;
+  const experts = cfg.num_experts ?? cfg.num_local_experts ?? cfg.n_routed_experts ?? null;
   if (!experts) return null;
   return { experts, active: cfg.num_experts_per_tok ?? null };
 }
@@ -46,6 +48,7 @@ function archName(cfg) {
 // Count the attention/hybrid (random-access-recall) layers in a hybrid model, per family.
 function hybridRecallLayers(cfg) {
   const total = cfg.num_hidden_layers ?? null;
+  if (Array.isArray(cfg.layer_types)) return cfg.layer_types.filter(x => x === 'full_attention').length;
   if (Array.isArray(cfg.layers_block_type)) {
     return cfg.layers_block_type.filter((x) => /hybrid|attn|attention/i.test(String(x))).length;
   }
@@ -67,7 +70,7 @@ function hybridRecallLayers(cfg) {
  *           stateSize, window, ghostWindow, extended, moe, confidence, markers }.
  */
 export function classifyMemory(cfg) {
-  cfg = cfg || {};
+  cfg = textConfig(cfg);
   const mt = String(cfg.model_type || "").toLowerCase();
   const arch = archName(cfg).replace(/forcausallm$/, "");
   const maxPos = cfg.max_position_embeddings ?? null;
@@ -82,6 +85,7 @@ export function classifyMemory(cfg) {
 
   // 1) HYBRID — model_type OR any per-layer scheme
   const hasHybridScheme =
+    (Array.isArray(cfg.layer_types) && cfg.layer_types.some(x => /linear|mamba|ssm|recurrent/i.test(x)) && cfg.layer_types.includes('full_attention')) ||
     cfg.layers_block_type || cfg.hybrid_override_pattern ||
     cfg.attn_layer_period != null || cfg.attn_layer_indices || cfg.attention_layer_indices;
   if (HYBRID_MT.has(mt) || hasHybridScheme) {
@@ -124,7 +128,7 @@ export function classifyMemory(cfg) {
   const ghostWindow = sw != null && cfg.use_sliding_window === false;
 
   // 6) FULL — only after every linear/ssm/rwkv check (R1: never decide on "has heads" alone)
-  if (cfg.num_attention_heads != null || mt) {
+  if (FULL_MT.has(mt) || (!mt && cfg.num_attention_heads != null && cfg.hidden_size != null)) {
     markers.push("full:" + (mt || "attn"));
     return mk("FULL", { ghostWindow, extended: isExtended(cfg), confidence: mt ? "high" : "medium" });
   }
@@ -137,6 +141,7 @@ export function classifyMemory(cfg) {
 // Order-of-magnitude "compression pressure" for fixed-state classes (honest regime flag, NOT a recall prediction).
 // pressure ≈ (claimed_context × hidden) / (n_layers × hidden × state)  = claimed_context / (n_layers × state)
 export function compressionPressure(cfg, result, refLen = 131072) {
+  cfg = textConfig(cfg);
   if (!["SSM", "LINEAR", "TTT"].includes(result.cls)) return null;
   const layers = cfg.num_hidden_layers;
   const state = result.stateSize ?? cfg.state_size ?? cfg.d_state;
