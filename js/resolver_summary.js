@@ -38,8 +38,10 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
   };
   const resolverAnchors={pvr:'tbl-gamma-protocolo',cache:'sec-resolver-cache',drift:'sec-resolver-drift',cot:'sec-resolver-json',peft:'sec-resolver-peft',compatibility:'sec-resolver-architecture'};
   section=resolverAnchors[route]||anchors[why]?.[guideLang]||'';
-  const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));url.hash=section;
+  const chapter=route==='compatibility'?'10-arquitecturas':topics[topic].chapters[index];
+  const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));
+  url.pathname=url.pathname.slice(0,url.pathname.lastIndexOf('/')+1)+chapter+'.html';url.hash=section;
   const checks=selectResolverChecks({route,result,inputs});
   const next=tr(checks?checks.steps[0]:result.protocolReview?'protocol_first_'+result.protocolReview.priority:result.nextKey || (route==='template'?(result.status==='present'?'template_next':'template_missing_next'):route==='compatibility'||result.status==='limited'?'compatibility_next':'memory_next'));
-  return {problem,finding,change,next,checks:checks?{...checks,title:tr(checks.title_key),instructions:checks.steps.map(tr)}:null,guide:{url:url.href,title:chapterTitles[topics[topic].chapters[index]][guideLang],why:tr('summary_why_'+why),language:guideLang,note:lang==='fr'||lang==='zh'?local('fallback',lang):null},demo:bundle.origin==='demo'};
+  return {problem,finding,change,next,checks:checks?{...checks,title:tr(checks.title_key),instructions:checks.steps.map(tr)}:null,guide:{url:url.href,title:chapterTitles[chapter][guideLang],why:tr('summary_why_'+why),language:guideLang,note:lang==='fr'||lang==='zh'?local('fallback',lang):null},demo:bundle.origin==='demo'};
 }

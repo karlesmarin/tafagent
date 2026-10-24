@@ -73,6 +73,12 @@ for(const state of cases)for(const lang of ['en','es','fr','zh']){
  if(['cache','drift'].includes(state.route))assert.equal(new URL(summary.guide.url).hash,'#sec-resolver-'+state.route);
  const anchors={compatibility:'architecture',cot:'json',peft:'peft'};
  if(anchors[state.route])assert.equal(new URL(summary.guide.url).hash,'#sec-resolver-'+anchors[state.route]);
+ const chapters={compatibility:'10-arquitecturas',cot:'30-prompting',peft:'28-peft',cache:'36-serving',drift:'40-evaluacion'};
+ if(chapters[state.route]){
+  const url=new URL(summary.guide.url);
+  assert.ok(url.pathname.endsWith('/'+chapters[state.route]+'.html'));
+  assert.equal(url.searchParams.get('resolve'),state.route);assert.equal(url.searchParams.get('lang'),lang);
+ }
 }
 for(const values of Object.values(checksRows))assert.ok(values.length===4&&values.every(Boolean));
 for(const [route,scenarios] of Object.entries(CHECK_DEMOS))for(const scenario of scenarios){
