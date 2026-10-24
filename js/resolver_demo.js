@@ -15,11 +15,11 @@ export async function runResolverDemo(D) {
   document.addEventListener('keydown',takeOver,true);
   document.addEventListener('input',takeOver,true);
   try {
-    D.banner(dt('resolver.s1'),1,6);D.hl('#resolver-description');
-    await D.type('#resolver-description',dt('resolver.question'),check);check();
-    await pause(900);
-    D.banner(dt('resolver.s2'),2,6);D.click('#resolver-suggest');D.hl('#resolver-suggestions');
-    await pause(1200);D.click('#resolver-suggestions button');
+    D.banner(dt('resolver.s1'),1,6);D.hl('#resolver-symptom');await pause(700);
+    D.select('#resolver-symptom','memory');await pause(1000);
+    D.banner(dt('resolver.s2'),2,6);D.hl('#resolver-symptom-detail');await pause(700);
+    D.select('#resolver-symptom-detail','generate');D.hl('#resolver-triage-answer');
+    await pause(1600);D.click('#resolver-triage-continue');
     D.banner(dt('resolver.s3'),3,6);D.hl('#resolver-demo');await pause(900);
     await loadResolverExample();check();D.hl('#resolver-memory-fields');await pause(1600);
     D.banner(dt('resolver.s4'),4,6);D.hl('#resolver-result dl');await pause(1800);

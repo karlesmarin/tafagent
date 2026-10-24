@@ -1070,8 +1070,8 @@ for (const [language, entries] of Object.entries(ENTROPY_DEMO_TRANSLATIONS)) {
 
 const resolverDemoRows={
   question:['My model runs out of memory','Mi modelo se queda sin memoria','Mon modèle manque de mémoire','我的模型显存不足'],
-  s1:['Describe the problem — the demo types an example','Describe el problema: la demo escribe un ejemplo','Décrivez le problème : la démo saisit un exemple','描述问题：演示会输入示例'],
-  s2:['Find a route and choose memory','Busca una ruta y elige memoria','Trouvez un parcours et choisissez la mémoire','寻找路线并选择内存问题'],
+  s1:['Start with a symptom: choose “Memory / CUDA OOM”','Empieza por el síntoma: elige «Memoria / CUDA OOM»','Partez du symptôme : choisissez « Mémoire / CUDA OOM »','从症状开始：选择“内存 / CUDA OOM”'],
+  s2:['TAF asks when it fails: choose “while generating” and continue','TAF pregunta cuándo falla: elige «al generar» y continúa','TAF demande quand survient l’échec : choisissez « à la génération » et continuez','TAF 询问何时失败：选择“生成时”并继续'],
   s3:['Load the saved example: 24 GiB, BF16, 131,072 tokens','Carga el ejemplo guardado: 24 GiB, BF16, 131.072 tokens','Chargez l’exemple : 24 Gio, BF16, 131 072 tokens','加载已保存示例：24 GiB、BF16、131,072 个词元'],
   s4:['Compare memory, reduce context and watch the estimate change','Compara la memoria, reduce el contexto y observa la nueva estimación','Comparez la mémoire, réduisez le contexte et observez l’estimation','比较内存、缩短上下文，观察估算变化'],
   s5:['Still failing? TAF suggests what to check next','¿Sigue fallando? TAF propone qué comprobar después','Toujours un échec ? TAF propose les vérifications suivantes','仍然失败？TAF 会建议下一步检查'],

@@ -35,6 +35,9 @@ try{
   assert.equal(finalLink.hash,lang==='es'?'#el-problema':'#the-problem');
   const steps=await page.evaluate(()=>window.resolverDemoSteps);
   for(let i=1;i<=6;i++)assert.ok(steps.some(s=>s.includes(DEMO_STRINGS[lang]['resolver.s'+i])),`Narrated step ${i}, ${lang}`);
+  assert.equal(await page.locator('#resolver-symptom').inputValue(),'memory');
+  assert.equal(await page.locator('#resolver-symptom-detail').inputValue(),'generate');
+  assert.equal(await page.locator('#resolver-description').inputValue(),'','Guided demo must not require pasted error text');
   assert.ok(Number(await page.locator('#resolver-context').inputValue())<131072);
   assert.ok((await page.locator('#resolver-followup').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.followup']));
   await page.locator('#resolver-own-case').click();
@@ -63,7 +66,7 @@ try{
   }
  }
  assert.equal(metadataRequests,0,'Offline examples must not fetch model metadata');
- // Closing during animated typing stops the script; replay remains available.
+ // Closing during guided selection stops the script; replay remains available.
  await page.goto(base+'?demo=resolver&lang=es');
  await page.locator('#resolver-dialog #__taf_demo_banner').waitFor();
  await page.locator('#resolver-close').click();

@@ -58,9 +58,10 @@ language:
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):
-uses the same automatic demo player as the other tools: typed input, highlighted
-controls, six narrated steps and a final explanation. It loads a saved memory
-example, reduces context and shows follow-up. No input or model download required.
+uses the same automatic demo player as the other tools: highlighted controls,
+six narrated steps and a final explanation. It chooses a memory symptom, answers
+TAF's follow-up question, loads a saved example, reduces context and shows the
+next checks and guide explanation. No typing or model download required.
 The final case summary preserves the original problem and before/after estimates,
 states what remains unverified, and links directly to the relevant guide section.
 TAF generates these responses automatically, with no human support handoff.

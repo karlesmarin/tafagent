@@ -174,6 +174,8 @@ export function openResolverForDemo() {
   invalidate(true);route='';$('form').hidden=true;$('description').value='';
   $('share-area').hidden=true;
   triageUI?.reset();
+  $('direct').open=false;$('catalog').querySelector('details').open=false;
+  $('catalog-search').value='';$('catalog-select').value='';catalogUI?.refresh();
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.setAttribute('aria-pressed','false'));
   if(!$('dialog').open)$('dialog').showModal();
 }
