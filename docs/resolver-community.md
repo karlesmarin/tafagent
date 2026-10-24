@@ -69,3 +69,9 @@ The interface implements seven symptom families and twenty branches from these
 distinctions. It does not display forum authors or reproduce their code. The
 complete [module audit](resolver-module-audit.md) explains which TAF computations
 can actually support a response and which remain exploratory.
+
+Implementation update, 25 October 2026: each direct route also offers **Review
+this result**, distinguishing the supplied evidence from what still needs
+checking. The next step is a bounded verification in the user's environment,
+with contextual guide reading. This addition does not expand the discussion
+sample or enable monitoring, replies, independent verification or telemetry.

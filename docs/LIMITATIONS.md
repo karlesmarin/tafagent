@@ -1,93 +1,119 @@
-# TAF Agent — Limitations & Regime of Validity
+# TAF Agent — Limitations & evidence
 
-This document records the assumptions behind the closed-form predictions used in TAF Agent and the conditions under which they may fail. It complements the in-tool **Validity Gate** banner (γ Predicted vs Observed panel) and the empirical Phase Diagram.
+Implementation review: **25 October 2026**. This document describes what the
+current tools establish. It is not a new experimental validation of the papers.
+See the [31-mode audit](resolver-module-audit.md) for individual computations.
 
-## TL;DR
+## Estimates, inspections and measurements
 
-| Closed-form | Assumption | When it breaks | Detection in TAF Agent |
-|-------------|------------|----------------|------------------------|
-| **γ_Padé(θ, T) = (2−z)/(2+z), z = T√2/θ** | Natural training; attention follows the architectural RoPE-induced shape; no explicit attention regularization | Heavy regularization, RLHF/instruction-tuning collapse, sliding-window architectures, undertrained checkpoints | η = θ_eff_obs / θ_eff_Padé outside [0.85, 1.15] → Validity Gate banner |
-| **ν = −1/(2π) (universal footprint)** | Token sequence is i.i.d. when computing the gradient fixed point of the RoPE base | Real text has long-range correlations (1/f, Zipf-like). Synthetic data can shift the fixed point further | Not yet detected automatically — see Future Work |
-| **d_horizon = θ(1−γ)√2/(1+γ)** | Treated as an independent predicted horizon | **Always**, in the no-inference path: with γ = γ_Padé(θ, T_eval) it is the algebraic identity d_horizon ≡ T_eval (D-NEW-1) — tautological | X-2 now flags it ("Honesty notes") and routes to measured γ_obs → PDI |
+| Output | Evidence available | What it does not establish |
+|---|---|---|
+| Configuration-derived γ | A formula evaluated from supplied architecture/context parameters | The distance profile of learned attention or task quality |
+| Phase Diagram | Included atlas measurements and formula overlays | A new forward pass on a user-selected model |
+| Diagnose CLI | Measurements when the user actually runs Python with model weights | That generating the command in the browser executed it |
+| Prediction vs Reality | Statistics and protocol imported from a JSON report | Independent reproduction or verification of that report |
+| Fit Check | Estimated weights, KV and overhead under declared assumptions | Observed peak memory, successful loading or production capacity |
+| Resolver review | Provenance, limits, existing notices and a next check | A probability of failure, a new model run or an independently verified fix |
 
-## 1. Closed-form γ — regime of validity
+Saved and synthetic demos illustrate the controls. They are not measurements of
+the user's model. A matching family or model name is not proof that revisions,
+weights, tokenizer, backend and measurement protocols match.
 
-The Padé form `γ = (2−z)/(2+z)` is derived from the architecture alone (θ, head dimension, evaluation length T). It does **not** know what the trained weights do. Two failure modes:
+## 1. Closed-form γ and attention entropy
 
-1. **Forced near-uniform attention.** If training pushes attention towards uniform distribution (e.g. via entropy regularization, or as a side effect of certain RLHF losses), the empirical γ collapses regardless of θ. The closed-form will then over-predict γ.
-2. **Collapsed / compressed attention.** Instruction tuning and RLHF often flatten attention to short range. Empirical γ is then much lower than `γ_Padé`. This is the "compressed" regime in TAF (η ∈ [0.01, 0.5)) and the "fraud" regime (η < 0.01) when paired with marketing inflation of θ.
-3. **Sliding-window attention.** Mistral and Gemma families use a windowed mask. The closed-form assumes full attention by construction; SWA produces γ_obs > 1 on random corpora, which TAF labels as a known signature, not as "normal".
-4. **Undertrained / Lerch-corrected regimes.** Early checkpoints and models with non-standard training can attend farther than Padé predicts (η > 1.5).
+The browser's Padé reference is
+`γ = (2 − z)/(2 + z)`, with `z = T√2/θ`. This expression contains no learned
+query/key weights or dataset. It cannot establish a universal empirical decay
+exponent for every softmax transformer. Equal allowed logits, for example, produce
+uniform attention within each row regardless of RoPE base. Causal masks and
+distance aggregation must be accounted for when defining the measured profile.
 
-### What TAF Agent does about it
+Different training objectives, weights, masks and data can change attention.
+Neither a discrepancy nor a regime label identifies which of those caused it.
+Do not infer fraud, post-training damage or usable context from such a label.
+Adding a “standard training” condition also does not, by itself, prove the formula
+within that domain: assumptions and empirical tests still need specification.
 
-- **Validity Gate banner** (added v0.8.9, all 4 UI languages): when η falls outside `[0.85, 1.15]` or the regime classifier returns anything other than `normal`, the γ panel renders an explanatory warning above the regime tile, with a per-regime hint about the most likely cause.
-- **Empirical fallback already exists**: the Phase Diagram (`js/phase_diagram.js`) shows γ_observed for 23 panel models; the Diagnose CLI (`cli/diagnose_model.py`) measures γ via real forward pass. When the Validity Gate fires, users are directed to those channels.
+The historical Validity Gate compares derived quantities using heuristic
+thresholds. Passing it is not a validation certificate; failing it is a reason
+to inspect the measurement and assumptions, not a causal diagnosis.
 
-### What TAF Agent does **not** do (and why)
+### Implemented entropy measurement
 
-We considered, and explicitly rejected, the "γ_eff = γ_RoPE + λ · Δ_attn" patch suggested in external review. Reasons:
+`cli/diagnose_model.py --measure-entropy` adds a separately documented entropy
+probe; `--entropy-only` runs that probe without the distance sweep. The browser's
+standalone `js/entropy_scanner.js` analyzes already measured attention rows and is
+not imported as an automatic model-loading feature. See
+[the measurement instructions](entropy-correction.md).
 
-- The mixing coefficient `λ` would be set ad hoc (e.g. `λ = −γ_RoPE / Δ_attn_uniform`) to satisfy the uniform-attention edge case, with no derivation justifying linearity in the entropy gap.
-- The result would replace a clean closed-form with a fitted formula whose interpretability is lower than just measuring γ directly — which the Phase Diagram and Diagnose CLI already do.
-- If the closed-form is unreliable in a regime, the honest answer is "use the empirical measurement", not "trust this patched formula".
+Entropy alone cannot identify distance decay: permuting a row's probabilities
+preserves entropy while moving mass to different distances. TAF therefore does
+not implement an entropy-to-γ correction or an entropy threshold that certifies
+Padé. There is no validated `H_RoPE = 0.5 log₂(L)` baseline or mixing coefficient
+λ in this feature. Undefined or incompatible measurements must not become zero.
 
-We therefore treat the closed-form as a **regime-bounded prediction** with an automatic gate, rather than a universal law.
+## 2. The inverse Padé horizon is not independent evidence
 
-## 1b. The closed-form horizon `d_horizon` is tautological (D-NEW-1)
+For `d = θ√2(1 − γ)/(1 + γ)`, substituting the same Padé reference gives:
 
-The recipe **X-2 (Long Context Viability)** reports a `d_horizon = θ(1−γ)√2/(1+γ)` and compares the requested length `T_eval` against it. In the no-inference browser path the γ fed to this formula is `γ_Padé(θ, T_eval)`. Substituting:
-
+```text
+(1 − γ_Padé)/(1 + γ_Padé) = T√2/(2θ)
+d(θ, γ_Padé(θ,T)) = T
 ```
-d_horizon(θ, γ_Padé(θ, T_eval)) = θ·√2·(1−γ)/(1+γ)  with  (1−γ)/(1+γ) = T_eval·√2/(2θ)
-                                = θ·√2·T_eval·√2/(2θ) = T_eval   (identically)
-```
 
-So **the closed-form horizon equals `T_eval` by construction** — it is the identity behind the Padé Deviation Index (`PDI = d_horizon_obs / T_eval = 1 ⟺ γ_obs = γ_Padé`, §33.2). Consequences:
+This is an algebraic identity, not a prediction of usable context. Corrections
+to γ can break the equality without independently validating a horizon. Using
+measured γ makes a deviation index descriptive of that measurement; it still
+does not establish retrieval or reasoning performance. Validate those tasks
+directly at the required lengths. A configured context limit is not necessarily
+a verified training length or demonstrated quality limit.
 
-- The θ → γ_Padé → d_horizon → verdict chain shown in the audit trail **collapses to an identity**. Any deviation of the displayed `d_horizon` from `T_eval` comes **only** from the empirical γ-corrections (`δ_GQA`, `δ_SWA`, `δ_post_IH`), several of which are disabled (`δ_SWA`, fit on n=1) or exploratory (`δ_post_IH`, group-mean ≈ 0 in re-audit). The verdict is therefore **δ-driven, not RoPE-geometry-driven**, despite how the trail reads.
-- This is *not* a numerical bug — the numbers are internally consistent — but presenting a tautological horizon as a geometry-derived prediction would be exactly the kind of false confidence this tool exists to surface.
+## 3. The proposed ν constant and correlation corrections
 
-### What TAF Agent does about it (v0.9.x audit fix)
+The discussion of `ν = −1/(2π)` must remain a hypothesis with an explicit
+definition, derivation, assumptions and measurement protocol. This implementation
+does not establish universal convergence, nor does it establish convergence merely
+by imposing an i.i.d. assumption.
 
-- **X-2 now emits "Honesty notes"** (all 4 UI languages) disclosing the tautology and that the no-inference verdict is δ-driven, with the disabled/exploratory δ-corrections flagged individually.
-- The audit-trail `d_horizon` step now states the identity inline and also reports the **native horizon at `T_train`** (`d_horizon(θ, γ_Padé(θ, T_train)) ≡ T_train`) as the meaningful geometric reference ("are you asking beyond the training length?").
-- **Non-tautological path:** passing a measured `gamma_obs` (from the Diagnose CLI) makes X-2 compute the real `PDI = d_horizon_obs / T_eval` and base the verdict on it. `PDI ≈ 1` matches Padé; `PDI > 1.5` sink-dominated; `PDI < 0.5` over-concentrated.
+Earlier review proposals introduced `δ(β)` and a weighting function `φ(m)` without
+deriving or validating them. Those proposals and their illustrative numbers are
+not experimental results. This documentation withdraws the previous unsupported
+default β range, claimed shift and claim that a discrepancy necessarily falsifies
+only the i.i.d. assumption. A disagreement requires checking both the theory and
+the experiment; it cannot automatically be assigned to the data.
 
-The honest rule is the same as for §1: when the closed-form is tautological in a regime, **use the empirical measurement** (γ_obs → PDI), not the identity dressed as a prediction.
+TAF does not provide a validated correlation-to-ν correction or an automatic
+detector of that shift. Numeric token IDs are arbitrary labels, so their numeric
+autocorrelation is not an encoding-independent measure of linguistic dependence.
+A future diagnostic needs a defined representation, estimator and validation;
+it must not present an invented correction as a measured value.
 
-## 2. Universal footprint ν = −1/(2π)
+## 4. Resolver review and reproducibility
 
-The ν derivation in the second paper assumes i.i.d. tokens when computing the gradient fixed point of the RoPE base. Real corpora do not satisfy this:
+**Review this result** is an optional panel in all nine direct resolver routes.
+It distinguishes configuration estimates, static inspections, heuristic score
+comparisons and imported attention measurements. It reuses current inputs/results,
+retains protocol notices and missing-field counts, and links to the next check
+and a relevant guide chapter. No additional inference is run.
 
-- Natural text exhibits long-range correlations of approximately `1/f^β` form, with β typically in the 0.5–0.8 range.
-- Synthetic data (especially long-context benchmarks like RULER, NIAH, multi-document QA) can have correlations far outside that range by construction.
-- The fixed point shifts as `ν_final = −1/(2π) + δ(β)`, where `δ(β)` depends on a weighting function we have not derived rigorously.
+The local case report uses schema version 3; its `review` object uses version 1.
+`independently_verified: false` is explicit, including after a user reports that
+a suggestion worked. Pasted questions, prompts, code, measurement/config files
+and proposed JSON are excluded as described in [resolver documentation](resolver.md).
+The report is not a signed ledger or a reproducibility certificate. It does not
+claim bitwise reproducibility across environments. No community monitoring,
+posting or telemetry is enabled.
 
-### Honest framing
+The four interface languages are EN/ES/FR/ZH; the guide is ES/EN, with an explicit
+English fallback for FR/ZH. Manual, feature overview and the narrated resolver
+demo explain the same boundaries.
 
-The published constant should be read as the **asymptotic footprint under the i.i.d. assumption**. Empirically the deviations are small for natural text, but neither universal nor zero.
+## 5. Remaining work
 
-### What TAF Agent does about it
+Future extensions should validate estimates against controlled measurements,
+record exact revisions and protocols, and distinguish replicated results from
+imported reports. Data-correlation estimators, calibrated corrections, a signed
+ledger and automatic community replies are not delivered by this update.
 
-Not yet automated. The Validity Gate covers γ; an analogous "data correlation diagnostic" for ν is planned but **deliberately not implemented as a corrected formula**, for the same reason as above: without a derivation of `δ(β)` from first principles, any reported "ν_corrected" would be a fitted constant masquerading as theory.
-
-If you measure ν directly on your model + data and it deviates from `−1/(2π)`, that is expected for non-i.i.d. data and does not falsify the framework — it falsifies the i.i.d. assumption used to derive the constant.
-
-## 3. Future work
-
-- **Attention Entropy Scanner (planned)**: extend `cli/diagnose_model.py` to emit per-layer per-head attention entropy `H(A)` alongside γ, and surface it in a JSON field `attention_entropy.regime_validity`. The browser side already supports the Validity Gate UI; this would let it fire on objective measurement (entropy near `log(L)` = uniform) instead of only on the η ratio.
-- **Data correlation diagnostic**: estimate β from a user-supplied text sample and report it as a *diagnostic* (not a correction). Warn when β suggests strong long-range correlations that violate the i.i.d. assumption.
-- **Formal ν derivation for non-i.i.d. data**: open problem. We invite contributions but will not ship a "corrected formula" that depends on undefined functions.
-
-## 4. Reading guide for the papers
-
-When citing the closed-form γ or the universal ν constant, please include the regime caveats:
-
-> "The closed-form γ assumes natural training without explicit attention regularization. For models with near-uniform attention (e.g. after entropy regularization, certain post-training losses, or sliding-window architectures), measure γ directly. TAF Agent v0.8.9+ ships a Validity Gate that flags this regime automatically."
-
-> "The universal footprint ν = −1/(2π) is the asymptotic value under the i.i.d. token assumption. For corpora with strong long-range correlations (β ≲ 1 in a 1/f^β autocorrelation), the fixed point shifts; the size of the shift depends on a weighting function whose closed form is open."
-
-## 5. Acknowledgements
-
-This Limitations document was prompted by an external review (DeepSeek, May 2026) of the TAF papers and the TAF Agent tool. The reviewer correctly identified the regime-of-validity issues for both γ and ν. We adopted the diagnostic / disclaimer approach (Validity Gate + this document) rather than the proposed `γ_eff` and `ν_corrected` patches, because the latter introduce undefined parameters (`λ`, `φ(m)`) that we cannot derive from first principles.
+The earlier external AI review helped identify questions worth investigating;
+its proposed equations and virtual examples are not treated as evidence.

@@ -22,6 +22,28 @@ libro y JavaScript como soporte de la interactividad, con enlaces estáticos de 
 
 ## Límites científicos y privacidad
 
+### Resolutor y revisión de evidencia (25 de octubre de 2026)
+
+**Resolver mi problema** empieza por siete familias de síntomas y veinte
+situaciones. Ofrece nueve comprobaciones directas y un selector de los 31 modos,
+con requisitos, límites, demos y lecturas. No hace falta conocer el nombre del
+módulo para empezar; los casos no cubiertos explican su límite.
+
+Cada resultado directo incluye un resumen y **Revisar este resultado**, un panel
+opcional con procedencia, fundamento, lo pendiente de verificar y siguiente
+comprobación. El enlace contextual utiliza la misma selección de capítulo que
+el resumen; conserva el idioma ES/EN y el aviso de lectura inglesa para FR/ZH.
+El panel se recalcula al cambiar el resultado y desaparece al modificar entradas.
+No transmite a la guía el informe, los prompts ni el código pegado.
+
+La demo `?demo=resolver&lang=es` abre la revisión en su quinto paso, antes del
+seguimiento. R5 explica este recorrido en ambos idiomas. El informe descargado
+incluye la revisión (esquema 3); no es una medición nueva ni una certificación.
+Implementación: `js/resolver_summary.js`, `js/resolver_review.js` y
+`js/resolver_ui.js`. Pruebas: `npm run test:resolver`.
+
+### Alcance de las explicaciones
+
 - γ_Padé y γ_decomposed siguen siendo estimaciones. γ_obs es un valor importado:
   la guía no verifica cómo se obtuvo. Los controles sintéticos tampoco se convierten
   en evidencia de modelos entrenados.

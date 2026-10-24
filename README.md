@@ -65,8 +65,9 @@ report (schema 3). Available in EN/ES/FR/ZH; no additional model run is implied.
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):
 uses the same automatic demo player as the other tools: highlighted controls,
 six narrated steps and a final explanation. It chooses a memory symptom, answers
-TAF's follow-up question, loads a saved example, reduces context and shows the
-next checks and guide explanation. No typing or model download required.
+TAF's follow-up question, loads a saved example, reduces context, opens the
+evidence review and shows the next checks and guide explanation. No typing or
+model download required. See the [October update notes](docs/RELEASE_NOTES_2026-10.md).
 The final case summary preserves the original problem and before/after estimates,
 states what remains unverified, and links directly to the relevant guide section.
 TAF generates these responses automatically, with no human support handoff.

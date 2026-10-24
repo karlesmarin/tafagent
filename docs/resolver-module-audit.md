@@ -1,6 +1,6 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
-Revisión de implementación: 24 de octubre de 2026. Esta auditoría describe el
+Revisión de implementación: 25 de octubre de 2026. Esta auditoría describe el
 código y sus datos incluidos; no constituye una nueva validación experimental de
 las fórmulas. La interfaz conserva EN/ES/FR/ZH y los enlaces a la guía ES/EN.
 
@@ -17,6 +17,14 @@ errores de acceso y la memoria de entrenamiento distribuido tienen límites
 explícitos: no se introducen credenciales ni se aplican presupuestos de inferencia.
 
 ## Inventario funcional
+
+Las nueve rutas directas incorporan **Revisar este resultado**. El módulo puro
+`resolver_review.js` clasifica la evidencia disponible y reutiliza el siguiente
+paso y enlace contextual del resumen. `resolver_review_i18n.js` define fundamento
+y límites en EN/ES/FR/ZH; los avisos y el número de campos de protocolo ausentes
+proceden del resultado actual. No ejecuta los 31 modos, asigna riesgo ni verifica
+de forma independiente una medición. La demo abre el panel y la descarga lo
+incluye como `review` versión 1 dentro del informe de caso versión 3.
 
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|

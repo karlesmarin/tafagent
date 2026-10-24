@@ -70,8 +70,8 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 - **🎬 Demo**, beside the resolver heading and in the Manual/feature overview,
   uses the shared `DEMOS` player, like the other TAF tools. It selects the memory
   symptom, answers that failure occurs while generating, then loads a saved
-  example, reduces context and shows
-  follow-up, with six step banners, highlighted controls and a final explanation.
+  example, reduces context, opens the evidence review and shows follow-up,
+  with six step banners, highlighted controls and a final explanation.
   Closing the dialog or taking control with the mouse/keyboard interrupts playback.
   **Start my own case** clears the example inputs.
 - `?demo=resolver&lang=es` (also the older `?resolve=demo&lang=es`) starts playback

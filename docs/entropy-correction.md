@@ -17,6 +17,13 @@ una nueva inferencia como ejecutados. La demo de entropía genera el comando loc
 
 ## Ejecutar una medición real
 
+Si importas un diagnóstico con γ en **Resolver mi problema → Atención**, el
+panel **Revisar este resultado** conserva los avisos de protocolo y explica qué
+falta verificar. No vuelve a ejecutar el modelo ni convierte la entropía en una
+γ corregida. Un informe `--entropy-only` no contiene γ y no es una entrada válida
+para esa ruta. Véanse los [límites actuales](LIMITATIONS.md) y el
+[alcance del resolutor](resolver.md).
+
 Instala las dependencias en tu entorno Python y ejecuta desde la raíz del repositorio:
 
 ```bash

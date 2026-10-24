@@ -1,5 +1,8 @@
 # TAF Agent v0.10 — Architecture-aware + Reality-check
 
+Historical release snapshot. Current behavior and limitations are described in
+[October 2026 updates](RELEASE_NOTES_2026-10.md) and [Limitations](LIMITATIONS.md).
+
 > Release date: 2026-06-14. Browser-only, no inference, $0, EN/ES/FR/ZH.
 > Live: https://karlesmarin.github.io/tafagent · HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 

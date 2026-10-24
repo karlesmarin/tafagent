@@ -1,5 +1,8 @@
 # TAF Agent v0.11 — Guided demos for every mode
 
+Historical release snapshot. For the current 31-mode inventory, guided resolver,
+evidence review and report schema, see [October 2026 updates](RELEASE_NOTES_2026-10.md).
+
 > Release date: 2026-06-29. Browser-only, no inference, $0, EN/ES/FR/ZH.
 > Live: https://karlesmarin.github.io/tafagent · HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 
