@@ -51,11 +51,19 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 - Every route has an offline example. Memory uses a saved Qwen3-8B configuration;
   compatibility uses Qwen3.8's hybrid; template inspection uses synthetic ChatML.
 - Changing inputs cancels in-flight requests and invalidates the displayed result.
+- Results and the animated demo end with a case summary: the original problem,
+  the check, any before/after adjustment, and the remaining verification. The
+  guide link points to a relevant section on KV growth, quantization, serving,
+  evaluation controls or attention families, with a sentence explaining its use.
+  ES opens the Spanish guide; EN/FR/ZH use English (explicitly noted for FR/ZH).
+  The summary is built from recorded inputs and estimates, never inferred from
+  pasted error text. Starting another check clears the previous comparison.
 - **It still fails** offers additional checks and lets the user bring an error
   back to the local route selector. It does not claim to have diagnosed the GPU.
 - **It worked** is labelled user feedback, not an independently verified fix.
 - Reports include displayed inputs/results, revision, inspected sources and user
-  feedback, excluding pasted questions/errors. Reports are downloaded locally.
+  feedback, the original inputs and case summary with its guide link, excluding
+  pasted questions/errors. Reports are downloaded locally.
 - Shareable links contain only route, model ID and language. They carry no result,
   hardware details, pasted error or question. Users choose where to post them.
 

@@ -27,6 +27,12 @@ try{
   await page.goto(base+(lang==='es'?'?resolve=choose':lang==='fr'?'?resolve=demo':'?demo=resolver')+'&lang='+lang);
   if(lang==='es')await page.locator('.taf-demo-btn[data-demo-mode="resolver"]').click();
   await page.locator('#resolver-dialog #__taf_demo_explain').waitFor({timeout:35000});
+  const finalSummary=page.locator('#resolver-demo-summary');
+  assert.ok((await finalSummary.innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.summary_problem']));
+  assert.ok((await finalSummary.innerText()).includes('→'));
+  const finalLink=new URL(await finalSummary.locator('a').getAttribute('href'));
+  assert.ok(finalLink.pathname.endsWith('/20-kv-cache.html'));
+  assert.equal(finalLink.hash,lang==='es'?'#el-problema':'#the-problem');
   const steps=await page.evaluate(()=>window.resolverDemoSteps);
   for(let i=1;i<=6;i++)assert.ok(steps.some(s=>s.includes(DEMO_STRINGS[lang]['resolver.s'+i])),`Narrated step ${i}, ${lang}`);
   assert.ok(Number(await page.locator('#resolver-context').inputValue())<131072);
@@ -41,6 +47,8 @@ try{
    await page.locator(`[data-resolver-case="${route}"]`).click();
    await page.locator('#resolver-demo').click();
    await page.locator('#resolver-export').waitFor();
+   const summaryLink=new URL(await page.locator('#resolver-case-summary a').getAttribute('href'));
+   assert.ok(summaryLink.pathname.includes(route==='memory'?'20-kv-cache':route==='template'?'40-evaluacion':'18-taxonomia'));
    assert.ok((await page.locator('#resolver-result').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_note']));
    if(route==='memory'){
     assert.ok((await page.locator('#resolver-result').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.kv_bound']));
@@ -78,6 +86,7 @@ try{
  const downloadPromise=page.waitForEvent('download');await page.locator('#resolver-export').click();
  const download=await downloadPromise;const report=JSON.parse(readFileSync(await download.path(),'utf8'));
  assert.equal(report.origin,'hf');assert.equal(report.revision,q.revision);assert.equal(report.inputs.context,131072);
+ assert.equal(report.initial_inputs.context,131072);assert.ok(report.summary.guide.url.includes('20-kv-cache'));
  // Inputs invalidate earlier answers, so a changed model cannot inherit a verdict.
  await page.locator('#resolver-model').fill('Other/Model');
  assert.equal(await page.locator('#resolver-export').count(),0);

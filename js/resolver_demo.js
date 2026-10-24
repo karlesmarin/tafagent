@@ -1,7 +1,6 @@
 // Uses the same narrated demo runner as the other TAF tools.
 import { dt } from './demo_i18n.js';
-import { t } from './i18n.js';
-import { openResolverForDemo, loadResolverExample } from './resolver_ui.js';
+import { openResolverForDemo, loadResolverExample, createResolverSummary } from './resolver_ui.js';
 
 export async function runResolverDemo(D) {
   openResolverForDemo();
@@ -28,9 +27,9 @@ export async function runResolverDemo(D) {
     D.hl('#resolver-result dl');await pause(1800);
     D.banner(dt('resolver.s5'),5,6);D.hl('#resolver-failed');await pause(900);
     D.click('#resolver-failed');D.hl('#resolver-followup');await pause(1800);
-    D.banner(dt('resolver.s6'),6,6);D.hl('#resolver-result a');await pause(1600);
+    D.banner(dt('resolver.s6'),6,6);D.hl('#resolver-case-summary .resolver-summary-guide');await pause(1600);
     D.clearHl();
-    return {title:dt('resolver.x.title'),lines:[t('resolver.demo_note'),dt('resolver.x.learned'),t('resolver.demo_finish')]};
+    return {title:dt('resolver.x.title'),lines:[],content:createResolverSummary('resolver-demo-summary')};
   } finally {
     dialog.removeEventListener('close',stop);
     document.removeEventListener('pointerdown',takeOver,true);

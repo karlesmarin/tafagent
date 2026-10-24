@@ -1,15 +1,16 @@
 import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle, resolverLink } from './resolver.js';
 import { t, getLang } from './i18n.js';
-import { guideLink, tafLink } from './guide_bridge.js';
+import { tafLink } from './guide_bridge.js';
+import { buildResolverSummary } from './resolver_summary.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 const $=id=>document.getElementById('resolver-'+id);
 const node=(tag,text)=>{const el=document.createElement(tag); if(text!=null)el.textContent=text;return el;};
 const tr=key=>t('resolver.'+key);
-let route='',bundle=null,result=null,feedback='',controller=null,request=0,lastInputs=null;
+let route='',bundle=null,result=null,feedback='',controller=null,request=0,lastInputs=null,initial=null;
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;
+  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
@@ -29,8 +30,23 @@ function renderFeedback() {
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
   }
 }
+function summaryData() {return buildResolverSummary({route,bundle,initial,inputs:lastInputs,result},getLang());}
+export function createResolverSummary(id='resolver-case-summary') {
+  const summary=summaryData(),box=node('section');box.id=id;box.className='resolver-demo-card';
+  box.append(node('h4',tr('summary_title')));
+  if(summary.demo)box.append(node('p',tr('demo_note')));
+  for(const [label,value] of [['summary_problem',summary.problem],['summary_check',summary.finding],['summary_change',summary.change],['summary_next',summary.next]]) {
+    if(!value)continue;
+    const p=node('p');p.append(node('strong',tr(label)+': '),node('span',value));box.append(p);
+  }
+  box.append(node('h4',tr('summary_guide')),node('p',summary.guide.why));
+  const a=node('a',summary.guide.title);a.className='resolver-summary-guide';a.href=summary.guide.url;a.target='_blank';a.rel='noopener';box.append(a);
+  if(summary.guide.note)box.append(node('p',summary.guide.note));
+  return box;
+}
 function renderResult() {
   const out=$('result');out.replaceChildren();if(!result)return;
+  $('dialog').querySelector('#__taf_demo_explain')?.remove();
   out.append(node('h3',tr('result')));
   if(bundle.origin==='demo')out.append(node('p',tr('demo_note')));
   if(bundle.origin==='demo' && route==='memory') {
@@ -61,10 +77,9 @@ function renderResult() {
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
-  out.append(node('h4',tr('next')),node('p',tr(route==='memory'?'memory_next':route==='template'&&result.status!=='present'?'template_missing_next':route==='template'?'template_next':'compatibility_next')));
+  out.append(createResolverSummary());
   const links=node('p');
-  for(const [label,url] of [[tr('guide'),guideLink(CASES[route].topic,0,{lang:getLang(),model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode})],
-    [tr('module'),tafLink({mode:CASES[route].mode,model:bundle.origin==='demo'?'':bundle.model,lang:getLang()},location.href)]]) {
+  for(const [label,url] of [[tr('module'),tafLink({mode:CASES[route].mode,model:bundle.origin==='demo'?'':bundle.model,lang:getLang()},location.href)]]) {
     const a=node('a',label);a.href=url;a.target='_blank';a.rel='noopener';links.append(a,node('br'));
   }out.append(links);
   const sources=node('details');sources.append(node('summary',tr('source')),node('p',bundle.revision||'—'));
@@ -76,7 +91,7 @@ function renderResult() {
 function download() {
   if(!result)return;
   const report={schema_version:1,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
-    sources:bundle.sources,inputs:lastInputs,result,user_feedback:feedback||null,scope:'Configuration inspection / estimate, not an executed model or independently verified fix'};
+    sources:bundle.sources,inputs:lastInputs,initial_inputs:initial.inputs,summary:summaryData(),result,user_feedback:feedback||null,scope:'Configuration inspection / estimate, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
@@ -99,7 +114,7 @@ async function run(demo=false) {
     if(demo){$('model').value=route==='template'?'':next.model;$('vram').value='24';$('context').value='131072';$('precision').value='BF16';$('stage').value='generate';}
     lastInputs=route==='memory'?inputs():{};
     const answer=solveCase(route,next,lastInputs);
-    bundle=next;result=answer;$('status').textContent='';renderResult();
+    bundle=next;result=answer;initial={inputs:{...lastInputs},result:answer};$('status').textContent='';renderResult();
     $('result').focus();
   } catch(error) {if(ticket===request){bundle=null;$('status').textContent=tr(error.message==='inputs'||error.message==='model'?'invalid':'error');}}
   finally {clearTimeout(timer);if(ticket===request){$('run').disabled=false;$('demo').disabled=false;controller=null;}}

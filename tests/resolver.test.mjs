@@ -2,12 +2,39 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CASES,suggestCases,validResolverModel,solveCase,templateInspection,fetchResolverBundle,resolverLink} from '../js/resolver.js';
 import {RESOLVER_TRANSLATIONS} from '../js/resolver_i18n.js';
+import {buildResolverSummary} from '../js/resolver_summary.js';
 const catalog=JSON.parse(readFileSync(new URL('../data/model_catalog.json',import.meta.url)));
 const q=catalog.models.find(x=>x.id==='Qwen/Qwen3-8B'),hybrid=catalog.models.find(x=>x.id.includes('Qwen3.8'));
 const opts={vram:24,context:131072,precision:'BF16',stage:'generate'};
 let r=solveCase('memory',q,opts);
 assert.equal(r.status,'kv_bound');assert.ok(r.smallerContext>0&&r.smallerContext<opts.context);
 assert.equal(solveCase('memory',q,{...opts,context:r.smallerContext}).fit.fits,true);
+const adjustedInputs={...opts,context:r.smallerContext};
+const adjusted=solveCase('memory',q,adjustedInputs);
+for(const lang of ['es','en','fr','zh']) {
+ const summary=buildResolverSummary({route:'memory',bundle:{...q,model:q.id,origin:'demo'},initial:{inputs:opts,result:r},inputs:adjustedInputs,result:adjusted},lang);
+ const url=new URL(summary.guide.url);
+ assert.ok(url.pathname.endsWith('/20-kv-cache.html'));
+ assert.equal(url.hash,lang==='es'?'#el-problema':'#the-problem');
+ assert.equal(url.searchParams.has('model'),false);
+ assert.ok(summary.change.includes('→'));
+ assert.ok(summary.finding.includes(r.fit.totalGB.toLocaleString(lang,{maximumFractionDigits:2})));
+ assert.ok(summary.change.includes(adjusted.fit.totalGB.toLocaleString(lang,{maximumFractionDigits:2})));
+ assert.ok(!summary.problem.includes('undefined'));
+}
+for(const [caseId,bundle,inputs,path] of [
+ ['memory',q,{...opts,vram:4},'35-compresion'],
+ ['memory',q,{...opts,stage:'load'},'36-serving'],
+ ['memory',hybrid,opts,'18-taxonomia'],
+ ['template',{tokenizer:{}},{},'40-evaluacion'],
+ ['compatibility',q,{},'18-taxonomia'],
+]) {
+ const result=solveCase(caseId,bundle,inputs);
+ const summary=buildResolverSummary({route:caseId,bundle:{...bundle,model:'Owner/Model',origin:'hf'},inputs,result},'en');
+ assert.ok(new URL(summary.guide.url).pathname.endsWith(path+'.html'));
+ assert.equal(new URL(summary.guide.url).searchParams.get('model'),'Owner/Model');
+ assert.equal(summary.change,null);
+}
 assert.ok(r.alternatives.every(x=>['INT8','NF4'].includes(x.precision)));
 assert.equal(solveCase('memory',q,{...opts,stage:'load'}).status,'load_other');
 assert.equal(solveCase('memory',q,{...opts,vram:4,stage:'load'}).status,'weights_bound');

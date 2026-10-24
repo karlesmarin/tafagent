@@ -61,6 +61,8 @@ language:
 uses the same automatic demo player as the other tools: typed input, highlighted
 controls, six narrated steps and a final explanation. It loads a saved memory
 example, reduces context and shows follow-up. No input or model download required.
+The final case summary preserves the original problem and before/after estimates,
+states what remains unverified, and links directly to the relevant guide section.
 
 [**Open the resolver**](https://karlesmarin.github.io/tafagent/?resolve=choose&lang=en)
 or [use it on Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=choose&lang=en).
