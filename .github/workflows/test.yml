@@ -29,6 +29,8 @@ jobs:
         run: node tests/fit_check.test.mjs
       - name: Research catalog and evidence boundaries
         run: node tests/research_studies.test.mjs
+      - name: Research mechanism illustrations
+        run: node tests/research_labs.test.mjs
       - name: Attention entropy diagnostics
         run: node tests/entropy_scanner.test.mjs
       - name: Guide routes and metric provenance
@@ -84,6 +86,10 @@ jobs:
           TAF_URL: http://127.0.0.1:8000/
       - name: Guide routes in all modes and languages
         run: node tests/guide_bridge_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Research demos in four languages
+        run: node tests/research_labs_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
       - name: Real Profile metric explanations

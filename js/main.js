@@ -5873,6 +5873,7 @@ const DEMOS = {
       D.banner(dt("research.s1"), 1, 2); D.click("#research-clear"); await D.sleep(700);
       D.select("#research-topic", "compression"); D.hl("#research-topic"); await D.sleep(1100);
       D.banner(dt("research.s2"), 2, 2); D.select("#research-publication", "published"); await D.sleep(700);
+      $("research-search").value = "shotkv"; refreshResearchExplorer();
       D.click(".research-card summary"); D.scroll(".research-card"); D.clearHl();
       return { title: t("research.title"), lines: [t("research.note"), t("research.help")] };
     },

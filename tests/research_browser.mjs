@@ -14,13 +14,13 @@ try {
   const page = await context.newPage();
   page.on("pageerror", error => errors.push(error.message));
   await page.goto(`${base}?mode=research#research-section`);
-  await page.waitForFunction(() => document.querySelectorAll(".research-card").length === 7);
+  await page.waitForFunction(() => document.querySelectorAll(".research-card").length === 15);
   assert.equal(await page.locator('.mode-btn.active').getAttribute('data-mode'), 'research');
   assert.equal(await page.locator('#research-section').getAttribute('lang'),'es');
   await page.locator('#research-topic').selectOption('compression');
   await page.locator('#research-publication').selectOption('published');
-  assert.equal(await page.locator('.research-card').count(),1);
-  assert.equal(await page.locator('.research-card').getAttribute('data-paper'),'shotkv');
+  assert.equal(await page.locator('.research-card').count(),2);
+  assert.equal(await page.locator('.research-card').first().getAttribute('data-paper'),'octopus');
   await page.locator('#research-clear').click();
   await page.locator('#research-search').fill('BLOCK-GTQ cuantizacion');
   assert.equal(await page.locator('.research-card').getAttribute('data-paper'),'blockgtq');
@@ -76,7 +76,7 @@ try {
   assert.ok(await recovery.locator('#research-export').isDisabled());
   failCatalog=false;
   await recovery.locator('#research-retry').click();
-  await recovery.waitForFunction(()=>document.querySelectorAll('.research-card').length===7);
+  await recovery.waitForFunction(()=>document.querySelectorAll('.research-card').length===15);
   assert.ok(!(await recovery.locator('#research-retry').isVisible()));
   assert.deepEqual(errors,[]);
   console.log('Research UI PASS: independent startup, filters, 4 languages, export, mobile, mode links, retry.');

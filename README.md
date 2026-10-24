@@ -125,7 +125,7 @@ Checks: `npm run test:pvr`,
 ### Research connected to the guide — October 2026
 
 [📚 Open the research explorer](https://karlesmarin.github.io/tafagent/?mode=research#research-section)
-to browse seven studies on long context, KV compression, attention sinks, quantization and
+to browse fifteen studies on long context, KV compression, attention sinks, quantization and
 agent memory. Search or filter by topic/publication status, read the original source and
 the corresponding [guide](https://karlesmarin.github.io/transformers-guide/) chapter, and
 download a selection with proposed experiments. Explanations follow EN/ES/FR/ZH; guide
@@ -143,6 +143,19 @@ checks its provenance fields, translated text, filtering and export boundaries.
 **🗂️ Dataset**: [taf-attention-decay (58 measurements, 32 models)](https://huggingface.co/datasets/karlexmarin/taf-attention-decay)
 
 ---
+
+## Research update · 2026-10-24
+
+Eight additional primary-source studies connect TAF Research to the ES/EN guide:
+Softmax/Cross-Entropy numerical stability, competing learning in hybrids, KronLSTM,
+SPIN, Octopus, Engram, mHC and exploratory SympFormer. The catalogue now contains
+15 studies, with publication status, limits and proposed (not executed) experiments.
+TAF summaries and help are available in EN/ES/FR/ZH; FR/ZH links explicitly use the English guide.
+
+Optional local demos illustrate Float32 gradient rounding and residual-stream mixing
+with a rotatable 3D projection. They run only when opened, download no model, and are
+not training replications. No automatic γ or ν corrections are introduced.
+
 
 ## 🆕 v0.13 — Depth map (Part III) + the papers as a series
 

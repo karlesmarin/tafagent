@@ -6,11 +6,11 @@ import { TRANSLATIONS } from "../js/i18n.js";
 const catalog = JSON.parse(readFileSync(new URL("../data/research_studies.json", import.meta.url), "utf8"));
 validateResearchCatalog(catalog);
 const before = JSON.stringify(catalog);
-assert.equal(catalog.papers.length, 7);
-assert.equal(filterResearchStudies(catalog)[0].id, "lurch");
-assert.deepEqual(filterResearchStudies(catalog, {topic: "context"}).map(x => x.id), ["lurch", "cre"]);
-assert.equal(filterResearchStudies(catalog, {topic: "compression", status: "published"})[0].id, "shotkv");
-assert.equal(filterResearchStudies(catalog, {status: "preprint"}).length, 4);
+assert.equal(catalog.papers.length, 15);
+assert.equal(filterResearchStudies(catalog)[0].id, "softmax-fix");
+assert.deepEqual(filterResearchStudies(catalog, {topic: "context"}).map(x => x.id), ["lurch", "spin", "octopus", "cre"]);
+assert.deepEqual(filterResearchStudies(catalog, {topic: "compression", status: "published"}).map(x => x.id), ["octopus", "shotkv"]);
+assert.equal(filterResearchStudies(catalog, {status: "preprint"}).length, 10);
 assert.equal(filterResearchStudies(catalog, {status: "accepted"})[0].id, "sinks");
 assert.equal(filterResearchStudies(catalog, {query: "valor medio"}).length, 0); // all search terms must match
 assert.equal(filterResearchStudies(catalog, {query: "BLOCK-GTQ cuantizacion"})[0].id, "blockgtq");
@@ -20,7 +20,7 @@ assert.equal(filterResearchStudies(catalog, {query: "definitely-no-match"}).leng
 assert.equal(JSON.stringify(catalog), before, "Filtering must not mutate the curated evidence");
 
 for (const lang of ["en", "es", "fr", "zh"]) {
-  const result = exportResearchSelection(catalog, {topic: "memory"}, lang);
+  const result = exportResearchSelection(catalog, {topic: "memory", query: "mem2act"}, lang);
   assert.equal(result.papers.length, 1);
   assert.equal(result.papers[0].summary, catalog.papers.find(p => p.id === "mem2act").text[lang].summary);
   assert.equal(result.papers[0].experiment_status, "proposed_not_run");
@@ -45,6 +45,7 @@ for (const mutate of [
   c => c.papers[0].taf_validation = "proven",
   c => c.papers[0].status = "universal_truth",
   c => c.papers[0].date = "2099-01-01",
+  c => c.papers[0].demo = "unreviewed-demo",
   c => delete c.papers[0].text.fr.limit,
 ]) {
   const broken = structuredClone(catalog); mutate(broken);

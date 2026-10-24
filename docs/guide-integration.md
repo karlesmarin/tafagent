@@ -51,6 +51,8 @@ deben coincidir byte a byte con TAF. El cargador del libro se añade al include
 existente y usa `quarto:offset` para resolver los recursos locales.
 Se comprueba con `python scripts/sync_guide_bridge.py RUTA_AL_MANUAL` y se actualiza
 con el mismo comando más `--write`, antes de compilar y revisar ambos idiomas.
+El sincronizador también incluye los tres módulos `research_lab*` y su CSS;
+las demos y sus límites se describen en [la actualización de estudios](research-update-2026-10.md).
 
 Pruebas: `node tests/guide_bridge.test.mjs`,
 `node tests/guide_bridge_browser.mjs` y `node tests/guide_profile_browser.mjs`.

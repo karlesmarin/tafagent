@@ -1,10 +1,13 @@
 import { getLang, t } from "./i18n.js";
+import { mountResearchLab } from "./research_labs.js";
+import { LAB_TEXT } from "./research_lab_i18n.js";
 import { TOPICS, PUBLICATION_STATUSES, validateResearchCatalog, filterResearchStudies,
   researchGuideUrl, exportResearchSelection } from "./research_studies.js";
 
 const $ = id => document.getElementById(id);
 let catalog = null, pending = null, bound = false, failed = false;
 const openCards = new Set();
+const openLabs = new Set();
 const el = (tag, text, className) => {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -75,6 +78,19 @@ export function refreshResearchExplorer() {
     const links = el("div", undefined, "research-links");
     links.append(externalLink(t("research.paper"), paper.url), externalLink(t("research.guide"), researchGuideUrl(paper, lang)));
     card.append(details, links);
+    if (paper.demo) {
+      const demo = el("details"); demo.className = "research-demo";
+      demo.open = openLabs.has(paper.id);
+      demo.append(el("summary", LAB_TEXT[lang].open));
+      const host = el("div"); demo.append(host);
+      const mount = () => { if (!host.childElementCount) mountResearchLab(host, paper.demo, lang); };
+      demo.addEventListener("toggle", () => {
+        if (!demo.isConnected) return;
+        if (demo.open) { openLabs.add(paper.id); mount(); } else openLabs.delete(paper.id);
+      });
+      if (demo.open) mount();
+      card.append(demo);
+    }
     if (paper.modes.length) {
       const modes = el("div", undefined, "research-tools");
       modes.appendChild(el("p", t("research.tools"), "subtle"));
@@ -124,6 +140,11 @@ export function initResearchExplorer() {
       const response = await fetch(new URL("../data/research_studies.json", import.meta.url));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       catalog = validateResearchCatalog(await response.json());
+      const study = new URLSearchParams(location.search).get("study");
+      if (catalog.papers.some(p => p.id === study)) {
+        $("research-search").value = study;
+        openCards.add(study);
+      }
     } catch {
       failed = true;
     } finally {

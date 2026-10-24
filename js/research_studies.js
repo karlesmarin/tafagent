@@ -1,8 +1,8 @@
 // A curated literature index. No inference, performance estimates or TAF validation claims.
-export const TOPICS = ["context", "compression", "sinks", "quantization", "memory", "evaluation"];
+export const TOPICS = ["context", "compression", "sinks", "quantization", "memory", "evaluation", "architecture", "training", "numerics"];
 export const PUBLICATION_STATUSES = ["published", "accepted", "preprint"];
 const LANGS = ["en", "es", "fr", "zh"];
-const MODES = ["niah", "longscore", "recipe", "quant", "profile", "depth", "fitcheck", "yarn"];
+const MODES = ["niah", "longscore", "recipe", "quant", "profile", "depth", "fitcheck", "yarn", "drift", "memreal", "speculative"];
 const SOURCE_HOSTS = ["arxiv.org", "proceedings.mlr.press", "aclanthology.org"];
 const normalize = value => String(value).normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -21,6 +21,7 @@ export function validateResearchCatalog(catalog) {
     }
     if (!p.title || !p.venue || !/^\d{4}-\d{2}(-\d{2})?$/.test(p.date)
         || p.date > catalog.reviewed_on || !PUBLICATION_STATUSES.includes(p.status)
+        || (p.demo !== undefined && !["mhc", "softmax-fix"].includes(p.demo))
         || p.taf_validation !== "not_established" || p.experiment_status !== "proposed_not_run"
         || !Array.isArray(p.topics) || !p.topics.length || p.topics.some(x => !TOPICS.includes(x))
         || !Array.isArray(p.modes) || p.modes.some(x => !MODES.includes(x))
@@ -64,6 +65,7 @@ export function exportResearchSelection(catalog, filters, lang) {
       id: p.id, title: p.title, date: p.date, publication_status: p.status,
       venue: p.venue, source: p.url, guide: researchGuideUrl(p, language),
       topics: [...p.topics], related_modes: [...p.modes],
+      ...(p.demo ? { demonstration: { id: p.demo, kind: "pedagogical_not_replication" } } : {}),
       taf_validation: p.taf_validation, experiment_status: p.experiment_status,
       ...p.text[language],
     })),

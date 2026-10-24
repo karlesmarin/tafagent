@@ -307,6 +307,355 @@
           "experiment": "固定答案与长度，把相同问题放在开头、中间和结尾；更换填充内容重复测试，并按条件报告结果。"
         }
       }
+    },
+    {
+      "id": "softmax-fix",
+      "title": "A Fix for Softmax and Cross-Entropy",
+      "date": "2026-10-22",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2610.31642v1",
+      "topics": [
+        "numerics",
+        "training"
+      ],
+      "modes": [
+        "drift"
+      ],
+      "guide": {
+        "chapter": "24-grokking",
+        "anchor": "sec-softmax-numerics"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "Finite precision can erase the target gradient while other gradients remain nonzero; algebraically equivalent implementations behave differently.",
+          "limit": "Small arithmetic and distillation experiments do not establish gains for frontier LLMs or explain all grokking.",
+          "experiment": "Compare loss and gradients across precisions, then repeat training with fixed data, seeds and optimizer."
+        },
+        "es": {
+          "summary": "La precisión finita puede anular el gradiente objetivo mientras otros siguen activos; implementaciones algebraicamente equivalentes difieren.",
+          "limit": "Las pruebas pequeñas de aritmética y destilación no demuestran mejoras en LLM de frontera ni explican todo el grokking.",
+          "experiment": "Comparar pérdida y gradientes entre precisiones y repetir el entrenamiento con datos, semillas y optimizador fijos."
+        },
+        "fr": {
+          "summary": "La précision finie peut annuler le gradient cible alors que les autres restent actifs ; des implémentations algébriquement équivalentes diffèrent.",
+          "limit": "Les petits essais arithmétiques et de distillation ne prouvent ni un gain pour les grands LLM ni une explication générale du grokking.",
+          "experiment": "Comparer pertes et gradients selon la précision, puis répéter avec données, graines et optimiseur identiques."
+        },
+        "zh": {
+          "summary": "有限精度可能将目标梯度舍入为零，而其他梯度仍非零；代数等价的实现可能产生不同结果。",
+          "limit": "小型算术与蒸馏实验不证明前沿大模型的收益，也不能解释所有 grokking 现象。",
+          "experiment": "先比较不同精度的损失和梯度，再固定数据、随机种子及优化器重复训练。"
+        }
+      },
+      "demo": "softmax-fix"
+    },
+    {
+      "id": "competing-learning",
+      "title": "Competing Learning in Hybrid Architectures",
+      "date": "2026-10-19",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2610.26830v1",
+      "topics": [
+        "architecture",
+        "training"
+      ],
+      "modes": [
+        "depth"
+      ],
+      "guide": {
+        "chapter": "10-arquitecturas",
+        "anchor": "sec-hybrid-learning"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "Recurrent and attention blocks can compete during training; staged freezing changes their division of work.",
+          "limit": "Tests reach 1B parameters; the main KDA hybrids disable RoPE. Configuration alone cannot diagnose this competition.",
+          "experiment": "Compare layer interventions and retrieval at matched training budgets, including multiple data distributions."
+        },
+        "es": {
+          "summary": "Los bloques recurrentes y de atención pueden competir al entrenar; congelarlos por etapas cambia el reparto de trabajo.",
+          "limit": "Las pruebas llegan a 1B de parámetros; los híbridos KDA principales desactivan RoPE. La configuración no diagnostica esa competencia.",
+          "experiment": "Comparar intervenciones por capa y recuperación con igual presupuesto de entrenamiento y varias distribuciones de datos."
+        },
+        "fr": {
+          "summary": "Les blocs récurrents et d’attention peuvent rivaliser pendant l’apprentissage ; le gel par étapes modifie leur répartition du travail.",
+          "limit": "Essais jusqu’à 1B de paramètres ; les principaux hybrides KDA désactivent RoPE. La configuration ne suffit pas au diagnostic.",
+          "experiment": "Comparer interventions par couche et récupération à budget égal, sur plusieurs distributions de données."
+        },
+        "zh": {
+          "summary": "循环块与注意力块在训练中可能竞争；分阶段冻结可改变分工。",
+          "limit": "实验规模达到十亿参数；主要 KDA 混合模型关闭了 RoPE。仅凭配置无法诊断这种竞争。",
+          "experiment": "在相同训练预算下，比较逐层干预与检索表现，并覆盖多种数据分布。"
+        }
+      }
+    },
+    {
+      "id": "kronlstm",
+      "title": "Kronecker Delta Rule for Long Context Linear Attention",
+      "date": "2026-10-19",
+      "status": "preprint",
+      "venue": "arXiv v1",
+      "url": "https://arxiv.org/abs/2610.26834v1",
+      "topics": [
+        "architecture",
+        "memory"
+      ],
+      "modes": [
+        "memreal",
+        "depth"
+      ],
+      "guide": {
+        "chapter": "34-atencion-eficiente",
+        "anchor": "sec-kronlstm"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "KronLSTM revises a matrix memory through a scalar association constraint, limiting interference from each write.",
+          "limit": "Recognition and vector retrieval impose different constraints. Convergence proofs require explicit sampling and step-size assumptions.",
+          "experiment": "Measure retrieval, state size and interference at matched budgets; report the update rule and context lengths."
+        },
+        "es": {
+          "summary": "KronLSTM actualiza una memoria matricial mediante una restricción escalar de asociación, limitando la interferencia de cada escritura.",
+          "limit": "Reconocer y recuperar un vector imponen restricciones distintas. Las pruebas de convergencia requieren supuestos de muestreo y paso.",
+          "experiment": "Medir recuperación, tamaño del estado e interferencia a igual presupuesto, indicando la regla de actualización y los contextos."
+        },
+        "fr": {
+          "summary": "KronLSTM révise une mémoire matricielle via une contrainte d’association scalaire, limitant l’interférence de chaque écriture.",
+          "limit": "Reconnaissance et récupération vectorielle imposent des contraintes différentes. La convergence suppose un échantillonnage et un pas précis.",
+          "experiment": "Mesurer récupération, taille d’état et interférence à budget égal ; préciser la règle et les longueurs de contexte."
+        },
+        "zh": {
+          "summary": "KronLSTM 通过标量关联约束更新矩阵记忆，限制每次写入的干扰。",
+          "limit": "识别与向量检索的约束不同；收敛证明依赖明确的采样和步长假设。",
+          "experiment": "在相同预算下测量检索、状态大小及干扰，并报告更新规则与上下文长度。"
+        }
+      }
+    },
+    {
+      "id": "spin",
+      "title": "SPIN: Shadow Predictive Indexer for Sparse Attention",
+      "date": "2026-10-08",
+      "status": "preprint",
+      "venue": "arXiv v2",
+      "url": "https://arxiv.org/abs/2610.09025v2",
+      "topics": [
+        "context",
+        "architecture"
+      ],
+      "modes": [
+        "speculative",
+        "longscore"
+      ],
+      "guide": {
+        "chapter": "36-serving",
+        "anchor": "sec-spin"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "SPIN predicts which blocks a sparse-attention indexer should inspect from historical scores.",
+          "limit": "Pruning indexer inputs is not KV eviction. Sudden attention shifts and partial feedback can cause misses.",
+          "experiment": "Measure task quality and tail latency together, including abrupt topic switches and an exploration ablation."
+        },
+        "es": {
+          "summary": "SPIN predice qué bloques debe inspeccionar el indexador de atención dispersa a partir de puntuaciones históricas.",
+          "limit": "Recortar entradas del indexador no equivale a expulsar KV. Los cambios bruscos y la información parcial pueden causar omisiones.",
+          "experiment": "Medir calidad y latencia de cola juntas, con cambios bruscos de tema y una ablación de la exploración."
+        },
+        "fr": {
+          "summary": "SPIN prédit les blocs à inspecter par l’indexeur d’attention parcimonieuse à partir des scores passés.",
+          "limit": "Réduire les entrées de l’indexeur ne supprime pas le cache KV. Changements brusques et retours partiels peuvent créer des omissions.",
+          "experiment": "Mesurer qualité et latence de queue, avec changements de sujet et ablation de l’exploration."
+        },
+        "zh": {
+          "summary": "SPIN 根据历史分数预测稀疏注意力索引器应检查的块。",
+          "limit": "裁剪索引器输入不等于淘汰 KV；注意力突变和部分反馈可能导致遗漏。",
+          "experiment": "同时测量任务质量与尾延迟，包含突然切换主题及探索机制消融实验。"
+        }
+      }
+    },
+    {
+      "id": "octopus",
+      "title": "Octopus: Gated Selective Attention for Memory-Bounded Long-Context Inference in Large Language Models",
+      "date": "2026-07",
+      "status": "published",
+      "venue": "ACL 2026",
+      "url": "https://aclanthology.org/2026.acl-long.1631/",
+      "topics": [
+        "compression",
+        "context"
+      ],
+      "modes": [
+        "recipe",
+        "fitcheck"
+      ],
+      "guide": {
+        "chapter": "20-kv-cache",
+        "anchor": "sec-octopus"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "Learned gates retain selected KV states under a bounded memory budget.",
+          "limit": "Requires distillation and fine-tuning; it is not a training-free switch. A benchmark gain does not guarantee retention of arbitrary facts.",
+          "experiment": "Compare reasoning and retrieval with the full-cache teacher and budget-matched baselines, including adaptation cost."
+        },
+        "es": {
+          "summary": "Compuertas aprendidas retienen estados KV seleccionados con un presupuesto de memoria acotado.",
+          "limit": "Requiere destilación y ajuste; no es un interruptor sin entrenamiento. Mejorar un benchmark no garantiza conservar cualquier dato.",
+          "experiment": "Comparar razonamiento y recuperación con el profesor de caché completa y alternativas de igual presupuesto, incluyendo el coste de adaptación."
+        },
+        "fr": {
+          "summary": "Des portes apprises retiennent certains états KV dans un budget mémoire borné.",
+          "limit": "Nécessite distillation et ajustement ; ce n’est pas une option sans entraînement. Un gain sur un benchmark ne garantit pas la rétention de tout fait.",
+          "experiment": "Comparer raisonnement et récupération au professeur à cache complet et aux méthodes à budget égal, coût d’adaptation inclus."
+        },
+        "zh": {
+          "summary": "学习得到的门控在有限内存预算内保留选定的 KV 状态。",
+          "limit": "需要蒸馏与微调，并非无需训练的开关。基准提升不保证保留任意事实。",
+          "experiment": "比较完整缓存教师与同预算基线的推理和检索能力，并计入适配成本。"
+        }
+      }
+    },
+    {
+      "id": "engram",
+      "title": "Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models",
+      "date": "2026-07-12",
+      "status": "preprint",
+      "venue": "arXiv v2",
+      "url": "https://arxiv.org/abs/2601.07372v2",
+      "topics": [
+        "memory",
+        "architecture"
+      ],
+      "modes": [
+        "memreal"
+      ],
+      "guide": {
+        "chapter": "10-arquitecturas",
+        "anchor": "sec-engram"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "Engram complements conditional computation with learned, hashed n-gram lookup memory.",
+          "limit": "This is parametric memory, not an external RAG database or an agent diary. Lookup still incurs storage and transfer costs.",
+          "experiment": "Compare quality, active compute, total table storage and bandwidth under matched resources."
+        },
+        "es": {
+          "summary": "Engram complementa el cómputo condicional con memoria aprendida de consulta de n-gramas mediante hash.",
+          "limit": "Es memoria paramétrica, no una base RAG externa ni el diario de un agente. Consultar sigue teniendo costes de almacenamiento y transferencia.",
+          "experiment": "Comparar calidad, cómputo activo, almacenamiento total de tablas y ancho de banda con recursos equivalentes."
+        },
+        "fr": {
+          "summary": "Engram complète le calcul conditionnel par une mémoire apprise de n-grammes indexés par hachage.",
+          "limit": "Mémoire paramétrique, pas une base RAG externe ni un journal d’agent. Les consultations coûtent stockage et transferts.",
+          "experiment": "Comparer qualité, calcul actif, stockage total des tables et bande passante à ressources égales."
+        },
+        "zh": {
+          "summary": "Engram 用学习到的哈希 n-gram 查表记忆补充条件计算。",
+          "limit": "这是参数化记忆，不是外部 RAG 数据库或智能体日志。查表仍有存储与传输成本。",
+          "experiment": "在相同资源下比较质量、活跃计算量、表的总存储量及带宽。"
+        }
+      }
+    },
+    {
+      "id": "mhc",
+      "title": "mHC: Manifold-Constrained Hyper-Connections",
+      "date": "2026-07",
+      "status": "published",
+      "venue": "ICML 2026 · PMLR 306",
+      "url": "https://proceedings.mlr.press/v306/xie26aa.html",
+      "topics": [
+        "architecture",
+        "training"
+      ],
+      "modes": [
+        "depth"
+      ],
+      "guide": {
+        "chapter": "07-residual-norm",
+        "anchor": "sec-mhc"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "mHC constrains mixing between expanded residual streams using doubly stochastic matrices.",
+          "limit": "Non-expansive mixing does not make the full nonlinear block norm-preserving. Finite Sinkhorn iterations approximate the constraint.",
+          "experiment": "Separate transport from sublayer updates; measure row/column residuals, activation norms and end-task quality."
+        },
+        "es": {
+          "summary": "mHC restringe la mezcla entre flujos residuales ampliados mediante matrices doblemente estocásticas.",
+          "limit": "Una mezcla no expansiva no conserva la norma del bloque no lineal completo. Sinkhorn con iteraciones finitas aproxima la restricción.",
+          "experiment": "Separar transporte y actualizaciones de subcapa; medir residuos de filas/columnas, normas y calidad final."
+        },
+        "fr": {
+          "summary": "mHC contraint le mélange de flux résiduels élargis par des matrices doublement stochastiques.",
+          "limit": "Un mélange non expansif ne conserve pas la norme du bloc non linéaire complet. Sinkhorn à itérations finies approche la contrainte.",
+          "experiment": "Séparer transport et mises à jour ; mesurer résidus des lignes/colonnes, normes et qualité finale."
+        },
+        "zh": {
+          "summary": "mHC 用双随机矩阵约束扩展残差流之间的混合。",
+          "limit": "混合不扩张并不意味着整个非线性块保持范数；有限次 Sinkhorn 迭代仅近似满足约束。",
+          "experiment": "区分传输与子层更新，测量行列约束残差、激活范数和最终任务质量。"
+        }
+      },
+      "demo": "mhc"
+    },
+    {
+      "id": "sympformer",
+      "title": "SympFormer: Inertial Attention Blocks from Damped Hamiltonian Dynamics on Spaces of Probability Measures",
+      "date": "2026-10-22",
+      "status": "preprint",
+      "venue": "arXiv v1 · exploratory",
+      "url": "https://arxiv.org/abs/2610.31600v1",
+      "topics": [
+        "architecture",
+        "training"
+      ],
+      "modes": [
+        "depth"
+      ],
+      "guide": {
+        "chapter": "22-termodinamica",
+        "anchor": "sec-sympformer"
+      },
+      "taf_validation": "not_established",
+      "experiment_status": "proposed_not_run",
+      "text": {
+        "en": {
+          "summary": "Explores inertial attention through damped Hamiltonian dynamics and language-model experiments.",
+          "limit": "The geometric setup assumes symmetric interactions and omits causal masking and other standard components. It does not validate TAF thermodynamics.",
+          "experiment": "Compare inertial blocks against momentum controls at matched compute, separating theoretical assumptions from implemented models."
+        },
+        "es": {
+          "summary": "Explora atención con inercia mediante dinámica hamiltoniana amortiguada y experimentos de modelado del lenguaje.",
+          "limit": "El planteamiento geométrico supone interacciones simétricas y omite máscara causal y otros componentes habituales. No valida la termodinámica TAF.",
+          "experiment": "Comparar bloques inerciales con controles de momentum a igual cómputo, separando supuestos teóricos y modelos implementados."
+        },
+        "fr": {
+          "summary": "Explore l’attention inertielle via une dynamique hamiltonienne amortie et des expériences de modélisation du langage.",
+          "limit": "Le cadre géométrique suppose des interactions symétriques et omet le masque causal et d’autres composants usuels. Il ne valide pas la thermodynamique TAF.",
+          "experiment": "Comparer blocs inertiels et contrôles de momentum à calcul égal, en séparant hypothèses et modèles implémentés."
+        },
+        "zh": {
+          "summary": "通过阻尼哈密顿动力学及语言建模实验探索惯性注意力。",
+          "limit": "几何设定假设对称相互作用，并省略因果掩码等常见组件；它不验证 TAF 热力学。",
+          "experiment": "在相同计算预算下比较惯性块与动量对照，区分理论假设和实际模型。"
+        }
+      }
     }
   ]
 }
