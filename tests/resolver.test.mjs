@@ -70,4 +70,5 @@ assert.equal(Object.keys(CASES).length,9);
 await import('./resolver_local.test.mjs');
 await import('./resolver_review.test.mjs');
 await import('./resolver_protocol.test.mjs');
+await import('./resolver_checks.test.mjs');
 console.log('Resolver PASS: nine routes, load/generation distinction, estimate boundaries, template variants, revision provenance, translations and private-data-free links.');

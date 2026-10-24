@@ -26,6 +26,7 @@ export async function runResolverDemo(D) {
     D.hl('#resolver-reduce');await pause(900);D.click('#resolver-reduce');
     D.hl('#resolver-result dl');await pause(1800);
     D.banner(dt('resolver.s5'),5,6);D.click('#resolver-review > summary');D.hl('#resolver-review');await pause(2600);
+    D.hl('#resolver-checks');await pause(1200);
     D.hl('#resolver-failed');await pause(900);
     D.click('#resolver-failed');D.hl('#resolver-followup');await pause(1800);
     D.banner(dt('resolver.s6'),6,6);D.hl('#resolver-case-summary .resolver-summary-guide');await pause(1600);

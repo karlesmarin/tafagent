@@ -88,7 +88,10 @@ export function solveLocalCase(id,inputs){
   const cfg=parseObject(inputs.text);
   if(typeof cfg.peft_type!=='string'||!cfg.peft_type.trim()||(cfg.r!=null&&(!Number.isInteger(cfg.r)||cfg.r<=0))||(cfg.lora_alpha!=null&&(!Number.isFinite(cfg.lora_alpha)||cfg.lora_alpha<0)))throw new Error('inputs');
   const parsed=parseAdapterConfig(cfg),checks=compatChecks(parsed,inputs.base||'');
-  const warnings=checks.filter(c=>['warn','bad'].includes(c.level));
+  // Soft-prompt methods do not require LoRA-style target modules.
+  const usesTargets=!['prompt_tuning','p_tuning','prefix_tuning','multitask_prompt_tuning'].includes(parsed.peftType);
+  const warnings=checks.filter(c=>['warn','bad'].includes(c.level)&&(usesTargets||c.code!=='targets_empty'));
+  out.adapterEvidence={base:checks.find(c=>c.code.startsWith('base_'))?.code||'base_unknown',targets:checks.find(c=>c.code.startsWith('targets_'))?.code||'targets_empty',usesTargets};
   out.summaryKey=checks.some(c=>c.code==='base_mismatch')?'adapter_mismatch':warnings.length?'adapter_review':'adapter_metadata';
   out.summaryParams={count:warnings.length};fact('finding_count',warnings.length);
   out.notices.push(...warnings.map(c=>({key:'adapter_'+c.code})));

@@ -101,6 +101,11 @@ types, scientific appropriateness or truth merely because a field is populated.
 Custom fields affect missing/difference counts without exposing their names or
 values. The next step follows context issues and protocol differences before
 asking for repetition; no missing settings are invented.
+Memory, template and adapter plans similarly prioritize current findings and
+provide three verification steps. Their `executed: false` status remains explicit.
+Estimated fit, a present template or matching adapter metadata do not establish
+successful execution. The illustrative scenario controls replace demo inputs;
+they do not convert a user's weights or modify a runtime.
 
 The local case report uses schema version 3; its `review` object uses version 1.
 `independently_verified: false` is explicit, including after a user reports that

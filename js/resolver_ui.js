@@ -4,6 +4,7 @@ import { tafLink, HF_BASE } from './guide_bridge.js';
 import { buildResolverSummary } from './resolver_summary.js';
 import { buildResolverReview } from './resolver_review.js';
 import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
+import { CHECK_DEMOS,checkDemo } from './resolver_checks.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
 import { TOOL_CATALOG } from './resolver_catalog.js';
@@ -59,12 +60,21 @@ function renderFeedback() {
   if(feedback)$('followup').append(node('p',tr(feedback==='worked'?'solved':'followup')));
   if(feedback==='failed') {
     $('followup').append(node('p',summaryData().next));
+    if(summaryData().checks)$('followup').append(node('p',summaryData().checks.instructions[2]),button(tr('checks_open'),openChecks));
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
   }
 }
 function resultState() {return {route,bundle,initial,inputs:lastInputs,result,app:location.origin===new URL(HF_BASE).origin?'hf':'github'};}
 function summaryData() {return buildResolverSummary(resultState(),getLang());}
 function reviewData() {return buildResolverReview(resultState(),getLang());}
+function openChecks(){ $('review').open=true;$('checks').focus({preventScroll:true});$('checks').scrollIntoView({block:'start'}); }
+function changeExample(scenario){
+ const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
+ if(isLocal())renderLocalFields(example.inputs);
+ else if(route==='memory')for(const [key,value] of Object.entries(example.inputs))$(key).value=value;
+ lastInputs=example.inputs;result=solveCase(route,bundle,lastInputs);initial={inputs:{...lastInputs},result};feedback='';
+ renderResult();openChecks();
+}
 function createResolverReview() {
  const review=reviewData(),box=node('details');box.id='resolver-review';
  box.append(node('summary',tr('review_title')),node('p',review.provenance));
@@ -86,6 +96,12 @@ function createResolverReview() {
    const count=review.protocol.additional_fields[key];if(count)details.append(node('p',tr('protocol_extra_'+label)+': '+count));
   }
   box.append(details);
+ }
+ if(review.checks){
+  const section=node('section');section.id='resolver-checks';section.tabIndex=-1;
+  section.append(node('h4',tr('checks_title')+' · '+review.checks.title),node('p',tr('checks_note')));
+  const ol=node('ol');for(const instruction of review.checks.instructions)ol.append(node('li',instruction));section.append(ol,node('p',tr('checks_tools')));
+  const tools=node('div');tools.className='resolver-actions';for(const mode of review.checks.tools){const b=button(t('modes.'+mode),()=>catalogUI.show(mode));b.dataset.checkTool=mode;tools.append(b);}section.append(tools);box.append(section);
  }
  const a=node('a',review.guide.title);a.href=review.guide.url;a.target='_blank';a.rel='noopener';box.append(a);
  if(review.guide.note)box.append(node('p',review.guide.note));
@@ -148,7 +164,14 @@ function renderResult() {
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
-  out.append(createResolverSummary(),createResolverReview());
+  out.append(createResolverSummary());
+  if(summaryData().checks)out.append(button(tr('checks_open'),openChecks,'show-checks'));
+  out.append(createResolverReview());
+  if(bundle.origin==='demo'&&CHECK_DEMOS[route]){
+   const examples=node('details');examples.id='resolver-check-examples';examples.append(node('summary',tr('checks_examples')));
+   const actions=node('div');actions.className='resolver-actions';
+   for(const key of CHECK_DEMOS[route]){const b=button(tr('checks_'+route+'_'+key),()=>changeExample(key));b.dataset.checkExample=key;actions.append(b);}examples.append(actions);out.append(examples);
+  }
   const links=node('p');
   for(const [label,url] of [[tr('module'),tafLink({mode:CASES[route].mode,model:bundle.origin==='demo'?'':bundle.model,lang:getLang()},location.href)]]) {
     const a=node('a',label);a.href=url;a.target='_blank';a.rel='noopener';links.append(a,node('br'));
@@ -162,7 +185,7 @@ function renderResult() {
 function download() {
   if(!result)return;
   const {suggestion,...publicResult}=result;
-  const report={schema_version:3,review:reviewData(),route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
+  const report={schema_version:3,review:reviewData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
     sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -186,6 +209,7 @@ async function run(demo=false) {
         sources:route==='template'?[]:[{url:entry.source,status:200}]};
     } else if(!next || next.model!==id || next.origin!=='hf')next=await fetchResolverBundle(id,route,{signal:controller.signal});
     if(ticket!==request)return;
+    if(demo&&CHECK_DEMOS[route])next.demoScenario=CHECK_DEMOS[route][0];
     if(demo&&!isLocal()){$('model').value=route==='template'?'':next.model;$('vram').value='24';$('context').value='131072';$('precision').value='BF16';$('stage').value='generate';}
     lastInputs=route==='memory'||isLocal()?inputs():{};
     const answer=solveCase(route,next,lastInputs);

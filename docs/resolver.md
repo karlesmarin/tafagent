@@ -139,7 +139,45 @@ No discussion monitoring, webhook service, bot account, automatic replies or
 periodic task is enabled by this feature. This feature provides the resolver
 and the links through which a future authorized integration can introduce users.
 
-## Adding a route
+## Ordered checks for memory, templates and adapters
+
+`resolver_checks.js` selects one of 17 priorities from the current result:
+
+| Route | Priorities |
+|---|---|
+| Memory | Unsupported/missing geometry; weight budget exceeded; loading failure; KV budget exceeded; tight estimated margin; estimate fits |
+| Template | Missing from inspected files; multiple choices without an unambiguous default; present |
+| Adapter | Base unidentified/not compared; base mismatch; family-only match; target modules; saved embeddings; per-module settings; unusual scaling; loading/activation |
+
+**See the verification steps** opens three instructions: the priority check,
+what to observe in the user's environment, and how to interpret or redirect an
+unresolved case. The summary and **It still fails** share these instructions.
+They are not executed by TAF. A recalculation rebuilds the plan; changing inputs
+clears it. Existing notices remain visible when a higher-priority issue wins.
+Conditional tool buttons open the existing catalog's input/limit explanation,
+preserving the current result; they neither run a tool nor infer another cause.
+
+After loading an example, **Explore another example** offers four memory cases,
+three template cases and three adapter cases. Choosing one resets that demo's
+initial comparison, stays explicitly illustrative and performs no HF lookup or
+model run. Ordinary user-input results do not show these replacement controls.
+The animated memory demo highlights the ordered checks in step five.
+
+Schema-3 reports add `summary.checks` and `review.checks` (version 1), containing
+the priority, localized instructions and `executed: false`; `demo_scenario`
+identifies a selected example. Adapter results retain only categorical base and
+target evidence, not pasted configuration values or the intended private base ID.
+Soft-prompt methods do not receive a LoRA-style missing-target warning. A missing
+target list for a method that uses targets prompts inspection of actual defaults,
+not an automatic conclusion that training failed.
+
+The guidance was checked against the official [chat-template documentation](https://huggingface.co/docs/transformers/chat_templating)
+and [PEFT troubleshooting](https://huggingface.co/docs/peft/developer_guides/troubleshooting)
+on 25 October 2026. Memory guidance follows the actual Fit Check assumptions;
+runtime memory still requires measurement. No install, training, upload or public
+reply is triggered by these steps.
+
+## Extending a route
 
 Add an explicit entry to `CASES` in `js/resolver.js`, required-input validation,
 a pure computation that calls the appropriate TAF module, and a dedicated branch

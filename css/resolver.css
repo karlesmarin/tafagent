@@ -28,5 +28,7 @@
 #resolver-protocol { scroll-margin-top:4rem; }
 #resolver-protocol li { margin:.6rem 0; }
 #resolver-protocol code { white-space:normal; overflow-wrap:anywhere; }
+#resolver-checks { scroll-margin-top:4rem; border:0; padding:0; margin:1rem 0; background:none; }
+#resolver-checks li + li { margin-top:.8rem; }
 #resolver-dialog :focus-visible { outline:2px solid var(--accent,#58a6ff); outline-offset:3px; }
 @media(max-width:600px) { #resolver-dialog { padding:1rem; } .resolver-actions { flex-direction:column; } }

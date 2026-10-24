@@ -2,6 +2,15 @@
 
 ## 25 October: review the evidence behind a result
 
+Memory, templates and adapters now provide **See the verification steps**, with
+17 priorities and three ordered instructions selected from current findings.
+Ten optional scenarios exercise memory budgets/loading, template selection and
+adapter base declarations. Recalculations update the plan; follow-up and reports
+use it consistently. The narrated demo highlights the steps. Soft-prompt adapters
+no longer receive a LoRA-style missing-target warning in the resolver. TAF does
+not execute these runtime checks or certify their outcome. Four-language help,
+README, module audit and guide chapters 20/28/40/R5 describe the feature.
+
 Attention follow-up: **Show protocol details** lists 19 known conditions across
 four groups, marks missing documentation and reference differences, and chooses
 the next check from five explicit priorities. Custom field names and protocol

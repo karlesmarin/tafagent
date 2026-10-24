@@ -32,6 +32,13 @@ campos personalizados sin mostrar sus nombres. Prioriza contexto de A, contexto
 de B, diferencias, documentación pendiente y repetición controlada, por ese orden.
 No valida la exactitud de los metadatos ni modifica los informes originales.
 
+Memoria, plantillas y adaptadores incorporan `resolver_checks.js`: 17 prioridades
+con tres pasos ordenados, calculados desde el resultado actual. Los diez escenarios
+de ejemplo son opcionales y están etiquetados; no se ejecutan modelos. El resumen,
+la revisión, el seguimiento y el informe comparten el mismo plan. En adaptadores,
+la evidencia exportada son categorías de base/objetivos, no valores privados.
+Los métodos de soft prompts no reciben el aviso de objetivos LoRA ausentes.
+
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|
 | Profile | `main.js`, `python/taf_browser.py:profile_model` | Configuración HF → tarjeta X-2/X-19/X-1/X-3/X-5 | Formulario especializado. Son fórmulas; no inferencia ni calidad medida. Pyodide. |

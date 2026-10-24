@@ -134,3 +134,4 @@ try{
 await import('./resolver_local_browser.mjs');
 await import('./resolver_return_browser.mjs');
 await import('./resolver_protocol_browser.mjs');
+await import('./resolver_checks_browser.mjs');

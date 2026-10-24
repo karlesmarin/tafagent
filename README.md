@@ -67,6 +67,11 @@ Attention reports also expose a protocol checklist: 19 named conditions grouped
 by model/data, sampling, execution and fit, with missing/different fields and a
 prioritized next check. The offline attention example demonstrates it. Custom
 field names and protocol values stay out of the case report.
+Memory, chat-template and adapter results now include **See the verification
+steps**: 17 evidence-based priorities and three ordered checks per case. Ten
+optional example situations show how the steps change. The main animated demo
+highlights them; recalculation, follow-up and local reports use the current plan.
+These instructions do not execute a model or certify a fix.
 
 [**🎬 Watch the resolver demo**](https://karlesmarin.github.io/tafagent/?demo=resolver&lang=en)
 ([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?demo=resolver&lang=en)):
