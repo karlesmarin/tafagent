@@ -2,6 +2,15 @@
 
 ## 25 October: review the evidence behind a result
 
+Prompt-cache and evaluation-drift follow-up now use ordered checks too: five
+priorities and five optional examples for each route. Across the five routes,
+there are 27 priorities and 20 scenarios. Cache plans distinguish identical,
+appended, shortened and changed text without inferring token reuse, speedups or
+savings. Drift prioritizes missing template evidence, application differences and
+changed settings before interpreting scores. The band remains descriptive, not
+a significance test. Four-language help, reports and guide chapters 36/40/R5 are
+updated; no prompt text or experiment is sent or executed by the follow-up.
+
 Memory, templates and adapters now provide **See the verification steps**, with
 17 priorities and three ordered instructions selected from current findings.
 Ten optional scenarios exercise memory budgets/loading, template selection and

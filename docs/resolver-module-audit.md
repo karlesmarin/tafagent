@@ -39,6 +39,13 @@ la revisión, el seguimiento y el informe comparten el mismo plan. En adaptadore
 la evidencia exportada son categorías de base/objetivos, no valores privados.
 Los métodos de soft prompts no reciben el aviso de objetivos LoRA ausentes.
 
+El mismo seguimiento cubre caché de prompts y Drift: cinco prioridades y cinco
+ejemplos adicionales por ruta, 27 prioridades y veinte ejemplos en total. Caché
+clasifica la relación textual sin medir tokens ni reutilización. Drift prioriza
+plantillas desconocidas/diferentes y ajustes cambiados antes de la banda
+descriptiva; puntuaciones próximas no prueban equivalencia ni ausencia de errores.
+Solo se exportan categorías y nombres de ajustes, no los prompts originales.
+
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|
 | Profile | `main.js`, `python/taf_browser.py:profile_model` | Configuración HF → tarjeta X-2/X-19/X-1/X-3/X-5 | Formulario especializado. Son fórmulas; no inferencia ni calidad medida. Pyodide. |

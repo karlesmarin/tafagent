@@ -48,9 +48,10 @@ se prioriza según contexto, referencia y documentación. R4 explica cómo recup
 las condiciones de la ejecución real y R5 cómo abrir el panel y su demo. Los
 enlaces conservan el regreso al mismo formulario, sin restaurar datos pegados.
 
-Memoria, plantillas y adaptadores añaden tres pasos de comprobación según los
-hallazgos actuales y diez escenarios de ejemplo. Los capítulos de caché KV (20),
-PEFT (28), evaluación (40) y el manual de TAF (R5) explican este seguimiento.
+Memoria, plantillas, adaptadores, caché de prompts y diferencias de evaluación
+añaden tres pasos según los hallazgos actuales: 27 prioridades y veinte escenarios
+de ejemplo. Los capítulos de caché KV (20), PEFT (28), serving (36), evaluación
+(40) y el manual de TAF (R5) explican este seguimiento.
 Recalcular cambia el plan, pero no implica ejecutar las comprobaciones en el
 entorno del usuario. Los enlaces de ida y vuelta conservan su comportamiento.
 

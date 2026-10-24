@@ -101,11 +101,16 @@ types, scientific appropriateness or truth merely because a field is populated.
 Custom fields affect missing/difference counts without exposing their names or
 values. The next step follows context issues and protocol differences before
 asking for repetition; no missing settings are invented.
-Memory, template and adapter plans similarly prioritize current findings and
+Memory, template, adapter, prompt-cache and drift plans prioritize current findings and
 provide three verification steps. Their `executed: false` status remains explicit.
 Estimated fit, a present template or matching adapter metadata do not establish
 successful execution. The illustrative scenario controls replace demo inputs;
 they do not convert a user's weights or modify a runtime.
+Cache relation categories describe pasted UTF-16 strings, not token boundaries
+or actual reuse. Drift priorities use declared settings and two aggregate scores;
+matching template-application flags do not prove identical rendered inputs.
+The band supplies no statistical uncertainty, and the comparability checkbox
+does not verify the task, split, sample set or metric.
 
 The local case report uses schema version 3; its `review` object uses version 1.
 `independently_verified: false` is explicit, including after a user reports that

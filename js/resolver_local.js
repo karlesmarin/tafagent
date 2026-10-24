@@ -60,11 +60,13 @@ export function solveLocalCase(id,inputs){
   out.summaryParams={count:r.findings.length};fact('finding_count',r.findings.length);
  }else if(id==='cache'){
   const common=longestCommonPrefix(inputs.text,inputs.text2);
+  out.cacheEvidence={relation:inputs.text===inputs.text2?'identical':common===inputs.text.length?'append':common===inputs.text2.length?'shortened':common===0?'start':'changed'};
   out.summaryKey=inputs.text===inputs.text2?'cache_identical':'cache_changed';
   out.summaryParams={common,total:inputs.text2.length};fact('prefix_units',common);fact('new_units',inputs.text2.length);fact('changed_units',inputs.text2.length-common);
  }else if(id==='drift'){
   const setup=s=>({score:inputs['score_'+s],framework:inputs['framework_'+s],dtype:inputs['dtype_'+s],batch:inputs['batch_'+s],chat_template:inputs['template_'+s]});
   const r=computeDriftBound(setup('a'),setup('b'));
+  out.driftEvidence={templateUnknown:[inputs.template_a,inputs.template_b].includes('unknown'),templateMismatch:r.breakdown.template_mismatch,changedSettings:['framework','dtype','batch'].filter(k=>inputs[k+'_a']!==inputs[k+'_b']),aboveHeuristic:r.observed_gap>r.numerical_band};
   out.summaryKey=r.observed_gap<=r.numerical_band?'drift_within':'drift_review';out.summaryParams={gap:r.observed_gap,band:r.numerical_band};
   fact('score_gap',r.observed_gap);fact('heuristic_band',r.numerical_band);
   if(r.breakdown.template_mismatch)out.notices.push({key:'drift_templates'});

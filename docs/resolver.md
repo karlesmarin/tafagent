@@ -139,15 +139,17 @@ No discussion monitoring, webhook service, bot account, automatic replies or
 periodic task is enabled by this feature. This feature provides the resolver
 and the links through which a future authorized integration can introduce users.
 
-## Ordered checks for memory, templates and adapters
+## Ordered checks for memory, templates, adapters, cache and drift
 
-`resolver_checks.js` selects one of 17 priorities from the current result:
+`resolver_checks.js` selects one of 27 priorities from the current result:
 
 | Route | Priorities |
 |---|---|
 | Memory | Unsupported/missing geometry; weight budget exceeded; loading failure; KV budget exceeded; tight estimated margin; estimate fits |
 | Template | Missing from inspected files; multiple choices without an unambiguous default; present |
 | Adapter | Base unidentified/not compared; base mismatch; family-only match; target modules; saved embeddings; per-module settings; unusual scaling; loading/activation |
+| Prompt cache | Change after a shared prefix; identical text; appended text; shortened text; change from the start |
+| Evaluation drift | Unknown template application; different application states; changed framework/precision/batch; matching supplied settings with gap above or within the descriptive band |
 
 **See the verification steps** opens three instructions: the priority check,
 what to observe in the user's environment, and how to interpret or redirect an
@@ -158,7 +160,7 @@ Conditional tool buttons open the existing catalog's input/limit explanation,
 preserving the current result; they neither run a tool nor infer another cause.
 
 After loading an example, **Explore another example** offers four memory cases,
-three template cases and three adapter cases. Choosing one resets that demo's
+three template cases, three adapter cases, five cache cases and five drift cases. Choosing one resets that demo's
 initial comparison, stays explicitly illustrative and performs no HF lookup or
 model run. Ordinary user-input results do not show these replacement controls.
 The animated memory demo highlights the ordered checks in step five.
@@ -170,6 +172,27 @@ target evidence, not pasted configuration values or the intended private base ID
 Soft-prompt methods do not receive a LoRA-style missing-target warning. A missing
 target list for a method that uses targets prompts inspection of actual defaults,
 not an automatic conclusion that training failed.
+
+Cache plans use only the relation between the two pasted strings. Prefix counts
+are UTF-16 units, not tokens; tokenization at an appended or truncated boundary
+can change. No cache counters, prices or speedups are inferred. Plans ask for
+final rendered inputs and controlled cold/warm measurements in the user's runtime.
+Token Tax is available for token counts, with an explicit limit: it cannot verify
+cache reuse. Reports include the relation but omit both pasted prompts.
+
+Drift plans prioritize missing template evidence, then a declared template mismatch,
+then changed framework/precision/batch, even if scores agree. Matching application
+states do not establish identical rendered templates. With matching supplied
+settings, the existing descriptive band selects repeat/investigate or quantify
+uncertainty; it is not a significance test. `driftEvidence` stores categorical
+flags and changed-setting names. No cause, verified fix or experimental run is
+inferred. The comparability checkbox remains a user declaration, not validation
+of benchmark version, split, samples or metric.
+
+Cache and drift guidance follows the official [vLLM prefix-cache design](https://docs.vllm.ai/en/latest/design/prefix_caching/)
+and [lm-evaluation-harness interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md),
+reviewed on 25 October 2026. The guide explains these cases in chapters 36 and 40;
+the contextual return link reopens the same resolver and original host.
 
 The guidance was checked against the official [chat-template documentation](https://huggingface.co/docs/transformers/chat_templating)
 and [PEFT troubleshooting](https://huggingface.co/docs/peft/developer_guides/troubleshooting)

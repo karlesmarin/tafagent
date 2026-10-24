@@ -5,6 +5,7 @@ import {checksRows} from '../js/resolver_checks_i18n.js';
 import {solveCase} from '../js/resolver.js';
 import {buildResolverSummary} from '../js/resolver_summary.js';
 import {modeTopics} from '../js/guide_bridge.js';
+import {LOCAL_DEMOS,publicLocalInputs} from '../js/resolver_local.js';
 const catalog=JSON.parse(readFileSync(new URL('../data/model_catalog.json',import.meta.url)));
 const q={...catalog.models.find(m=>m.id==='Qwen/Qwen3-8B'),origin:'demo',model:'Qwen/Qwen3-8B'};
 const memory={vram:24,context:4096,precision:'BF16',stage:'generate'};
@@ -33,19 +34,40 @@ for(const peft_type of ['PROMPT_TUNING','P_TUNING','PREFIX_TUNING','MULTITASK_PR
  assert.ok(!r.notices.some(n=>n.key==='adapter_targets_empty'));
 }
 adapter({peft_type:'IA3',base_model_name_or_path:'PRIVATE/Base'},'PRIVATE/Base','targets');
+const drift={...LOCAL_DEMOS.drift,framework_b:'lm-eval-hf',batch_b:1,template_b:'applied'};
+const local={origin:'local'};
+record('drift',local,{...drift,template_b:'unknown'},'drift_unknown');
+record('drift',local,{...drift,template_b:'not_applied',score_b:drift.score_a},'drift_templates');
+for(const fields of [{framework_b:'vllm-served'},{dtype_b:'fp16'},{batch_b:8}]){
+ const r=record('drift',local,{...drift,...fields,score_b:drift.score_a},'drift_settings');
+ assert.equal(r.driftEvidence.changedSettings.length,1);
+}
+record('drift',local,drift,'drift_repeat');
+record('drift',local,{...drift,score_b:67.1},'drift_within');
+record('drift',local,{...drift,template_a:'unknown',template_b:'unknown',score_b:drift.score_a},'drift_unknown');
+for(const [text,text2,priority] of [['PRIVATE😀','PRIVATE😀','identical'],['PRIVATE😀','PRIVATE😀尾','append'],['PRIVATE😀尾','PRIVATE😀','shortened'],[' PRIVATE','PRIVATE','start'],['PRIVATE😀','PRIVATE😁','changed']]){
+ const r=record('cache',local,{text,text2},'cache_'+priority);
+ assert.ok(!JSON.stringify(r).includes('PRIVATE'));
+ assert.deepEqual(publicLocalInputs('cache',{text,text2}),{});
+}
 for(const state of cases)for(const lang of ['en','es','fr','zh']){
  const summary=buildResolverSummary(state,lang),c=summary.checks;
  assert.equal(c.executed,false);assert.equal(c.instructions.length,3);assert.equal(summary.next,c.instructions[0]);
  for(const mode of c.tools)assert.ok(Object.hasOwn(modeTopics,mode));
  for(const text of [c.title,...c.instructions])assert.ok(text&&!text.includes('undefined')&&!text.includes('PRIVATE'));
+ if(['cache','drift'].includes(state.route))assert.equal(new URL(summary.guide.url).hash,'#sec-resolver-'+state.route);
 }
 for(const values of Object.values(checksRows))assert.ok(values.length===4&&values.every(Boolean));
 for(const [route,scenarios] of Object.entries(CHECK_DEMOS))for(const scenario of scenarios){
  const example=checkDemo(route,scenario,q),result=solveCase(route,example.bundle,example.inputs);
  assert.equal(selectResolverChecks({route,result,inputs:example.inputs}).priority,route+'_'+scenario);
 }
+// Initial examples and alternate scenarios must agree on their labels.
+for(const route of ['cache','drift'])assert.equal(selectResolverChecks({route,result:solveCase(route,local,LOCAL_DEMOS[route])}).priority,route+'_'+CHECK_DEMOS[route][0]);
 assert.throws(()=>checkDemo('memory','kv',{origin:'hf'}));assert.throws(()=>checkDemo('memory','__proto__',q));
 assert.equal(selectResolverChecks({route:'memory',result:{status:'unknown'}}),null);
 assert.equal(selectResolverChecks({route:'template',result:{status:'unknown'}}),null);
 assert.equal(selectResolverChecks({route:'pvr',result:{}}),null);
-console.log('Resolver checks PASS: 17 priorities, soft-prompt boundaries, ten optional examples, four languages and unexecuted/private-data-free plans.');
+assert.equal(selectResolverChecks({route:'cache',result:{}}),null);
+assert.equal(selectResolverChecks({route:'drift',result:{driftEvidence:{templateUnknown:false}}}),null);
+console.log('Resolver checks PASS: 27 priorities, Unicode/prefix boundaries, drift priority order, 20 examples, four languages and unexecuted/private-data-free plans.');

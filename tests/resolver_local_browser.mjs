@@ -40,7 +40,8 @@ try{
    assert.ok((await page.locator('#resolver-review').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.review_demo']));
    const text=await page.locator('#resolver-result').innerText();
    assert.ok(!text.includes('undefined')&&!/resolver\.|drift\.template\./.test(text),lang+' '+id+': '+text);
-   assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.'+(id==='pvr'?'protocol_first_document':id==='adapter'?'check_adapter_mismatch':'next_'+id)]));
+   const next={pvr:'protocol_first_document',adapter:'check_adapter_mismatch',cache:'check_cache_changed',drift:'check_drift_templates'};
+   assert.ok(text.includes(RESOLVER_TRANSLATIONS[lang]['resolver.'+(next[id]||'next_'+id)]));
    if(id==='pvr'){
     await page.locator('#resolver-show-protocol').click();
     const protocol=await page.locator('#resolver-protocol').innerText();

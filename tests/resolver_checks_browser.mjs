@@ -47,6 +47,7 @@ try{
   }
  }
  // A real local input drops example controls and exports no private model identifiers.
+ await page.goto(base+'?resolve=adapter&lang=zh');await page.locator('#resolver-dialog[open]').waitFor();
  await page.locator('#resolver-local-text').fill(JSON.stringify({peft_type:'PROMPT_TUNING',base_model_name_or_path:'PRIVATE/Base'}));
  assert.equal(await page.locator('#resolver-checks').count(),0);
  await page.locator('#resolver-local-base').fill('PRIVATE/Base');await page.locator('#resolver-run').click();await page.locator('#resolver-export').waitFor();
@@ -57,5 +58,5 @@ try{
  assert.ok(await page.locator('#resolver-dialog').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
  mkdirSync('tmp/resolver',{recursive:true});await page.screenshot({path:'tmp/resolver/checks-mobile.png'});
  assert.equal(hf,0);assert.deepEqual(errors,[]);
- console.log('Resolver checks browser PASS: ten examples × four languages, ordered checks, recalculation, follow-up, private exports, no HF requests and mobile.');
+ console.log('Resolver checks browser PASS: 20 examples × four languages, ordered checks, recalculation, follow-up, private exports, no HF requests and mobile.');
 }finally{await browser.close();}
