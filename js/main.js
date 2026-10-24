@@ -49,6 +49,8 @@ import { listGgufFiles, fetchGgufMetadata, ggufToConfig, quantFromFilename, anal
 import { checkFit } from "./fit_check.js";
 import { GPU_PRESETS, QUANT_BPW, planLaunch, launchCommands } from "./launch_flags.js";
 import { initResearchExplorer, refreshResearchExplorer } from "./research_explorer.js";
+import { initGuidePanels, refreshGuidePanels, recordGuideResult, applyGuideDeepLink, attachMetricExplanations } from "./guide_panel.js";
+import { guideLink, modeTopics, local as guideText } from "./guide_bridge.js";
 
 // Attach HF Hub search-as-you-type to all 5 model id inputs (Profile, Recipe,
 // Unmask, Template, Quant). Hits public huggingface.co/api/models. Idempotent.
@@ -175,7 +177,7 @@ function enableUI() {
   // Auto-play a guided demo when launched with ?demo=<mode> (or ?demo=1 → profile).
   // Used by the field guide to deep-link straight into a simulation.
   const __demoParam = new URLSearchParams(window.location.search).get("demo");
-  if (__demoParam) {
+  if (__demoParam && __demoParam !== 'guide') {
     const __m = __demoParam === "1" ? "profile" : __demoParam;
     if (DEMOS[__m]) setTimeout(() => runDemoFor(__m), 900);
   }
@@ -1118,6 +1120,8 @@ function renderPvrResults() {
       </section>`;
   }
   $("pvr-output").innerHTML = html;
+  recordGuideResult('pvr', second ? {gamma_obs_a:first.gamma_obs,gamma_obs_b:second.gamma_obs} : {gamma_obs:first.gamma_obs},
+    {model:modelId,metricModels:{gamma_obs_b:second?.model || ''},mismatch:!!second && compareProtocols(first,second).status === 'different'});
   $("pvr-status").textContent = tFmt("pvr.status.done", { modelId });
 }
 
@@ -1125,6 +1129,7 @@ async function runPvrFromId() {
   const modelId = ($("pvr-id").value || "").trim();
   if (!modelId) { $("pvr-status").textContent = t("pvr.status.empty_id"); return; }
   pvrLastResult = null;
+  recordGuideResult('pvr', {});
   $("pvr-status").textContent = tFmt("pvr.status.fetching", { modelId });
   $("pvr-fetch-btn").disabled = true;
   try {
@@ -2855,6 +2860,7 @@ function renderProfile(p, params) {
 
   const ms = p.model_summary;
   const kn = p.key_numbers;
+  recordGuideResult('profile', kn);
   const formatN = (x) => x === null || x === undefined ? "n/a"
                        : (typeof x === "number" ? x.toLocaleString(undefined, { maximumFractionDigits: 4 }) : String(x));
 
@@ -3034,6 +3040,7 @@ function renderProfile(p, params) {
 
   // Render the what-if slider for interactive exploration
   renderWhatIfSlider(p, params, $("whatif-container"));
+  attachMetricExplanations();
 
   // Render Lean+Mathlib theorem table (graceful no-op if manifest missed).
   // Loaded async at bootstrap; if Profile clicked before fetch resolves we
@@ -3385,7 +3392,7 @@ function parseUrlState() {
   try {
     const decoded = JSON.parse(atob(pData));
     // Switch to right mode tab
-    const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    const btn = [...document.querySelectorAll('.mode-btn')].find(b => b.dataset.mode === mode);
     if (btn) btn.click();
     // Wait a tick for tab to render
     setTimeout(() => {
@@ -3479,7 +3486,7 @@ wireModal("help-modal", "help-btn", "help-close");
 wireModal("quickstart-modal", "quickstart-btn", "quickstart-close");
 wireModal("inventory-modal", "inventory-btn", "inventory-close");
 $("guide-btn")?.addEventListener("click", () =>
-  window.open("https://karlesmarin.github.io/transformers-guide/", "_blank", "noopener"));
+  window.open(guideLink((modeTopics[state.currentMode] || ['gamma'])[0], 0, {mode:state.currentMode,lang:getLang(),app:location.hostname==='karlexmarin-taf-agent.static.hf.space'?'hf':'github'}), "_blank", "noopener"));
 
 // Manual is now static <details class="inv-card"> cards in index.html (same as the
 // "🧰 What it gives you" inventory). FALLBACK: if a stale/cached index.html still serves
@@ -3850,6 +3857,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.querySelectorAll(".lang-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     setLang(btn.dataset.lang);
+    refreshGuidePanels();
     refreshResearchExplorer();
     renderPvrResults();
     document.querySelectorAll(".taf-demo-btn").forEach(button => {
@@ -5729,12 +5737,9 @@ function renderFitCheck(r) {
 // Bootstrap
 // ════════════════════════════════════════════════════════════════════
 initI18n();
-// Reading studies and inspecting measurements need neither Python nor inference. Deep-links work even
-// while Pyodide is still loading or its CDN is unavailable.
-const immediateMode = new URLSearchParams(window.location.search).get("mode");
-if (["research", "pvr", "diagnose"].includes(immediateMode)) {
-  document.querySelector(`.mode-btn[data-mode="${immediateMode}"]`)?.click();
-}
+// Navigation and prefill do not wait for Python and never start a model fetch.
+applyGuideDeepLink(getLang, setLang);
+initGuidePanels(getLang);
 // Pyodide-independent panels: render immediately so they survive a Pyodide
 // load failure (CDN blocked / offline / slow region). These use only fetch +
 // DOM, never state.pyodide — must NOT be gated behind enableUI().
@@ -5847,6 +5852,18 @@ function __demoCtx() {
 
 // Registry: one entry per mode. Add a mode here → it gets a "🎬 Demo" button.
 const DEMOS = {
+  guide: {
+    sectionId: 'profile-section', buttonLabel:'guide.demo_btn',
+    async run(D) {
+      D.mode('profile');
+      const panel=$('guide-for-profile-section'); panel.open=true;
+      D.banner(guideText('help',getLang()),1,2); D.scroll('#guide-for-profile-section');
+      D.select('#guide-for-profile-section-topic','gamma'); await D.sleep(900);
+      D.banner(guideText('choose',getLang()),2,2);
+      D.select('#guide-for-profile-section-topic','horizon'); await D.sleep(900);
+      return {title:guideText('title',getLang()),lines:[guideText('help',getLang())]};
+    },
+  },
   research: {
     sectionId: "research-section",
     async run(D) {
@@ -6452,3 +6469,4 @@ function injectDemoButtons() {
 }
 document.addEventListener("DOMContentLoaded", injectDemoButtons);
 injectDemoButtons();
+if (new URLSearchParams(location.search).get('demo') === 'guide') setTimeout(()=>runDemoFor('guide'),300);

@@ -1060,6 +1060,9 @@ Object.assign(DEMO_STRINGS.zh, {
 
 import { getLang } from "./i18n.js";
 import { ENTROPY_DEMO_TRANSLATIONS } from "./entropy_i18n.js";
+for (const [language, label] of Object.entries({en:'Guide tour',es:'Recorrido por la guía',fr:'Parcours du guide',zh:'指南导览'})) {
+  DEMO_STRINGS[language]['guide.demo_btn'] = label;
+}
 
 for (const [language, entries] of Object.entries(ENTROPY_DEMO_TRANSLATIONS)) {
   Object.assign(DEMO_STRINGS[language], entries);

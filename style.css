@@ -1298,3 +1298,13 @@ footer a:hover { text-decoration: underline; }
   display: inline;
   color: inherit;
 }
+/* Optional explanations accompany inputs and results without blocking either. */
+.taf-guide-panel { margin:1rem 0; padding:.8rem 1rem; border:1px solid var(--border, #495366); border-radius:10px; line-height:1.6; }
+.taf-guide-panel summary { cursor:pointer; font-weight:600; }
+.taf-guide-panel label { display:block; margin:.6rem 0 .3rem; }
+.taf-guide-panel select { max-width:100%; width:100%; white-space:normal; }
+.taf-guide-panel a { overflow-wrap:anywhere; color:#79c0ff; text-underline-offset:.15em; }
+.taf-guide-panel a:visited { color:#d2a8ff; }
+.taf-guide-panel li { margin:.4rem 0; }
+.guide-metric-button { border:0; background:transparent; padding:.2rem .4rem; cursor:pointer; }
+.taf-guide-panel :focus-visible { outline:2px solid #58a6ff; outline-offset:3px; }

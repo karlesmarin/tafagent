@@ -12,13 +12,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://karlesmarin.github.io/tafagent/" />
   <meta property="og:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
-  <meta property="og:description" content="Free, auditable transformer LLM diagnostic. 8 recipes, 5 modes, 4 languages. Runs in your browser. No server, no auth, $0/month forever." />
+  <meta property="og:description" content="31 auditable LLM diagnostic modes, contextual field-guide explanations and optional demos. EN/ES/FR/ZH. Runs in your browser." />
   <meta property="og:site_name" content="TAF Agent" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
-  <meta name="twitter:description" content="Free, auditable transformer LLM diagnostic. 8 recipes, 5 modes, 4 languages. Runs in your browser. $0 forever." />
+  <meta name="twitter:description" content="31 auditable LLM diagnostic modes, contextual field-guide explanations and optional demos. EN/ES/FR/ZH. Runs in your browser." />
 
   <!-- Theme color for browser UI -->
   <meta name="theme-color" content="#0a0e14" />
@@ -62,6 +62,11 @@
       <button class="help-close" id="help-close" aria-label="Close help">×</button>
       <h2 id="help-modal-title" data-i18n="help.title">📘 TAF Agent — User Manual</h2>
       <div class="help-cards">
+        <details class="inv-card">
+          <summary class="inv-card-title" id="guide-help-title">Understand this result</summary>
+          <p id="guide-help-body">Each mode offers a reading route into the guide and a next step.</p>
+          <a id="guide-help-demo" href="?mode=profile&amp;demo=guide">🎬 TAF ↔ Guide</a>
+        </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="research.title">📚 Research connected to the guide</summary>
           <p data-i18n="research.help">A dated reading list with primary sources, guide chapters and proposed experiments. Filter by topic or publication status. No model execution or automatic updates.</p>

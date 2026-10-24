@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: 29 anti-bullshit LLM diagnostics in browser. 4 langs.
+short_description: 31 diagnostic modes + linked field guide. EN/ES/FR/ZH.
 tags:
   - transformer
   - llm
@@ -53,6 +53,19 @@ language:
 > 28 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
+
+### TAF ↔ field guide: explanations that follow the result — October 2026
+
+All **31 modes** now offer an optional **Understand this result** reading route.
+Profile's six main metrics have individual 📖 buttons; Profile and Prediction vs Reality
+can carry the selected value and its origin into the relevant guide chapter. The guide
+labels it as a snapshot, explains the limitations, and offers a return to TAF.
+The guide's [task selector](https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#taf-routes)
+prepares a mode and optional model ID without starting analysis. The interface is EN/ES/FR/ZH;
+the guide is ES/EN, with explicit English links for FR/ZH. No new AI service or telemetry.
+
+Try the optional [reading-route demo](https://karlesmarin.github.io/tafagent/?mode=profile&demo=guide&lang=en).
+See [navigation, provenance and maintenance](docs/guide-integration.md).
 
 ### Measurement protocols and reproducible controls — October 2026
 

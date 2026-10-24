@@ -1,14 +1,15 @@
 {
   "name": "tafagent",
   "version": "0.11.0",
-  "description": "28 anti-bullshit LLM diagnostics in the browser (zero install, zero telemetry). EN/ES/FR/ZH.",
+  "description": "31 LLM diagnostic modes with contextual guide explanations. EN/ES/FR/ZH.",
   "main": "index.js",
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs && node tests/adapter_reality.test.mjs && node tests/fit_check.test.mjs && node tests/research_studies.test.mjs && node tests/entropy_scanner.test.mjs",
+    "test": "node tests/smoke.mjs && node tests/i18n_check.mjs && node tests/memory_reality.test.mjs && node tests/confidence.test.mjs && node tests/prediction_reality.test.mjs && node tests/adapter_reality.test.mjs && node tests/fit_check.test.mjs && node tests/research_studies.test.mjs && node tests/entropy_scanner.test.mjs && node tests/guide_bridge.test.mjs",
+    "test:guide": "node tests/guide_bridge.test.mjs && node tests/guide_bridge_browser.mjs",
     "test:entropy": "node tests/entropy_scanner.test.mjs && python -m pytest tests/test_attention_entropy.py -q",
     "test:research": "node tests/research_studies.test.mjs",
     "test:fitcheck": "node tests/fit_check.test.mjs",

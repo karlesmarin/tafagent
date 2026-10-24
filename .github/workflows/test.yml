@@ -31,6 +31,8 @@ jobs:
         run: node tests/research_studies.test.mjs
       - name: Attention entropy diagnostics
         run: node tests/entropy_scanner.test.mjs
+      - name: Guide routes and metric provenance
+        run: node tests/guide_bridge.test.mjs
 
   python:
     name: formula tests
@@ -78,6 +80,14 @@ jobs:
         run: node test_sweep.mjs
       - name: Research explorer interactions (no Pyodide dependency)
         run: node tests/research_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Guide routes in all modes and languages
+        run: node tests/guide_bridge_browser.mjs
+        env:
+          TAF_URL: http://127.0.0.1:8000/
+      - name: Real Profile metric explanations
+        run: node tests/guide_profile_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
       - name: Measurement protocols and uniform control

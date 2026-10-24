@@ -6,7 +6,7 @@ colorTo: green
 sdk: static
 pinned: true
 license: apache-2.0
-short_description: Test ANY transformer LLM before you spend GPU/$. Free. Auditable.
+short_description: 31 diagnostic modes + linked field guide. EN/ES/FR/ZH.
 tags:
   - transformer
   - llm
