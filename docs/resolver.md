@@ -35,6 +35,13 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 ## Navigation and user control
 
 - Header and Ask mode expose **Solve my problem**.
+- **See how it works**, visible before choosing a route, runs a guided memory
+  example without filling any fields. It explains the starting budget, invites
+  the user to reduce context and compare the new estimate, then points to the
+  guide, follow-up and report. **Start my own case** clears the example inputs.
+- `?resolve=demo&lang=es` opens and runs this saved example directly. It fetches
+  only the site's saved catalog, never HF metadata or model weights. This demo
+  link is the explicit exception to ordinary route links that do not run a check.
 - `?resolve=memory&model=Qwen%2FQwen3-8B&lang=es` opens the relevant form without
   fetching metadata or running analysis. Routes are `memory`, `template`,
   `compatibility`, or `choose` for the selection screen.

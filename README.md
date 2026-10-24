@@ -56,6 +56,11 @@ language:
 
 ### Solve my problem — automatic guided help
 
+[**See how it works — guided demo**](https://karlesmarin.github.io/tafagent/?resolve=demo&lang=en)
+([Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=demo&lang=en)):
+start with a saved memory example, reduce the context, compare estimates and
+explore the guide, follow-up and report. No input or model download required.
+
 [**Open the resolver**](https://karlesmarin.github.io/tafagent/?resolve=choose&lang=en)
 or [use it on Hugging Face](https://karlexmarin-taf-agent.static.hf.space/?resolve=choose&lang=en).
 Three initial routes turn a problem into checks and next actions: **memory**, **chat

@@ -16,6 +16,18 @@ try{
  await page.route('https://huggingface.co/api/models/**',async r=>{metadataRequests++;return r.fulfill({json:{sha:q.revision}});});
  await page.route('https://huggingface.co/**/resolve/**',r=>r.fulfill({json:q.config}));
  for(const lang of ['es','en','fr','zh']){
+  await page.goto(base+'?resolve=choose&lang='+lang);
+  await page.locator('#resolver-start-demo').click();
+  await page.locator('#resolver-walkthrough').waitFor();
+  assert.ok((await page.locator('#resolver-walkthrough').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_action']));
+  await page.locator('#resolver-reduce').click();
+  assert.ok((await page.locator('#resolver-walkthrough').innerText()).includes(RESOLVER_TRANSLATIONS[lang]['resolver.demo_changed']));
+  await page.locator('#resolver-own-case').click();
+  for(const id of ['model','vram','context'])assert.equal(await page.locator('#resolver-'+id).inputValue(),'');
+  assert.equal(await page.locator('#resolver-export').count(),0);
+  await page.goto(base+'?resolve=demo&lang='+lang);
+  await page.locator('#resolver-walkthrough').waitFor();
+  assert.equal(await page.locator('#resolver-context').inputValue(),'131072');
   await page.goto(base+'?resolve=memory&lang='+lang);
   await page.locator('#resolver-dialog[open]').waitFor();
   assert.equal(await page.locator('#resolver-title').innerText(),RESOLVER_TRANSLATIONS[lang]['resolver.title']);

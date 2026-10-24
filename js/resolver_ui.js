@@ -32,6 +32,17 @@ function renderResult() {
   const out=$('result');out.replaceChildren();if(!result)return;
   out.append(node('h3',tr('result')));
   if(bundle.origin==='demo')out.append(node('p',tr('demo_note')));
+  if(bundle.origin==='demo' && route==='memory') {
+    const walkthrough=node('aside');walkthrough.id='resolver-walkthrough';walkthrough.className='resolver-demo-card';
+    walkthrough.append(node('h4',tr('demo_walkthrough')));
+    const steps=node('ol');
+    const changed=lastInputs.context!==131072 || lastInputs.precision!=='BF16';
+    for(const key of ['demo_setup',changed?'demo_changed':'demo_action','demo_finish'])steps.append(node('li',tr(key)));
+    walkthrough.append(steps,button(tr('demo_own'),()=>{
+      choose('memory');for(const id of ['model','vram','context'])$(id).value='';$('model').focus();
+    },'own-case'));
+    out.append(walkthrough);
+  }
   out.append(node('p',bundle.model||'—'),node('p',tr(result.status)));
   if(result.reasons) {
     const ul=node('ul');for(const reason of result.reasons)ul.append(node('li',t('models.reason.'+reason)));out.append(ul);
@@ -107,8 +118,9 @@ export function refreshResolver() {
 export function initResolver() {
   const dialog=node('dialog');dialog.id='resolver-dialog';dialog.setAttribute('aria-labelledby','resolver-title');
   const label=(id,key,input)=>`<label for="resolver-${id}" data-i18n="resolver.${key}"></label>${input}`;
-  dialog.innerHTML=`<button type="button" id="resolver-close" data-i18n="resolver.close"></button>
+  dialog.innerHTML=`<div class="resolver-toolbar"><button type="button" id="resolver-close" data-i18n="resolver.close"></button></div>
     <h2 id="resolver-title" data-i18n="resolver.title"></h2><p data-i18n="resolver.intro"></p>
+    <div class="resolver-demo-card"><button type="button" id="resolver-start-demo" data-i18n="resolver.demo_start"></button><p data-i18n="resolver.demo_intro"></p></div>
     <h3 data-i18n="resolver.problem"></h3>
     ${label('description','error_text','<textarea id="resolver-description" rows="2" maxlength="8000"></textarea>')}
     <button type="button" id="resolver-suggest" data-i18n="resolver.suggest"></button><div id="resolver-suggestions" role="status"></div>
@@ -145,8 +157,12 @@ export function initResolver() {
   $('model').addEventListener('change',()=>invalidate(true));
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));
+  const startDemo=()=>{choose('memory');return run(true);};
+  $('start-demo').addEventListener('click',startDemo);
+  document.querySelectorAll('[data-resolver-demo-open]').forEach(b=>b.addEventListener('click',()=>{open(false);startDemo();}));
   $('share').addEventListener('click',()=>{const field=$('share-value');field.value=resolverLink(route,$('model').value.trim(),location.href,getLang());field.hidden=false;field.focus();field.select();});
   window.__taf_applyTranslations?.();
   const params=new URLSearchParams(location.search), entry=params.get('resolve');
   if(entry){if(Object.hasOwn(CASES,entry))choose(entry);if(validResolverModel(params.get('model')))$('model').value=params.get('model');open(false);}
+  if(entry==='demo')startDemo();
 }
