@@ -1,4 +1,16 @@
 # October 2026 updates — TAF Agent and companion guide
+## 25 October: continue from a concrete observation
+
+**Observation-based follow-up:** all nine direct routes now ask what happened
+when a check was tried. Twenty-seven specific outcomes plus unavailable evidence
+change the next instruction. Up to 12 observations accompany the case report as
+user declarations; original findings are unchanged. The interactive demo shows
+this step. The existing recorded video covers the earlier progress-only flow.
+UI, Manual, feature overview and help are available in EN/ES/FR/ZH, with ES/EN guide
+updates. The saved Fit Check demo calculates a real illustrative budget without
+HF metadata or Pyodide, and cannot finish successfully without that budget.
+
+
 
 ## 25 October: review the evidence behind a result
 

@@ -1,4 +1,12 @@
 # scripts/
+## Resolver follow-up checks
+
+`npm run test:resolver-observations` checks all routes and languages in an
+intercepted offline browser. `npm run test:fitcheck-demo` verifies the saved
+Fit Check budget and its failure boundary. Both also run from the resolver
+browser suite. No model weights or HF metadata are required.
+
+
 
 ## Resolver video
 

@@ -39,3 +39,7 @@
 #resolver-video-player::cue { color:#fff; background:rgba(13,17,23,.9); }
 #resolver-dialog :focus-visible { outline:2px solid var(--accent,#58a6ff); outline-offset:3px; }
 @media(max-width:600px) { #resolver-dialog { padding:1rem; } .resolver-actions { flex-direction:column; } }
+
+#resolver-observations { scroll-margin-top:4rem; margin:1rem 0; }
+#resolver-observations > summary { cursor:pointer; font-weight:600; }
+#resolver-observation-result { overflow-wrap:anywhere; }

@@ -1,4 +1,42 @@
 # Solve my problem
+## Follow-up from reported observations
+
+**What happened when you checked?** is available on all nine direct routes.
+Select the attempted step and a concrete observation: 27 route-specific outcomes
+plus unavailable evidence. For example, a short request working while a longer
+one fails leads to a controlled length/peak-VRAM comparison; failure before
+generation leads to loading peaks and actual weight-format checks.
+
+**It still fails** opens this panel. After recording an observation, its next
+instruction takes precedence in the follow-up, while the original findings and
+declared progress remain unchanged. Suggested tools open the existing catalog
+with their requirements and limits; no runtime check starts and tool results
+are not imported automatically.
+
+The last 12 observations are kept in order for the current result. New inputs,
+recalculation, changing examples/routes and reload clear them. Closing/reopening
+or changing language retains saved observations. Clear observations leaves the
+analysis and progress marks intact. An unavailable-evidence response returns to
+the selected step and does not invent a successful result.
+
+Schema-3 case reports add `observations` version 1: allowed category and step
+keys, localized labels/instructions, selected tool and ordered history, with
+`source: illustrative | user_reported`, `independently_verified: false` and
+`executed_by_taf: false`. They include no new free-text notes, credentials,
+prompts or code. These are user reports, not imported runtime measurements or a
+verified repair. Reports still cannot restore a session.
+
+The interactive demo illustrates an observation in step five. The existing
+recorded video documents the earlier progress-only flow; use the interactive
+demo for observations. All controls, guidance and help support EN/ES/FR/ZH.
+Guide R5 and the relevant ES/EN chapters explain the same workflow.
+
+Fit Check's standalone demo now awaits the site's saved Qwen3-8B configuration,
+sets a reproducible 24 GiB/BF16/FP16-KV scenario and requires a rendered budget
+before showing completion. It does not fetch HF metadata or wait for Pyodide.
+Unavailable example data stops the demo without a success explanation.
+
+
 
 This is an automatic guided front door to existing TAF tools. It runs locally in
 the browser, without Pyodide, WebLLM, model weights or a support operator. A user

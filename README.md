@@ -55,6 +55,16 @@ language:
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 ### Solve my problem — automatic guided help
+**Observation-based follow-up:** all nine direct routes now ask what happened
+when a check was tried. Twenty-seven specific outcomes plus unavailable evidence
+change the next instruction. Up to 12 observations accompany the case report as
+user declarations; original findings are unchanged. The interactive demo shows
+this step. The existing recorded video covers the earlier progress-only flow.
+UI, Manual, feature overview and help are available in EN/ES/FR/ZH, with ES/EN guide
+updates. The saved Fit Check demo calculates a real illustrative budget without
+HF metadata or Pyodide, and cannot finish successfully without that budget.
+
+
 
 **2026-10-25 — Review this result:** every direct resolver check now explains its
 evidence, what remains unverified and the next practical check, with a contextual

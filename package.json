@@ -21,7 +21,9 @@
     "test:pvr": "node tests/prediction_reality.test.mjs",
     "test:formulas": "python -m pytest tests/test_taf_formulas.py -q",
     "test:models": "node tests/model_compatibility.test.mjs && node tests/model_review_browser.mjs",
-    "test:resolver": "node tests/resolver.test.mjs && node tests/resolver_browser.mjs"
+    "test:resolver": "node tests/resolver.test.mjs && node tests/resolver_browser.mjs",
+    "test:resolver-observations": "node tests/resolver_observations.test.mjs && node tests/resolver_observations_browser.mjs",
+    "test:fitcheck-demo": "node tests/fitcheck_demo_browser.mjs"
   },
   "repository": {
     "type": "git",

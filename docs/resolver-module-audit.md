@@ -1,4 +1,18 @@
 # Auditoría de los módulos para «Resolver mi problema»
+## Seguimiento según observaciones — 25 de octubre
+
+`resolver_observations.js` selecciona el siguiente paso entre 27 resultados
+específicos de las nueve rutas, más evidencia no disponible. Son categorías
+declaradas por el usuario; no se leen logs ni se ejecutan pruebas. Se conserva un
+historial máximo de 12 observaciones, separado del resultado y de las marcas de
+progreso. «Sigue fallando» incorpora la última observación; los enlaces a
+herramientas preparan su catálogo sin ejecutar ni importar resultados.
+Los informes incluyen `observations` v1, sin texto libre. Mismos límites de
+reinicio que el progreso. Interfaz, ayuda y demo EN/ES/FR/ZH; guía ES/EN.
+La demo de Fit Check carga una configuración guardada y exige un presupuesto
+visible antes de terminar, sin consulta HF ni dependencia de Pyodide.
+
+
 
 Revisión de implementación: 25 de octubre de 2026. Esta auditoría describe el
 código y sus datos incluidos; no constituye una nueva validación experimental de

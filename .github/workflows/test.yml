@@ -112,7 +112,7 @@ jobs:
         run: node tests/model_review_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
-      - name: Automatic resolver in four languages
+      - name: Resolver observations and saved Fit Check demo in four languages
         run: node tests/resolver_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/

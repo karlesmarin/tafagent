@@ -136,3 +136,6 @@ await import('./resolver_return_browser.mjs');
 await import('./resolver_protocol_browser.mjs');
 await import('./resolver_checks_browser.mjs');
 await import('./resolver_progress_browser.mjs');
+
+await import('./resolver_observations_browser.mjs');
+await import('./fitcheck_demo_browser.mjs');

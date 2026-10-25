@@ -6,6 +6,7 @@ import { buildResolverReview } from './resolver_review.js';
 import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
 import { CHECK_DEMOS,checkDemo } from './resolver_checks.js';
 import { PROGRESS_STATES,progressReport,markProgress,demoProgress } from './resolver_progress.js';
+import {observationChoices,observationReport,recordObservation} from './resolver_observations.js';
 import { createResolverVideo } from './resolver_video.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
@@ -19,12 +20,13 @@ let route='',bundle=null,result=null,feedback='',controller=null,request=0,lastI
 let catalogUI=null;
 let triageUI=null;
 let progressMarks=null;
+let observationHistory=[];
 let videoUI=null;
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;
+  cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;observationHistory=[];
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
@@ -63,7 +65,10 @@ function renderFeedback() {
   $('followup').replaceChildren();
   if(feedback)$('followup').append(node('p',tr(feedback==='worked'?'solved':'followup')));
   if(feedback==='failed') {
-    $('followup').append(node('p',summaryData().next));
+    const observation=observationData()?.current;
+    if(observation)$('followup').append(node('strong',tr('observation_next')),node('p',observation.next),node('p',observation.step_instruction));
+    else $('followup').append(node('p',summaryData().next));
+    $('followup').append(button(tr('observation_title'),openObservations));
     if(progressMarks){const p=progressData();$('followup').append(node('p',tr('progress_next_'+p.next_kind)),button(tr('progress_title'),openProgress));}
     if(summaryData().checks)$('followup').append(node('p',summaryData().checks.instructions[2]),button(tr('checks_open'),openChecks));
     $('followup').append(button(tr('suggest'),()=>{$('description').focus();$('description').scrollIntoView({block:'nearest'});}));
@@ -76,6 +81,58 @@ function progressData(){
  const report=progressReport(resultState(),progressMarks);if(!report)return null;
  return {...report,steps:report.steps.map(s=>({...s,instruction:tr(s.key),label:tr('progress_'+s.status)})),next_instruction:tr('progress_next_'+report.next_kind)};
 }
+function observationData(){
+ const report=observationReport(resultState(),observationHistory);if(!report)return null;
+ const entries=report.entries.map(e=>({...e,label:tr(e.label_key),next:tr(e.next_key),step_instruction:tr(e.step_key)}));
+ return {...report,entries,current:entries.at(-1)||null};
+}
+function openObservations(){
+ if(!$('observations'))return;
+ $('observations').open=true;$('observation-choice').focus();$('observations').scrollIntoView({block:'nearest'});
+}
+function updateObservationView(){
+ const report=observationData(),host=$('observation-result');if(!host||!report)return;
+ host.replaceChildren();
+ if(report.current){
+  host.append(node('h4',tr('observation_next')),node('p',report.current.next),node('p',report.current.step_instruction));
+  if(report.current.tool)host.append(button(tr('observation_tool'),()=>catalogUI.show(report.current.tool),'observation-tool'));
+  const list=node('ol');list.start=1;
+  for(const entry of report.entries)list.append(node('li',tr('progress_step')+' '+(entry.step+1)+': '+entry.label));
+  const history=node('details');history.append(node('summary',tr('observation_history')),list);host.append(history);
+ }
+ $('observation-clear').hidden=!report.entries.length;
+}
+function createObservations(){
+ const box=node('details');box.id='resolver-observations';
+ box.append(node('summary',tr('observation_title')),node('p',tr(bundle.origin==='demo'?'demo_note':'observation_note')));
+ const stepLabel=node('label',tr('observation_step'));stepLabel.htmlFor='resolver-observation-step';
+ const step=node('select');step.id=stepLabel.htmlFor;
+ const plan=progressData();
+ for(const [i,item] of plan.steps.entries())step.append(new Option(tr('progress_step')+' '+(i+1)+': '+item.instruction,String(i)));
+ step.value=String(plan.next_index??0);
+ const label=node('label',tr('observation_question'));label.htmlFor='resolver-observation-choice';
+ const choice=node('select');choice.id=label.htmlFor;choice.append(new Option(tr('observation_choose'),''));
+ for(const code of observationChoices(route))choice.append(new Option(tr(code==='unavailable'?'observation_unavailable':'observation_'+route+'_'+code),code));
+ const status=node('p');status.id='resolver-observation-status';status.setAttribute('role','status');
+ const save=button(tr('observation_save'),()=>{
+  try{
+   observationHistory=recordObservation(resultState(),observationHistory,Number(step.value),choice.value);
+   status.textContent='';updateObservationView();renderFeedback();
+   $('observation-result').focus();$('observation-result').scrollIntoView({block:'nearest'});
+  }catch{status.textContent=tr('observation_invalid');choice.focus();}
+ },'observation-save');
+ const clear=button(tr('observation_clear'),()=>{observationHistory=[];status.textContent='';choice.value='';updateObservationView();renderFeedback();},'observation-clear');
+ const actions=node('div');actions.className='resolver-actions';actions.append(save,clear);
+ const resultBox=node('section');resultBox.id='resolver-observation-result';resultBox.tabIndex=-1;resultBox.setAttribute('aria-live','polite');
+ const guide=node('a',summaryData().guide.title);guide.href=summaryData().guide.url;guide.target='_blank';guide.rel='noopener';
+ box.append(stepLabel,step,label,choice,actions,status,resultBox,guide);return box;
+}
+export function simulateResolverObservation(){
+ if(bundle?.origin!=='demo')throw new Error('demo');
+ observationHistory=recordObservation(resultState(),observationHistory,1,route==='memory'?'short_only':'unavailable');
+ openObservations();$('observation-step').value='1';$('observation-choice').value=route==='memory'?'short_only':'unavailable';updateObservationView();renderFeedback();
+}
+
 function openProgress(){ $('progress').open=true;$('progress').querySelector('summary').focus();$('progress').scrollIntoView({block:'start'}); }
 function updateProgressView(){
  const report=progressData();if(!report||!$('progress-next'))return;
@@ -110,7 +167,7 @@ function createProgress(){
 }
 function openChecks(){ $('review').open=true;$('checks').focus({preventScroll:true});$('checks').scrollIntoView({block:'start'}); }
 function changeExample(scenario){
- progressMarks=null;
+ progressMarks=null;observationHistory=[];
  const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
  if(isLocal())renderLocalFields(example.inputs);
  else if(route==='compatibility')$('model').value='';
@@ -200,7 +257,7 @@ function renderResult() {
       dl.append(node('dt',t(label)),node('dd',value.toLocaleString(getLang(),{maximumFractionDigits:2})+' GiB'));
     }out.append(dl,node('p',tr('memory_note')));
     const controls=node('div');controls.className='resolver-actions';
-    const change=(key,value)=>{ progressMarks=null;$(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
+    const change=(key,value)=>{ progressMarks=null;observationHistory=[];$(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
     if(result.smallerContext)controls.append(button(`${tr('reduce')} · ${result.smallerContext}`,()=>change('context',result.smallerContext),'reduce'));
     for(const alt of result.alternatives)controls.append(button(`${tr('quant')} · ${alt.precision}`,()=>change('precision',alt.precision)));
     out.append(controls,node('p',tr('change_note')));
@@ -211,6 +268,7 @@ function renderResult() {
   if(summaryData().checks)out.append(button(tr('checks_open'),openChecks,'show-checks'));
   out.append(createResolverReview());
   const progress=createProgress();if(progress)out.append(progress);
+  out.append(createObservations());updateObservationView();
   if(bundle.origin==='demo'&&CHECK_DEMOS[route]){
    const examples=node('details');examples.id='resolver-check-examples';examples.append(node('summary',tr('checks_examples')));
    const actions=node('div');actions.className='resolver-actions';
@@ -223,13 +281,13 @@ function renderResult() {
   const sources=node('details');sources.append(node('summary',tr('source')),node('p',bundle.revision||'—'));
   for(const source of bundle.sources||[]) {const p=node('p'),a=node('a',source.url);a.href=source.url;a.target='_blank';a.rel='noopener';p.append(a,node('span',' · '+source.status));sources.append(p);}if(!isLocal())out.append(sources);
   const actions=node('div');actions.className='resolver-actions';
-  actions.append(button(tr('worked'),()=>{feedback='worked';renderFeedback();},'worked'),button(tr('failed'),()=>{feedback='failed';renderFeedback();},'failed'),button(tr('export'),download,'export'));
+  actions.append(button(tr('worked'),()=>{feedback='worked';renderFeedback();},'worked'),button(tr('failed'),()=>{feedback='failed';renderFeedback();openObservations();},'failed'),button(tr('export'),download,'export'));
   out.append(actions,node('p',tr(isLocal()?'local_note':'report_note')));renderFeedback();
 }
 function download() {
   if(!result)return;
   const {suggestion,...publicResult}=result;
-  const report={schema_version:3,review:reviewData(),progress:progressData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
+  const report={schema_version:3,review:reviewData(),progress:progressData(),observations:observationData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
     sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -238,7 +296,7 @@ async function run(demo=false) {
   if(!route)return;
   if(!demo && ((!isLocal()&&!validResolverModel($('model').value.trim())) || !$('form').reportValidity())) {$('status').textContent=tr(isLocal()?'local_invalid':'invalid');return;}
   cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
-  const id=$('model').value.trim();result=null;feedback='';progressMarks=null;$('result').replaceChildren();$('followup').replaceChildren();
+  const id=$('model').value.trim();result=null;feedback='';progressMarks=null;observationHistory=[];$('result').replaceChildren();$('followup').replaceChildren();
   $('status').textContent=tr('loading');$('run').disabled=true;$('demo').disabled=true;
   try {
     let next=bundle;

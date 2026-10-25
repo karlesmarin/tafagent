@@ -184,7 +184,7 @@ function enableUI() {
   // Auto-play a guided demo when launched with ?demo=<mode> (or ?demo=1 → profile).
   // Used by the field guide to deep-link straight into a simulation.
   const __demoParam = new URLSearchParams(window.location.search).get("demo");
-  if (__demoParam && !['guide','resolver'].includes(__demoParam)) {
+  if (__demoParam && !['guide','resolver','fitcheck'].includes(__demoParam)) {
     const __m = __demoParam === "1" ? "profile" : __demoParam;
     if (DEMOS[__m]) setTimeout(() => runDemoFor(__m), 900);
   }
@@ -5648,6 +5648,33 @@ function renderLaunch(p) {
 // ── FIT CHECK mode ("will it fit?") ─────────────────────────────────────────
 let _fitcheckWired = false;
 let _fitGeom = null;
+let _fitRequest = 0;
+
+function applyFitConfig(cfg,id) {
+  const reviewed = configToPreset(cfg, id);
+  const nAttn = reviewed.n_attention_heads;
+  _fitGeom = {
+    nLayers: cfg.num_hidden_layers ?? null,
+    nKvHeads: cfg.num_key_value_heads ?? nAttn,
+    headDim: cfg.head_dim ?? (cfg.hidden_size && nAttn ? cfg.hidden_size / nAttn : null),
+    hidden: cfg.hidden_size ?? null,
+    vocab: cfg.vocab_size ?? null,
+    intermediate: cfg.intermediate_size ?? null,
+    tieEmbeddings: cfg.tie_word_embeddings ?? false,
+    nParams: reviewed.n_params,
+    ropeTheta: reviewed.theta,
+    ctxTrain: reviewed.T_train,
+  };
+  if (!$("fitcheck-ctx").value && _fitGeom.ctxTrain) {
+    $("fitcheck-ctx").value = Math.min(_fitGeom.ctxTrain, 8192);
+  }
+  const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
+  $("fitcheck-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_fitGeom.nLayers} ${t("launch.layers")}, ` +
+    `GQA ${nAttn}:${_fitGeom.nKvHeads}, θ=${_thetaFmt(_fitGeom.ropeTheta)}, ctx ${_yarnFmtK(_fitGeom.ctxTrain)}.`;
+  $("fitcheck-status").append(document.createTextNode(" " + t("models.import_note")));
+}
+
+
 
 function initFitCheck() {
   if (_fitcheckWired) return;
@@ -5663,43 +5690,23 @@ function initFitCheck() {
   const modelEl = $("fitcheck-model");
   if (modelEl) attachHfAutocomplete(modelEl, { onSelect: () => fetchBtn?.click() });
 
-  const invalidate = () => { _fitGeom = null; $('fitcheck-output').style.display = 'none'; };
+  const invalidate = () => { _fitRequest++; _fitGeom = null; $('fitcheck-output').style.display = 'none'; $('fitcheck-status').textContent=''; };
   modelEl?.addEventListener('input', invalidate);
   modelEl?.addEventListener('change', invalidate);
   fetchBtn?.addEventListener("click", async () => {
     const id = (modelEl.value || "").trim();
     if (!id) { $("fitcheck-status").textContent = "⚠ " + t("launch.need_id"); return; }
-    $("fitcheck-status").textContent = "⏳ " + t("launch.fetching");
     fetchBtn.disabled = true;
     invalidate();
+    const ticket=_fitRequest;
+    $("fitcheck-status").textContent = "⏳ " + t("launch.fetching");
     state.lastModelId = id;
     try {
       const cfg = await fetchHfConfig(id);
-      if (modelEl.value.trim() !== id) return;
-      const reviewed = configToPreset(cfg, id);
-      const nAttn = reviewed.n_attention_heads;
-      const rs = (cfg.rope_scaling && typeof cfg.rope_scaling === "object") ? cfg.rope_scaling : {};
-      _fitGeom = {
-        nLayers: cfg.num_hidden_layers ?? null,
-        nKvHeads: cfg.num_key_value_heads ?? nAttn,
-        headDim: cfg.head_dim ?? (cfg.hidden_size && nAttn ? cfg.hidden_size / nAttn : null),
-        hidden: cfg.hidden_size ?? null,
-        vocab: cfg.vocab_size ?? null,
-        intermediate: cfg.intermediate_size ?? null,
-        tieEmbeddings: cfg.tie_word_embeddings ?? false,
-        nParams: reviewed.n_params,
-        ropeTheta: reviewed.theta,
-        ctxTrain: reviewed.T_train,
-      };
-      if (!$("fitcheck-ctx").value && _fitGeom.ctxTrain) {
-        $("fitcheck-ctx").value = Math.min(_fitGeom.ctxTrain, 8192);
-      }
-      const via = cfg.__via_mirror ? ` (via ${escapeHtml(cfg.__via_mirror)})` : "";
-      $("fitcheck-status").innerHTML = `✅ <strong>${escapeHtml(id)}</strong>${via}: ${_fitGeom.nLayers} ${t("launch.layers")}, ` +
-        `GQA ${nAttn}:${_fitGeom.nKvHeads}, θ=${_thetaFmt(_fitGeom.ropeTheta)}, ctx ${_yarnFmtK(_fitGeom.ctxTrain)}.`;
-      $("fitcheck-status").append(document.createTextNode(" " + t("models.import_note")));
+      if (ticket!==_fitRequest || modelEl.value.trim() !== id) return;
+      applyFitConfig(cfg,id);
     } catch (err) {
-      $("fitcheck-status").textContent = `❌ ${err.message}`;
+      if(ticket===_fitRequest) $("fitcheck-status").textContent = `❌ ${err.message}`;
     } finally {
       fetchBtn.disabled = false;
     }
@@ -6361,21 +6368,36 @@ const DEMOS = {
   },
   fitcheck: {
     sectionId: "fitcheck-section",
-    model: "meta-llama/Llama-3.1-8B-Instruct",
+    model: "Qwen/Qwen3-8B",
     async run(D) {
-      const total = 4;
-      D.mode("fitcheck"); await D.sleep(450); D.scroll("#fitcheck-model");
-      D.banner(dt("fitcheck.s1"), 1, total); D.hl("#fitcheck-model"); await D.sleep(900);
-      await D.type("#fitcheck-model", this.model); await D.sleep(600);
-      D.closeAuto("#fitcheck-model"); await D.sleep(450);
-      D.banner(dt("fitcheck.s2"), 2, total);
-      D.hl("#fitcheck-fetch-btn"); await D.sleep(700); D.click("#fitcheck-fetch-btn"); await D.sleep(3800);
-      D.banner(dt("fitcheck.s3"), 3, total); D.hl("#fitcheck-ctx"); await D.sleep(500);
-      await D.type("#fitcheck-ctx", "131072"); await D.sleep(700);
-      D.banner(dt("fitcheck.s4"), 4, total); D.hl("#fitcheck-btn"); await D.sleep(700); D.click("#fitcheck-btn");
-      await D.waitText(/VRAM|KV/i, 20000);
-      D.clearHl(); await D.sleep(700); D.scrollText(/VRAM|KV/i);
-      return { title: dt("fitcheck.x.title"), lines: [dt("fitcheck.x.l1"), dt("fitcheck.x.l2"), dt("fitcheck.x.l3"), dt("fitcheck.x.l4")] };
+      const total=4;
+      D.mode("fitcheck");await D.sleep(450);D.scroll("#fitcheck-model");
+      D.banner(dt("fitcheck.s1"),1,total);D.hl("#fitcheck-model");
+      _fitRequest++;_fitGeom=null;$("fitcheck-output").style.display="none";
+      $("fitcheck-model").value=this.model;D.closeAuto("#fitcheck-model");
+      const ticket=_fitRequest;
+      $("fitcheck-status").textContent=dt("fitcheck.saved");
+      await D.sleep(900);
+      D.banner(dt("fitcheck.s2"),2,total);D.hl("#fitcheck-status");
+      const response=await fetch("data/model_catalog.json",{signal:AbortSignal.timeout(20000)});
+      if(!response.ok)throw new Error("Saved Fit Check example unavailable");
+      const catalog=await response.json(),entry=catalog.models.find(m=>m.id===this.model);
+      if(ticket!==_fitRequest||$("fitcheck-model").value!==this.model)throw new DOMException("Demo interrupted","AbortError");
+      if(!entry?.config)throw new Error("Saved Fit Check configuration missing");
+      applyFitConfig(entry.config,this.model);
+      $("fitcheck-status").append(document.createTextNode(" "+dt("fitcheck.saved")));
+      $("fitcheck-fetch-btn").disabled=false;
+      $("fitcheck-gpu").value="24";$("fitcheck-vram").value="";
+      $("fitcheck-precision").value="BF16";$("fitcheck-cache").value="fp16";
+      await D.sleep(1000);
+      D.banner(dt("fitcheck.s3"),3,total);D.hl("#fitcheck-ctx");
+      await D.type("#fitcheck-ctx","131072");await D.sleep(700);
+      if(ticket!==_fitRequest||!_fitGeom)throw new DOMException("Demo interrupted","AbortError");
+      D.banner(dt("fitcheck.s4"),4,total);D.hl("#fitcheck-btn");D.click("#fitcheck-btn");
+      const out=$("fitcheck-output");
+      if(out.style.display==="none"||!out.querySelector("table"))throw new Error("Fit Check demo produced no budget");
+      D.clearHl();out.scrollIntoView({block:"nearest"});await D.sleep(700);
+      return {title:dt("fitcheck.x.title"),lines:[dt("fitcheck.saved"),dt("fitcheck.x.l1"),dt("fitcheck.x.l2"),dt("fitcheck.x.l3"),dt("fitcheck.x.l4")]};
     },
   },
   gguf: {
@@ -6484,7 +6506,10 @@ async function runDemoFor(mode) {
     __demoExplainPanel(mode, info);
     __demoHideTimer = setTimeout(__demoHideBanner, 12000);
   } catch (e) {
-    if(e.name!=='AbortError')console.warn("demo failed:", e);
+    if(e.name!=='AbortError'){
+      console.warn("demo failed:", e);
+      if(mode==="fitcheck")$("fitcheck-status").textContent=t("resolver.error");
+    }
     __demoHideBanner();
   } finally {
     document.querySelectorAll('.__taf_demo_hl').forEach(el=>el.classList.remove('__taf_demo_hl'));
@@ -6524,3 +6549,6 @@ document.addEventListener("DOMContentLoaded", injectDemoButtons);
 injectDemoButtons();
 if (new URLSearchParams(location.search).get('demo') === 'guide') setTimeout(()=>runDemoFor('guide'),300);
 if (new URLSearchParams(location.search).get('demo') === 'resolver' || new URLSearchParams(location.search).get('resolve') === 'demo') setTimeout(()=>runDemoFor('resolver'),300);
+
+// The saved Fit Check demo needs no Python initialization.
+if(new URLSearchParams(location.search).get('demo')==='fitcheck')setTimeout(()=>runDemoFor('fitcheck'),300);

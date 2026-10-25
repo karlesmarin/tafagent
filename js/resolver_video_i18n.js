@@ -6,3 +6,6 @@ export const videoRows={
  video_download:['Open or download the English video','Abrir o descargar el vídeo en inglés','Ouvrir ou télécharger la vidéo en anglais','打开或下载英语视频'],
  video_help:['The resolver also offers an optional recorded walkthrough: English audio and selectable English, Spanish, French or Chinese subtitles. Opening TAF does not start or download the video.','El resolutor también ofrece un vídeo opcional: audio en inglés y subtítulos seleccionables en inglés, español, francés o chino. Abrir TAF no reproduce ni descarga el vídeo.','Le résolveur propose aussi une vidéo facultative : audio anglais et sous-titres anglais, espagnols, français ou chinois. Ouvrir TAF ne lance ni ne télécharge la vidéo.','问题排查器还提供可选的视频演示：英语音频，可选英语、西班牙语、法语或中文字幕。打开 TAF 不会播放或下载视频。'],
 };
+
+const recordingScope=["The recording shows the earlier progress-only flow; use the interactive demo for observation-based follow-up.","La grabación muestra el flujo anterior de marcas; usa la demo interactiva para ver el seguimiento según observaciones.","La vidéo montre l’ancien suivi par marques ; utilisez la démo interactive pour le suivi selon les observations.","录制视频展示原有进度标记流程；基于观察的后续步骤请查看交互演示。"];
+for(let i=0;i<4;i++){videoRows.video_note[i]+=' '+recordingScope[i];videoRows.video_help[i]+=' '+recordingScope[i];}

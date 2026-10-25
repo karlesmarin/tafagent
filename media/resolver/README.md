@@ -1,4 +1,10 @@
 # Resolver walkthrough
+**Version scope:** this recording predates observation-based follow-up. It shows
+declared progress, not the newer observation history. The current interactive
+demo includes that step. Existing audio/captions remain synchronized to the
+recorded interface; they are not presented as a recording of the newer flow.
+
+
 
 `walkthrough.en.mp4` is a recording of TAF's deployed English resolver demo,
 with English synthetic narration (Microsoft `en-US-AriaNeural`) and separate

@@ -1089,3 +1089,46 @@ export function dt(key) {
   const m = DEMO_STRINGS[lang] || DEMO_STRINGS.en;
   return m[key] ?? DEMO_STRINGS.en[key] ?? key;
 }
+
+const fitSavedRows={
+ "s1": [
+  "Open Fit Check with a saved Qwen3-8B example",
+  "Abre Fit Check con un ejemplo guardado de Qwen3-8B",
+  "Ouvrez Fit Check avec un exemple enregistré de Qwen3-8B",
+  "使用已保存的 Qwen3-8B 示例打开 Fit Check"
+ ],
+ "s2": [
+  "Load the saved geometry; no Hugging Face request",
+  "Carga la geometría guardada; sin consultar Hugging Face",
+  "Chargez la géométrie enregistrée, sans requête Hugging Face",
+  "加载已保存的几何配置，不请求 Hugging Face"
+ ],
+ "saved": [
+  "Saved illustrative configuration: 24 GiB, BF16 weights, FP16 KV. No model execution or GPU measurement.",
+  "Configuración guardada ilustrativa: 24 GiB, pesos BF16, KV FP16. Sin ejecutar modelos ni medir una GPU.",
+  "Configuration illustrative enregistrée : 24 Gio, poids BF16, KV FP16. Aucun modèle exécuté ni GPU mesuré.",
+  "已保存的示例配置：24 GiB、BF16 权重、FP16 KV。不运行模型或测量 GPU。"
+ ],
+ "x.l2": [
+  "The verdict identifies which component exceeds the estimated budget, not the cause of an observed runtime failure.",
+  "El veredicto indica qué componente excede el presupuesto estimado, no la causa de un fallo real del motor.",
+  "Le verdict indique quel composant dépasse le budget estimé, pas la cause d’un échec réel du moteur.",
+  "结论指出哪个组件超出估算预算，不确定实际运行故障的原因。"
+ ],
+ "x.l3": [
+  "Maximum context is an estimate under these assumptions. Validate real peaks, concurrency and task quality before using it.",
+  "El contexto máximo es una estimación bajo estos supuestos. Verifica picos reales, concurrencia y calidad antes de usarlo.",
+  "Le contexte maximal est estimé sous ces hypothèses. Vérifiez pics réels, concurrence et qualité avant usage.",
+  "最大上下文是在这些假设下的估算，使用前需验证实际峰值、并发和任务质量。"
+ ],
+ "x.l4": [
+  "Suggestions are candidate settings to review in your runtime, not verified repairs or a guaranteed cost ranking.",
+  "Las sugerencias son ajustes candidatos para revisar en tu motor, no reparaciones verificadas ni un orden de coste garantizado.",
+  "Les suggestions sont des réglages candidats à vérifier dans le moteur, pas des réparations validées ni un classement de coût garanti.",
+  "建议是需在运行时验证的候选设置，不是已验证修复或保证的成本排序。"
+ ]
+};
+for(const [i,lang] of ['en','es','fr','zh'].entries()){
+ for(const [key,values] of Object.entries(fitSavedRows))DEMO_STRINGS[lang]['fitcheck.'+key]=values[i];
+ DEMO_STRINGS[lang]['resolver.s5']=["Review the evidence and steps. We simulate a blocked step and an observation: a short request works, a longer one fails. Watch the next instruction change; no model was run.","Revisa la evidencia y los pasos. Simulamos un bloqueo y una observación: una petición corta funciona y una larga falla. Observa cómo cambia la siguiente instrucción; no ejecutamos un modelo.","Examinez les preuves et étapes. Nous simulons un blocage et une observation : une requête courte fonctionne, une longue échoue. La suite change ; aucun modèle exécuté.","复核证据和步骤。我们模拟受阻检查及观察：短请求成功、长请求失败。后续指引随之变化；未运行模型。"][i];
+}

@@ -1,4 +1,9 @@
 # Public discussion sample informing resolver questions
+Implementation follow-up, 25 October: the resolver can now record a categorical
+observation after a user attempts a check and adapt the next instruction.
+This adds no new discussion sample, monitoring or verified runtime evidence.
+
+
 
 Reviewed 24 October 2026. This is a **qualitative, search-selected sample**, not
 a representative census, frequency ranking or proof of the cause in any report.
