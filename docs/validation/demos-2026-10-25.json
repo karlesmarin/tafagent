@@ -1,0 +1,226 @@
+{
+  "review_date": "2026-10-25",
+  "tested_commit": "4ecd89b593030ae48c7fa14ae79f32e98a0faf1f",
+  "derived_summary": true,
+  "independently_verified": false,
+  "demo_count": 35,
+  "language_count": 4,
+  "coverage": {
+    "adapter": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "arena": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "ask": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "cache": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "compare": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "contam": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "cot": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "depth": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "diagnose": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "drift": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "entropy": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "fitcheck": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "gguf": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "guide": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "hub": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "inspector": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "launch": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "longscore": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "memreal": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "niah": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "peft": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "phase": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "profile": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "protocol": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "pvr": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "quant": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "recipe": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "research": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "resolver": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "saturation": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "speculative": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "tax": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "template": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "unmask": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ],
+    "yarn": [
+      "en",
+      "es",
+      "fr",
+      "zh"
+    ]
+  },
+  "outcome": "Tested flows completed; no JavaScript errors observed during demo runs",
+  "test_corrections": [
+    "Depth selector corrected to #depth-out; four reruns passed",
+    "Resolver resource exhaustion on first attempt; full suite passed on rerun"
+  ],
+  "scope": "Interaction review, not model quality, GPU measurement or continuous availability"
+}

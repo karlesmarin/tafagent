@@ -1,5 +1,9 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+Revisión de interacción de demos, 25-10-2026: 35 recorridos en EN/ES/FR/ZH.
+[Detalle, incidencias del entorno y alcance](demo-validation-2026-10-25.md).
+No supone validación empírica de las heurísticas ni disponibilidad futura.
+
 ## Memoria antes/después — 25 de octubre
 
 Dos archivos declarados: identidad/carga compatibles, mismo motor/versión/etiqueta
@@ -11,7 +15,7 @@ resultados de las otras herramientas ni ejecuta GPU. Ver memory-measurement.md.
 
 ## Importación de mediciones de memoria — 25 de octubre
 
-Puente limitado a memoria: JSON validado, previsualización, coincidencias declaradas y bloqueo por datos ausentes/diferentes. El auxiliar PyTorch mide contadores al ejecutarlo el usuario en su entorno; las pruebas usan contadores falsos, no GPU real. Archivo privado v2 cuando incorpora una medición; lector compatible con v1. Metadatos del entorno excluidos del informe reducido. Ver memory-measurement.md.
+Puente limitado a memoria: JSON validado, previsualización, coincidencias declaradas y bloqueo por datos ausentes/diferentes. El auxiliar PyTorch mide contadores al ejecutarlo el usuario en su entorno; las pruebas usan contadores falsos, no GPU real. Archivo privado v2 con una sola medición y v3 con pareja actual o inicial; lector compatible con v1. Metadatos del entorno excluidos del informe reducido. Ver memory-measurement.md.
 
 
 

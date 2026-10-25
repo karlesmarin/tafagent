@@ -64,6 +64,10 @@ See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates
 
 ### Solve my problem — automatic guided help
 
+**Demo review, 2026-10-25:** all 35 guided demos completed their tested flows in
+EN/ES/FR/ZH. See [coverage, evidence and limits](docs/demo-validation-2026-10-25.md).
+This records a dated interaction check, not continuous availability or model validation.
+
 **2026-10-25 — Compare Before / After memory reports:** attach a second measurement
 without replacing the first. Matching declared conditions, runtime, chronological
 file dates and explicit confirmation allow a descriptive GiB/percent delta.

@@ -1,5 +1,12 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Documentation audit and demo review
+
+Publish the dated 35-demo/four-language coverage report and its compact evidence
+summary. Clarify private format v2 for one measurement versus v3 for paired
+current/initial inputs, and distinguish browser import from the optional local
+CUDA collector. No application behavior changed.
+
 ## 2026-10-25 — Before/After memory records
 
 Add explicit second-file preview/attachment, pair confirmation, runtime/date gates

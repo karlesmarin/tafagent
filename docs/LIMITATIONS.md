@@ -16,7 +16,8 @@ Imported conditions and measurements remain unverified even when all fields matc
 
 ## Reported memory peaks
 
-TAF does not measure GPU memory. The resolver can accept a user-reported scalar
+The browser does not measure GPU memory. The optional Python collector measures
+counters only when the user runs it in their own CUDA process. The resolver accepts a user-reported scalar
 peak with metric and unit. Compatible, phase-isolated tensor peaks may be compared
 with resident weights (loading) or the steady estimate (prefill/decode). This is
 not a peak prediction or causal diagnosis. Reserved memory, device usage, unknown

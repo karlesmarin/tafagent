@@ -4,7 +4,8 @@
 
 R5 ES/EN adds `#sec-resolver-memory-comparison`, linked from the comparison panel.
 In-app manual/help use `resolver.comparison_help_summary` in EN/ES/FR/ZH; FR/ZH
-link to the English guide. Existing videos do not demonstrate paired reports.
+link to the English guide. Existing videos do not demonstrate paired reports. The [dated demo audit](demo-validation-2026-10-25.md)
+checks existing flows; it does not claim the videos cover the new import/pair UI.
 
 ## Memory-file bridge — 25 October
 
