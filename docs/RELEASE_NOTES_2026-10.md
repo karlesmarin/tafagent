@@ -1,5 +1,15 @@
 # October 2026 updates — TAF Agent and companion guide
 
+
+## 2026-10-25 — Save and reopen private resolver cases
+
+Nine-route portable case files preserve inputs and declared follow-up across
+reloads, with preview/apply, local recalculation and unverified import provenance.
+The unencrypted private download is separate from the reduced report. No upload,
+automatic persistence or runtime execution. UI/help EN/ES/FR/ZH, guide ES/EN,
+validation and CI updated before publication.
+
+
 ## 2026-10-25 — Memory phase and reported-peak follow-up
 
 Added loading/prefill/decode/unknown phases, optional GiB/GB/MiB peak input,

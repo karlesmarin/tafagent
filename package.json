@@ -25,7 +25,8 @@
     "test:resolver-observations": "node tests/resolver_observations.test.mjs && node tests/resolver_observations_browser.mjs",
     "test:fitcheck-demo": "node tests/fitcheck_demo_browser.mjs",
     "test:evidence": "node tests/confidence.test.mjs && node tests/evidence_score_browser.mjs",
-    "test:resolver-memory": "node tests/resolver_memory.test.mjs && node tests/resolver_memory_browser.mjs"
+    "test:resolver-memory": "node tests/resolver_memory.test.mjs && node tests/resolver_memory_browser.mjs",
+    "test:resolver-session": "node tests/resolver_session.test.mjs && node tests/resolver_session_browser.mjs"
   },
   "repository": {
     "type": "git",

@@ -1,3 +1,4 @@
+import {saveCase,readSavedCase,CASE_FILE_LIMIT} from './resolver_session.js';
 import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle, resolverLink } from './resolver.js';
 import { t, getLang } from './i18n.js';
 import { tafLink, HF_BASE } from './guide_bridge.js';
@@ -22,6 +23,7 @@ let triageUI=null;
 let progressMarks=null;
 let observationHistory=[];
 let videoUI=null;
+let pendingCase=null,fileRequest=0;
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
@@ -227,6 +229,7 @@ function renderResult() {
   const out=$('result');out.replaceChildren();if(!result)return;
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   out.append(node('h3',tr('result')));
+  if(bundle.restoredFromFile)out.append(node('p',tr('case_restored')));
   if(bundle.origin==='demo')out.append(node('p',tr('demo_note')));
   if(bundle.origin==='demo' && route==='memory') {
     out.append(button(tr('demo_own'),()=>{
@@ -304,15 +307,59 @@ function renderResult() {
   for(const source of bundle.sources||[]) {const p=node('p'),a=node('a',source.url);a.href=source.url;a.target='_blank';a.rel='noopener';p.append(a,node('span',' · '+source.status));sources.append(p);}if(!isLocal())out.append(sources);
   const actions=node('div');actions.className='resolver-actions';
   actions.append(button(tr('worked'),()=>{feedback='worked';renderFeedback();},'worked'),button(tr('failed'),()=>{feedback='failed';renderFeedback();openObservations();},'failed'),button(tr('export'),download,'export'));
-  out.append(actions,node('p',tr(isLocal()?'local_note':'report_note')));renderFeedback();
+  out.append(actions,node('p',tr(isLocal()?'local_note':'report_note')));
+  const saveBox=node('details');saveBox.id='resolver-save-case';
+  saveBox.append(node('summary',tr('case_save')),node('p',tr('case_save_note')),button(tr('case_save'),downloadPrivateCase,'save-case-button'));
+  out.append(saveBox);renderFeedback();
 }
 function download() {
   if(!result)return;
   const {suggestion,...publicResult}=result;
   const report={schema_version:3,review:reviewData(),progress:progressData(),observations:observationData(),demo_scenario:bundle.demoScenario||null,route,origin:bundle.origin,model:bundle.model,revision:bundle.revision||null,checked_at:bundle.checkedAt||null,
-    sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
+    sources:bundle.sources,inputs:isLocal()?publicLocalInputs(route,lastInputs):lastInputs,initial_inputs:isLocal()?publicLocalInputs(route,initial.inputs):initial.inputs,summary:summaryData(),result:publicResult,user_feedback:feedback||null,restored_from_file:!!bundle.restoredFromFile,scope:'Static inspection / estimate / imported measurements, not an executed model or independently verified fix'};
   const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
   const a=node('a');a.href=url;a.download='taf-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadPrivateCase(){
+ try{
+  const text=saveCase(resultState(),progressMarks,observationHistory,feedback);
+  const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  const a=node('a');a.href=url;a.download='taf-private-case-'+route+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  $('status').textContent='';
+ }catch{$('status').textContent=tr('case_save_error');}
+}
+function clearCasePreview(){
+ fileRequest++;pendingCase=null;$('case-file').value='';$('case-preview').replaceChildren();$('case-file-status').textContent='';
+}
+function renderCasePreview(){
+ const host=$('case-preview');host.replaceChildren();if(!pendingCase)return;
+ const c=pendingCase;
+ host.append(node('p',tr('case_ready')+': '+tr(c.route)),node('p',tr('case_saved_at')+': '+new Date(c.savedAt).toLocaleString(getLang())),node('p',tr('case_private_note')));
+ if(c.bundle.origin==='demo')host.append(node('p',tr('demo_note')));
+ if(c.planChanged)host.append(node('p',tr('case_plan_changed')));
+ host.append(button(tr('case_apply'),()=>{
+  const saved=pendingCase;if(!saved)return;
+  choose(saved.route);bundle=saved.bundle;result=saved.result;lastInputs=saved.inputs;initial=saved.initial;
+  progressMarks=saved.progressMarks;observationHistory=saved.observations;feedback=saved.feedback;
+  if(isLocal())renderLocalFields(lastInputs);
+  else{
+   $('model').value=validResolverModel(bundle.model)?bundle.model:'';
+   if(route==='memory')for(const [key,value] of Object.entries(lastInputs)){if(typeof value==='boolean')$(key).checked=value;else $(key).value=value??'';}
+  }
+  // Imported files never restore an unrelated error, suggestions or share link.
+  $('description').value='';$('suggestions').replaceChildren();triageUI?.reset();
+  clearCasePreview();$('case-open').open=false;
+  renderResult();$('status').textContent=saved.planChanged?tr('case_plan_changed'):'';$('result').focus();
+ },'case-apply'),button(tr('case_cancel'),clearCasePreview,'case-cancel'));
+}
+async function previewCaseFile(){
+ const ticket=++fileRequest,file=$('case-file').files?.[0];pendingCase=null;renderCasePreview();$('case-file-status').textContent='';
+ if(!file)return;
+ try{
+  if(file.size>CASE_FILE_LIMIT)throw new Error('case_file_large');
+  const text=await file.text();if(ticket!==fileRequest)return;
+  pendingCase=readSavedCase(text);renderCasePreview();
+ }catch(error){if(ticket===fileRequest)$('case-file-status').textContent=tr(['case_file_large','case_file_report'].includes(error.message)?error.message:'case_file_invalid');}
 }
 async function run(demo=false) {
   if(!route)return;
@@ -331,7 +378,7 @@ async function run(demo=false) {
       next={model:route==='template'?'Synthetic ChatML example':entry.id,config:entry.config,revision:route==='template'?null:entry.revision,origin:'demo',
         tokenizer:{chat_template:"{% for message in messages %}<|im_start|>{{ message['role'] }}\n{{ message['content'] }}<|im_end|>{% endfor %}"},
         sources:route==='template'?[]:[{url:entry.source,status:200}]};
-    } else if(!next || next.model!==id || next.origin!=='hf')next=await fetchResolverBundle(id,route,{signal:controller.signal});
+    } else if(!next || next.model!==id || next.origin!=='hf'||next.restoredFromFile)next=await fetchResolverBundle(id,route,{signal:controller.signal});
     if(ticket!==request)return;
     if(demo&&CHECK_DEMOS[route])next.demoScenario=CHECK_DEMOS[route][0];
     if(demo&&!isLocal()){clearMemoryPeak();$('model').value=route==='template'?'':next.model;$('vram').value='24';$('context').value='131072';$('precision').value='BF16';$('stage').value='generate';}
@@ -344,7 +391,7 @@ async function run(demo=false) {
 }
 export function refreshResolver() {
   if(!$('dialog'))return;
-  videoUI?.refresh();
+  videoUI?.refresh();renderCasePreview();
   if(route)$('route-title').textContent=tr(route);
   if(isLocal())renderLocalFields(inputs());
   catalogUI?.refresh();
@@ -371,6 +418,9 @@ export function initResolver(onDemo) {
   const label=(id,key,input)=>`<label for="resolver-${id}" data-i18n="resolver.${key}"></label>${input}`;
   dialog.innerHTML=`<div class="resolver-toolbar"><button type="button" id="resolver-close" data-i18n="resolver.close"></button></div>
     <h2 id="resolver-title"><span data-i18n="resolver.title"></span></h2><p data-i18n="resolver.intro"></p>
+    <details id="resolver-case-open"><summary data-i18n="resolver.case_open"></summary><p data-i18n="resolver.case_open_note"></p>
+    <label for="resolver-case-file" data-i18n="resolver.case_file"></label><input id="resolver-case-file" type="file" accept=".json,application/json">
+    <p id="resolver-case-file-status" role="status"></p><div id="resolver-case-preview" aria-live="polite"></div></details>
     <h3 data-i18n="resolver.problem"></h3>
     <div id="resolver-triage"></div>
     <details id="resolver-direct"><summary data-i18n="resolver.triage_direct"></summary><div class="resolver-actions">${Object.keys(CASES).map(k=>`<button type="button" data-resolver-case="${k}" aria-pressed="false" data-i18n="resolver.${k}"></button>`).join('')}</div></details>
@@ -421,6 +471,7 @@ export function initResolver(onDemo) {
   document.querySelectorAll('[data-resolver-open]').forEach(b=>b.addEventListener('click',()=>open(b.dataset.resolverOpen==='ask')));
   $('close').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>{cancel();videoUI?.pause();});
   $('suggest').addEventListener('click',suggest);
+  $('case-file').addEventListener('change',previewCaseFile);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
   $('form').addEventListener('input',e=>{if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});

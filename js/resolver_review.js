@@ -15,7 +15,8 @@ export function buildResolverReview(state,language='en') {
  return {
   version:1,route,demonstration:demo,
   evidence_kind:route==='pvr'?'imported_measurement':route==='drift'?'heuristic_comparison':route==='memory'&&!limited?'configuration_estimate':'static_inspection',
-  provenance:tr(demo?'review_demo':local?'review_local':'review_metadata'),
+  restored_from_file:!!bundle.restoredFromFile,
+  provenance:tr(bundle.restoredFromFile?'case_restored':demo?'review_demo':local?'review_local':'review_metadata'),
   basis:tr(limited?'review_limited':'review_'+route+'_basis'),
   limitation:tr('review_'+route+'_limit'),
   observations:(result.notices||[]).map(n=>tr(n.key)),

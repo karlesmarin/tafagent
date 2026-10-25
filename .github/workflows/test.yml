@@ -118,6 +118,8 @@ jobs:
         run: node tests/resolver_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
+      - name: Reopen private cases in nine routes and four languages
+        run: node tests/resolver_session_browser.mjs
       - name: Resolver phase peaks in four languages
         run: node tests/resolver_memory_browser.mjs
       - name: Resolver video and multilingual captions

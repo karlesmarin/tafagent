@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {saveCase,readSavedCase,CASE_FILE_LIMIT} from '../js/resolver_session.js';
+import {solveCase} from '../js/resolver.js';
+import {LOCAL_DEMOS} from '../js/resolver_local.js';
+import {markProgress} from '../js/resolver_progress.js';
+import {recordObservation} from '../js/resolver_observations.js';
+const q=JSON.parse(readFileSync(new URL('../data/model_catalog.json',import.meta.url))).models.find(x=>x.id==='Qwen/Qwen3-8B');
+const hf={origin:'hf',model:q.id,revision:q.revision,config:q.config,sources:[{url:`https://huggingface.co/${q.id}/resolve/${q.revision}/config.json`,status:200}],checkedAt:'2026-10-25T12:00:00Z'};
+const memory={vram:24,context:4096,precision:'BF16',stage:'prefill',peak:22,peakUnit:'GiB',peakMetric:'allocated',peakSame:true,peakIsolated:true};
+let fixture;
+for(const route of ['memory','template','compatibility',...Object.keys(LOCAL_DEMOS)]){
+ const bundle=LOCAL_DEMOS[route]?{origin:'local',model:null,sources:[]}:route==='template'?{...hf,tokenizer:{chat_template:'<|im_start|>user<|im_end|>'},template:null}:hf;
+ const inputs=LOCAL_DEMOS[route]??(route==='memory'?memory:{});
+ const initialInputs=route==='memory'?{...memory,context:1024}:inputs;
+ const state={route,bundle,inputs,result:solveCase(route,bundle,inputs),initial:{inputs:initialInputs,result:solveCase(route,bundle,initialInputs)}};
+ const marks=markProgress(state,null,1,'blocked'),history=recordObservation(state,[],1,'unavailable');
+ const text=saveCase(state,marks,history,'failed'),file=JSON.parse(text),restored=readSavedCase(text);
+ assert.deepEqual(restored.inputs,inputs,route);assert.deepEqual(restored.initial.inputs,initialInputs);
+ assert.deepEqual(restored.result,state.result);assert.deepEqual(restored.progressMarks,marks);assert.deepEqual(restored.observations,history);assert.equal(restored.feedback,'failed');assert.equal(restored.bundle.restoredFromFile,true);
+ assert.equal(file.result,undefined);assert.equal(file.review,undefined);
+ assert.deepEqual(readSavedCase(saveCase(restored,marks,history,'failed')).result,state.result);
+ if(route==='memory')fixture=file;
+}
+const reject=change=>{const f=structuredClone(fixture);change(f);assert.throws(()=>readSavedCase(JSON.stringify(f)));};
+reject(f=>f.version=2);reject(f=>f.route='__proto__');reject(f=>f.bundle.origin='local');reject(f=>f.bundle.revision='main');reject(f=>f.inputs.context=-1);reject(f=>f.inputs.precision='nonsense');reject(f=>f.inputs.peakSame='true');reject(f=>f.progress.states[0]='solved');reject(f=>f.observations[0].code='wrong');reject(f=>f.feedback='verified');reject(f=>f.bundle.sources[0].url='javascript:alert(1)');reject(f=>f.bundle.sources[0].url='https://huggingface.co@evil.test/model');reject(f=>f.bundle.config=JSON.parse('{"__proto__":{"polluted":true}}'));reject(f=>f.initial_inputs.vram=null);
+assert.equal({}.polluted,undefined);
+assert.throws(()=>readSavedCase('{bad'));
+assert.throws(()=>readSavedCase(JSON.stringify({schema_version:3})),/case_file_report/);
+assert.throws(()=>readSavedCase(' '.repeat(CASE_FILE_LIMIT+1)),/case_file_large/);
+const changed=structuredClone(fixture);changed.progress.key='old_plan';changed.observations[0].plan_key='old_plan';
+const newPlan=readSavedCase(JSON.stringify(changed));assert.equal(newPlan.planChanged,true);assert.equal(newPlan.progressMarks,null);assert.deepEqual(newPlan.observations,[]);assert.equal(newPlan.feedback,'');
+const forged=structuredClone(fixture);forged.result={status:'verified_fix'};assert.notEqual(readSavedCase(JSON.stringify(forged)).result.status,'verified_fix');
+const demo=structuredClone(fixture);demo.bundle.origin='demo';const demoState=readSavedCase(JSON.stringify(demo));assert.equal(demoState.bundle.origin,'demo');assert.equal(demoState.result.memoryPeak.source,'illustrative');
+console.log('Private cases PASS: nine routes, initial/current inputs, peaks, follow-up, provenance, recalculation, versions, invalid data, unsafe URLs, limits, old reports and changed plans.');

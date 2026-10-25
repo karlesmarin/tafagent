@@ -1,5 +1,68 @@
 # Solve my problem
 
+## Save and reopen a private case
+
+All nine direct routes offer **Save private case** after a successful check.
+It downloads a version-1 `taf-resolver-private-case` JSON file containing the
+initial/current inputs, inspected metadata, declared progress, up to 12
+observations and feedback. Pasted code, prompts, reports and adapter metadata
+are included when needed to resume. The disclosure explains that this file is
+unencrypted and should be kept private. There is no automatic browser storage
+or upload. The existing reduced schema-3 report remains separate and continues
+to omit pasted local inputs; it cannot reconstruct those omitted inputs.
+
+**Open saved case** accepts up to 4 MiB, validates and previews the route and
+save date, then requires **Open and replace current case**. Cancel or invalid
+files leave the current case untouched. An import performs local recalculation
+from both input sets; it never trusts saved results, fetches repository data,
+executes pasted code/Jinja, downloads weights or verifies a repair. Current UI
+language is retained. Imported metadata is visibly unverified; the review and
+reduced report mark `restored_from_file`. Saved demos remain illustrative.
+Running the HF check again refreshes metadata rather than silently reusing the
+imported snapshot. Changed check plans discard incompatible follow-up and
+feedback; ordinary input edits still reset stale findings as before.
+
+The file parser checks route/version, input bounds, metadata shape, progress and
+observation enums, nesting/size and HTTPS Hugging Face source URLs. Unknown
+versions and old reduced reports show specific guidance. Restoring uses a
+preview/apply step and handles competing asynchronous file reads. The file is
+portable between the GitHub and Hugging Face hosts; it does not restore a
+language, arbitrary navigation URL or free-form error description, and never
+reads or uses account credentials.
+It can still contain secrets that a user pasted into their own input: the UI
+does not promise automatic redaction. Treat private case files accordingly.
+
+Validation: `npm run test:resolver-session` covers nine-route round trips,
+initial/current differences, memory peaks, declared follow-up, malformed data,
+provenance, changed plans, reduced-report privacy and four-language browser
+reopening after reload, cancellation, keyboard and mobile use.
+
+
+### Private file format and maintenance
+
+`resolver_session.js` owns `saveCase` / `readSavedCase`; `resolver_ui.js` owns
+preview/apply and browser downloads. `resolver_session_i18n.js` supplies EN/ES/FR/ZH.
+No backend or additional package is required.
+
+| Field | Meaning |
+|---|---|
+| `format`, `version` | `taf-resolver-private-case`, version `1`; unknown versions rejected |
+| `saved_at`, `route` | Save date and one of the nine supported direct routes |
+| `bundle` | Declared origin, model/revision/date, inspected metadata and source references |
+| `inputs`, `initial_inputs` | Current and initial route inputs used for recalculation |
+| `progress` | Plan key and three declared states, or `null` |
+| `observations` | At most 12 route/plan/step/outcome entries |
+| `feedback` | Empty, `worked` or `failed`; always a user declaration |
+
+Computed results, rendered explanations and arbitrary navigation state are not
+serialized. Imports derive results with `solveCase` from both input sets and
+match follow-up to the current plan. Version 1 has no migration from the reduced
+report format because those reports deliberately lack required private inputs.
+Keep format validation, UI notices, all translations and browser tests aligned
+when changing this contract. A file declaring HF origin is not authenticated by
+that label: every reopened case has `restoredFromFile` in memory and the reduced
+report/review expose `restored_from_file: true`.
+
 ## Memory estimates and reported phase peaks
 
 The memory route distinguishes loading, prompt prefill, subsequent-token decode,
@@ -176,11 +239,12 @@ the panel asks for a check of the original task and preserves counterexamples.
 Marks are declarations. They neither alter findings/protocol metadata nor mark a
 repair verified. **It still fails** incorporates the declared next action alongside
 the original evidence-based plan. The guide link remains tied to the case.
-Marks stay only in the current tab's memory: closing/reopening the resolver or
+Without an explicit private case download, marks stay only in the current tab's memory: closing/reopening the resolver or
 changing language preserves them. Input changes, reruns, adjusted estimates,
 alternative examples and route changes clear them, even when priority is unchanged.
-Reloading the page loses the case and marks; no storage or report-import mechanism
-is added. Returning via a guide link opens a fresh form, so retain the original tab.
+Reloading loses unsaved cases and marks. Use Save private case before leaving
+and Open saved case to resume. Reduced reports cannot restore omitted inputs.
+Guide return links open a fresh form; keep the original tab or save a private case.
 
 Each saved example offers **Simulate a blocked check**: one reviewed step, one
 blocked step and one pending step. This action exists only for illustrative cases.

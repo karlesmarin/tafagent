@@ -1,5 +1,20 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+
+## Casos privados recuperables — 25 de octubre
+
+Las nueve rutas permiten guardar un archivo privado y abrirlo tras previsualizar
+ruta/fecha y confirmar la sustitución. Se conservan entradas iniciales/actuales,
+metadatos, marcas, observaciones y respuesta final. Se recalcula localmente;
+los resultados guardados no se aceptan como evidencia. El archivo no está cifrado
+y puede contener código/textos privados, con aviso antes de descargarlo.
+El informe reducido sigue separado y no recupera los datos que omite.
+La importación marca la procedencia como no verificada, conserva ejemplos como
+ejemplos y no consulta HF. El límite es 4 MiB; archivos inválidos no alteran el
+caso abierto. Los planes incompatibles pierden su seguimiento obsoleto.
+Interfaz/ayuda EN/ES/FR/ZH y guía ES/EN actualizadas. Ver resolver_session.js.
+
+
 ## Memoria por fases y picos declarados
 
 `resolver_memory.js` convierte GiB/GB/MiB y limita la comparación a picos de
@@ -83,7 +98,8 @@ los pasos existentes y selecciona primero discrepancias, luego bloqueos y despu�
 pendientes. No altera resultados ni condiciones del protocolo. Los ejemplos
 simulan marcas y las exportan como ilustrativas; las marcas reales se etiquetan
 como declaraciones del usuario, nunca pruebas verificadas. Se descartan al
-cambiar datos o recalcular, y no se guardan fuera de la memoria de la pestaña.
+cambiar datos o recalcular. No hay persistencia automática; Guardar caso privado
+permite conservarlas y recuperarlas explícitamente.
 
 | Modo | Implementación principal | Datos y operación | Uso en el resolutor y límite |
 |---|---|---|---|

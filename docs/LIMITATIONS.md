@@ -156,3 +156,40 @@ ledger and automatic community replies are not delivered by this update.
 
 The earlier external AI review helped identify questions worth investigating;
 its proposed equations and virtual examples are not treated as evidence.
+
+## Save and reopen a private case
+
+All nine direct routes offer **Save private case** after a successful check.
+It downloads a version-1 `taf-resolver-private-case` JSON file containing the
+initial/current inputs, inspected metadata, declared progress, up to 12
+observations and feedback. Pasted code, prompts, reports and adapter metadata
+are included when needed to resume. The disclosure explains that this file is
+unencrypted and should be kept private. There is no automatic browser storage
+or upload. The existing reduced schema-3 report remains separate and continues
+to omit pasted local inputs; it cannot reconstruct those omitted inputs.
+
+**Open saved case** accepts up to 4 MiB, validates and previews the route and
+save date, then requires **Open and replace current case**. Cancel or invalid
+files leave the current case untouched. An import performs local recalculation
+from both input sets; it never trusts saved results, fetches repository data,
+executes pasted code/Jinja, downloads weights or verifies a repair. Current UI
+language is retained. Imported metadata is visibly unverified; the review and
+reduced report mark `restored_from_file`. Saved demos remain illustrative.
+Running the HF check again refreshes metadata rather than silently reusing the
+imported snapshot. Changed check plans discard incompatible follow-up and
+feedback; ordinary input edits still reset stale findings as before.
+
+The file parser checks route/version, input bounds, metadata shape, progress and
+observation enums, nesting/size and HTTPS Hugging Face source URLs. Unknown
+versions and old reduced reports show specific guidance. Restoring uses a
+preview/apply step and handles competing asynchronous file reads. The file is
+portable between the GitHub and Hugging Face hosts; it does not restore a
+language, arbitrary navigation URL or free-form error description, and never
+reads or uses account credentials.
+It can still contain secrets that a user pasted into their own input: the UI
+does not promise automatic redaction. Treat private case files accordingly.
+
+Validation: `npm run test:resolver-session` covers nine-route round trips,
+initial/current differences, memory peaks, declared follow-up, malformed data,
+provenance, changed plans, reduced-report privacy and four-language browser
+reopening after reload, cancellation, keyboard and mobile use.

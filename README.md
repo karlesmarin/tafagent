@@ -63,6 +63,39 @@ See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates
 **🌐 Live**: https://karlesmarin.github.io/tafagent  ·  HF Space: https://huggingface.co/spaces/karlexmarin/taf-agent
 
 ### Solve my problem — automatic guided help
+
+**2026-10-25 — Save and reopen a case:** all nine direct routes can now continue
+across browser reloads using an explicit private file. UI, Manual and feature
+help are available in EN/ES/FR/ZH; the guide is updated in ES/EN.
+
+| Action | Contents | Can continue the case? |
+|---|---|---|
+| **Export report** | Derived findings, bounded inputs and declared follow-up; pasted local code/text omitted | No: omitted inputs cannot be reconstructed |
+| **Save private case** | Initial/current inputs, inspected metadata, progress, observations and feedback | Yes, using **Open saved case** |
+
+1. Complete a check, expand **Save private case** and read the privacy notice.
+2. Download the JSON file and keep it private: it is **unencrypted** and can
+   contain pasted code, prompts, reports or adapter configurations.
+3. Later, open **Solve my problem → Open saved case** on either TAF host and
+   select the file (maximum **4 MiB**).
+4. Review the route/date and choose **Open and replace current case**. Cancelling
+   or choosing an invalid file leaves the current case intact.
+
+Reopening recalculates with the current TAF version, retains the current UI
+language and restores compatible follow-up. It does not contact Hugging Face,
+run pasted code or execute a model. Imported data/revisions remain unverified;
+saved examples remain illustrative. A changed check plan clears incompatible
+follow-up. Run the HF check again to refresh repository metadata. Nothing is
+uploaded or automatically stored in the browser. Old reduced reports are not
+resumable: use a private case download from the original session.
+
+[Full behavior and file format](docs/resolver.md#save-and-reopen-a-private-case) ·
+[Guía ES](https://karlesmarin.github.io/transformers-guide/es/chapters/R5-tafagent.html#sec-resolver-saved-cases) ·
+[English guide](https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html#sec-resolver-saved-cases).
+Verification: `npm run test:resolver-session` (nine routes, four languages,
+reload/reopening, follow-up, privacy, invalid files and mobile), plus `npm test`
+and `npm run test:resolver`. This is case continuity, not proof of a repair.
+
 **Observation-based follow-up:** all nine direct routes now ask what happened
 when a check was tried. Twenty-seven specific outcomes plus unavailable evidence
 change the next instruction. Up to 12 observations accompany the case report as
@@ -143,7 +176,8 @@ report and a shareable link. Memory alternatives recalculate estimates without
 modifying the model. Links prefill a route and model ID without running it; pasted
 questions/errors are excluded from links and reports. The six local checks also
 exclude pasted code, prompts, measurement files, adapter configs and JSON proposals
-from exports. EN/ES/FR/ZH, keyboard and
+from reduced reports. Private case downloads intentionally retain the inputs
+needed to continue, with a privacy notice. EN/ES/FR/ZH, keyboard and
 mobile support. Manual and feature overview updated; guide R5 explains the flow
 in ES/EN. No monitoring or automatic posting to discussions is enabled.
 See [scope, inputs and extension instructions](docs/resolver.md), the

@@ -129,3 +129,16 @@ Referencias de diseño consultadas: [Transformer Explainer](https://poloclub.git
 combina controles y explicación de las operaciones; [BertViz](https://github.com/jessevig/bertviz)
 ofrece distintas vistas de la atención. La integración de TAF conserva sus propias
 métricas, evidencias y componentes; no incorpora código de esos proyectos.
+
+## Resolver case continuity — 25 October 2026
+
+R5 ES/EN now includes `#sec-resolver-saved-cases`: save a private case, preview
+and reopen it on either app host, and distinguish it from the reduced report.
+The in-app Manual and feature overview use `resolver.case_help` in EN/ES/FR/ZH.
+FR/ZH guide links continue to use English. Guide return links still prepare a
+fresh form; they carry neither case files nor pasted inputs. To preserve work
+across reloads, explicitly save a private case before leaving.
+Source QMD, rendered R5 pages and their search entries are synchronized. See
+[resolver documentation](resolver.md#save-and-reopen-a-private-case) for format,
+privacy, validation and tests. The earlier recorded video does not demonstrate
+this new optional file workflow.
