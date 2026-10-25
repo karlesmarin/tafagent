@@ -1,5 +1,15 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+## Configuración de adaptadores desde archivo — 25 de octubre
+
+adapter_config.json → vista previa → aplicación explícita → comprobación.
+Conserva la base introducida para detectar discrepancias; no rellena una base
+ausente. Hasta 50 kB, metadatos tipados, texto íntegro en caso privado v1 e informe
+reducido sin configuración/base crudas. Métodos soft-prompt conservan su alcance.
+No ejecuta modelos, verifica procedencia ni consulta HF. UI/ayuda EN/ES/FR/ZH,
+R5 ES/EN. Ver [contrato y pruebas](adapter-config-import.md).
+
+
 ## Archivos de informes de atención — 25 de octubre
 
 Diagnose CLI/JSON compatible → previsualización → campo principal o referencia

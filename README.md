@@ -49,6 +49,14 @@ language:
 
 # 🔬 TAF Agent
 
+## Local adapter configuration files
+
+**Solve my problem → Adapters** can preview and explicitly apply a local
+`adapter_config.json` (up to 50 kB). It retains your base-model field so existing
+checks can find a mismatch. Full JSON stays in private cases; reduced reports
+omit it. EN/ES/FR/ZH, with [workflow, limits and tests](docs/adapter-config-import.md).
+
+
 **2026-10-25 — Memory failure phases and reported peaks:** Solve my problem now
 separates loading, prefill and decode. An optional measured peak has explicit
 units, metric, workload and phase checks; comparisons remain descriptive and

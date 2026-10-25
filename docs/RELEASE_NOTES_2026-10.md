@@ -1,5 +1,14 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Open adapter configuration files
+
+Add local adapter_config.json preview/apply with a 50 kB bound, typed metadata
+and stale-read protection. Retain the user-entered base and existing adapter
+checks. Preserve full text in private v1 cases and omit it from reduced reports.
+Update UI/help EN/ES/FR/ZH, README, docs, CI and R5 ES/EN before publication.
+See [workflow and scope](adapter-config-import.md).
+
+
 ## 2026-10-25 — Open attention reports as files
 
 Add previewed local JSON selection for primary and reference attention inputs,

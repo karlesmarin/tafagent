@@ -1,5 +1,14 @@
 # TAF Agent — Limitations & evidence
 
+## Local adapter file input
+
+Previewed adapter metadata is unverified. The 50 kB importer validates basic
+types and bounds, not the complete PEFT schema, runtime support, weights, base
+revision compatibility, training success or quality. It keeps the user-entered
+base to preserve mismatch detection; family similarity is not exact identity.
+Unknown fields remain in private files. [Full contract](adapter-config-import.md).
+
+
 ## Attention file imports
 
 Import accepts one bounded JSON attention record, not every Diagnose output:

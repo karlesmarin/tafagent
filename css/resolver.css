@@ -60,3 +60,6 @@
 #resolver-comparison-result { overflow-wrap:anywhere; }
 
 [data-attention-preview] { overflow-wrap:anywhere; }
+
+#resolver-adapter-preview { overflow-wrap: anywhere; }
+#resolver-adapter-import input[type="file"] { max-width:100%; }

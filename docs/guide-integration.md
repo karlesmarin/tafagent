@@ -1,5 +1,15 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## Adapter configuration file workflow — 25 October 2026
+
+R5 ES/EN now documents `#sec-resolver-adapter-import`: local JSON preview,
+explicit apply/check, preserved base field, typed metadata, 50 kB and privacy
+limits. UI/manual/help EN/ES/FR/ZH link to that section with route, language and
+original app host, without configuration data. FR/ZH use the English guide.
+Source QMD, rendered chapter and search entries are synchronized. Earlier videos
+do not show this selector. [Workflow](adapter-config-import.md).
+
+
 ## Attention report files — 25 October
 
 R5 ES/EN adds `#sec-resolver-attention-import`, linked from both file selectors.

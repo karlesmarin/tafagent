@@ -1,3 +1,4 @@
+import {readAdapterConfigFile,ADAPTER_FILE_LIMIT} from './adapter_config_file.js';
 import {readAttentionReport,ATTENTION_FILE_LIMIT} from './attention_report_file.js';
 import {compareMemoryMeasurements} from './memory_comparison.js';
 import {readMemoryMeasurement,reviewMemoryMeasurement,publicMemoryInputs,MEASUREMENT_LIMIT} from './memory_measurement.js';
@@ -27,6 +28,12 @@ let progressMarks=null;
 let observationHistory=[];
 let videoUI=null;
 let pendingCase=null,fileRequest=0;
+let adapterFileRequest=0;
+function clearAdapterPreview(){
+ adapterFileRequest++;
+ const box=$('adapter-import');if(!box)return;
+ $('adapter-preview').replaceChildren();$('adapter-file-status').textContent='';$('adapter-file').value='';
+}
 let attentionRequest=0;
 function clearAttentionPreviews(except=null){
  attentionRequest++;
@@ -38,7 +45,7 @@ const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  measurementRequest++;clearAttentionPreviews();
+  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();
   cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;observationHistory=[];
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
@@ -73,7 +80,34 @@ function renderLocalFields(values={}) {
   if(values[f.id]!=null){if(f.type==='checkbox')input.checked=values[f.id];else input.value=values[f.id];}
   host.append(label,input);
   if(route==='pvr'&&f.type==='textarea')host.append(createAttentionImport(f.id));
+  if(route==='adapter'&&f.id==='text')host.append(createAdapterImport());
  }
+}
+function createAdapterImport(){
+ const box=node('details');box.id='resolver-adapter-import';
+ box.append(node('summary',tr('adapter_file_open')),node('p',tr('adapter_file_help')));
+ const label=node('label',tr('adapter_file_label'));label.htmlFor='resolver-adapter-file';
+ const file=node('input');file.type='file';file.accept='.json,application/json';file.id=label.htmlFor;file.dataset.adapterFile='';
+ const status=node('p');status.id='resolver-adapter-file-status';status.setAttribute('role','status');
+ const preview=node('section');preview.id='resolver-adapter-preview';preview.setAttribute('aria-live','polite');
+ file.addEventListener('change',async()=>{
+  const selected=file.files?.[0];clearAdapterPreview();const ticket=adapterFileRequest;if(!selected)return;
+  try{
+   if(selected.size>ADAPTER_FILE_LIMIT)throw new Error('adapter_file_large');
+   const text=await selected.text();if(ticket!==adapterFileRequest||!box.isConnected)return;
+   const report=readAdapterConfigFile(text);
+   preview.append(node('h4',tr('adapter_file_preview')),node('p',tr('adapter_file_unverified')));
+   const dl=node('dl');
+   for(const [key,value] of Object.entries(report.preview))if(value!==null)dl.append(node('dt',tr('adapter_file_'+key)),node('dd',String(value)));
+   preview.append(dl,node('p',tr('adapter_file_base_kept')));
+   const actions=node('div');actions.className='resolver-actions';actions.append(button(tr('adapter_file_apply'),()=>{
+    if(ticket!==adapterFileRequest||!box.isConnected||route!=='adapter')return;
+    $('local-text').value=report.text;invalidate();$('status').textContent=tr('adapter_file_applied');$('local-text').focus();
+   },'adapter-file-apply'),button(tr('adapter_file_cancel'),clearAdapterPreview,'adapter-file-cancel'));preview.append(actions);
+  }catch(error){if(ticket===adapterFileRequest&&box.isConnected)status.textContent=tr(error.message==='adapter_file_large'?'adapter_file_large':'adapter_file_invalid');}
+ });
+ const guide=node('a',tr('adapter_file_guide'));const url=new URL(guideLink('adaptation',1,{mode:'adapter',resolve:'adapter',lang:getLang(),app:location.origin===new URL(HF_BASE).origin?'hf':'github'}));url.pathname=url.pathname.replace(/\/chapters\/[^/]+$/,'/chapters/R5-tafagent.html');url.hash='sec-resolver-adapter-import';guide.href=url.href;guide.target='_blank';guide.rel='noopener';
+ box.append(label,file,status,preview,guide);return box;
 }
 function createAttentionImport(field){
  const box=node('details');box.dataset.attentionImport=field;box.id='resolver-attention-import-'+field;
@@ -490,7 +524,7 @@ async function previewCaseFile(){
 async function run(demo=false) {
   if(!route)return;
   if(!demo && ((!isLocal()&&!validResolverModel($('model').value.trim())) || !$('form').reportValidity())) {$('status').textContent=tr(isLocal()?'local_invalid':'invalid');return;}
-  measurementRequest++;clearAttentionPreviews();cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
+  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
   const id=$('model').value.trim();result=null;feedback='';progressMarks=null;observationHistory=[];$('result').replaceChildren();$('followup').replaceChildren();
   $('status').textContent=tr('loading');$('run').disabled=true;$('demo').disabled=true;
   try {
@@ -600,7 +634,7 @@ export function initResolver(onDemo) {
   $('case-file').addEventListener('change',previewCaseFile);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
-  $('form').addEventListener('input',e=>{if(e.target.matches('[data-attention-file]'))return;if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
+  $('form').addEventListener('input',e=>{if(e.target.matches('[data-attention-file],[data-adapter-file]'))return;if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
   $('model').addEventListener('change',()=>{clearMemoryPeak();invalidate(true);});
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));

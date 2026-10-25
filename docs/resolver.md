@@ -1,5 +1,14 @@
 # Solve my problem
 
+## Import a local adapter configuration
+
+Open `adapter_config.json` in the adapter route, review its declared metadata and
+apply it explicitly. The base-model field remains unchanged; run the check to
+compare it with the declared base. Invalid/cancelled files preserve the case.
+Maximum 50 kB; full JSON remains in private v1 cases and is omitted from reduced
+reports. No HF request or model execution. [Contract and tests](adapter-config-import.md).
+
+
 ## Open attention report files
 
 The attention route can preview a local JSON as its primary report or reference

@@ -128,6 +128,8 @@ jobs:
         run: node tests/memory_comparison_browser.mjs
       - name: Import attention report files in four languages
         run: node tests/attention_report_file_browser.mjs
+      - name: Import adapter configuration in four languages
+        run: node tests/adapter_config_file_browser.mjs
       - name: Resolver phase peaks in four languages
         run: node tests/resolver_memory_browser.mjs
       - name: Resolver video and multilingual captions

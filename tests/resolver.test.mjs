@@ -83,3 +83,5 @@ await import('./memory_measurement.test.mjs');
 await import('./memory_comparison.test.mjs');
 
 await import('./attention_report_file.test.mjs');
+
+await import('./adapter_config_file.test.mjs');
