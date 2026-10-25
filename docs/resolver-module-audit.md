@@ -233,3 +233,9 @@ ventanas habilitadas y revisión explícita de tablas de precios/umbrales.
 Pruebas: `npm test` y `npm run test:resolver`; validación de seis adaptadores,
 ramas de síntomas, nueve ejemplos, 31 enlaces de módulos/demos/guía, cuatro
 idiomas, privacidad de informes, esquema JSON, entradas inválidas y móvil.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).

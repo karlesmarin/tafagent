@@ -14,7 +14,9 @@ jobs:
         with:
           node-version: "20"
       - name: Memory collector unit tests (fake CUDA, no GPU)
-        run: python tests/test_memory_probe.py
+        run: |
+          python tests/test_memory_probe.py
+          python tests/test_device_memory_probe.py
       - name: Runtime smoke test
         run: node tests/smoke.mjs
       - name: i18n integrity (parity + duplicates + code keys)

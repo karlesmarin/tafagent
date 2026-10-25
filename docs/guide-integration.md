@@ -189,3 +189,9 @@ Source QMD, rendered R5 pages and their search entries are synchronized. See
 [resolver documentation](resolver.md#save-and-reopen-a-private-case) for format,
 privacy, validation and tests. The earlier recorded video does not demonstrate
 this new optional file workflow.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).

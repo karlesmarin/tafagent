@@ -32,6 +32,9 @@ try{
  for(const lang of ['en','es','fr','zh']){
   const tr=k=>RESOLVER_TRANSLATIONS[lang]['resolver.'+k];
   await page.goto(base+'?resolve=memory&lang='+lang);await el('model').fill(q.id);await el('vram').fill('24');await el('context').fill('4096');await el('stage').selectOption('prefill');await run();
+  const sampled={...fixture,peak:{value:450,unit:'MiB',metric:'device'},sampling:{method:'nvidia-smi',count:3,interval_ms:250,max_gap_ms:300,duration_ms:600,baseline_MiB:400,total_MiB:1000}};
+  await attach(sampled);assert.ok((await el('peak-result').innerText()).includes(tr('device_sampling_note')));assert.equal(JSON.parse(await download()).result.memoryPeak.difference_GiB,null);
+  await el('save-case').evaluate(e=>e.open=true);assert.equal(JSON.parse(await download('save-case-button')).inputs.measurement.sampling.count,3);
   await attach(fixture);
   let report=JSON.parse(await download());assert.equal(report.result.memoryPeak.status,'not_comparable');assert.equal(report.inputs.measurement,undefined);
   assert.ok((await el('peak-result').innerText()).includes(tr('measurement_unverified')));

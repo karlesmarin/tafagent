@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {normalizeMemoryMeasurement,reviewMemoryMeasurement} from '../js/memory_measurement.js';
+import {compareMemoryPeak} from '../js/resolver_memory.js';
+const record=JSON.parse(readFileSync(new URL('../data/memory_measurement_example.json',import.meta.url)));
+record.kind='measurement';record.peak={value:450,unit:'MiB',metric:'device'};
+record.sampling={method:'nvidia-smi',count:3,interval_ms:250,max_gap_ms:300,duration_ms:600,baseline_MiB:400,total_MiB:1000,private_path:'SECRET'};
+const normalized=normalizeMemoryMeasurement(record);assert.equal(normalized.sampling.private_path,undefined);
+const inputs={peak:450,peakUnit:'MiB',peakMetric:'device',stage:'generate',measurement:record,vram:24};
+assert.equal(reviewMemoryMeasurement(record,inputs).sampling.count,3);
+assert.equal(compareMemoryPeak(inputs,{ok:true,totalGB:1}).difference_GiB,null);
+for(const patch of [{count:1},{baseline_MiB:451},{total_MiB:449},{max_gap_ms:601},{method:'other'},{duration_ms:Infinity}])assert.throws(()=>normalizeMemoryMeasurement({...record,sampling:{...record.sampling,...patch}}));
+assert.throws(()=>normalizeMemoryMeasurement({...record,peak:{...record.peak,metric:'allocated'}}));
+console.log('Device sampling: bounded metadata, provenance and blocked baseline comparison PASS');

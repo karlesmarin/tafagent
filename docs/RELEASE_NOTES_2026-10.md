@@ -209,3 +209,9 @@ for the distinctions between estimates, imported measurements and validated clai
 
 Older version notes describe their original release snapshots. Their mode counts
 and implementation descriptions should not be read as the current inventory.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).

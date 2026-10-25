@@ -917,3 +917,9 @@ This tool would not exist without:
 
 The author was the hand that typed; the work itself belongs to the commons
 that made it possible.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](docs/device-memory-probe.md).

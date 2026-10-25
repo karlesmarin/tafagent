@@ -32,7 +32,8 @@
     "test:attention-import": "node tests/attention_report_file.test.mjs && node tests/attention_report_file_browser.mjs",
     "test:adapter-import": "node tests/adapter_config_file.test.mjs && node tests/adapter_config_file_browser.mjs",
     "test:text-import": "node tests/resolver_text_file.test.mjs && node tests/resolver_text_file_browser.mjs",
-    "test:llama-log": "node tests/llama_memory_log.test.mjs && node tests/llama_memory_log_browser.mjs"
+    "test:llama-log": "node tests/llama_memory_log.test.mjs && node tests/llama_memory_log_browser.mjs",
+    "test:device-probe": "python tests/test_device_memory_probe.py && node tests/device_sampling.test.mjs && node tests/memory_measurement_browser.mjs"
   },
   "repository": {
     "type": "git",

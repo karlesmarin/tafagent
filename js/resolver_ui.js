@@ -439,6 +439,7 @@ function download() {
 function measurementReviewView(review){
  const box=node('section');box.className='resolver-measurement-review';
  box.append(node('h4',tr('measurement_checks')),node('p',tr('measurement_unverified')));
+ if(review.sampling){box.append(node('p',tr('device_sampling_note')));const dl=node('dl');for(const k of ['count','interval_ms','max_gap_ms','duration_ms','baseline_MiB','total_MiB'])dl.append(node('dt',tr('device_sampling_'+k)),node('dd',review.sampling[k].toLocaleString(getLang(),{maximumFractionDigits:2})));box.append(dl);}
  if(review.kind==='example')box.append(node('p',tr('measurement_example')));
  const list=node('ul');
  for(const check of review.checks)list.append(node('li',tr('measurement_field_'+check.field)+': '+tr('measurement_'+check.status)));

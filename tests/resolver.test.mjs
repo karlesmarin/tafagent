@@ -88,3 +88,4 @@ await import('./adapter_config_file.test.mjs');
 
 await import('./resolver_text_file.test.mjs');
 await import('./llama_memory_log.test.mjs');
+await import('./device_sampling.test.mjs');

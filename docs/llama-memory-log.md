@@ -131,3 +131,9 @@ Original memory import, before/after, saved-case and resolver suites cover regre
 
 See [memory peaks](memory-measurement.md), [resolver](resolver.md) and
 [limits](LIMITATIONS.md). Earlier recorded videos do not show this new panel.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).

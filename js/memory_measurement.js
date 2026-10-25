@@ -18,7 +18,15 @@ export function normalizeMemoryMeasurement(x){
  if(x.workload.resident_weights!==null&&typeof x.workload.resident_weights!=='boolean')invalid();
  if(x.workload.kv_dtype!==null&&!str(x.workload.kv_dtype,64))invalid();
  for(const k of ['engine','version','device'])if(x.runtime[k]!==null&&!str(x.runtime[k],120))invalid();
- return {format:x.format,version:1,kind:x.kind,model:x.model,revision:x.revision,phase:x.phase,tokens:x.tokens,precision:x.precision,
+ let sampling;
+ if(x.sampling!=null){
+  const s=x.sampling;
+  if(!obj(s)||s.method!=='nvidia-smi'||x.peak.metric!=='device'||x.peak.unit!=='MiB')invalid();
+  for(const k of ['count','interval_ms','max_gap_ms','duration_ms','baseline_MiB','total_MiB'])if(typeof s[k]!=='number'||!Number.isFinite(s[k])||s[k]<0||s[k]>1e9)invalid();
+  if(!Number.isInteger(s.count)||s.count<2||s.interval_ms<100||s.interval_ms>60000||s.duration_ms<=0||s.max_gap_ms>s.duration_ms||s.total_MiB<=0||s.baseline_MiB>x.peak.value||x.peak.value>s.total_MiB)invalid();
+  sampling=Object.fromEntries(['method','count','interval_ms','max_gap_ms','duration_ms','baseline_MiB','total_MiB'].map(k=>[k,s[k]]));
+ }
+ return {...(sampling?{sampling}:{}),format:x.format,version:1,kind:x.kind,model:x.model,revision:x.revision,phase:x.phase,tokens:x.tokens,precision:x.precision,
   measured_at:x.measured_at,phase_isolated:x.phase_isolated,peak:{value:x.peak.value,unit:x.peak.unit,metric:x.peak.metric},
   workload:{gpu_count:x.workload.gpu_count,batch_size:x.workload.batch_size,resident_weights:x.workload.resident_weights,kv_dtype:x.workload.kv_dtype},
   runtime:{engine:x.runtime.engine,version:x.runtime.version,device:x.runtime.device}};
@@ -39,6 +47,6 @@ export function reviewMemoryMeasurement(record,inputs,bundle={}){
  check('isolation',m.phase_isolated,true);
  check('peak_value',m.peak.value,inputs.peak);check('peak_unit',m.peak.unit,inputs.peakUnit);check('peak_metric',m.peak.metric,inputs.peakMetric);
  const compatible=m.kind==='measurement'&&checks.every(c=>['match','not_applicable'].includes(c.status));
- return {version:1,source:'imported_file',kind:m.kind,checks,compatible,independently_verified:false,executed_by_taf:false};
+ return {version:1,source:'imported_file',kind:m.kind,checks,compatible,...(m.sampling?{sampling:m.sampling}:{}),independently_verified:false,executed_by_taf:false};
 }
 export function publicMemoryInputs(inputs){const {measurement,measurementAfter,llamaLog,llamaSame,...rest}=inputs;return rest;}

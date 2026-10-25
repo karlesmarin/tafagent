@@ -245,3 +245,9 @@ Validation: `npm run test:resolver-session` covers nine-route round trips,
 initial/current differences, memory peaks, declared follow-up, malformed data,
 provenance, changed plans, reduced-report privacy and four-language browser
 reopening after reload, cancellation, keyboard and mobile use.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).

@@ -479,3 +479,9 @@ Validation: `npm run test:resolver` covers numerical boundaries, template shapes
 revision provenance, private-data-free links, nine examples in four languages,
 the 20 symptom choices, all 31 tool/demo/guide routes, follow-up, recalculation,
 JSON proposal preservation, exports, mobile layout and operation without Pyodide.
+
+## Device memory sampling — 25 October 2026
+
+The optional NVIDIA sampler records device-wide observations, not isolated model
+peaks. Sampling metadata is preserved and explained in EN/ES/FR/ZH; device metrics
+remain excluded from numerical estimate/pair deltas. [Workflow and limits](device-memory-probe.md).
