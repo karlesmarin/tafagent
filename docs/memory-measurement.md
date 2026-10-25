@@ -140,13 +140,14 @@ Sources: [PyTorch memory management](https://docs.pytorch.org/docs/stable/notes/
 
 Zero is a real peak value, not a placeholder for unknown data. Missing peak values
 are rejected. Identity and workload labels are compared exactly; no family or
-precision conversion is inferred. Import never interprets free-form logs, error
-messages or scripts as measurements. Runtime strings can contain private details:
+precision conversion is inferred. The peak importer does not interpret logs, error messages or scripts as peaks.
+A separate [llama.cpp log panel](llama-memory-log.md) reads buffer declarations. Runtime strings can contain private details:
 they survive only in the explicitly saved private case, not the reduced report.
 
 Private case files use **version 3** when either the current or initial inputs
 contain a pair, **version 2** for one measurement, and **version 1** without
-measurements. The current reader accepts all three and recalculates from inputs.
+measurements. Cases with llama.cpp log inputs use version 4. The current reader accepts all
+four versions and recalculates from inputs.
 Older app versions reject unsupported versions; reload the app before reopening.
 The measurement JSON format itself remains version 1. A pair adds
 `inputs.measurementAfter` and Boolean `inputs.comparisonSame`; its first record
@@ -172,3 +173,6 @@ translations, documentation and saved-case reader synchronized when extending.
 and timestamp checks, confirmations, zero baselines, privacy and private v3
 round trips, plus browser flows in all four languages. CI runs both pair and
 original import tests. Browser measurements are fixtures, not real GPU runs.
+
+See [llama.cpp log evidence](llama-memory-log.md) for buffer declarations that
+must not be converted to allocated-memory peak records.

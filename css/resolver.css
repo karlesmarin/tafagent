@@ -67,3 +67,8 @@
 [data-text-preview] { overflow-wrap:anywhere; }
 [data-text-preview] pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:16rem; overflow:auto; }
 [data-text-import] input[type="file"] { max-width:100%; }
+
+.resolver-llama-table { overflow-x: auto; max-width: 100%; }
+.resolver-llama-table table { width: 100%; border-collapse: collapse; }
+.resolver-llama-table th, .resolver-llama-table td { padding: .4rem; text-align: start; border-bottom: 1px solid var(--border, #888); }
+#resolver-llama-text { width: 100%; box-sizing: border-box; }

@@ -1,3 +1,4 @@
+import {createLlamaLogPanel} from './llama_memory_log_ui.js';
 import {readResolverTextFile,TEXT_FILE_LIMIT,TEXT_FILE_ROUTES} from './resolver_text_file.js';
 import {readAdapterConfigFile,ADAPTER_FILE_LIMIT} from './adapter_config_file.js';
 import {readAttentionReport,ATTENTION_FILE_LIMIT} from './attention_report_file.js';
@@ -45,6 +46,7 @@ function clearAttentionPreviews(except=null){
  attentionRequest++;
  for(const box of document.querySelectorAll('[data-attention-import]')){if(box===except)continue;box.querySelector('[data-attention-preview]').replaceChildren();box.querySelector('[role="status"]').textContent='';box.querySelector('input[type="file"]').value='';}
 }
+let llamaLog=null,llamaSame=false;
 let memoryMeasurement=null,measurementAfter=null,comparisonSame=false,measurementRequest=0;
 function clearMemoryComparison(){measurementAfter=null;comparisonSame=false;measurementRequest++;}
 const isLocal=()=>CASES[route]?.source==='local';
@@ -57,6 +59,7 @@ function invalidate(clearBundle=false) {
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
 function clearMemoryPeak(){
+ llamaLog=null;llamaSame=false;
  memoryMeasurement=null;clearMemoryComparison();measurementRequest++;
  $('peak').value='';$('peakUnit').value='GiB';$('peakMetric').value='unknown';$('peakSame').checked=false;$('peakIsolated').checked=false;
 }
@@ -172,7 +175,7 @@ function createAttentionImport(field){
 }
 function inputs() {
  if(isLocal())return Object.fromEntries(LOCAL_CASES[route].fields.map(f=>{const el=$('local-'+f.id);return [f.id,f.type==='checkbox'?el.checked:f.type==='number'?(el.value===''?NaN:Number(el.value)):el.value];}));
- return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value,peak:$('peak').value===''?null:Number($('peak').value),peakUnit:$('peakUnit').value,peakMetric:$('peakMetric').value,peakSame:$('peakSame').checked,peakIsolated:$('peakIsolated').checked,...(memoryMeasurement?{measurement:memoryMeasurement}:{}),...(measurementAfter?{measurementAfter,comparisonSame}:{})};
+ return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value,peak:$('peak').value===''?null:Number($('peak').value),peakUnit:$('peakUnit').value,peakMetric:$('peakMetric').value,peakSame:$('peakSame').checked,peakIsolated:$('peakIsolated').checked,...(llamaLog?{llamaLog,llamaSame}:{}),...(memoryMeasurement?{measurement:memoryMeasurement}:{}),...(measurementAfter?{measurementAfter,comparisonSame}:{})};
 }
 function renderFeedback() {
   $('followup').replaceChildren();
@@ -280,7 +283,7 @@ function createProgress(){
 }
 function openChecks(){ $('review').open=true;$('checks').focus({preventScroll:true});$('checks').scrollIntoView({block:'start'}); }
 function changeExample(scenario){
- progressMarks=null;observationHistory=[];memoryMeasurement=null;measurementRequest++;
+ progressMarks=null;observationHistory=[];memoryMeasurement=null;llamaLog=null;llamaSame=false;measurementRequest++;
  const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
  if(isLocal())renderLocalFields(example.inputs);
  else if(route==='compatibility')$('model').value='';
@@ -395,7 +398,10 @@ function renderResult() {
       box.append(report);
     }
     out.append(box);
-    if(bundle.origin!=='demo'){out.append(createMeasurementImport());if(memoryMeasurement)out.append(createMemoryComparison());}
+    if(bundle.origin!=='demo'){out.append(createMeasurementImport());
+      const guide=new URL(summaryData().guide.url);guide.pathname=guide.pathname.replace(/\/chapters\/[^/]+$/,'/chapters/R5-tafagent.html');guide.hash='sec-resolver-llama-log';
+      out.append(createLlamaLogPanel({report:result.llamaLog,onApply:text=>{llamaLog=text;llamaSame=false;updateMemoryComparison('llama-import');},onSame:value=>{llamaSame=value;updateMemoryComparison('llama-import');},onClear:()=>{llamaLog=null;llamaSame=false;updateMemoryComparison('llama-import');},guideURL:guide.href}));
+      if(memoryMeasurement)out.append(createMemoryComparison());}
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
@@ -480,10 +486,11 @@ function comparisonView(report){
  const list=node('ul');for(const check of report.checks)list.append(node('li',tr('comparison_field_'+check.field)+': '+tr('measurement_'+check.status)));box.append(list);
  const conditions=node('details');conditions.append(node('summary',tr('comparison_conditions')),node('h5',tr('comparison_before')),measurementReviewView(report.before),node('h5',tr('comparison_after')),measurementReviewView(report.after));box.append(conditions);return box;
 }
-function updateMemoryComparison(){
+function updateMemoryComparison(panel='comparison'){
  cancel();measurementRequest++;progressMarks=null;observationHistory=[];feedback='';
  lastInputs=inputs();result=solveCase(route,bundle,lastInputs);renderResult();
- $('comparison').open=true;$('comparison-result')?.focus();
+ if($(panel))$(panel).open=true;
+ if(panel==='llama-import')($('llama-same')||$('llama-file'))?.focus();else $('comparison-result')?.focus();
 }
 function createMemoryComparison(){
  const box=node('details');box.id='resolver-comparison';box.append(node('summary',tr('comparison_title')),node('p',tr('comparison_help')));
@@ -538,7 +545,7 @@ function renderCasePreview(){
   if(isLocal())renderLocalFields(lastInputs);
   else{
    $('model').value=validResolverModel(bundle.model)?bundle.model:'';
-   if(route==='memory'){memoryMeasurement=lastInputs.measurement??null;measurementAfter=lastInputs.measurementAfter??null;comparisonSame=lastInputs.comparisonSame===true;for(const [key,value] of Object.entries(lastInputs)){if(['measurement','measurementAfter','comparisonSame'].includes(key))continue;if(typeof value==='boolean')$(key).checked=value;else $(key).value=value??'';}}
+   if(route==='memory'){llamaLog=lastInputs.llamaLog??null;llamaSame=lastInputs.llamaSame===true;memoryMeasurement=lastInputs.measurement??null;measurementAfter=lastInputs.measurementAfter??null;comparisonSame=lastInputs.comparisonSame===true;for(const [key,value] of Object.entries(lastInputs)){if(['measurement','measurementAfter','comparisonSame','llamaLog','llamaSame'].includes(key))continue;if(typeof value==='boolean')$(key).checked=value;else $(key).value=value??'';}}
   }
   // Imported files never restore an unrelated error, suggestions or share link.
   $('description').value='';$('suggestions').replaceChildren();triageUI?.reset();

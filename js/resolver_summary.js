@@ -40,7 +40,8 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
   section=resolverAnchors[route]||anchors[why]?.[guideLang]||'';
   const peakGuide=route==='memory'&&(inputs.stage==='prefill'||inputs.stage==='decode'||result.memoryPeak);
   if(peakGuide)section='sec-resolver-memory-peaks';
-  const chapter=peakGuide?'R5-tafagent':route==='compatibility'?'10-arquitecturas':topics[topic].chapters[index];
+  if(route==='memory'&&result.llamaLog)section='sec-resolver-llama-log';
+  const chapter=(peakGuide||route==='memory'&&result.llamaLog)?'R5-tafagent':route==='compatibility'?'10-arquitecturas':topics[topic].chapters[index];
   const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));
   url.pathname=url.pathname.slice(0,url.pathname.lastIndexOf('/')+1)+chapter+'.html';url.hash=section;
   const checks=selectResolverChecks({route,result,inputs});

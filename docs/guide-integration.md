@@ -1,5 +1,13 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## llama.cpp memory logs — 25 October 2026
+
+R5 ES/EN `#sec-resolver-llama-log` explains log attachment, declared buffer sizes,
+component comparisons, unknowns and privacy. Links preserve language/return host
+without log text; FR/ZH use the English guide. QMD, HTML/search and manual README
+are synchronized. Earlier videos do not show the panel. [Contract](llama-memory-log.md).
+
+
 ## JSON, code and prompt file workflow — 25 October 2026
 
 R5 ES/EN `#sec-resolver-text-import` documents preview/apply/check in the three

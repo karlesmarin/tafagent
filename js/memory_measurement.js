@@ -41,4 +41,4 @@ export function reviewMemoryMeasurement(record,inputs,bundle={}){
  const compatible=m.kind==='measurement'&&checks.every(c=>['match','not_applicable'].includes(c.status));
  return {version:1,source:'imported_file',kind:m.kind,checks,compatible,independently_verified:false,executed_by_taf:false};
 }
-export function publicMemoryInputs(inputs){const {measurement,measurementAfter,...rest}=inputs;return rest;}
+export function publicMemoryInputs(inputs){const {measurement,measurementAfter,llamaLog,llamaSame,...rest}=inputs;return rest;}

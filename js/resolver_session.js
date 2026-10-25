@@ -1,3 +1,4 @@
+import {normalizeLlamaLog,parseLlamaLog} from './llama_memory_log.js';
 import {normalizeMemoryMeasurement} from './memory_measurement.js';
 import {CASES,solveCase,validResolverModel} from './resolver.js';
 import {LOCAL_CASES} from './resolver_local.js';
@@ -23,10 +24,12 @@ function bounded(value,depth=0,count={n:0}){
 }
 function inputFields(route,data){
  if(!object(data))fail();
- const keys=LOCAL_CASES[route]?.fields.map(f=>f.id)??(route==='memory'?['vram','context','precision','stage','peak','peakUnit','peakMetric','peakSame','peakIsolated','measurement','measurementAfter','comparisonSame']:[]);
+ const keys=LOCAL_CASES[route]?.fields.map(f=>f.id)??(route==='memory'?['vram','context','precision','stage','peak','peakUnit','peakMetric','peakSame','peakIsolated','measurement','measurementAfter','comparisonSame','llamaLog','llamaSame']:[]);
  if(Object.keys(data).some(k=>!keys.includes(k)))fail();
  const copy=Object.fromEntries(keys.filter(k=>Object.hasOwn(data,k)).map(k=>[k,data[k]]));
  if(route==='memory'){
+  if(copy.llamaLog!=null){copy.llamaLog=normalizeLlamaLog(copy.llamaLog);parseLlamaLog(copy.llamaLog);if(typeof copy.llamaSame!=='boolean')fail();}
+  else if(copy.llamaSame!=null)fail();
   if(copy.measurement!=null)copy.measurement=normalizeMemoryMeasurement(copy.measurement);
   if(copy.measurementAfter!=null){if(!copy.measurement)fail();copy.measurementAfter=normalizeMemoryMeasurement(copy.measurementAfter);}
   if(copy.comparisonSame!=null&&(!copy.measurementAfter||typeof copy.comparisonSame!=='boolean'))fail();
@@ -76,9 +79,10 @@ export function readSavedCase(text){
  const file=JSON.parse(text);bounded(file);
  if(!object(file))fail();
  if(file.schema_version!=null&&file.format==null)throw new Error('case_file_report');
- if(file.format!=='taf-resolver-private-case'||![1,2,3].includes(file.version)||!Object.hasOwn(CASES,file.route)||!date(file.saved_at))fail();
+ if(file.format!=='taf-resolver-private-case'||![1,2,3,4].includes(file.version)||!Object.hasOwn(CASES,file.route)||!date(file.saved_at))fail();
  if(file.version===1&&(file.inputs?.measurement!=null||file.initial_inputs?.measurement!=null))fail();
  if(file.version<3&&[file.inputs,file.initial_inputs].some(x=>x?.measurementAfter!=null||x?.comparisonSame!=null))fail();
+ if(file.version<4&&[file.inputs,file.initial_inputs].some(x=>x?.llamaLog!=null||x?.llamaSame!=null))fail();
  const route=file.route,bundle=metadata(route,file.bundle),inputs=inputFields(route,file.inputs),first=inputFields(route,file.initial_inputs);
  const result=solveCase(route,bundle,inputs),initial={inputs:first,result:solveCase(route,bundle,first)};
  const state={route,bundle,inputs,result,initial},plan=progressPlan(state);
@@ -103,7 +107,7 @@ export function saveCase(state,progress=null,observations=[],feedback=''){
  const {route,bundle,inputs,initial}=state;
  if(!Object.hasOwn(CASES,route)||!bundle||!initial)fail();
  const cleanBundle=metadata(route,bundle);
- const file={format:'taf-resolver-private-case',version:inputs.measurementAfter||initial.inputs.measurementAfter?3:inputs.measurement||initial.inputs.measurement?2:1,saved_at:new Date().toISOString(),route,bundle:cleanBundle,
+ const file={format:'taf-resolver-private-case',version:inputs.llamaLog||initial.inputs.llamaLog?4:inputs.measurementAfter||initial.inputs.measurementAfter?3:inputs.measurement||initial.inputs.measurement?2:1,saved_at:new Date().toISOString(),route,bundle:cleanBundle,
   inputs:inputFields(route,inputs),initial_inputs:inputFields(route,initial.inputs),progress,observations,feedback};
  const text=JSON.stringify(file,null,2);
  readSavedCase(text); // Same limits and recomputation as import; no result is trusted.

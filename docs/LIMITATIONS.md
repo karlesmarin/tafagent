@@ -1,5 +1,15 @@
 # TAF Agent — Limitations & evidence
 
+## llama.cpp logs are buffer declarations
+
+The parser recognizes a bounded subset of initialization lines, not arbitrary logs
+or measured peaks. Subtotals omit unknown/unlisted allocations; repeated records
+disable totals. Hybrid and CPU/GPU splits are visible without inventing a supported
+estimate. Component deltas require declared compatibility and explicit confirmation,
+not authenticated provenance. No fit, quality or successful execution is proved.
+Private files retain full text. [Exact scope](llama-memory-log.md).
+
+
 ## JSON, code and prompt file inputs
 
 The 50 kB UTF-8 importer performs bounded text/basic JSON validation, not Python

@@ -23,7 +23,7 @@ for(const route of ['memory','template','compatibility',...Object.keys(LOCAL_DEM
  if(route==='memory')fixture=file;
 }
 const reject=change=>{const f=structuredClone(fixture);change(f);assert.throws(()=>readSavedCase(JSON.stringify(f)));};
-reject(f=>f.version=4);reject(f=>f.route='__proto__');reject(f=>f.bundle.origin='local');reject(f=>f.bundle.revision='main');reject(f=>f.inputs.context=-1);reject(f=>f.inputs.precision='nonsense');reject(f=>f.inputs.peakSame='true');reject(f=>f.progress.states[0]='solved');reject(f=>f.observations[0].code='wrong');reject(f=>f.feedback='verified');reject(f=>f.bundle.sources[0].url='javascript:alert(1)');reject(f=>f.bundle.sources[0].url='https://huggingface.co@evil.test/model');reject(f=>f.bundle.config=JSON.parse('{"__proto__":{"polluted":true}}'));reject(f=>f.initial_inputs.vram=null);
+reject(f=>f.version=5);reject(f=>f.route='__proto__');reject(f=>f.bundle.origin='local');reject(f=>f.bundle.revision='main');reject(f=>f.inputs.context=-1);reject(f=>f.inputs.precision='nonsense');reject(f=>f.inputs.peakSame='true');reject(f=>f.progress.states[0]='solved');reject(f=>f.observations[0].code='wrong');reject(f=>f.feedback='verified');reject(f=>f.bundle.sources[0].url='javascript:alert(1)');reject(f=>f.bundle.sources[0].url='https://huggingface.co@evil.test/model');reject(f=>f.bundle.config=JSON.parse('{"__proto__":{"polluted":true}}'));reject(f=>f.initial_inputs.vram=null);
 assert.equal({}.polluted,undefined);
 assert.throws(()=>readSavedCase('{bad'));
 assert.throws(()=>readSavedCase(JSON.stringify({schema_version:3})),/case_file_report/);

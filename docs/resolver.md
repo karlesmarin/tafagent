@@ -1,5 +1,14 @@
 # Solve my problem
 
+## Read llama.cpp logs in memory cases
+
+Open or paste one initialization log, preview and attach it locally. Per-device
+buffer rows remain visible even for architectures with no supported estimate.
+Differences require compatible declared conditions; no total-memory or peak
+comparison is inferred. Full logs remain in private v4, never reduced reports.
+See [contract, privacy and tests](llama-memory-log.md).
+
+
 ## Import JSON, PEFT code and prompt text
 
 The JSON, code and two prompt inputs accept UTF-8 files with a literal preview,
@@ -84,7 +93,7 @@ No backend or additional package is required.
 
 | Field | Meaning |
 |---|---|
-| `format`, `version` | `taf-resolver-private-case`, versions `1` (none), `2` (one measurement), `3` (pair in current or initial inputs); unknown versions rejected |
+| `format`, `version` | `taf-resolver-private-case`, versions `1` (none), `2` (one measurement), `3` (pair), `4` (llama.cpp log in current or initial inputs); unknown versions rejected |
 | `saved_at`, `route` | Save date and one of the nine supported direct routes |
 | `bundle` | Declared origin, model/revision/date, inspected metadata and source references |
 | `inputs`, `initial_inputs` | Current and initial route inputs used for recalculation |

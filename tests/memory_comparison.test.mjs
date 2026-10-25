@@ -26,7 +26,7 @@ assert.equal(run({measurementAfter:{...after,peak:{value:20*2**30/1e9,unit:'GB',
 assert.throws(()=>run({measurement:null}));assert.throws(()=>run({peak:null}));
 const state={route:'memory',bundle,inputs:paired,initial:{inputs,result:solveCase('memory',bundle,inputs)}};
 const saved=saveCase(state);assert.equal(JSON.parse(saved).version,3);const restored=readSavedCase(saved);assert.deepEqual(restored.inputs.measurementAfter,after);assert.deepEqual(restored.result.memoryPeak.comparison,result);
-for(const version of [1,2,4]){const raw=JSON.parse(saved);raw.version=version;assert.throws(()=>readSavedCase(JSON.stringify(raw)));}
+for(const version of [1,2,5]){const raw=JSON.parse(saved);raw.version=version;assert.throws(()=>readSavedCase(JSON.stringify(raw)));}
 for(const change of [x=>delete x.inputs.measurement,x=>x.inputs.comparisonSame='true',x=>x.inputs.measurementAfter.runtime=null]){const raw=JSON.parse(saved);change(raw);assert.throws(()=>readSavedCase(JSON.stringify(raw)));}
 assert.ok(!JSON.stringify(publicMemoryInputs(paired)).includes('private-device-label'));assert.equal(publicMemoryInputs(paired).measurementAfter,undefined);assert.ok(!JSON.stringify(result).includes('private-device-label'));
 assert.equal(JSON.parse(saveCase({...state,inputs})).version,2);

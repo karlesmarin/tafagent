@@ -24,6 +24,7 @@ export function buildResolverReview(state,language='en') {
   next_check:summary.next,guide:summary.guide,
   protocol:result.protocolReview??null,
   memory_peak:route==='memory'?result.memoryPeak??null:null,
+  llama_log:route==='memory'?result.llamaLog??null:null,
   checks:summary.checks,
   independently_verified:false,
  };

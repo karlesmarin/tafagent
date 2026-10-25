@@ -49,6 +49,15 @@ language:
 
 # 🔬 TAF Agent
 
+## llama.cpp memory logs
+
+**Solve my problem → memory** accepts local UTF-8 logs (256 KiB), with preview,
+explicit attachment and per-device weight/KV/recurrent/compute/output buffers.
+Compare eligible components with the planning estimate; buffer declarations are
+not total VRAM or peak measurements. Private v4 retains the full log; reduced
+reports omit it. EN/ES/FR/ZH. [Workflow and boundaries](docs/llama-memory-log.md).
+
+
 ## Local JSON, code and prompt files
 
 **Solve my problem** accepts UTF-8 files in JSON, PEFT code and both prompt fields

@@ -1,5 +1,14 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — llama.cpp log evidence
+
+Add local log preview/attachment to memory cases, per-device component declarations,
+guarded comparison with existing estimates and a preview-only synthetic example.
+Preserve peak import/pair behavior. Add private-case v4 with raw-log preservation
+and reduced-report omission, multilingual help, guide ES/EN and CI coverage.
+[Workflow and limits](llama-memory-log.md).
+
+
 ## 2026-10-25 — Open JSON, PEFT code and prompt files
 
 Add bounded UTF-8 file preview/apply in three local resolver routes, with separate

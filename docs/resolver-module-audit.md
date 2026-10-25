@@ -1,5 +1,15 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+## Logs llama.cpp — 25 de octubre
+
+La ruta memory incorpora lectura local (UTF-8, 256 KiB), vista previa, aplicación
+explícita, ejemplo sintético y desglose por dispositivo. Compara componentes solo
+con condiciones compatibles; no confunde búferes con pico/uso total ni estima
+híbridos fuera de ámbito. Privado v4 conserva texto completo; reducido lo omite.
+EN/ES/FR/ZH, guía ES/EN, pruebas puras/navegador/CI. No se ejecutaron modelos ni
+se obtuvieron mediciones GPU. [Contrato](llama-memory-log.md).
+
+
 ## Archivos JSON, código PEFT y prompts — 25 de octubre
 
 Tres rutas y cuatro entradas admiten UTF-8 local con vista previa literal y

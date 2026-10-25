@@ -122,6 +122,8 @@ jobs:
           TAF_URL: http://127.0.0.1:8000/
       - name: Reopen private cases in nine routes and four languages
         run: node tests/resolver_session_browser.mjs
+      - name: llama.cpp log import in four languages
+        run: node tests/llama_memory_log_browser.mjs
       - name: Import memory measurements in four languages
         run: node tests/memory_measurement_browser.mjs
       - name: Memory before/after browser
