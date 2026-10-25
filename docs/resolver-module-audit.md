@@ -1,5 +1,15 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+## Archivos de informes de atención — 25 de octubre
+
+Diagnose CLI/JSON compatible → previsualización → campo principal o referencia
+→ comprobación explícita del protocolo. Máximo 50.000 bytes, un objeto con gamma
+numérica finita; no se infiere gamma desde entropía. Contexto variable/heredado,
+conflictos y campos ausentes conservan sus límites anteriores. Archivo privado
+v1 conserva texto íntegro, incluidos campos privados; informe reducido lo omite.
+No hay subida, consulta HF ni ejecución. UI/ayuda EN/ES/FR/ZH; R5 ES/EN.
+Ver [contrato y pruebas](attention-report-import.md).
+
 Revisión de interacción de demos, 25-10-2026: 35 recorridos en EN/ES/FR/ZH.
 [Detalle, incidencias del entorno y alcance](demo-validation-2026-10-25.md).
 No supone validación empírica de las heurísticas ni disponibilidad futura.

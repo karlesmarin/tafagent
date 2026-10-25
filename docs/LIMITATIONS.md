@@ -1,5 +1,14 @@
 # TAF Agent — Limitations & evidence
 
+## Attention file imports
+
+Import accepts one bounded JSON attention record, not every Diagnose output:
+entropy-only, collections and files over 50,000 bytes are unsupported. A numeric
+gamma and matching source label do not authenticate a run. Variable/legacy or
+conflicting context remains classified as such. Full raw text, including unknown
+private fields, is kept only in inputs/private cases; reduced reports exclude it.
+See [the workflow and remaining limits](attention-report-import.md).
+
 ## Before/After memory comparisons
 
 Two imported reports remain unverified declarations. Matching model, workload,

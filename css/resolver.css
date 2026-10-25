@@ -58,3 +58,5 @@
 
 #resolver-comparison-file { max-width:100%; }
 #resolver-comparison-result { overflow-wrap:anywhere; }
+
+[data-attention-preview] { overflow-wrap:anywhere; }

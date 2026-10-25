@@ -1,5 +1,13 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Open attention reports as files
+
+Add previewed local JSON selection for primary and reference attention inputs,
+with explicit apply and analysis, 50 kB bounds, stale-read protection and privacy
+preservation. Reuse existing context/protocol logic and private-case v1 format.
+Add EN/ES/FR/ZH UI/help, tests, CI and R5 ES/EN documentation. No GPU run or
+independently verified provenance is claimed.
+
 ## 2026-10-25 — Documentation audit and demo review
 
 Publish the dated 35-demo/four-language coverage report and its compact evidence

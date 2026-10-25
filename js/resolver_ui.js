@@ -1,9 +1,10 @@
+import {readAttentionReport,ATTENTION_FILE_LIMIT} from './attention_report_file.js';
 import {compareMemoryMeasurements} from './memory_comparison.js';
 import {readMemoryMeasurement,reviewMemoryMeasurement,publicMemoryInputs,MEASUREMENT_LIMIT} from './memory_measurement.js';
 import {saveCase,readSavedCase,CASE_FILE_LIMIT} from './resolver_session.js';
 import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle, resolverLink } from './resolver.js';
 import { t, getLang } from './i18n.js';
-import { tafLink, HF_BASE } from './guide_bridge.js';
+import { tafLink, guideLink, HF_BASE } from './guide_bridge.js';
 import { buildResolverSummary } from './resolver_summary.js';
 import { buildResolverReview } from './resolver_review.js';
 import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
@@ -26,13 +27,18 @@ let progressMarks=null;
 let observationHistory=[];
 let videoUI=null;
 let pendingCase=null,fileRequest=0;
+let attentionRequest=0;
+function clearAttentionPreviews(except=null){
+ attentionRequest++;
+ for(const box of document.querySelectorAll('[data-attention-import]')){if(box===except)continue;box.querySelector('[data-attention-preview]').replaceChildren();box.querySelector('[role="status"]').textContent='';box.querySelector('input[type="file"]').value='';}
+}
 let memoryMeasurement=null,measurementAfter=null,comparisonSame=false,measurementRequest=0;
 function clearMemoryComparison(){measurementAfter=null;comparisonSame=false;measurementRequest++;}
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  measurementRequest++;
+  measurementRequest++;clearAttentionPreviews();
   cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;observationHistory=[];
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
@@ -66,7 +72,35 @@ function renderLocalFields(values={}) {
   for(const [value,text] of f.options||[]){const o=new Option(text.startsWith('@')?t(text.slice(1)):text,value);if(text.startsWith('@'))o.dataset.i18n=text.slice(1);input.append(o);}
   if(values[f.id]!=null){if(f.type==='checkbox')input.checked=values[f.id];else input.value=values[f.id];}
   host.append(label,input);
+  if(route==='pvr'&&f.type==='textarea')host.append(createAttentionImport(f.id));
  }
+}
+function createAttentionImport(field){
+ const box=node('details');box.dataset.attentionImport=field;box.id='resolver-attention-import-'+field;
+ box.append(node('summary',tr(field==='text'?'attention_file_primary':'attention_file_reference')),node('p',tr('attention_file_help')));
+ const label=node('label',tr('attention_file_label'));label.htmlFor='resolver-attention-file-'+field;
+ const fileInput=node('input');fileInput.type='file';fileInput.accept='.json,application/json';fileInput.id=label.htmlFor;fileInput.dataset.attentionFile=field;
+ const status=node('p');status.id='resolver-attention-status-'+field;status.setAttribute('role','status');
+ const preview=node('section');preview.dataset.attentionPreview=field;preview.id='resolver-attention-preview-'+field;preview.setAttribute('aria-live','polite');
+ fileInput.addEventListener('change',async()=>{
+  const file=fileInput.files?.[0];clearAttentionPreviews(box);const ticket=attentionRequest;
+  preview.replaceChildren();status.textContent='';if(!file)return;
+  try{
+   if(file.size>ATTENTION_FILE_LIMIT)throw new Error('attention_file_large');
+   const text=await file.text();if(ticket!==attentionRequest||!box.isConnected)return;
+   const report=readAttentionReport(text),p=report.preview;
+   preview.append(node('h4',tr('attention_file_preview')),node('p',tr('attention_file_unverified')));
+   const dl=node('dl');dl.append(node('dt',tr('attention_file_gamma_label')),node('dd',p.gamma.toLocaleString(getLang(),{maximumFractionDigits:6})));
+   for(const [key,value] of [['model',p.model],['revision',p.revision],['source',p.source]])if(value!==null)dl.append(node('dt',tr('attention_file_'+key)),node('dd',value));
+   dl.append(node('dt',tr('attention_file_context')),node('dd',tr('attention_context_'+p.context)),node('dt',tr('missing_fields')),node('dd',String(p.missing)));preview.append(dl);
+   preview.append(button(tr('attention_file_apply'),()=>{
+    if(ticket!==attentionRequest||!box.isConnected||route!=='pvr')return;
+    $('local-'+field).value=report.text;invalidate();$('status').textContent=tr('attention_file_applied');$('local-'+field).focus();
+   },'attention-apply-'+field),button(tr('attention_file_cancel'),()=>clearAttentionPreviews(),'attention-cancel-'+field));
+  }catch(error){if(ticket===attentionRequest&&box.isConnected)status.textContent=tr(['attention_file_large','attention_file_gamma'].includes(error.message)?error.message:'attention_file_invalid');}
+ });
+ const guide=node('a',tr('attention_file_guide'));const url=new URL(guideLink('gamma',1,{mode:'pvr',resolve:'pvr',lang:getLang(),app:location.origin===new URL(HF_BASE).origin?'hf':'github'}));url.pathname=url.pathname.replace(/\/chapters\/[^/]+$/,'/chapters/R5-tafagent.html');url.hash='sec-resolver-attention-import';guide.href=url.href;guide.target='_blank';guide.rel='noopener';
+ box.append(label,fileInput,status,preview,guide);return box;
 }
 function inputs() {
  if(isLocal())return Object.fromEntries(LOCAL_CASES[route].fields.map(f=>{const el=$('local-'+f.id);return [f.id,f.type==='checkbox'?el.checked:f.type==='number'?(el.value===''?NaN:Number(el.value)):el.value];}));
@@ -456,7 +490,7 @@ async function previewCaseFile(){
 async function run(demo=false) {
   if(!route)return;
   if(!demo && ((!isLocal()&&!validResolverModel($('model').value.trim())) || !$('form').reportValidity())) {$('status').textContent=tr(isLocal()?'local_invalid':'invalid');return;}
-  measurementRequest++;cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
+  measurementRequest++;clearAttentionPreviews();cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
   const id=$('model').value.trim();result=null;feedback='';progressMarks=null;observationHistory=[];$('result').replaceChildren();$('followup').replaceChildren();
   $('status').textContent=tr('loading');$('run').disabled=true;$('demo').disabled=true;
   try {
@@ -566,7 +600,7 @@ export function initResolver(onDemo) {
   $('case-file').addEventListener('change',previewCaseFile);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
-  $('form').addEventListener('input',e=>{if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
+  $('form').addEventListener('input',e=>{if(e.target.matches('[data-attention-file]'))return;if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
   $('model').addEventListener('change',()=>{clearMemoryPeak();invalidate(true);});
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));

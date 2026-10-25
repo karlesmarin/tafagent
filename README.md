@@ -64,6 +64,12 @@ See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates
 
 ### Solve my problem — automatic guided help
 
+**2026-10-25 — Open attention report files:** the attention route can preview a
+local Diagnose CLI / compatible JSON as its primary report or reference, then
+place it in the selected field. Run the check explicitly to inspect context and
+protocol. Files remain unverified; private cases retain their text and reduced
+reports omit it. EN/ES/FR/ZH. [Workflow, supported reports and limits](docs/attention-report-import.md).
+
 **Demo review, 2026-10-25:** all 35 guided demos completed their tested flows in
 EN/ES/FR/ZH. See [coverage, evidence and limits](docs/demo-validation-2026-10-25.md).
 This records a dated interaction check, not continuous availability or model validation.

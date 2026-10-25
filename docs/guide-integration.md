@@ -1,5 +1,12 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## Attention report files — 25 October
+
+R5 ES/EN adds `#sec-resolver-attention-import`, linked from both file selectors.
+FR/ZH open the English section. Manual/help use `attention_file_help_summary` in
+all four languages. Existing narrated demos/videos predate these file controls;
+the dedicated import browser suite checks them separately.
+
 ## Before/After memory — 25 October
 
 R5 ES/EN adds `#sec-resolver-memory-comparison`, linked from the comparison panel.

@@ -1,5 +1,13 @@
 # Solve my problem
 
+## Open attention report files
+
+The attention route can preview a local JSON as its primary report or reference
+and explicitly replace only that text input. A subsequent Run performs the existing
+context/protocol analysis. Limit: 50,000 bytes; one record with numeric gamma or
+gamma_obs. Private cases retain full text using the existing v1 format; reduced
+reports omit it. [Workflow, privacy and bounds](attention-report-import.md).
+
 ## Compare two memory measurements
 
 Memory cases can retain Before and After records, require matching declared
