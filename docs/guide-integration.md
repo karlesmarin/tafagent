@@ -1,5 +1,15 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## JSON, code and prompt file workflow — 25 October 2026
+
+R5 ES/EN `#sec-resolver-text-import` documents preview/apply/check in the three
+routes, separate prompts, UTF-8/50 kB bounds, BOM/LF normalization and private v1
+continuity. Context links retain route, language and app host without input text.
+UI/manual/help remain EN/ES/FR/ZH; FR/ZH use the English guide. Source QMD, HTML,
+search and manual README are synchronized. Earlier videos do not show the new
+selectors. [Full contract](resolver-text-import.md).
+
+
 ## Adapter configuration file workflow — 25 October 2026
 
 R5 ES/EN now documents `#sec-resolver-adapter-import`: local JSON preview,

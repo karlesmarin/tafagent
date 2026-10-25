@@ -1,5 +1,14 @@
 # TAF Agent — Limitations & evidence
 
+## JSON, code and prompt file inputs
+
+The 50 kB UTF-8 importer performs bounded text/basic JSON validation, not Python
+execution, complete JSON Schema validation or a model request. CRLF/CR becomes
+LF; prompt prefix results describe normalized text in UTF-16 units, not original
+file bytes, tokens, cache hits or cost. Full private text is retained separately
+from reduced exports. [Contract and privacy](resolver-text-import.md).
+
+
 ## Local adapter file input
 
 Previewed adapter metadata is unverified. The 50 kB importer validates basic

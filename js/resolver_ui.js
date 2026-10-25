@@ -1,3 +1,4 @@
+import {readResolverTextFile,TEXT_FILE_LIMIT,TEXT_FILE_ROUTES} from './resolver_text_file.js';
 import {readAdapterConfigFile,ADAPTER_FILE_LIMIT} from './adapter_config_file.js';
 import {readAttentionReport,ATTENTION_FILE_LIMIT} from './attention_report_file.js';
 import {compareMemoryMeasurements} from './memory_comparison.js';
@@ -28,6 +29,11 @@ let progressMarks=null;
 let observationHistory=[];
 let videoUI=null;
 let pendingCase=null,fileRequest=0;
+let textFileRequest=0;
+function clearTextFilePreviews(){
+ textFileRequest++;
+ for(const box of document.querySelectorAll('[data-text-import]')){box.querySelector('[data-text-preview]').replaceChildren();box.querySelector('[role="status"]').textContent='';box.querySelector('input[type="file"]').value='';}
+}
 let adapterFileRequest=0;
 function clearAdapterPreview(){
  adapterFileRequest++;
@@ -45,7 +51,7 @@ const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
 function invalidate(clearBundle=false) {
-  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();
+  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();clearTextFilePreviews();
   cancel(); if(clearBundle)bundle=null;result=null;feedback='';lastInputs=null;initial=null;progressMarks=null;observationHistory=[];
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
@@ -81,7 +87,35 @@ function renderLocalFields(values={}) {
   host.append(label,input);
   if(route==='pvr'&&f.type==='textarea')host.append(createAttentionImport(f.id));
   if(route==='adapter'&&f.id==='text')host.append(createAdapterImport());
+  if(TEXT_FILE_ROUTES.includes(route)&&f.type==='textarea')host.append(createTextFileImport(f.id));
  }
+}
+function createTextFileImport(field){
+ const activeRoute=route,box=node('details');box.id='resolver-text-import-'+field;box.dataset.textImport=field;
+ const key=activeRoute==='cache'?'cache_'+field:activeRoute;
+ box.append(node('summary',tr('text_file_open_'+key)),node('p',tr('text_file_help_'+activeRoute)));
+ const label=node('label',tr('text_file_label'));label.htmlFor='resolver-text-file-'+field;
+ const file=node('input');file.type='file';file.id=label.htmlFor;file.dataset.textFile=field;
+ file.accept=activeRoute==='cot'?'.json,application/json':activeRoute==='peft'?'.py,.txt,text/plain':'.txt,text/plain';
+ const status=node('p');status.id='resolver-text-status-'+field;status.setAttribute('role','status');
+ const preview=node('section');preview.id='resolver-text-preview-'+field;preview.dataset.textPreview=field;preview.setAttribute('aria-live','polite');
+ file.addEventListener('change',async()=>{
+  const selected=file.files?.[0];clearTextFilePreviews();const ticket=textFileRequest;if(!selected)return;
+  try{
+   if(selected.size>TEXT_FILE_LIMIT)throw new Error('text_file_large');
+   const bytes=await selected.arrayBuffer();if(ticket!==textFileRequest||!box.isConnected)return;
+   const report=readResolverTextFile(activeRoute,bytes),p=report.preview;
+   preview.append(node('h4',tr('text_file_preview')),node('p',tr('text_file_note')));
+   const dl=node('dl');dl.append(node('dt',tr('text_file_bytes')),node('dd',String(p.bytes)),node('dt',tr('text_file_lines')),node('dd',String(p.lines)));preview.append(dl,node('pre',p.sample));
+   if(p.truncated)preview.append(node('p',tr('text_file_partial')));
+   const actions=node('div');actions.className='resolver-actions';actions.append(button(tr('text_file_apply'),()=>{
+    if(ticket!==textFileRequest||!box.isConnected||route!==activeRoute)return;
+    $('local-'+field).value=report.text;invalidate();$('status').textContent=tr('text_file_applied');$('local-'+field).focus();
+   },'text-apply-'+field),button(tr('text_file_cancel'),clearTextFilePreviews,'text-cancel-'+field));preview.append(actions);
+  }catch(error){if(ticket===textFileRequest&&box.isConnected)status.textContent=tr(['text_file_large','text_file_encoding','text_file_json'].includes(error.message)?error.message:'text_file_invalid');}
+ });
+ const guide=node('a',tr('text_file_guide'));const url=new URL(guideLink(LOCAL_CASES[activeRoute].topic,0,{mode:activeRoute,resolve:activeRoute,lang:getLang(),app:location.origin===new URL(HF_BASE).origin?'hf':'github'}));url.pathname=url.pathname.replace(/\/chapters\/[^/]+$/,'/chapters/R5-tafagent.html');url.hash='sec-resolver-text-import';guide.href=url.href;guide.target='_blank';guide.rel='noopener';
+ box.append(label,file,status,preview,guide);return box;
 }
 function createAdapterImport(){
  const box=node('details');box.id='resolver-adapter-import';
@@ -524,7 +558,7 @@ async function previewCaseFile(){
 async function run(demo=false) {
   if(!route)return;
   if(!demo && ((!isLocal()&&!validResolverModel($('model').value.trim())) || !$('form').reportValidity())) {$('status').textContent=tr(isLocal()?'local_invalid':'invalid');return;}
-  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
+  measurementRequest++;clearAttentionPreviews();clearAdapterPreview();clearTextFilePreviews();cancel();const ticket=request;const activeController=new AbortController();controller=activeController;const timer=setTimeout(()=>activeController.abort(),20000);
   const id=$('model').value.trim();result=null;feedback='';progressMarks=null;observationHistory=[];$('result').replaceChildren();$('followup').replaceChildren();
   $('status').textContent=tr('loading');$('run').disabled=true;$('demo').disabled=true;
   try {
@@ -634,7 +668,7 @@ export function initResolver(onDemo) {
   $('case-file').addEventListener('change',previewCaseFile);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
-  $('form').addEventListener('input',e=>{if(e.target.matches('[data-attention-file],[data-adapter-file]'))return;if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
+  $('form').addEventListener('input',e=>{if(e.target.matches('[data-attention-file],[data-adapter-file],[data-text-file]'))return;if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
   $('model').addEventListener('change',()=>{clearMemoryPeak();invalidate(true);});
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));

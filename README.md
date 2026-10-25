@@ -49,6 +49,14 @@ language:
 
 # 🔬 TAF Agent
 
+## Local JSON, code and prompt files
+
+**Solve my problem** accepts UTF-8 files in JSON, PEFT code and both prompt fields
+with preview and explicit apply/check, up to 50 kB each. The other prompt stays
+unchanged. Full normalized text remains in private cases and is omitted from
+reduced reports. UI/help EN/ES/FR/ZH; [workflow, privacy and limits](docs/resolver-text-import.md).
+
+
 ## Local adapter configuration files
 
 **Solve my problem → Adapters** can preview and explicitly apply a local

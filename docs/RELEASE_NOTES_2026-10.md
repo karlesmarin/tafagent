@@ -1,5 +1,14 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Open JSON, PEFT code and prompt files
+
+Add bounded UTF-8 file preview/apply in three local resolver routes, with separate
+earlier/new prompt inputs. Keep explicit analysis, full private v1 text, reduced
+privacy and stale-read protection. Document BOM/LF normalization, JSON and regex
+limits. Update UI/help EN/ES/FR/ZH, README, docs, CI and R5 ES/EN before release.
+See [workflow](resolver-text-import.md).
+
+
 ## 2026-10-25 — Open adapter configuration files
 
 Add local adapter_config.json preview/apply with a 50 kB bound, typed metadata

@@ -30,7 +30,8 @@
     "test:memory-import": "node tests/memory_measurement.test.mjs && python tests/test_memory_probe.py && node tests/memory_measurement_browser.mjs",
     "test:memory-pair": "node tests/memory_comparison.test.mjs && node tests/memory_comparison_browser.mjs",
     "test:attention-import": "node tests/attention_report_file.test.mjs && node tests/attention_report_file_browser.mjs",
-    "test:adapter-import": "node tests/adapter_config_file.test.mjs && node tests/adapter_config_file_browser.mjs"
+    "test:adapter-import": "node tests/adapter_config_file.test.mjs && node tests/adapter_config_file_browser.mjs",
+    "test:text-import": "node tests/resolver_text_file.test.mjs && node tests/resolver_text_file_browser.mjs"
   },
   "repository": {
     "type": "git",

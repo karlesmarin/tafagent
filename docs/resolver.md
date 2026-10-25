@@ -1,5 +1,14 @@
 # Solve my problem
 
+## Import JSON, PEFT code and prompt text
+
+The JSON, code and two prompt inputs accept UTF-8 files with a literal preview,
+50 kB limit and explicit apply/check. Only the chosen field is replaced; invalid
+files or cancellation preserve the case. BOM removal and LF normalization are
+explicit, particularly for prompt comparisons. Full text remains in private v1
+cases and is omitted from reduced reports. [Contract and tests](resolver-text-import.md).
+
+
 ## Import a local adapter configuration
 
 Open `adapter_config.json` in the adapter route, review its declared metadata and

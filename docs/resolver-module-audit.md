@@ -1,5 +1,15 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+## Archivos JSON, código PEFT y prompts — 25 de octubre
+
+Tres rutas y cuatro entradas admiten UTF-8 local con vista previa literal y
+aplicación explícita. Límite 50 kB; conserva el otro prompt, normaliza saltos a LF,
+retira BOM y rechaza codificación inválida/NUL. JSON requiere objeto y tipos
+básicos acotados. No ejecuta código, valida todo el esquema ni mide caché/tokens.
+Texto completo en privado v1; omitido junto con propuestas del informe reducido.
+UI/ayuda EN/ES/FR/ZH y guía ES/EN. [Contrato y pruebas](resolver-text-import.md).
+
+
 ## Configuración de adaptadores desde archivo — 25 de octubre
 
 adapter_config.json → vista previa → aplicación explícita → comprobación.

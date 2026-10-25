@@ -130,6 +130,8 @@ jobs:
         run: node tests/attention_report_file_browser.mjs
       - name: Import adapter configuration in four languages
         run: node tests/adapter_config_file_browser.mjs
+      - name: Import JSON, PEFT code and prompt files in four languages
+        run: node tests/resolver_text_file_browser.mjs
       - name: Resolver phase peaks in four languages
         run: node tests/resolver_memory_browser.mjs
       - name: Resolver video and multilingual captions
