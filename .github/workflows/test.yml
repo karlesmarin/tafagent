@@ -124,6 +124,8 @@ jobs:
         run: node tests/resolver_session_browser.mjs
       - name: Import memory measurements in four languages
         run: node tests/memory_measurement_browser.mjs
+      - name: Memory before/after browser
+        run: node tests/memory_comparison_browser.mjs
       - name: Resolver phase peaks in four languages
         run: node tests/resolver_memory_browser.mjs
       - name: Resolver video and multilingual captions

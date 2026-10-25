@@ -55,3 +55,6 @@
 
 #resolver-measurement-file { max-width: 100%; box-sizing: border-box; }
 .resolver-measurement-review { overflow-wrap: anywhere; }
+
+#resolver-comparison-file { max-width:100%; }
+#resolver-comparison-result { overflow-wrap:anywhere; }

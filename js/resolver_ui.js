@@ -1,3 +1,4 @@
+import {compareMemoryMeasurements} from './memory_comparison.js';
 import {readMemoryMeasurement,reviewMemoryMeasurement,publicMemoryInputs,MEASUREMENT_LIMIT} from './memory_measurement.js';
 import {saveCase,readSavedCase,CASE_FILE_LIMIT} from './resolver_session.js';
 import { CASES, suggestCases, validResolverModel, solveCase, fetchResolverBundle, resolverLink } from './resolver.js';
@@ -25,7 +26,8 @@ let progressMarks=null;
 let observationHistory=[];
 let videoUI=null;
 let pendingCase=null,fileRequest=0;
-let memoryMeasurement=null,measurementRequest=0;
+let memoryMeasurement=null,measurementAfter=null,comparisonSame=false,measurementRequest=0;
+function clearMemoryComparison(){measurementAfter=null;comparisonSame=false;measurementRequest++;}
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
@@ -36,7 +38,7 @@ function invalidate(clearBundle=false) {
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
 function clearMemoryPeak(){
- memoryMeasurement=null;measurementRequest++;
+ memoryMeasurement=null;clearMemoryComparison();measurementRequest++;
  $('peak').value='';$('peakUnit').value='GiB';$('peakMetric').value='unknown';$('peakSame').checked=false;$('peakIsolated').checked=false;
 }
 function choose(id) {
@@ -68,7 +70,7 @@ function renderLocalFields(values={}) {
 }
 function inputs() {
  if(isLocal())return Object.fromEntries(LOCAL_CASES[route].fields.map(f=>{const el=$('local-'+f.id);return [f.id,f.type==='checkbox'?el.checked:f.type==='number'?(el.value===''?NaN:Number(el.value)):el.value];}));
- return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value,peak:$('peak').value===''?null:Number($('peak').value),peakUnit:$('peakUnit').value,peakMetric:$('peakMetric').value,peakSame:$('peakSame').checked,peakIsolated:$('peakIsolated').checked,...(memoryMeasurement?{measurement:memoryMeasurement}:{})};
+ return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value,peak:$('peak').value===''?null:Number($('peak').value),peakUnit:$('peakUnit').value,peakMetric:$('peakMetric').value,peakSame:$('peakSame').checked,peakIsolated:$('peakIsolated').checked,...(memoryMeasurement?{measurement:memoryMeasurement}:{}),...(measurementAfter?{measurementAfter,comparisonSame}:{})};
 }
 function renderFeedback() {
   $('followup').replaceChildren();
@@ -291,7 +293,7 @@ function renderResult() {
       box.append(report);
     }
     out.append(box);
-    if(bundle.origin!=='demo')out.append(createMeasurementImport());
+    if(bundle.origin!=='demo'){out.append(createMeasurementImport());if(memoryMeasurement)out.append(createMemoryComparison());}
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
@@ -352,7 +354,7 @@ function createMeasurementImport(){
    preview.append(node('p',tr('measurement_peak')+': '+record.peak.value+' '+record.peak.unit),measurementReviewView(review));
    preview.append(button(tr('measurement_apply'),()=>{
     if(ticket!==measurementRequest||!result||route!=='memory')return;
-    cancel();memoryMeasurement=record;
+    cancel();clearMemoryComparison();memoryMeasurement=record;
     $('peak').value=record.peak.value;$('peakUnit').value=record.peak.unit;$('peakMetric').value=record.peak.metric;
     $('peakSame').checked=false;$('peakIsolated').checked=false;
     progressMarks=null;observationHistory=[];feedback='';lastInputs=inputs();result=solveCase(route,bundle,lastInputs);
@@ -361,6 +363,54 @@ function createMeasurementImport(){
   }catch(error){if(ticket===measurementRequest)status.textContent=tr(error.message==='measurement_large'?'measurement_large':'measurement_invalid');}
  });
  box.append(label,input,status,preview,guide);return box;
+}
+function comparisonView(report){
+ const box=node('section');box.id='resolver-comparison-result';box.tabIndex=-1;
+ box.append(node('h4',tr('comparison_title')),node('p',tr('comparison_limit')));
+ const n=x=>x.toLocaleString(getLang(),{maximumFractionDigits:3});
+ const dl=node('dl');dl.append(node('dt',tr('comparison_before')),node('dd',n(report.before_GiB)+' GiB'),node('dt',tr('comparison_after')),node('dd',n(report.after_GiB)+' GiB'));
+ if(report.status==='declared_comparison'){
+  dl.append(node('dt',tr('comparison_delta')),node('dd',n(report.delta_GiB)+' GiB'),node('dt',tr('comparison_percent')),node('dd',report.delta_percent===null?tr(report.percent_unavailable==='range'?'comparison_range':'comparison_zero'):n(report.delta_percent)+' %'));
+  box.append(node('p',tr('comparison_'+report.direction)));
+ }
+ box.append(dl);
+ for(const reason of report.blockers)box.append(node('p',tr('comparison_block_'+reason)));
+ const list=node('ul');for(const check of report.checks)list.append(node('li',tr('comparison_field_'+check.field)+': '+tr('measurement_'+check.status)));box.append(list);
+ const conditions=node('details');conditions.append(node('summary',tr('comparison_conditions')),node('h5',tr('comparison_before')),measurementReviewView(report.before),node('h5',tr('comparison_after')),measurementReviewView(report.after));box.append(conditions);return box;
+}
+function updateMemoryComparison(){
+ cancel();measurementRequest++;progressMarks=null;observationHistory=[];feedback='';
+ lastInputs=inputs();result=solveCase(route,bundle,lastInputs);renderResult();
+ $('comparison').open=true;$('comparison-result')?.focus();
+}
+function createMemoryComparison(){
+ const box=node('details');box.id='resolver-comparison';box.append(node('summary',tr('comparison_title')),node('p',tr('comparison_help')));
+ const label=node('label',tr('comparison_file'));label.htmlFor='resolver-comparison-file';
+ const input=node('input');input.id=label.htmlFor;input.type='file';input.accept='.json,application/json';
+ const status=node('p');status.id='resolver-comparison-status';status.setAttribute('role','status');
+ const preview=node('div');preview.id='resolver-comparison-preview';
+ input.addEventListener('change',async()=>{
+  const ticket=++measurementRequest,file=input.files?.[0];preview.replaceChildren();status.textContent='';if(!file)return;
+  try{
+   if(file.size>MEASUREMENT_LIMIT)throw new Error('measurement_large');
+   const text=await file.text();if(ticket!==measurementRequest||!box.isConnected)return;
+   const after=readMemoryMeasurement(text),review=compareMemoryMeasurements(memoryMeasurement,after,{...lastInputs,comparisonSame:false},bundle,result.fit);
+   preview.append(node('p',tr('comparison_after')+': '+after.peak.value+' '+after.peak.unit),measurementReviewView(review.after));
+   const list=node('ul');for(const check of review.checks)list.append(node('li',tr('comparison_field_'+check.field)+': '+tr('measurement_'+check.status)));preview.append(list);
+   preview.append(button(tr('comparison_apply'),()=>{
+    if(ticket!==measurementRequest||!result||route!=='memory')return;
+    measurementAfter=after;comparisonSame=false;updateMemoryComparison();
+   },'comparison-apply'));
+  }catch(error){if(ticket===measurementRequest)status.textContent=tr(error.message==='measurement_large'?'measurement_large':'measurement_invalid');}
+ });
+ box.append(label,input,status,preview);
+ if(measurementAfter){
+  const confirm=node('input');confirm.type='checkbox';confirm.id='resolver-comparison-confirm';confirm.checked=comparisonSame;
+  const confirmLabel=node('label',tr('comparison_confirm'));confirmLabel.htmlFor=confirm.id;
+  confirm.addEventListener('change',()=>{comparisonSame=confirm.checked;updateMemoryComparison();$('comparison-confirm').focus();});
+  box.append(confirmLabel,confirm,comparisonView(result.memoryPeak.comparison),button(tr('comparison_clear'),()=>{clearMemoryComparison();updateMemoryComparison();$('comparison-file').focus();},'comparison-clear'));
+ }
+ const guide=node('a',tr('comparison_guide'));const url=new URL(summaryData().guide.url);url.pathname=url.pathname.replace(/\/chapters\/[^/]+$/,'/chapters/R5-tafagent.html');url.hash='sec-resolver-memory-comparison';guide.href=url.href;guide.target='_blank';guide.rel='noopener';box.append(guide);return box;
 }
 function downloadPrivateCase(){
  try{
@@ -386,7 +436,7 @@ function renderCasePreview(){
   if(isLocal())renderLocalFields(lastInputs);
   else{
    $('model').value=validResolverModel(bundle.model)?bundle.model:'';
-   if(route==='memory'){memoryMeasurement=lastInputs.measurement??null;for(const [key,value] of Object.entries(lastInputs)){if(key==='measurement')continue;if(typeof value==='boolean')$(key).checked=value;else $(key).value=value??'';}}
+   if(route==='memory'){memoryMeasurement=lastInputs.measurement??null;measurementAfter=lastInputs.measurementAfter??null;comparisonSame=lastInputs.comparisonSame===true;for(const [key,value] of Object.entries(lastInputs)){if(['measurement','measurementAfter','comparisonSame'].includes(key))continue;if(typeof value==='boolean')$(key).checked=value;else $(key).value=value??'';}}
   }
   // Imported files never restore an unrelated error, suggestions or share link.
   $('description').value='';$('suggestions').replaceChildren();triageUI?.reset();
@@ -516,7 +566,7 @@ export function initResolver(onDemo) {
   $('case-file').addEventListener('change',previewCaseFile);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
-  $('form').addEventListener('input',e=>{if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id))memoryMeasurement=null;if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
+  $('form').addEventListener('input',e=>{if(['peak','peakUnit','peakMetric'].some(id=>e.target.id==='resolver-'+id)){memoryMeasurement=null;clearMemoryComparison();}if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
   $('model').addEventListener('change',()=>{clearMemoryPeak();invalidate(true);});
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));

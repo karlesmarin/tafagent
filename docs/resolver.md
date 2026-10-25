@@ -1,5 +1,12 @@
 # Solve my problem
 
+## Compare two memory measurements
+
+Memory cases can retain Before and After records, require matching declared
+conditions/runtime and later After timestamp, and show a descriptive GiB/percent
+delta after explicit confirmation. No inference, upload or causal verdict.
+See [workflow and privacy](memory-measurement.md#compare-before-and-after).
+
 ## Import a local memory measurement
 
 The memory route accepts a previewed `taf-memory-measurement` v1 JSON (64 KiB). Model/revision/phase/precision/workload mismatches and missing data prevent numeric comparison. Applying only fills peak value/unit/metric and resets manual confirmations; it does not change the case identity. Private cases retain the record; reduced reports omit its raw metadata. See [complete workflow and collector](memory-measurement.md).
@@ -51,7 +58,7 @@ No backend or additional package is required.
 
 | Field | Meaning |
 |---|---|
-| `format`, `version` | `taf-resolver-private-case`, versions `1` / `2` (measurement attached); unknown versions rejected |
+| `format`, `version` | `taf-resolver-private-case`, versions `1` (none), `2` (one measurement), `3` (pair in current or initial inputs); unknown versions rejected |
 | `saved_at`, `route` | Save date and one of the nine supported direct routes |
 | `bundle` | Declared origin, model/revision/date, inspected metadata and source references |
 | `inputs`, `initial_inputs` | Current and initial route inputs used for recalculation |

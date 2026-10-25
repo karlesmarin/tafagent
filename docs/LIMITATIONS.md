@@ -1,5 +1,14 @@
 # TAF Agent — Limitations & evidence
 
+## Before/After memory comparisons
+
+Two imported reports remain unverified declarations. Matching model, workload,
+runtime labels and chronological file dates do not establish hardware identity,
+causality, repeatability, output quality or a resolved OOM. Missing/different
+conditions block numeric deltas; zero Before makes the percentage undefined.
+This comparison is limited to the existing allocated/isolated/supported memory
+scope. Repeat controlled measurements; see [full contract](memory-measurement.md).
+
 ## Imported memory measurement boundaries
 
 Imported conditions and measurements remain unverified even when all fields match. Numeric differences require the existing metric/phase/geometry/confirmation guards plus matching record conditions. Whole-generate peaks, illustrative files and missing or incompatible workload data cannot enable comparison. The Python helper measures one process/device counter; it cannot prove phase isolation, detect other process memory or record failed allocation sizes. Failed blocks do not write reports. See [full scope and privacy](memory-measurement.md).

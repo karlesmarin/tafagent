@@ -64,6 +64,13 @@ See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates
 
 ### Solve my problem — automatic guided help
 
+**2026-10-25 — Compare Before / After memory reports:** attach a second measurement
+without replacing the first. Matching declared conditions, runtime, chronological
+file dates and explicit confirmation allow a descriptive GiB/percent delta.
+Both records survive private-case save/reopen; raw runtime details stay out of
+reduced reports. This does not prove a repair or quality improvement. Available
+in EN/ES/FR/ZH. [Steps, limits and file versions](docs/memory-measurement.md#compare-before-and-after).
+
 **2026-10-25 — Import runtime memory reports:**
 Memory cases now preview and attach local measurement JSON, check declared model/revision/phase/workload, and keep it in a private case. A PyTorch context-manager helper collects a phase peak in your existing program. Imports never execute code; missing or mismatched conditions block numerical comparison. UI/help EN/ES/FR/ZH; guide ES/EN. [Workflow, collector usage, format and privacy](docs/memory-measurement.md).
 

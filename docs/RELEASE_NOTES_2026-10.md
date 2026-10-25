@@ -1,5 +1,13 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Before/After memory records
+
+Add explicit second-file preview/attachment, pair confirmation, runtime/date gates
+and descriptive GiB/percent differences in EN/ES/FR/ZH. Retain both records in
+private format v3; preserve readers for v1/v2 and omit raw records from reduced
+reports. Add unit/browser coverage and R5 ES/EN instructions. No GPU benchmark
+or automatically verified fix is claimed.
+
 ## 2026-10-25 — Import memory measurement files
 
 Adds a local 64 KiB report import, declared-condition review, peak-only apply with fresh confirmations, privacy projection and private-case v2 roundtrip (v1 retained). Includes a non-overwriting PyTorch context-manager collector and unit/browser coverage. Documentation and UI EN/ES/FR/ZH; companion guide ES/EN. No GPU/model benchmark or independent measurement validation was performed.

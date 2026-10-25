@@ -34,6 +34,46 @@ record. Editing the peak value/unit/metric detaches the record and turns it into
 manual input. Confirmations retain the record. Language changes retain applied
 data; a pending preview can be selected again. Invalid files leave the case intact.
 
+## Compare Before and After
+
+After attaching and confirming the first measurement, open **Compare before and
+after**. The current attached record is **Before**; choose a second local JSON as
+**After** (same format and 64 KiB limit). Preview its conditions and runtime/date
+checks, then choose **Attach as After**. The first record and case settings stay
+intact. The new pair confirmation starts unchecked on every attachment.
+
+Check both runs yourself: same input/workload, physical hardware and protocol,
+with isolated phases. A device label such as `0` does not identify a physical GPU
+or machine. The original peak's workload/isolation confirmations are also required.
+Attaching or confirming recalculates locally, with no HF request, and resets
+progress, observations and feedback because the evidence changed.
+
+Both files must match the current case under the existing memory guards. Engine,
+version and device label must be present and exactly equal; both timestamps must
+be documented, with After strictly later. File labels/dates remain unauthenticated.
+Each peak must be allocated tensor memory, from a known phase in the supported
+single-GPU/single-sequence scope. Missing or different metadata, examples, reserved
+or device peaks, whole-generate peaks and unconfirmed pairs block the delta.
+The confirmation cannot override a mismatch. This first pair comparison does not
+compare changed model, precision, context, runtime version or hardware; those
+changes require a separate controlled protocol.
+
+The panel shows both peaks converted to GiB. When comparable, it reports
+`after − before` and `100 × (after − before) / before`. A negative difference
+means only a lower declared peak. When Before is zero, the absolute difference
+is available and the percentage is undefined. Nonfinite percentage results are
+also omitted with a numeric-range explanation. A blocked pair keeps both peaks
+visible but exports null deltas. Two records provide no uncertainty estimate,
+causal attribution, output-quality check or proof that OOM is resolved. Repeat
+controlled runs before drawing a conclusion.
+
+**Remove After measurement** retains Before. Replacing Before clears After and
+the pair confirmation. Changes to identity/budget/context/format/phase clear both;
+manually editing the first peak detaches both records. Language changes retain
+applied data; pending previews can be selected again. Invalid/oversized files leave
+an existing pair unchanged. A private download retains both normalized records;
+the reduced report retains only peaks, deltas, checks and declaration flags.
+
 ## Collect a peak in your own runtime
 
 Use [cli/memory_probe.py](../cli/memory_probe.py) from a TAF checkout as an imported
@@ -104,10 +144,17 @@ precision conversion is inferred. Import never interprets free-form logs, error
 messages or scripts as measurements. Runtime strings can contain private details:
 they survive only in the explicitly saved private case, not the reduced report.
 
-Private case files containing a measurement use **version 2**; cases without one
-still use version 1. The current reader accepts both. Older app versions do not
-support version 2; reload the published app before reopening. The measurement
-format itself remains version 1. Exported result/review `memoryPeak.measurement`
+Private case files use **version 3** when either the current or initial inputs
+contain a pair, **version 2** for one measurement, and **version 1** without
+measurements. The current reader accepts all three and recalculates from inputs.
+Older app versions reject unsupported versions; reload the app before reopening.
+The measurement JSON format itself remains version 1. A pair adds
+`inputs.measurementAfter` and Boolean `inputs.comparisonSame`; its first record
+remains `inputs.measurement`. The comparison is exported under
+`result.memoryPeak.comparison`, with categorical checks and null deltas if blocked.
+Neither raw measurement record is included in the reduced report.
+
+Exported result/review `memoryPeak.measurement`
 contains comparison categories and `independently_verified: false`, not raw
 runtime identifiers or claims that TAF executed the measurement.
 
@@ -120,3 +167,8 @@ The tests do not establish actual GPU memory usage or model quality. Existing
 memory and private-case suites cover compatibility with manually entered peaks
 and files without measurements. Keep schema, producer, privacy projection,
 translations, documentation and saved-case reader synchronized when extending.
+
+`npm run test:memory-pair` covers units, differences, missing metadata, runtime
+and timestamp checks, confirmations, zero baselines, privacy and private v3
+round trips, plus browser flows in all four languages. CI runs both pair and
+original import tests. Browser measurements are fixtures, not real GPU runs.

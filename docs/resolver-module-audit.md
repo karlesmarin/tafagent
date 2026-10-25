@@ -1,5 +1,14 @@
 # Auditoría de los módulos para «Resolver mi problema»
 
+## Memoria antes/después — 25 de octubre
+
+Dos archivos declarados: identidad/carga compatibles, mismo motor/versión/etiqueta
+de dispositivo, fechas crecientes y confirmación explícita. Diferencia descriptiva
+en GiB y porcentaje; cero inicial deja porcentaje indefinido. No acredita equipo
+físico, causalidad, calidad ni reparación. Caso privado v3 conserva ambos; informe
+reducido excluye los dos registros crudos. Lectura v1/v2 preservada. No incorpora
+resultados de las otras herramientas ni ejecuta GPU. Ver memory-measurement.md.
+
 ## Importación de mediciones de memoria — 25 de octubre
 
 Puente limitado a memoria: JSON validado, previsualización, coincidencias declaradas y bloqueo por datos ausentes/diferentes. El auxiliar PyTorch mide contadores al ejecutarlo el usuario en su entorno; las pruebas usan contadores falsos, no GPU real. Archivo privado v2 cuando incorpora una medición; lector compatible con v1. Metadatos del entorno excluidos del informe reducido. Ver memory-measurement.md.
