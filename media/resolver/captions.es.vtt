@@ -1,0 +1,26 @@
+WEBVTT
+
+00:00:00.250 --> 00:00:03.850 position:50% size:92% align:center
+Un siguiente paso claro para tu problema con un LLM.
+
+00:00:04.200 --> 00:00:09.800 position:50% size:92% align:center
+¿Falta memoria al generar? Empieza por el síntoma.
+
+00:00:10.000 --> 00:00:15.500 position:50% size:92% align:center
+Carga un ejemplo guardado y prueba un contexto más corto.
+
+00:00:16.000 --> 00:00:22.000 position:50% size:92% align:center
+Revisa la estimación, sus supuestos y lo que falta
+verificar.
+
+00:00:23.000 --> 00:00:31.000 position:50% size:92% align:center
+Sigue tus comprobaciones. Si alguna se bloquea, TAF indica
+el siguiente paso.
+
+00:00:32.000 --> 00:00:39.800 position:50% size:92% align:center
+Consulta la guía para entender el porqué. Después prueba
+tu propio caso.
+
+00:00:40.305 --> 00:00:44.005 position:50% size:92% align:center
+Demo ilustrativa. Sin inferencia del modelo ni reparación
+verificada.

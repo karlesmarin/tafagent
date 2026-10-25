@@ -1,0 +1,25 @@
+WEBVTT
+
+00:00:00.250 --> 00:00:03.850 position:50% size:92% align:center
+A clear next step for your LLM problem.
+
+00:00:04.200 --> 00:00:09.800 position:50% size:92% align:center
+Out of memory during generation? Start with the symptom.
+
+00:00:10.000 --> 00:00:15.500 position:50% size:92% align:center
+Load a saved example and explore a shorter context.
+
+00:00:16.000 --> 00:00:22.000 position:50% size:92% align:center
+Review the estimate, its assumptions, and what remains
+unverified.
+
+00:00:23.000 --> 00:00:31.000 position:50% size:92% align:center
+Track your checks. If one is blocked, TAF suggests the
+next step.
+
+00:00:32.000 --> 00:00:39.800 position:50% size:92% align:center
+Follow the guide to understand why. Then try your own
+case.
+
+00:00:40.305 --> 00:00:44.005 position:50% size:92% align:center
+Illustrative demo. No model inference or verified repair.

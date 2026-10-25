@@ -1,5 +1,12 @@
 # scripts/
 
+## Resolver video
+
+`record_resolver_video.mjs` records the deployed app's automatic English demo in
+an isolated browser. `build_resolver_video.py` adds English synthetic narration,
+an opening/closing card and four subtitle tracks. See the
+[media README](../media/resolver/README.md) for provenance and regeneration.
+
 ## `build_sitemaps.py`
 
 Regenerate public XML sitemaps with `python scripts/build_sitemaps.py --taf-root .`.

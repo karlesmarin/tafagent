@@ -84,6 +84,10 @@ Together with attention's protocol checklist, all nine routes explain a next che
 and the [ES/EN guide](https://karlesmarin.github.io/transformers-guide/sitemap.xml).
 [Regeneration and checks](docs/sitemaps.md) keep the published page inventory current.
 
+**Recorded walkthrough:** open **Solve my problem → Watch the video** for English
+narration and selectable EN/ES/FR/ZH subtitles. Playback is optional; the movie is
+not fetched until you press play. The illustrative example runs no model.
+
 **Track my checks** adds optional per-step declarations to all nine routes:
 pending, reviewed, discrepancy or blocked. TAF prioritizes discrepancies, then
 blocked checks, then pending work. Marks stay in the current tab, survive closing

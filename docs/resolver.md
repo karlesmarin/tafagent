@@ -66,6 +66,16 @@ See [HF cache strategies](https://huggingface.co/docs/transformers/kv_cache).
 
 ## Navigation and user control
 
+**Watch the video** offers an optional recorded walkthrough with English
+narration and seven timed caption cues in EN/ES/FR/ZH. The interface language
+selects the initial subtitle track; users can select another language or turn
+subtitles off. The media element is created only when its disclosure is opened,
+uses `preload="none"`, and never autoplays. Closing the disclosure or resolver
+pauses playback. Starting the interactive demo collapses the video. The Manual
+and feature overview describe this separate recorded option. It is a saved,
+illustrative example, not model inference or a verified repair. See
+[media provenance](../media/resolver/README.md).
+
 **Track my checks** is an optional follow-up panel on all nine routes. Three steps
 reuse the current ordered plan; attention reuses its protocol priority followed
 by observation and interpretation instructions. Users can mark a step pending,

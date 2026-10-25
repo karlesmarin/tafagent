@@ -6,6 +6,7 @@ import { buildResolverReview } from './resolver_review.js';
 import { PROTOCOL_GROUPS, PROTOCOL_PATHS } from './resolver_protocol.js';
 import { CHECK_DEMOS,checkDemo } from './resolver_checks.js';
 import { PROGRESS_STATES,progressReport,markProgress,demoProgress } from './resolver_progress.js';
+import { createResolverVideo } from './resolver_video.js';
 import { attachHfAutocomplete } from './hf_autocomplete.js';
 import { LOCAL_CASES,LOCAL_DEMOS,publicLocalInputs } from './resolver_local.js';
 import { TOOL_CATALOG } from './resolver_catalog.js';
@@ -18,6 +19,7 @@ let route='',bundle=null,result=null,feedback='',controller=null,request=0,lastI
 let catalogUI=null;
 let triageUI=null;
 let progressMarks=null;
+let videoUI=null;
 const isLocal=()=>CASES[route]?.source==='local';
 function button(text,fn,id) { const b=node('button',text);b.type='button';if(id)b.id='resolver-'+id;b.addEventListener('click',fn);return b; }
 function cancel() { request++;controller?.abort();controller=null;$('run').disabled=false;$('demo').disabled=false; }
@@ -262,6 +264,7 @@ async function run(demo=false) {
 }
 export function refreshResolver() {
   if(!$('dialog'))return;
+  videoUI?.refresh();
   if(route)$('route-title').textContent=tr(route);
   if(isLocal())renderLocalFields(inputs());
   catalogUI?.refresh();
@@ -270,6 +273,7 @@ export function refreshResolver() {
   if(!$('share-value').hidden)$('share-value').value=resolverLink(route,isLocal()?'':$('model').value.trim(),location.href,getLang());
 }
 export function openResolverForDemo() {
+  videoUI?.collapse();
   invalidate(true);route='';$('form').hidden=true;$('description').value='';
   $('share-area').hidden=true;
   triageUI?.reset();
@@ -308,6 +312,7 @@ export function initResolver(onDemo) {
     <div id="resolver-share-area" hidden><button id="resolver-share" type="button" data-i18n="resolver.share"></button><p data-i18n="resolver.share_note"></p>
     <input id="resolver-share-value" type="text" readonly hidden aria-label="URL"></div>`;
   document.body.append(dialog);
+  videoUI=createResolverVideo();$('title').nextElementSibling.after(videoUI.element);
   catalogUI=mountResolverCatalog($('catalog'),{choose,getModel:()=>validResolverModel($('model').value.trim())?$('model').value.trim():''});
   triageUI=mountResolverTriage($('triage'),{
     choose:(id,key)=>{choose(id);if(id==='memory')$('stage').value=key==='load'?'load':'generate';},
@@ -327,7 +332,7 @@ export function initResolver(onDemo) {
     for(const entry of tools)host.append(button(t('modes.'+entry.mode),()=>catalogUI.show(entry.mode)));
   }
   document.querySelectorAll('[data-resolver-open]').forEach(b=>b.addEventListener('click',()=>open(b.dataset.resolverOpen==='ask')));
-  $('close').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>cancel());
+  $('close').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>{cancel();videoUI?.pause();});
   $('suggest').addEventListener('click',suggest);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});

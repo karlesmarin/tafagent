@@ -33,5 +33,9 @@
 #resolver-progress { scroll-margin-top:4rem; margin:1rem 0; }
 #resolver-progress > summary { cursor:pointer; font-weight:600; }
 #resolver-progress li + li { margin-top:1rem; }
+#resolver-video { margin:1rem 0; border:1px solid var(--border,#30363d); border-radius:8px; padding:.6rem 1rem; }
+#resolver-video > summary { cursor:pointer; font-weight:600; }
+#resolver-video-player { display:block; width:100%; max-height:70dvh; margin:1rem auto; background:#0d1117; border-radius:8px; }
+#resolver-video-player::cue { color:#fff; background:rgba(13,17,23,.9); }
 #resolver-dialog :focus-visible { outline:2px solid var(--accent,#58a6ff); outline-offset:3px; }
 @media(max-width:600px) { #resolver-dialog { padding:1rem; } .resolver-actions { flex-direction:column; } }

@@ -2,6 +2,11 @@
 
 ## 25 October: review the evidence behind a result
 
+An optional recorded resolver walkthrough adds English narration and selectable
+EN/ES/FR/ZH subtitles. It loads on demand, pauses when closed and complements the
+interactive demo. Four-language Manual/overview and browser playback checks are
+updated. The HF announcement includes captioned versions of the same example.
+
 Public sitemaps are regenerated for TAF on GitHub Pages and Hugging Face, and
 for the ES/EN guide (103 pages with reciprocal language alternatives). A
 standard-library generator and CI drift check replace stale blanket dates.

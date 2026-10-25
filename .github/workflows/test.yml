@@ -116,6 +116,8 @@ jobs:
         run: node tests/resolver_browser.mjs
         env:
           TAF_URL: http://127.0.0.1:8000/
+      - name: Resolver video and multilingual captions
+        run: node tests/resolver_video_browser.mjs
       - name: Measurement protocols and uniform control
         run: node tests/measurement_browser.mjs
         env:
