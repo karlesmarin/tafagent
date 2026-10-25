@@ -1,9 +1,14 @@
 # Solve my problem
 
+## Import a local memory measurement
+
+The memory route accepts a previewed `taf-memory-measurement` v1 JSON (64 KiB). Model/revision/phase/precision/workload mismatches and missing data prevent numeric comparison. Applying only fills peak value/unit/metric and resets manual confirmations; it does not change the case identity. Private cases retain the record; reduced reports omit its raw metadata. See [complete workflow and collector](memory-measurement.md).
+
+
 ## Save and reopen a private case
 
 All nine direct routes offer **Save private case** after a successful check.
-It downloads a version-1 `taf-resolver-private-case` JSON file containing the
+It downloads a versioned `taf-resolver-private-case` JSON file containing the
 initial/current inputs, inspected metadata, declared progress, up to 12
 observations and feedback. Pasted code, prompts, reports and adapter metadata
 are included when needed to resume. The disclosure explains that this file is
@@ -46,7 +51,7 @@ No backend or additional package is required.
 
 | Field | Meaning |
 |---|---|
-| `format`, `version` | `taf-resolver-private-case`, version `1`; unknown versions rejected |
+| `format`, `version` | `taf-resolver-private-case`, versions `1` / `2` (measurement attached); unknown versions rejected |
 | `saved_at`, `route` | Save date and one of the nine supported direct routes |
 | `bundle` | Declared origin, model/revision/date, inspected metadata and source references |
 | `inputs`, `initial_inputs` | Current and initial route inputs used for recalculation |

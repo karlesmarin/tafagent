@@ -77,3 +77,5 @@ await import('./resolver_observations.test.mjs');
 await import('./resolver_memory.test.mjs');
 
 await import('./resolver_session.test.mjs');
+
+await import('./memory_measurement.test.mjs');

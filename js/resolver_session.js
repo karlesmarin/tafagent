@@ -1,3 +1,4 @@
+import {normalizeMemoryMeasurement} from './memory_measurement.js';
 import {CASES,solveCase,validResolverModel} from './resolver.js';
 import {LOCAL_CASES} from './resolver_local.js';
 import {PROGRESS_STATES,progressPlan} from './resolver_progress.js';
@@ -22,10 +23,11 @@ function bounded(value,depth=0,count={n:0}){
 }
 function inputFields(route,data){
  if(!object(data))fail();
- const keys=LOCAL_CASES[route]?.fields.map(f=>f.id)??(route==='memory'?['vram','context','precision','stage','peak','peakUnit','peakMetric','peakSame','peakIsolated']:[]);
+ const keys=LOCAL_CASES[route]?.fields.map(f=>f.id)??(route==='memory'?['vram','context','precision','stage','peak','peakUnit','peakMetric','peakSame','peakIsolated','measurement']:[]);
  if(Object.keys(data).some(k=>!keys.includes(k)))fail();
  const copy=Object.fromEntries(keys.filter(k=>Object.hasOwn(data,k)).map(k=>[k,data[k]]));
  if(route==='memory'){
+  if(copy.measurement!=null)copy.measurement=normalizeMemoryMeasurement(copy.measurement);
   if(!Number.isFinite(copy.vram)||copy.vram<=0||copy.vram>100000||!Number.isInteger(copy.context)||copy.context<1||copy.context>10000000)fail();
   if(!['BF16','FP16','FP32','INT8','NF4','F16','Q8_0','Q4_K_M'].includes(copy.precision)||!['load','generate','prefill','decode'].includes(copy.stage))fail();
   if(copy.peak!=null&&(!Number.isFinite(copy.peak)||copy.peak<0||copy.peak>1e9))fail();
@@ -72,7 +74,8 @@ export function readSavedCase(text){
  const file=JSON.parse(text);bounded(file);
  if(!object(file))fail();
  if(file.schema_version!=null&&file.format==null)throw new Error('case_file_report');
- if(file.format!=='taf-resolver-private-case'||file.version!==1||!Object.hasOwn(CASES,file.route)||!date(file.saved_at))fail();
+ if(file.format!=='taf-resolver-private-case'||![1,2].includes(file.version)||!Object.hasOwn(CASES,file.route)||!date(file.saved_at))fail();
+ if(file.version===1&&(file.inputs?.measurement!=null||file.initial_inputs?.measurement!=null))fail();
  const route=file.route,bundle=metadata(route,file.bundle),inputs=inputFields(route,file.inputs),first=inputFields(route,file.initial_inputs);
  const result=solveCase(route,bundle,inputs),initial={inputs:first,result:solveCase(route,bundle,first)};
  const state={route,bundle,inputs,result,initial},plan=progressPlan(state);
@@ -97,7 +100,7 @@ export function saveCase(state,progress=null,observations=[],feedback=''){
  const {route,bundle,inputs,initial}=state;
  if(!Object.hasOwn(CASES,route)||!bundle||!initial)fail();
  const cleanBundle=metadata(route,bundle);
- const file={format:'taf-resolver-private-case',version:1,saved_at:new Date().toISOString(),route,bundle:cleanBundle,
+ const file={format:'taf-resolver-private-case',version:inputs.measurement||initial.inputs.measurement?2:1,saved_at:new Date().toISOString(),route,bundle:cleanBundle,
   inputs:inputFields(route,inputs),initial_inputs:inputFields(route,initial.inputs),progress,observations,feedback};
  const text=JSON.stringify(file,null,2);
  readSavedCase(text); // Same limits and recomputation as import; no result is trusted.

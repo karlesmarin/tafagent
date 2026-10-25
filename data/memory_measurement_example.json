@@ -1,0 +1,28 @@
+{
+  "format": "taf-memory-measurement",
+  "version": 1,
+  "kind": "example",
+  "model": null,
+  "revision": null,
+  "phase": "prefill",
+  "tokens": 4096,
+  "precision": "BF16",
+  "measured_at": null,
+  "phase_isolated": null,
+  "peak": {
+    "value": 22,
+    "unit": "GiB",
+    "metric": "allocated"
+  },
+  "workload": {
+    "gpu_count": 1,
+    "batch_size": 1,
+    "resident_weights": true,
+    "kv_dtype": "FP16"
+  },
+  "runtime": {
+    "engine": null,
+    "version": null,
+    "device": null
+  }
+}

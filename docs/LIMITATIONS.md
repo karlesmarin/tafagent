@@ -1,5 +1,10 @@
 # TAF Agent — Limitations & evidence
 
+## Imported memory measurement boundaries
+
+Imported conditions and measurements remain unverified even when all fields match. Numeric differences require the existing metric/phase/geometry/confirmation guards plus matching record conditions. Whole-generate peaks, illustrative files and missing or incompatible workload data cannot enable comparison. The Python helper measures one process/device counter; it cannot prove phase isolation, detect other process memory or record failed allocation sizes. Failed blocks do not write reports. See [full scope and privacy](memory-measurement.md).
+
+
 ## Reported memory peaks
 
 TAF does not measure GPU memory. The resolver can accept a user-reported scalar

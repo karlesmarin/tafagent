@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Memory collector unit tests (fake CUDA, no GPU)
+        run: python tests/test_memory_probe.py
       - name: Runtime smoke test
         run: node tests/smoke.mjs
       - name: i18n integrity (parity + duplicates + code keys)
@@ -120,6 +122,8 @@ jobs:
           TAF_URL: http://127.0.0.1:8000/
       - name: Reopen private cases in nine routes and four languages
         run: node tests/resolver_session_browser.mjs
+      - name: Import memory measurements in four languages
+        run: node tests/memory_measurement_browser.mjs
       - name: Resolver phase peaks in four languages
         run: node tests/resolver_memory_browser.mjs
       - name: Resolver video and multilingual captions

@@ -1,5 +1,10 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Import memory measurement files
+
+Adds a local 64 KiB report import, declared-condition review, peak-only apply with fresh confirmations, privacy projection and private-case v2 roundtrip (v1 retained). Includes a non-overwriting PyTorch context-manager collector and unit/browser coverage. Documentation and UI EN/ES/FR/ZH; companion guide ES/EN. No GPU/model benchmark or independent measurement validation was performed.
+
+
 
 ## 2026-10-25 — Save and reopen private resolver cases
 

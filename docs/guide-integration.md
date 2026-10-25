@@ -1,5 +1,10 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## Memory-file bridge — 25 October
+
+R5 ES/EN includes `#sec-resolver-memory-import` with the import flow, collector usage and limits. The memory result links directly there; in-app manual and feature help use `resolver.measurement_help_summary` in EN/ES/FR/ZH. FR/ZH use the English guide. Earlier videos do not demonstrate file imports.
+
+
 ## Picos por fase
 
 R5, `sec-resolver-memory-peaks`, documenta carga, prefill y decodificación,

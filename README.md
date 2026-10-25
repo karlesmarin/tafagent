@@ -64,6 +64,10 @@ See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates
 
 ### Solve my problem — automatic guided help
 
+**2026-10-25 — Import runtime memory reports:**
+Memory cases now preview and attach local measurement JSON, check declared model/revision/phase/workload, and keep it in a private case. A PyTorch context-manager helper collects a phase peak in your existing program. Imports never execute code; missing or mismatched conditions block numerical comparison. UI/help EN/ES/FR/ZH; guide ES/EN. [Workflow, collector usage, format and privacy](docs/memory-measurement.md).
+
+
 **2026-10-25 — Save and reopen a case:** all nine direct routes can now continue
 across browser reloads using an explicit private file. UI, Manual and feature
 help are available in EN/ES/FR/ZH; the guide is updated in ES/EN.

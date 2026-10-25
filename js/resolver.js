@@ -56,7 +56,7 @@ export function solveCase(caseId, bundle, inputs={}) {
   const {vram,context,precision,stage}=inputs;
   if (!(Number.isFinite(vram)&&vram>0&&vram<=100000) || !Number.isInteger(context) || context<1 || context>1e7 ||
       !Object.hasOwn(FIT_PRECISIONS,precision) || !MEMORY_STAGES.includes(stage)) throw new Error('inputs');
-  if (reasons.length) return {caseId,status:'limited',reasons,inspection,memoryPeak:compareMemoryPeak(inputs,null,bundle.origin)};
+  if (reasons.length) return {caseId,status:'limited',reasons,inspection,memoryPeak:compareMemoryPeak(inputs,null,bundle.origin,bundle)};
   const c=textConfig(bundle.config), g=inspection.geometry;
   const geometry={nParams:inspection.parameterEstimate,nLayers:g.n_layers,nKvHeads:g.n_kv_heads,headDim:g.d_head,hidden:c.hidden_size,
     ropeTheta:g.theta,ctxTrain:inspection.configuredContext};
@@ -70,7 +70,7 @@ export function solveCase(caseId, bundle, inputs={}) {
     .filter(x=>x.fit.ok&&x.fit.fits);
   const smallerContext=stage!=='load' && status==='kv_bound' && fit.maxCtx>1
     ? Math.max(1,Math.min(context-1,Math.floor(fit.maxCtx*0.9),inspection.configuredContext)) : null;
-  return {caseId,status,fit,smallerContext,alternatives,inspection,memoryPeak:compareMemoryPeak(inputs,fit,bundle.origin)};
+  return {caseId,status,fit,smallerContext,alternatives,inspection,memoryPeak:compareMemoryPeak(inputs,fit,bundle.origin,bundle)};
 }
 
 export async function fetchResolverBundle(model, caseId, {signal, fetcher=fetch}={}) {
