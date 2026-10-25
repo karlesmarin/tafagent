@@ -2371,19 +2371,21 @@ function renderResult(r) {
   });
 }
 
-// Confidence widget (#5) — shared renderer for recipes + Memory Reality + others.
-// Takes { pct, band, factors:[{key,status}] } (from Python _confidence or JS computeConfidence).
+// Evidence checklist renderer; accepts legacy {pct, band, factors} records too.
 function confidenceHtml(conf) {
   if (!conf || !Array.isArray(conf.factors)) return "";
   const ICON = { ok: "✓", warn: "⚠", miss: "✗" };
   const FCOLOR = { ok: "#3fb950", warn: "#d29922", miss: "#f85149" };
   const BCOLOR = { high: "#3fb950", medium: "#d29922", low: "#f85149" };
   const c = BCOLOR[conf.band] || "#8b949e";
+  const score = conf.score ?? conf.pct;
   const items = conf.factors.map((f) =>
-    `<li><span style="color:${FCOLOR[f.status] || "#8b949e"}">${ICON[f.status] || "·"}</span> ${escapeHtml(t("conf.factor." + f.key) || f.key)}</li>`).join("");
-  return `<div class="taf-confidence" style="margin-top:0.6rem; padding:0.5rem 0.7rem; border-left:3px solid ${c}; background:rgba(110,118,129,0.08); border-radius:4px; font-size:0.85rem;">
-      <strong>${escapeHtml(t("conf.label") || "Confidence")}: <span style="color:${c}">${conf.pct}% · ${escapeHtml(t("conf.band." + conf.band) || conf.band)}</span></strong>
+    `<li><span style="color:${FCOLOR[f.status] || "#8b949e"}">${ICON[f.status] || "·"}</span> <span data-i18n="conf.factor.${escapeHtml(f.key)}">${escapeHtml(t("conf.factor." + f.key))}</span>${f.weight != null && f.weight !== 1 ? ` (×${escapeHtml(f.weight)})` : ""}</li>`).join("");
+  return `<div class="taf-confidence" data-score-kind="evidence_checklist" style="margin-top:0.6rem; padding:0.5rem 0.7rem; border-left:3px solid ${c}; background:rgba(110,118,129,0.08); border-radius:4px; font-size:0.85rem; overflow-wrap:anywhere;">
+      <strong><span data-i18n="conf.label">${escapeHtml(t("conf.label"))}</span>: ${conf.factors.length ? `<span style="color:${c}">${escapeHtml(score)} / 100 · <span data-i18n="conf.band.${escapeHtml(conf.band)}">${escapeHtml(t("conf.band." + conf.band))}</span></span>` : `<span data-i18n="conf.empty">${escapeHtml(t("conf.empty"))}</span>`}</strong>
+      <p class="evidence-score-note" data-i18n="conf.note" style="margin:0.4rem 0;">${escapeHtml(t("conf.note"))}</p>
       <ul style="margin:0.3rem 0 0; padding-left:1.1rem; list-style:none;">${items}</ul>
+      <details class="evidence-score-method" style="margin-top:0.4rem;"><summary data-i18n="conf.method">${escapeHtml(t("conf.method"))}</summary><p data-i18n="conf.method_detail">${escapeHtml(t("conf.method_detail"))}</p></details>
     </div>`;
 }
 

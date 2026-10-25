@@ -1,5 +1,7 @@
 # TAF Agent v0.10 — Architecture-aware + Reality-check
 
+> Historical text. Since 25 October 2026, the former confidence percentage is an evidence checklist score, not a probability. X-2 and Memory Reality show it; Prediction vs Reality does not. See [the current method](evidence-score.md).
+
 Historical release snapshot. Current behavior and limitations are described in
 [October 2026 updates](RELEASE_NOTES_2026-10.md) and [Limitations](LIMITATIONS.md).
 

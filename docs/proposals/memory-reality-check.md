@@ -1,5 +1,7 @@
 # Proposal — 🧠 Memory Reality Check (mode spec)
 
+> Historical text. Since 25 October 2026, the former confidence percentage is an evidence checklist score, not a probability. X-2 and Memory Reality show it; Prediction vs Reality does not. See [the current method](../evidence-score.md).
+
 > Status: DESIGN / profile (not implemented). Author: Carles Marín + Claude, 2026-06-14.
 > Browser-only (config.json + math, no inference). Composes with Unmask (SWA) and NIAH→Reason (full-attn).
 

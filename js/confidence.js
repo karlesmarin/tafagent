@@ -1,5 +1,5 @@
-// TAF Agent — Confidence engine (#5). Turns a list of evidence factors into a
-// 0–100 score + band, so no prediction is shown as an absolute truth.
+// TAF Agent — Heuristic evidence checklist score (legacy confidence API).
+// Only scores the listed factors; never a calibrated probability or accuracy.
 // Pure logic, no DOM, no i18n → testable in Node. Rendering lives in main.js
 // (confidenceHtml) so EN/ES/FR/ZH all work; Python mirrors this in taf_browser._confidence.
 //
@@ -16,5 +16,6 @@ export function computeConfidence(factors) {
   const score = fs.reduce((s, f) => s + (f.weight ?? 1) * (STATUS_SCORE[f.status] ?? 0), 0);
   const pct = total > 0 ? Math.round((100 * score) / total) : 0;
   const band = pct >= 80 ? "high" : pct >= 55 ? "medium" : "low";
-  return { pct, band, factors: fs };
+  return { score: pct, max_score: 100, kind: "evidence_checklist", calibrated: false,
+    scope: "listed_factors_only", pct, band, factors: fs }; // pct is a legacy alias, not a probability.
 }

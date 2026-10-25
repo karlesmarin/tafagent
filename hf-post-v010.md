@@ -1,5 +1,7 @@
 # TAF Agent v0.10 — announcement draft
 
+> Historical text. Since 25 October 2026, the former confidence percentage is an evidence checklist score, not a probability. X-2 and Memory Reality show it; Prediction vs Reality does not. See [the current method](docs/evidence-score.md).
+
 Paste in the Space **Community** tab (pin it) and/or HF Forum **Show and Tell**
 (`discuss.huggingface.co`). Reddit / X / LinkedIn variants below.
 

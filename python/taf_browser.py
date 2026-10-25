@@ -647,7 +647,7 @@ def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
     if gamma_obs is not None:
         out["pdi"] = pdi
 
-    # Confidence (#5): how much evidence backs this verdict — never an absolute truth.
+    # Heuristic evidence checklist; no accuracy/quality calibration. Legacy key retained.
     conf_factors = []
     if horizon_source == "measured":
         conf_factors.append(("gamma_measured", "ok"))
@@ -1296,18 +1296,18 @@ def _wrap(rid, rname, locals_dict, chain, verdict, reason, mitigation,
 
 
 def _confidence(factors):
-    """Confidence engine (#5) — mirror of js/confidence.js.
+    """Heuristic evidence checklist — mirror of js/confidence.js.
 
-    factors: list of (key, status) with status in {ok, warn, miss}.
-    Returns {pct, band, factors:[{key,status}]}. So a prediction is never shown
-    as an absolute truth — the user sees how much evidence backs it.
+    Scores listed (key, status) factors only; all Python weights are 1.
+    The legacy pct field is a score alias, not a calibrated probability.
     """
     w = {"ok": 1.0, "warn": 0.5, "miss": 0.0}
     total = len(factors)
     score = sum(w.get(s, 0.0) for _, s in factors)
     pct = round(100 * score / total) if total else 0
     band = "high" if pct >= 80 else "medium" if pct >= 55 else "low"
-    return {"pct": pct, "band": band,
+    return {"score": pct, "max_score": 100, "kind": "evidence_checklist",
+            "calibrated": False, "scope": "listed_factors_only", "pct": pct, "band": band,
             "factors": [{"key": k, "status": s} for k, s in factors]}
 
 

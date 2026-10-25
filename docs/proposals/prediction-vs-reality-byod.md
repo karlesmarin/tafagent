@@ -1,5 +1,7 @@
 # Proposal — 📊 Prediction vs Reality + Bring-Your-Own-Data (BYOD) + community
 
+> Historical text. Since 25 October 2026, the former confidence percentage is an evidence checklist score, not a probability. X-2 and Memory Reality show it; Prediction vs Reality does not. See [the current method](../evidence-score.md).
+
 > Status: historical design, superseded in October 2026 by the protocol-aware measurement
 > lab. Measured γ no longer implies a downstream benchmark or a confidence score.
 > See README and [the entropy diagnostic](../entropy-correction.md) for current behavior.

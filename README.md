@@ -329,15 +329,30 @@ Browser-only, no inference, no new dependencies — `index.html` untouched (butt
 
 ---
 
-## 🆕 v0.10 — Architecture-aware + Reality-check (2 new modes + confidence)
+## Evidence scores: points, not probabilities — 25 October 2026
+
+X-2 and Memory Reality display **Evidence score: N / 100**, with an explanation
+in EN/ES/FR/ZH. The checklist uses supported = 1, partial = 0.5 and missing or
+outside the stated regime = 0, then takes a weighted average × 100. The existing
+weights, thresholds and numerical results are unchanged. Even 100/100 describes
+only the listed factors; it does not certify a prediction or task quality.
+A reference gamma is not a task benchmark, and a formula's regime is not
+empirical validation. Prediction vs Reality compares measurement records and
+protocols without this score; R² is fit quality, not a success probability.
+
+Machine-readable results retain the legacy `confidence`/`pct` fields and add
+`score`, `max_score: 100`, `kind: "evidence_checklist"`, `calibrated: false` and
+`scope: "listed_factors_only"`. See [method and compatibility](docs/evidence-score.md).
+
+## 🆕 v0.10 — Architecture-aware + Reality-check
 
 Three additions, all browser-only — no inference, no server.
 
 | Mode | What it answers |
 |------|-----------------|
 | 🧠 **Memory Reality Check** | *"My model says 128k / 1M context — what does that actually mean?"* Detects the architecture (full-attention / SWA / SSM-Mamba / RWKV / linear / TTT / hybrid) from `config.json` and tells you how its memory really works and how it fails — e.g. why a Mamba/RWKV model misses an exact needle. Detection validated against 13 live HF configs. |
-| 📊 **Prediction vs Reality** | *"Don't take the numbers on faith."* Compares TAF's predictions against MEASURED values (the shipped dataset or your Diagnose-CLI JSON), with a confidence score — and lets you contribute your measurement back to the public dataset, server-less. |
-| ✅ **Confidence score** | Every viability verdict now carries a 0–100% confidence with a ✓/⚠ evidence checklist (γ measured vs closed-form, validated regime, benchmark available). Predictions are never shown as absolute truth. |
+| 📊 **Prediction vs Reality** | *"Don't take the numbers on faith."* Compares TAF's predictions against MEASURED values (the shipped dataset or your Diagnose-CLI JSON), with protocol checks — and lets you contribute your measurement back to the public dataset, server-less. No probability score is shown in this mode. |
+| ✅ **Evidence checklist score** | X-2 and Memory Reality show a heuristic 0–100-point score for their listed factors, with a visible limitation and expandable method. It is not a probability of correctness, measured accuracy or a task-quality benchmark. |
 
 Plus: HF model-id autocomplete on **every** input, the manual reorganised into scannable cards, and an honest fix to the long-context verdict (the `d_horizon ≡ T_eval` tautology, see [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md)). Full notes: [`docs/RELEASE_NOTES_v0.10.md`](docs/RELEASE_NOTES_v0.10.md).
 

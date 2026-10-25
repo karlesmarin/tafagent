@@ -339,6 +339,9 @@ def test_confidence_engine():
     from taf_browser import _confidence
     hi = _confidence([("a", "ok"), ("b", "ok")])
     assert hi["pct"] == 100 and hi["band"] == "high"
+    assert hi["score"] == hi["pct"] and hi["max_score"] == 100
+    assert hi["kind"] == "evidence_checklist" and hi["calibrated"] is False
+    assert hi["scope"] == "listed_factors_only"
     lo = _confidence([("a", "miss"), ("b", "warn")])
     assert lo["pct"] == 25 and lo["band"] == "low"
     assert _confidence([])["pct"] == 0
@@ -351,6 +354,8 @@ def test_x2_emits_confidence():
                            n_attention_heads=32, n_kv_heads=8, d_head=128,
                            n_layers=36, n_params=4e9, has_SWA=False)
     c = closed["confidence"]
+    assert c["kind"] == "evidence_checklist" and c["calibrated"] is False
+    assert c["score"] == c["pct"]
     assert "pct" in c and "band" in c and isinstance(c["factors"], list)
     keys = [f["key"] for f in c["factors"]]
     assert "gamma_closed" in keys and "benchmark_no" in keys

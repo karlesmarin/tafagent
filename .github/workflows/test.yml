@@ -23,7 +23,7 @@ jobs:
         run: node tests/model_compatibility.test.mjs
       - name: Automatic problem resolver boundaries
         run: node tests/resolver.test.mjs
-      - name: Confidence unit tests
+      - name: Evidence checklist unit tests
         run: node tests/confidence.test.mjs
       - name: Prediction-vs-reality unit tests
         run: node tests/prediction_reality.test.mjs
@@ -88,6 +88,8 @@ jobs:
         run: python3 serve.py &
       - name: Sweep every mode in every language
         run: node test_sweep.mjs
+      - name: Evidence score in four languages and mobile
+        run: node tests/evidence_score_browser.mjs
       - name: Research explorer interactions (no Pyodide dependency)
         run: node tests/research_browser.mjs
         env:

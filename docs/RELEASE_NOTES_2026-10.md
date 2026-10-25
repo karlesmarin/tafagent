@@ -1,4 +1,15 @@
 # October 2026 updates — TAF Agent and companion guide
+
+## 25 October: evidence scores are not probabilities
+
+X-2 and Memory Reality now display points out of 100, a visible limitation and
+an expandable method in EN/ES/FR/ZH. Existing checklist calculations are unchanged.
+Reference-gamma and regime labels no longer imply task benchmarking or calibration.
+Legacy JSON remains compatible and gains explicit score kind, scale, scope and
+`calibrated: false`. Manual, demos, README and guide R5 (ES/EN) are synchronized;
+stale claims of a confidence score in Prediction vs Reality are corrected.
+See [evidence-score method](evidence-score.md).
+
 ## 25 October: continue from a concrete observation
 
 **Observation-based follow-up:** all nine direct routes now ask what happened

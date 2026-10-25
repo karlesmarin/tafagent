@@ -355,15 +355,15 @@
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.v09arch.title">🆕 v0.9 — Architecture-aware + reality-check</summary>
-      <p style="opacity:0.85;"><em data-i18n="help.v09arch.intro">Three additions: a memory-architecture classifier, a predicted-vs-measured comparator with confidence, and a confidence score on predictions. All browser-only, no inference.</em></p>
+      <p style="opacity:0.85;"><em data-i18n="help.v09arch.intro">Architecture checks, comparisons of measurement records and a heuristic evidence checklist. The checklist score is not a probability of correctness.</em></p>
 
       <p><strong data-i18n="help.v09.memreal.title">🧠 Memory Reality Check</strong> — <span data-i18n="help.v09.memreal.desc">detects the architecture (full-attention / SSM / RWKV / linear / TTT / hybrid) from config.json and tells you what its "context length" actually means and how it fails (exact-recall loss, sink, fixed-state compression). No inference.</span></p>
       <div class="help-example" data-i18n="help.v09.memreal.example">Try: <em>state-spaces/mamba-2.8b-hf</em> → State-space: fixed-size lossy state — exact needle-recall fails; test with single-needle NIAH.</div>
 
-      <p><strong data-i18n="help.v09.pvr.title">📊 Prediction vs Reality</strong> — <span data-i18n="help.v09.pvr.desc">compares TAF's closed-form predictions against MEASURED values (the shipped dataset or your Diagnose-CLI JSON), with a confidence score, and lets you contribute your measurement back to the public dataset — server-less.</span></p>
+      <p><strong data-i18n="help.v09.pvr.title">📊 Prediction vs Reality</strong> — <span data-i18n="help.v09.pvr.desc">compares imported measurements and protocol conditions with an applicable reference. It does not turn R² into a confidence percentage or show the evidence score. Data contributions require your explicit action.</span></p>
       <div class="help-example" data-i18n="help.v09.pvr.example">Try: paste a Diagnose-CLI JSON → table of γ predicted vs measured (Δ, within-tolerance ✓), then "➕ Contribute" to PR it to the public dataset.</div>
 
-      <p><strong data-i18n="help.v09.confidence.title">Confidence score</strong> — <span data-i18n="help.v09.confidence.desc">every X-2 viability verdict + Memory Reality + Prediction-vs-Reality carries a 0–100% confidence with a ✓/⚠ factor checklist (γ measured vs closed-form, validated regime, benchmark available, calibration). Predictions are never shown as absolute truth.</span></p>
+      <p><strong data-i18n="help.v09.confidence.title">Evidence checklist score</strong> — <span data-i18n="help.v09.confidence.desc">X-2 and Memory Reality display a heuristic score from 0 to 100 points for their listed factors. Supported = 1, partial = 0.5, missing/out of regime = 0; the weighted average is multiplied by 100. This is not a probability, measured accuracy or a task-quality benchmark. A supplied γ is not independent validation of the score. Open the score's method for weights and band thresholds.</span></p>
         </details>
         <details class="inv-card">
           <summary class="inv-card-title" data-i18n="help.adapter.title">🔌 Adapter Reality Check</summary>
