@@ -25,7 +25,7 @@ try{
   for(const scenario of scenarios){
    await page.locator('#resolver-check-examples > summary').click();
    await page.locator(`[data-check-example="${scenario}"]`).click();
-   const code=route+'_'+scenario;
+   const code=route+'_'+(scenario==='peak'?'prefill':scenario);
    assert.ok((await page.locator('#resolver-checks').innerText()).includes(tr('checks_'+code)));
    assert.ok((await page.locator('#resolver-case-summary').innerText()).includes(tr('check_'+code)));
    await page.locator('#resolver-failed').click();
@@ -62,5 +62,5 @@ try{
  assert.ok(await page.locator('#resolver-dialog').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
  mkdirSync('tmp/resolver',{recursive:true});await page.screenshot({path:'tmp/resolver/checks-mobile.png'});
  assert.equal(hf,0);assert.deepEqual(errors,[]);
- console.log('Resolver checks browser PASS: 32 examples × four languages, synthetic provenance, ordered checks, follow-up, private exports, no HF requests and mobile.');
+ console.log('Resolver checks browser PASS: 33 examples × four languages, synthetic provenance, ordered checks, follow-up, private exports, no HF requests and mobile.');
 }finally{await browser.close();}

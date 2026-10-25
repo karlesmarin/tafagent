@@ -1,5 +1,13 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## Picos por fase
+
+R5, `sec-resolver-memory-peaks`, documenta carga, prefill y decodificación,
+unidades, métricas, medición y límites de la comparación. Las fases prefill/decode
+y los resultados con pico declarado enlazan a esa sección ES/EN; FR/ZH conservan
+la indicación de guía inglesa. Manual y ayuda de TAF están en los cuatro idiomas.
+
+
 La integración conecta las preguntas del usuario, los resultados y su explicación. No
 es un chatbot ni necesita un servicio adicional. Conserva Quarto como generador del
 libro y JavaScript como soporte de la interactividad, con enlaces estáticos de respaldo.
@@ -49,8 +57,8 @@ las condiciones de la ejecución real y R5 cómo abrir el panel y su demo. Los
 enlaces conservan el regreso al mismo formulario, sin restaurar datos pegados.
 
 Ocho rutas (memoria, plantillas, arquitectura, JSON, código PEFT, adaptadores,
-caché y diferencias de evaluación) añaden tres pasos según los hallazgos: 39
-prioridades y 32 escenarios. Atención conserva su lista de protocolo. Los capítulos
+caché y diferencias de evaluación) añaden tres pasos según los hallazgos: 41
+prioridades y 33 escenarios. Atención conserva su lista de protocolo. Los capítulos
 10, 20, 28, 30, 36, 40 y el manual de TAF (R5) explican este seguimiento.
 Arquitectura, JSON y PEFT enlazan a `sec-resolver-architecture`, `sec-resolver-json`
 y `sec-resolver-peft`; el retorno conserva ruta, idioma y alojamiento.

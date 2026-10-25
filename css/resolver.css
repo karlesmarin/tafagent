@@ -43,3 +43,8 @@
 #resolver-observations { scroll-margin-top:4rem; margin:1rem 0; }
 #resolver-observations > summary { cursor:pointer; font-weight:600; }
 #resolver-observation-result { overflow-wrap:anywhere; }
+
+@media(max-width:600px) {
+  #resolver-peak-result dl { grid-template-columns:1fr; }
+  #resolver-peak-result dd { margin-bottom:.7rem; font-weight:600; }
+}

@@ -16,7 +16,7 @@ export function selectResolverChecks({route,result,inputs={}}){
   priority=result.checkCode==='no_peft_calls'?'unrecognized':keys.has('peft_silent_base_load')?'load':keys.has('peft_qlora_order')?'order':keys.has('peft_target_modules_mismatch')?'targets':keys.has('peft_alpha_not_2r')?'scale':'clear';
  }else if(route==='memory'){
   if(!['limited','weights_bound','load_other','kv_bound','fits_tight','fits_comfortably'].includes(result.status))return null;
-  priority=result.status==='limited'?'architecture':result.status==='weights_bound'?'weights':inputs.stage==='load'?'load':result.status==='kv_bound'?'kv':result.status==='fits_tight'?'tight':'fit';
+  priority=result.status==='limited'?'architecture':result.status==='weights_bound'?'weights':inputs.stage==='load'?'load':result.status==='kv_bound'?'kv':['prefill','decode'].includes(inputs.stage)?inputs.stage:result.status==='fits_tight'?'tight':'fit';
  }else if(route==='template'){
   if(!['missing','multiple','present'].includes(result.status))return null;
   priority=result.status;
@@ -39,7 +39,7 @@ export function selectResolverChecks({route,result,inputs={}}){
  return {version:1,route,priority:code,title_key:'checks_'+code,steps:['check_'+code,'check_'+route+'_observe','check_'+route+'_interpret'],tools,executed:false};
 }
 
-export const CHECK_DEMOS={memory:['kv','weights','load','fit'],template:['present','missing','multiple'],adapter:['mismatch','base','activation'],cache:['changed','identical','append','shortened','start'],drift:['templates','unknown','settings','repeat','within'],compatibility:['scope','metadata','geometry'],cot:['order','ordered','unclassified'],peft:['order','load','targets','scale','unrecognized','clear']};
+export const CHECK_DEMOS={memory:['kv','weights','load','fit','peak'],template:['present','missing','multiple'],adapter:['mismatch','base','activation'],cache:['changed','identical','append','shortened','start'],drift:['templates','unknown','settings','repeat','within'],compatibility:['scope','metadata','geometry'],cot:['order','ordered','unclassified'],peft:['order','load','targets','scale','unrecognized','clear']};
 export function checkDemo(route,scenario,bundle){
  if(bundle?.origin!=='demo'||!CHECK_DEMOS[route]?.includes(scenario))throw new Error('demo');
  if(route==='compatibility'){
@@ -62,6 +62,7 @@ export function checkDemo(route,scenario,bundle){
   };
   return {bundle,inputs:{text:snippets[scenario]}};
  }
+ if(route==='memory'&&scenario==='peak')return {bundle,inputs:{vram:24,context:4096,precision:'BF16',stage:'prefill',peak:22,peakUnit:'GiB',peakMetric:'allocated',peakSame:true,peakIsolated:true}};
  if(route==='memory')return {bundle,inputs:{vram:scenario==='weights'?4:24,context:scenario==='kv'?131072:4096,precision:'BF16',stage:scenario==='load'?'load':'generate'}};
  if(route==='template')return {bundle:{...bundle,template:null,tokenizer:scenario==='missing'?{}:{chat_template:scenario==='multiple'?{chat:'{{ messages }}',tools:'{{ tools }}'}:'{{ messages }}'}},inputs:{}};
  if(route==='cache'){

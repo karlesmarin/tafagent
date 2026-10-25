@@ -83,7 +83,7 @@ for(const state of cases)for(const lang of ['en','es','fr','zh']){
 for(const values of Object.values(checksRows))assert.ok(values.length===4&&values.every(Boolean));
 for(const [route,scenarios] of Object.entries(CHECK_DEMOS))for(const scenario of scenarios){
  const example=checkDemo(route,scenario,q),result=solveCase(route,example.bundle,example.inputs);
- assert.equal(selectResolverChecks({route,result,inputs:example.inputs}).priority,route+'_'+scenario);
+ assert.equal(selectResolverChecks({route,result,inputs:example.inputs}).priority,route+'_'+(scenario==='peak'?'prefill':scenario));
 }
 // Initial examples and alternate scenarios must agree on their labels.
 for(const route of ['cache','drift','cot','peft'])assert.equal(selectResolverChecks({route,result:solveCase(route,local,LOCAL_DEMOS[route])}).priority,route+'_'+CHECK_DEMOS[route][0]);
@@ -94,4 +94,4 @@ assert.equal(selectResolverChecks({route:'pvr',result:{}}),null);
 assert.equal(selectResolverChecks({route:'cache',result:{}}),null);
 assert.equal(selectResolverChecks({route:'drift',result:{driftEvidence:{templateUnknown:false}}}),null);
 for(const route of ['compatibility','cot','peft'])assert.equal(selectResolverChecks({route,result:{}}),null);
-console.log('Resolver checks PASS: 39 priorities, 32 examples, schema and static-code boundaries, synthetic provenance, four languages and private-data-free plans.');
+console.log('Resolver checks PASS: 41 priorities, 33 examples, schema and static-code boundaries, synthetic provenance, four languages and private-data-free plans.');

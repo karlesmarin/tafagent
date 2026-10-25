@@ -39,5 +39,5 @@ for(const state of states){
 }
 assert.deepEqual(Object.keys(OBSERVATIONS).sort(),['memory','template','compatibility','cot','peft','cache','drift','pvr','adapter'].sort());
 assert.equal(observationReport({route:'unknown'}),null);
-console.log('Observation PASS: 33 example states, 27 specific branches plus missing evidence, four languages, bounded history, invalid/stale/private input rejection and unchanged analysis.');
+console.log('Observation PASS: 34 example states, 27 specific branches plus missing evidence, four languages, bounded history, invalid/stale/private input rejection and unchanged analysis.');
 

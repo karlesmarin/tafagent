@@ -9,3 +9,6 @@ export const videoRows={
 
 const recordingScope=["The recording shows the earlier progress-only flow; use the interactive demo for observation-based follow-up.","La grabación muestra el flujo anterior de marcas; usa la demo interactiva para ver el seguimiento según observaciones.","La vidéo montre l’ancien suivi par marques ; utilisez la démo interactive pour le suivi selon les observations.","录制视频展示原有进度标记流程；基于观察的后续步骤请查看交互演示。"];
 for(let i=0;i<4;i++){videoRows.video_note[i]+=' '+recordingScope[i];videoRows.video_help[i]+=' '+recordingScope[i];}
+
+const peakRecordingScope=["The optional phase-peak form and its example were added after this recording.", "El formulario opcional de picos por fase y su ejemplo son posteriores a esta grabación.", "Le formulaire facultatif de pics par phase et son exemple ont été ajoutés après cet enregistrement.", "可选的阶段峰值表单及示例是在此视频录制后新增的。"];
+for(let i=0;i<4;i++){videoRows.video_note[i]+=' '+peakRecordingScope[i];videoRows.video_help[i]+=' '+peakRecordingScope[i];}

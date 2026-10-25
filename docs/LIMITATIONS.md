@@ -1,5 +1,16 @@
 # TAF Agent — Limitations & evidence
 
+## Reported memory peaks
+
+TAF does not measure GPU memory. The resolver can accept a user-reported scalar
+peak with metric and unit. Compatible, phase-isolated tensor peaks may be compared
+with resident weights (loading) or the steady estimate (prefill/decode). This is
+not a peak prediction or causal diagnosis. Reserved memory, device usage, unknown
+phases, mismatched workloads and unsupported geometry block the numerical
+difference. A failed allocation is absent from successful allocation peaks;
+being below budget cannot rule out OOM. See [the full boundaries](resolver.md#memory-estimates-and-reported-phase-peaks).
+
+
 Implementation review: **25 October 2026**. This document describes what the
 current tools establish. It is not a new experimental validation of the papers.
 See the [31-mode audit](resolver-module-audit.md) for individual computations.

@@ -49,6 +49,14 @@ language:
 
 # 🔬 TAF Agent
 
+**2026-10-25 — Memory failure phases and reported peaks:** Solve my problem now
+separates loading, prefill and decode. An optional measured peak has explicit
+units, metric, workload and phase checks; comparisons remain descriptive and
+unverified. A saved synthetic example shows a higher prefill peak despite an
+estimated fit. EN/ES/FR/ZH, in-app manual, reports and the bilingual guide agree.
+See [inputs, measurement procedure and limits](docs/resolver.md#memory-estimates-and-reported-phase-peaks).
+
+
 > **Explore LLM diagnostics and their limits. Free. No GPU. No signup.**
 > 28 browser-only modes · 4 languages · 37 Lean+Mathlib-verified theorems · 0 telemetry.
 
@@ -78,8 +86,8 @@ by model/data, sampling, execution and fit, with missing/different fields and a
 prioritized next check. The offline attention example demonstrates it. Custom
 field names and protocol values stay out of the case report.
 Memory, templates, architecture, JSON, PEFT code, adapters, prompt cache and drift include
-**See the verification steps**: 39 priorities based on the supplied evidence and
-three ordered checks per case. Thirty-two
+**See the verification steps**: 41 priorities based on the supplied evidence and
+three ordered checks per case. Thirty-three
 optional example situations show how the steps change. The main animated demo
 highlights them; recalculation, follow-up and local reports use the current plan.
 These instructions do not execute a model or certify a fix.

@@ -74,3 +74,4 @@ await import('./resolver_checks.test.mjs');
 await import('./resolver_progress.test.mjs');
 console.log('Resolver PASS: nine routes, load/generation distinction, estimate boundaries, template variants, revision provenance, translations and private-data-free links.');
 await import('./resolver_observations.test.mjs');
+await import('./resolver_memory.test.mjs');

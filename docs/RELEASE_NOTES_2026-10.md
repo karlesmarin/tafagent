@@ -1,5 +1,15 @@
 # October 2026 updates — TAF Agent and companion guide
 
+## 2026-10-25 — Memory phase and reported-peak follow-up
+
+Added loading/prefill/decode/unknown phases, optional GiB/GB/MiB peak input,
+metric/workload/isolation gates, descriptive baselines, stale-input clearing and
+unverified provenance in schema-3 reports. One synthetic prefill example brings
+current totals to 41 priorities and 33 selectable scenarios. Four-language UI,
+manual, demo guidance and ES/EN guide are synchronized. No GPU measurement or
+runtime repair is performed. Earlier entries below describe their release state.
+
+
 ## 25 October: evidence scores are not probabilities
 
 X-2 and Memory Reality now display points out of 100, a visible limitation and

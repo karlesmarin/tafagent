@@ -1,4 +1,55 @@
 # Solve my problem
+
+## Memory estimates and reported phase peaks
+
+The memory route distinguishes loading, prompt prefill, subsequent-token decode,
+and an unknown post-loading phase (`generate`, retained for compatibility).
+`generate()` can contain both prefill and decode. At comparison time, enter prompt
+tokens for prefill and actual cached prompt-plus-generated tokens for decode.
+The existing single-GPU/single-sequence/resident-weights/FP16-KV scope remains.
+
+The optional peak form accepts a nonnegative value in GiB, decimal GB or MiB,
+and distinguishes PyTorch allocated tensors, allocator reserved memory, sampled
+device usage and an unknown metric. Missing values stay absent. The allocation
+requested in an OOM error is not a peak. Only a tensor-allocation peak with a known
+phase, matching workload and explicitly isolated measurement gets a numerical
+baseline difference. Unsupported model geometry also blocks that comparison.
+Loading uses resident weights as its baseline; prefill/decode use the existing
+steady estimate. Neither baseline predicts a phase peak. Reserved/device values
+remain context and are not subtracted from the estimate. No difference is
+labelled fragmentation, a verified cause, a successful fix or a probability.
+
+Changing model, available budget, tokens, precision or phase clears the peak and
+its confirmations. Applying a lower-context/precision alternative also clears it.
+Language changes retain the measurement. Reports retain initial inputs separately
+from current inputs. Sharing a link never includes a peak or hardware inputs.
+Schema-3 reports add `result.memoryPeak` / `review.memory_peak` version 1 with
+`source: user_reported | illustrative`, `independently_verified: false` and
+`executed_by_taf: false`. The difference is descriptive, even when all gates pass.
+
+The fifth memory example uses saved Qwen3-8B geometry at BF16/4,096 prompt tokens
+with a **synthetic** 22 GiB allocated prefill peak and a 24 GiB budget. It illustrates
+a peak above the estimate, not a measured Qwen benchmark or proof of OOM. A peak
+below the budget does not rule out OOM: failed allocations are not successful
+allocations, and allocator/device/runtime limits differ.
+
+For measurement, isolate the phase in your runtime, synchronize the selected
+CUDA device, reset its peak statistics, execute that phase and synchronize again
+before reading the counters. A whole `generate()` peak must remain phase-unknown
+unless the runtime exposes separate prefill/decode boundaries. Record versions,
+actual dtype/backend, device, tokens and relevant runtime options alongside the
+measurement; TAF does not collect those logs or execute instrumentation.
+[PyTorch memory management](https://docs.pytorch.org/docs/stable/notes/cuda.html#cuda-memory-management)
+distinguishes tensor allocations from reserved memory;
+[max_memory_allocated](https://docs.pytorch.org/docs/stable/generated/torch.cuda.memory.max_memory_allocated.html)
+returns bytes for the selected device, and
+[reset_peak_memory_stats](https://docs.pytorch.org/docs/stable/generated/torch.cuda.memory.reset_peak_memory_stats.html)
+resets its peak counters, without freeing tensors.
+
+Validation: `npm run test:resolver-memory`; standard `npm test` includes the pure
+phase/comparison tests. Browser tests cover all four languages, units, gates,
+provenance, exports, changed inputs, language changes, keyboard and mobile.
+
 ## Follow-up from reported observations
 
 **What happened when you checked?** is available on all nine direct routes.
@@ -217,12 +268,12 @@ and the links through which a future authorized integration can introduce users.
 
 ## Ordered checks across the eight configuration and local-inspection routes
 
-`resolver_checks.js` selects one of 39 priorities from the current result.
+`resolver_checks.js` selects one of 41 priorities from the current result.
 The ninth route, attention/PVR, retains its separate protocol checklist.
 
 | Route | Priorities |
 |---|---|
-| Memory | Unsupported/missing geometry; weight budget exceeded; loading failure; KV budget exceeded; tight estimated margin; estimate fits |
+| Memory | Unsupported/missing geometry; weight budget exceeded; loading failure; KV budget exceeded; tight estimated margin; estimate fits; prefill; decode |
 | Template | Missing from inspected files; multiple choices without an unambiguous default; present |
 | Adapter | Base unidentified/not compared; base mismatch; family-only match; target modules; saved embeddings; per-module settings; unusual scaling; loading/activation |
 | Prompt cache | Change after a shared prefix; identical text; appended text; shortened text; change from the start |
@@ -239,7 +290,7 @@ clears it. Existing notices remain visible when a higher-priority issue wins.
 Conditional tool buttons open the existing catalog's input/limit explanation,
 preserving the current result; they neither run a tool nor infer another cause.
 
-After loading an example, **Explore another example** offers four memory cases,
+After loading an example, **Explore another example** offers five memory cases,
 three template cases, three adapter cases, five cache cases, five drift cases,
 three architecture cases, three JSON cases and six PEFT-code cases. Choosing one resets that demo's
 initial comparison, stays explicitly illustrative and performs no HF lookup or

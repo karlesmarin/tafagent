@@ -1,4 +1,15 @@
 # Auditoría de los módulos para «Resolver mi problema»
+
+## Memoria por fases y picos declarados
+
+`resolver_memory.js` convierte GiB/GB/MiB y limita la comparación a picos de
+tensores, fase conocida, medición aislada y carga compatible. Carga usa pesos
+residentes; prefill/decodificación usan la estimación estable. No calcula la
+fragmentación ni verifica una causa. Reservada/dispositivo son solo contexto.
+La UI borra medidas obsoletas al cambiar parámetros o aplicar alternativas.
+Informe y revisión conservan procedencia no verificada. El quinto ejemplo de
+memoria es sintético. Hay 41 prioridades y 33 escenarios seleccionables.
+
 ## Seguimiento según observaciones — 25 de octubre
 
 `resolver_observations.js` selecciona el siguiente paso entre 27 resultados
@@ -60,8 +71,8 @@ plantillas desconocidas/diferentes y ajustes cambiados antes de la banda
 descriptiva; puntuaciones próximas no prueban equivalencia ni ausencia de errores.
 Solo se exportan categorías y nombres de ajustes, no los prompts originales.
 
-Arquitectura, JSON y código PEFT completan los pasos en ocho rutas: 39 prioridades
-y 32 escenarios seleccionables. Atención conserva el protocolo específico. Los
+Arquitectura, JSON y código PEFT completan los pasos en ocho rutas: 41 prioridades
+y 33 escenarios seleccionables. Atención conserva el protocolo específico. Los
 ejemplos alternativos de arquitectura eliminan ID/revisión/fuentes anteriores y
 usan configuraciones sintéticas. JSON no exige explicación ni valida todo un
 esquema. PEFT ordena los avisos existentes sin convertir regex o convenciones de

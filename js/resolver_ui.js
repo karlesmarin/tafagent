@@ -30,9 +30,12 @@ function invalidate(clearBundle=false) {
   $('dialog').querySelector('#__taf_demo_explain')?.remove();
   $('result').replaceChildren();$('followup').replaceChildren();$('status').textContent='';$('share-value').hidden=true;
 }
+function clearMemoryPeak(){
+ $('peak').value='';$('peakUnit').value='GiB';$('peakMetric').value='unknown';$('peakSame').checked=false;$('peakIsolated').checked=false;
+}
 function choose(id) {
   if(!Object.hasOwn(CASES,id))return;
-  invalidate(true);route=id;$('form').hidden=false;
+  invalidate(true);clearMemoryPeak();route=id;$('form').hidden=false;
   $('share-area').hidden=false;
   $('memory-fields').disabled=id!=='memory';$('memory-fields').hidden=id!=='memory';
   $('hf-fields').disabled=isLocal();$('hf-fields').hidden=isLocal();
@@ -59,7 +62,7 @@ function renderLocalFields(values={}) {
 }
 function inputs() {
  if(isLocal())return Object.fromEntries(LOCAL_CASES[route].fields.map(f=>{const el=$('local-'+f.id);return [f.id,f.type==='checkbox'?el.checked:f.type==='number'?(el.value===''?NaN:Number(el.value)):el.value];}));
- return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value};
+ return {vram:Number($('vram').value),context:Number($('context').value),precision:$('precision').value,stage:$('stage').value,peak:$('peak').value===''?null:Number($('peak').value),peakUnit:$('peakUnit').value,peakMetric:$('peakMetric').value,peakSame:$('peakSame').checked,peakIsolated:$('peakIsolated').checked};
 }
 function renderFeedback() {
   $('followup').replaceChildren();
@@ -171,7 +174,7 @@ function changeExample(scenario){
  const example=checkDemo(route,scenario,bundle);bundle={...example.bundle,demoScenario:scenario};
  if(isLocal())renderLocalFields(example.inputs);
  else if(route==='compatibility')$('model').value='';
- else if(route==='memory')for(const [key,value] of Object.entries(example.inputs))$(key).value=value;
+ else if(route==='memory'){clearMemoryPeak();for(const [key,value] of Object.entries(example.inputs)){if(typeof value==='boolean')$(key).checked=value;else $(key).value=value;}}
  lastInputs=example.inputs;result=solveCase(route,bundle,lastInputs);initial={inputs:{...lastInputs},result};feedback='';
  renderResult();openChecks();
 }
@@ -253,14 +256,33 @@ function renderResult() {
   }
   if(result.fit) {
     const dl=node('dl');
-    for(const [label,value] of [['resolver.weights',result.fit.weightsGB],['resolver.kv',result.fit.kvGB],['resolver.overhead',result.fit.overheadGB],['resolver.total',result.fit.totalGB]]) {
+    for(const [label,value] of (lastInputs.stage==='load'?[['resolver.weights',result.fit.weightsGB]]:[['resolver.weights',result.fit.weightsGB],['resolver.kv',result.fit.kvGB],['resolver.overhead',result.fit.overheadGB],['resolver.total',result.fit.totalGB]])) {
       dl.append(node('dt',t(label)),node('dd',value.toLocaleString(getLang(),{maximumFractionDigits:2})+' GiB'));
     }out.append(dl,node('p',tr('memory_note')));
     const controls=node('div');controls.className='resolver-actions';
-    const change=(key,value)=>{ progressMarks=null;observationHistory=[];$(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
+    const change=(key,value)=>{ clearMemoryPeak();progressMarks=null;observationHistory=[];$(key).value=value;lastInputs=inputs();result=solveCase(route,bundle,lastInputs);feedback='';renderResult();renderFeedback();};
     if(result.smallerContext)controls.append(button(`${tr('reduce')} · ${result.smallerContext}`,()=>change('context',result.smallerContext),'reduce'));
     for(const alt of result.alternatives)controls.append(button(`${tr('quant')} · ${alt.precision}`,()=>change('precision',alt.precision)));
     out.append(controls,node('p',tr('change_note')));
+  }
+  if(route==='memory'){
+    const box=node('section');box.id='resolver-memory-phase';
+    box.append(node('h4',tr(lastInputs.stage)),node('p',tr('peak_phase_'+lastInputs.stage)));
+    const peak=result.memoryPeak;
+    if(peak){
+      const n=x=>x.toLocaleString(getLang(),{maximumFractionDigits:3})+' GiB';
+      const report=node('section');report.id='resolver-peak-result';
+      report.append(node('h4',tr('peak_title')),node('p',tr(peak.source==='illustrative'?'demo_note':'peak_provenance')));
+      const dl=node('dl');dl.append(node('dt',tr('peak_'+peak.metric)),node('dd',n(peak.reported_GiB)));
+      if(peak.status==='baseline_comparison'){
+        dl.append(node('dt',tr('peak_'+peak.baseline_kind)),node('dd',n(peak.baseline_GiB)),node('dt',tr('peak_difference')),node('dd',n(peak.difference_GiB)));
+      }
+      report.append(dl,node('p',tr('peak_boundary')));
+      for(const reason of peak.blockers)report.append(node('p',tr('peak_block_'+reason)));
+      if(peak.exceeds_entered_budget)report.append(node('p',tr('peak_over_budget')));
+      box.append(report);
+    }
+    out.append(box);
   }
   if(result.family)out.append(node('p',`Chat-template: ${result.family} · ${result.length}`));
   if(result.names?.length)out.append(node('p',result.names.join(', ')));
@@ -312,7 +334,7 @@ async function run(demo=false) {
     } else if(!next || next.model!==id || next.origin!=='hf')next=await fetchResolverBundle(id,route,{signal:controller.signal});
     if(ticket!==request)return;
     if(demo&&CHECK_DEMOS[route])next.demoScenario=CHECK_DEMOS[route][0];
-    if(demo&&!isLocal()){$('model').value=route==='template'?'':next.model;$('vram').value='24';$('context').value='131072';$('precision').value='BF16';$('stage').value='generate';}
+    if(demo&&!isLocal()){clearMemoryPeak();$('model').value=route==='template'?'':next.model;$('vram').value='24';$('context').value='131072';$('precision').value='BF16';$('stage').value='generate';}
     lastInputs=route==='memory'||isLocal()?inputs():{};
     const answer=solveCase(route,next,lastInputs);
     bundle=next;result=answer;initial={inputs:{...lastInputs},result:answer};$('status').textContent='';renderResult();
@@ -364,7 +386,14 @@ export function initResolver(onDemo) {
         ${label('vram','vram','<input id="resolver-vram" type="number" required min="0.1" max="100000" step="any">')}
         ${label('context','context','<input id="resolver-context" type="number" required min="1" max="10000000" step="1">')}
         ${label('precision','precision','<select id="resolver-precision">'+['BF16','FP16','FP32','INT8','NF4','F16','Q8_0','Q4_K_M'].map(p=>`<option>${p}</option>`).join('')+'</select>')}
-        ${label('stage','stage','<select id="resolver-stage"><option value="generate" data-i18n="resolver.generate"></option><option value="load" data-i18n="resolver.load"></option></select>')}
+        ${label('stage','stage','<select id="resolver-stage"><option value="generate" data-i18n="resolver.generate"></option><option value="load" data-i18n="resolver.load"></option><option value="prefill" data-i18n="resolver.prefill"></option><option value="decode" data-i18n="resolver.decode"></option></select>')}
+        <details id="resolver-peak-fields"><summary data-i18n="resolver.peak_title"></summary><p data-i18n="resolver.peak_help"></p>
+        ${label('peak','peak_value','<input id="resolver-peak" type="number" min="0" max="1000000000" step="any">')}
+        ${label('peakUnit','peak_unit','<select id="resolver-peakUnit"><option>GiB</option><option>GB</option><option>MiB</option></select>')}
+        ${label('peakMetric','peak_metric','<select id="resolver-peakMetric">'+['unknown','allocated','reserved','device'].map(k=>`<option value="${k}" data-i18n="resolver.peak_${k}"></option>`).join('')+'</select>')}
+        ${label('peakSame','peak_same','<input id="resolver-peakSame" type="checkbox">')}
+        ${label('peakIsolated','peak_isolated','<input id="resolver-peakIsolated" type="checkbox">')}
+        <p data-i18n="resolver.peak_reset"></p></details>
       </fieldset><div class="resolver-actions"><button id="resolver-run" type="submit" data-i18n="resolver.run"></button><button id="resolver-demo" type="button" data-i18n="resolver.demo"></button></div>
     </form><p id="resolver-status" role="status"></p><section id="resolver-result" tabindex="-1" aria-live="polite"></section><section id="resolver-followup" aria-live="polite"></section>
     <div id="resolver-share-area" hidden><button id="resolver-share" type="button" data-i18n="resolver.share"></button><p data-i18n="resolver.share_note"></p>
@@ -394,8 +423,8 @@ export function initResolver(onDemo) {
   $('suggest').addEventListener('click',suggest);
   document.querySelectorAll('[data-resolver-case]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.resolverCase)));
   $('form').addEventListener('submit',e=>{e.preventDefault();run();});
-  $('form').addEventListener('input',e=>invalidate(e.target.id==='resolver-model'));
-  $('model').addEventListener('change',()=>invalidate(true));
+  $('form').addEventListener('input',e=>{if(['model','vram','context','precision','stage'].some(id=>e.target.id==='resolver-'+id))clearMemoryPeak();invalidate(e.target.id==='resolver-model');});
+  $('model').addEventListener('change',()=>{clearMemoryPeak();invalidate(true);});
   attachHfAutocomplete($('model'));
   $('demo').addEventListener('click',()=>run(true));
   document.querySelectorAll('[data-resolver-demo-open]').forEach(b=>b.addEventListener('click',()=>onDemo()));

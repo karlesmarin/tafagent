@@ -15,7 +15,7 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
   let topic=CASES[route].topic,index=0,section='',why='architecture';
   if(route==='memory') {
     problem=fill('summary_memory',{model:bundle.model,stage:tr(first.inputs.stage).toLocaleLowerCase(lang),tokens:n(first.inputs.context),precision:first.inputs.precision,vram:n(first.inputs.vram)});
-    if(first.result.fit && first.inputs.stage==='generate')finding=fill('summary_budget',{total:n(first.result.fit.totalGB),vram:n(first.inputs.vram)})+' '+tr(first.result.status);
+    if(first.result.fit && first.inputs.stage!=='load')finding=fill('summary_budget',{total:n(first.result.fit.totalGB),vram:n(first.inputs.vram)})+' '+tr(first.result.status);
     if(result.fit && first.result.fit && (inputs.context!==first.inputs.context || inputs.precision!==first.inputs.precision)) {
       change=fill('summary_adjust',{beforeTokens:n(first.inputs.context),afterTokens:n(inputs.context),beforePrecision:first.inputs.precision,afterPrecision:inputs.precision,before:n(first.result.fit.totalGB),after:n(result.fit.totalGB)})+' '+tr(result.status);
     }
@@ -38,7 +38,9 @@ export function buildResolverSummary({route,bundle,initial,inputs,result,app='gi
   };
   const resolverAnchors={pvr:'tbl-gamma-protocolo',cache:'sec-resolver-cache',drift:'sec-resolver-drift',cot:'sec-resolver-json',peft:'sec-resolver-peft',compatibility:'sec-resolver-architecture'};
   section=resolverAnchors[route]||anchors[why]?.[guideLang]||'';
-  const chapter=route==='compatibility'?'10-arquitecturas':topics[topic].chapters[index];
+  const peakGuide=route==='memory'&&(inputs.stage==='prefill'||inputs.stage==='decode'||result.memoryPeak);
+  if(peakGuide)section='sec-resolver-memory-peaks';
+  const chapter=peakGuide?'R5-tafagent':route==='compatibility'?'10-arquitecturas':topics[topic].chapters[index];
   const url=new URL(guideLink(topic,index,{lang,model:bundle.origin==='demo'?'':bundle.model,mode:CASES[route].mode,resolve:route,app}));
   url.pathname=url.pathname.slice(0,url.pathname.lastIndexOf('/')+1)+chapter+'.html';url.hash=section;
   const checks=selectResolverChecks({route,result,inputs});
