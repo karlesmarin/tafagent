@@ -35,6 +35,8 @@ try {
  assert.equal(await page.locator('#profile-d_head').inputValue(),'128');
  assert.equal(await page.locator('#profile-T_train').inputValue(),'32768');
  await page.locator('#profile-btn').click();
+ await page.locator('[data-explain-metric="gamma_pade"]').waitFor({state:'attached'});
+ await page.locator('#diag-section > summary').click();
  await page.locator('[data-explain-metric="gamma_pade"]').waitFor();
  // A blocked import must not run the previous model's values.
  await page.locator('#profile-hf-id').fill(hybrid.id);
