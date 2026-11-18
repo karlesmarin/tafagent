@@ -9,6 +9,11 @@ try {
   await page.goto(`${base}?mode=profile&lang=es`);
   await page.waitForFunction(()=>!document.getElementById('profile-btn').disabled,{},{timeout:120000});
   await page.locator('#profile-btn').click();
+  // Profile numbers live in an expandable result section.
+  await page.locator('[data-explain-metric="gamma_pade"]').waitFor({state:'attached',timeout:15000});
+  await page.locator('[data-explain-metric="gamma_pade"]').evaluate(el=>{
+    for(let p=el.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;
+  });
   await page.locator('[data-explain-metric="gamma_pade"]').waitFor({timeout:15000});
   assert.equal(await page.locator('[data-explain-metric]').count(),6);
   await page.locator('[data-explain-metric="gamma_pade"]').click();

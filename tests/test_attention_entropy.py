@@ -60,7 +60,9 @@ def test_exploratory_terms_require_opt_in():
 
 def test_v2_retired_imprint_and_candidate_provenance():
     default = gamma_decompose_v2(.8, 1000, corpus='random', is_instruct=True, has_GQA=True)
-    assert default['gamma_corrected'] == pytest.approx(.91)
+    assert default['gamma_corrected'] == pytest.approx(.8)
+    assert default['delta_GQA'] == 0
+    assert not default['corrections']['GQA']['applied']
     assert default['corrections']['imprint']['candidate'] < 0
     assert default['delta_imprint'] == default['delta_instruct'] == default['delta_post_IH'] == 0
     enabled = gamma_decompose_v2(.8, 1000, corpus='random', is_instruct=True, apply_exploratory=True)
