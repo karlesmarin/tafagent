@@ -1,5 +1,7 @@
 # October 2026 updates — TAF Agent and companion guide
 
+> 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
+
 ## 2026-10-25 — llama.cpp log evidence
 
 Add local log preview/attachment to memory cases, per-device component declarations,

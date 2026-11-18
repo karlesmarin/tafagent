@@ -1,5 +1,7 @@
 # TAF ↔ guía: acompañar la interpretación
 
+> 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
+
 ## llama.cpp memory logs — 25 October 2026
 
 R5 ES/EN `#sec-resolver-llama-log` explains log attachment, declared buffer sizes,

@@ -1,5 +1,7 @@
 # TAF Agent v0.11 — Guided demos for every mode
 
+> 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
+
 Historical release snapshot. For the current 31-mode inventory, guided resolver,
 evidence review and report schema, see [October 2026 updates](RELEASE_NOTES_2026-10.md).
 

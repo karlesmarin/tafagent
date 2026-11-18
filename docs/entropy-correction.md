@@ -1,5 +1,7 @@
 # Entropía de atención: medición experimental y límites
 
+> 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
+
 Esta implementación mide entropía real. **No implementa una corrección de γ por
 entropía**, ni un test automático de validez de Padé. El módulo
 `js/entropy_scanner.js` no se importa desde la aplicación: recibe filas de atención
@@ -97,7 +99,7 @@ no se presenta como resultado experimental.
 
 | Término | Comportamiento por defecto | Activación experimental |
 |---|---|---|
-| GQA | +0.11 si procede; ajuste empírico del panel | Sigue activo; no implica calibración universal |
+| GQA | 0; candidato histórico +0.11 | Solo con `apply_exploratory=True`; sin calibración universal |
 | SWA | 0; candidato histórico −0.21, n=1 | Permanece desactivado |
 | post-IH | 0; candidato −0.15 cuando el tamaño supera el umbral | `apply_exploratory=True`; el tamaño es solo un indicador aproximado |
 | instruct, v2 | 0; candidato −0.10 | `apply_exploratory=True`; evidencia n=3 |

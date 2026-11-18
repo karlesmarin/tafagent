@@ -1,5 +1,7 @@
 # TAF Agent — Limitations & evidence
 
+> 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
+
 ## llama.cpp logs are buffer declarations
 
 The parser recognizes a bounded subset of initialization lines, not arbitrary logs
@@ -63,7 +65,7 @@ difference. A failed allocation is absent from successful allocation peaks;
 being below budget cannot rule out OOM. See [the full boundaries](resolver.md#memory-estimates-and-reported-phase-peaks).
 
 
-Implementation review: **25 October 2026**. This document describes what the
+Implementation review: **18 November 2026**. This document describes what the
 current tools establish. It is not a new experimental validation of the papers.
 See the [31-mode audit](resolver-module-audit.md) for individual computations.
 
@@ -97,9 +99,10 @@ Do not infer fraud, post-training damage or usable context from such a label.
 Adding a “standard training” condition also does not, by itself, prove the formula
 within that domain: assumptions and empirical tests still need specification.
 
-The historical Validity Gate compares derived quantities using heuristic
-thresholds. Passing it is not a validation certificate; failing it is a reason
-to inspect the measurement and assumptions, not a causal diagnosis.
+The earlier heuristic Validity Gate and capacity interpretation have been retired
+from the corrected profile. Candidate residuals and inverse coordinates remain
+descriptive. NIAH/reasoning rates require task evaluation; X-19 reports family
+mass, and GQA +0.11 is disabled by default. See the current formula contract.
 
 ### Implemented entropy measurement
 

@@ -10,20 +10,36 @@ short_description: 31 diagnostic modes + linked field guide. EN/ES/FR/ZH.
 tags:
   - transformer
   - llm
+  - evaluation
   - diagnostic
+  - anti-bullshit
+  - long-context
+  - sliding-window
+  - yarn
+  - chat-template
+  - arena-elo
+  - contamination
+  - quantization
+  - drift
+  - ruler
+  - niah
+  - lean-mathlib
+  - formal-verification
   - rope
   - kv-cache
-  - long-context
   - gguf
   - llama-cpp
   - ollama
-  - yarn
-  - quantization
   - viability
   - thermodynamics
   - free
   - browser
   - webgpu
+  - mamba
+  - ssm
+  - rwkv
+  - linear-attention
+  - memory
 language:
   - en
   - es
@@ -33,78 +49,134 @@ language:
 
 # 🔬 TAF Agent
 
-> **Test ANY transformer LLM before you spend GPU/$.**
-> Free. Unlimited. Auditable. Runs entirely in your browser.
+> Inspect model configuration, estimate resources and compare declared evidence.
+> Explore the calculations in your browser, with their assumptions visible.
 
----
+🌐 [GitHub Pages](https://karlesmarin.github.io/tafagent/) · 🤗 [Hugging Face](https://huggingface.co/spaces/karlexmarin/taf-agent)
+· 📖 [Guía ES](https://karlesmarin.github.io/transformers-guide/es/)
+· 📖 [English guide](https://karlesmarin.github.io/transformers-guide/en/)
 
-## What it does
+## 🆕 18 November 2026 · Fórmulas y evidencia / Formulas and evidence
 
-Predicts practical viability of any transformer LLM from its config alone:
+**ES:** Publicadas las correcciones conjuntas de Parte I, tafagent y la guía.
+El motor y la CLI usan la misma familia discreta; se distinguen candidato,
+medición y cálculo de familia. γ observado queda vacío cuando falta la medición.
+X-2, el deslizador y NIAH requieren evaluación de tarea; X-19 calcula un cuantil
+de masa. GQA +0.11 queda desactivado por defecto. YaRN requiere su agenda real de
+frecuencias. La guía ES/EN y las explicaciones relevantes EN/ES/FR/ZH concuerdan.
 
-- Will Llama-3-8B serve 32K context with NIAH retrieval?
-- Should I train a custom 7B model or use GPT-4o for 50M tokens/month?
-- Cheapest GPU to serve Llama-70B at 100M tokens/day?
-- Which KV compression strategy fits my model's γ profile?
+**EN:** Published the joint Part I, tafagent and guide corrections. Engine and CLI
+share the discrete family; candidates, measurements and family calculations keep
+distinct meanings. Missing observed gamma stays empty. X-2, the slider and NIAH
+require task evaluation; X-19 computes a mass quantile. GQA +0.11 is disabled by
+default. YaRN requires the actual frequency schedule. The ES/EN guide and relevant
+EN/ES/FR/ZH explanations agree.
 
-25 modes, 4 languages (EN/ES/FR/ZH), 100% in-browser.
+📚 [Release notes](docs/RELEASE_NOTES_2026-11.md) · 🧮 [Formula contract](docs/finite-family-contract.md)
 
-## Why it's different
+## 🧭 What you can do
 
-- **Truly free**: no server, no auth, no rate limits. Compute runs in YOUR browser.
-- **Auditable**: every number is deterministic Python (TAF formulas, see paper).
-  No hallucination — the LLM only synthesises, doesn't invent values.
-- **Falsifiable**: 23 paper predictions tracked publicly with verification status.
-- **Community-first**: submit your analyses to a public registry; debate them.
+| Task | Tool / interpretation |
+|---|---|
+| Estimate weights, KV storage and overhead | **Fit Check / Memory Reality** under declared geometry and runtime assumptions |
+| Investigate loading, prefill or decode memory | **Solve my problem → Memory**, with compatible reported peaks, local JSON or llama.cpp buffer logs |
+| Explore an attention exponent | **Profile** computes a configuration candidate; **Diagnose CLI** measures attention when run with weights |
+| Compare attention reports | **Prediction vs Reality / Attention resolver** retain context, support, aggregation and provenance checks |
+| Plan a context-scaling configuration | **YaRN Planner** drafts settings; evaluate retrieval and reasoning at the intended lengths |
+| Inspect prompts, JSON and adapters | Guided static checks, explicit file preview and apply, with known limits |
+| Learn what a number means | 📖 Metric explanations link to the matching ES/EN guide chapter |
 
-## Architecture coverage
+🌍 Interface and relevant help: **EN / ES / FR / ZH**. FR/ZH reading links use
+the English guide. Optional demos exercise controls or use declared examples;
+they do not establish new measurements of your model.
 
-✓ RoPE-MHA · ✓ RoPE-GQA · ✓ ALiBi · ✓ AbsPE · ✓ SWA · ✓ SSM · ✓ Any HuggingFace public model
+## 🧮 Calculations you can reproduce
 
-## Modes (25)
+On the declared finite support `d = 1..N`:
 
-**Core**
-- **📇 Profile**: paste model id → all 5 recipes scored at once = TAF Card
-- **🆚 Compare**: 2-3 models side-by-side · **🔍 Inspector**: raw config.json · **💬 Ask**: free-form · **📋 Recipe**: manual
-
-**🆕 v0.9 — "fits ≠ works" pack**
-- **🧵 YaRN Planner**: target context → exact `rope_scaling` config + γ/d_horizon verdict on whether quality holds
-- **🧊 GGUF Bridge**: paste a GGUF repo → reads the `.gguf` header (HTTP Range, no full download), compares every quant's γ-shift
-- **🚀 Launch Flags**: model + GPU + context → exact `llama.cpp`/Ollama command (`-ngl`, `-c`, `--no-mmap`, KV-type) + wasted-context warning
-
-**Anti-bullshit pack (v0.7–v0.8)**
-- 🪟 Unmask · 📜 Chat-template · 🎯 Arena CI · 🧪 Contamination · ⚖️ Quant · 🔀 Drift · 🔍 NIAH→Reason
-- 📈 Saturation · 📋 JSON CoT · 🔧 PEFT Lint · 🔁 Cache Diff · 🔬 Spec-Decode · 🌍 Token Tax · 🎯 LongScore · 🧭 Solutions · 🩺 Diagnose CLI · 📊 Phase diagram
-
-## Underlying paper
-
-[Marin 2026 — Predicting How Transformers Attend](https://zenodo.org/records/20314038)
-
-## Source
-
-[github.com/karlesmarin/tafagent](https://github.com/karlesmarin/tafagent)
-
-## Public registry
-
-[tafagent-registry](https://github.com/karlesmarin/tafagent-registry) — community-submitted analyses
-
-## Citation
-
-```bibtex
-@misc{marin2026tafagent,
-  author = {Marin, Carles},
-  title  = {{TAF Agent}: Browser-Based Transformer Diagnostic Tool},
-  year   = {2026},
-  url    = {https://huggingface.co/spaces/karlexmarin/taf-agent},
-}
+```text
+pγ(d) = d^(−γ) / Z_N        Z_N = Σ d^(−γ)
+U = E[log d]                S = log Z_N + γU
+I = Var(log d)              C_V = γ² I
+D_f = min D such that Σ(d≤D) pγ(d) ≥ f
 ```
 
-## Acknowledgements
+Use integer `N≥1`, finite real gamma and `0<f<1`. These expressions remain
+defined at gamma zero and one. Formal temperature `1/γ` and free energy
+`−log(Z_N)/γ` are unavailable at zero. The continuous distribution uses a
+different measure and can have different moments and quantiles.
 
-Built by an independent researcher with the help of LLMs as research instruments.
-Not affiliated with any model vendor.
+The configuration candidate and its inverse are:
 
-The tool would not exist without the open-weights commons (Meta, Mistral, Qwen,
-EleutherAI, AI2, BigScience, TII, DeepSeek, Microsoft, Google DeepMind, Anthropic),
-the Pyodide + WebLLM projects, and HuggingFace for hosting models, datasets,
-and now this Space.
+```text
+γ_P(θ,T) = (2θ − T√2) / (2θ + T√2)
+θ_inv(g,T) = T√2(1+g) / [2(1−g)]     for T>0 and −1<g<1
+d_inv(θ,g) = θ√2(1−g) / (1+g)        for θ>0 and −1<g<1
+```
+
+`d_inv(θ,γ_P(θ,T)) = T` is an identity. It supplies no independent retrieval
+ceiling. `θ + T/√2` is a separate shifted coordinate. An imported gamma of zero
+is valid; an absent gamma is not replaced by the candidate.
+
+📐 [Domains, examples and meanings](docs/finite-family-contract.md) ·
+⚖️ [Limitations and evidence](docs/LIMITATIONS.md).
+
+## 🔎 Measure attention in your own environment
+
+The browser can generate commands. To run the measurement yourself:
+
+```bash
+pip install torch transformers numpy
+python cli/diagnose_model.py --model EleutherAI/pythia-70m --cpu --fast --measure-entropy
+```
+
+This loads weights and requires sufficient memory. The distance sweep and entropy
+probe retain separate protocols. `--entropy-only` produces no gamma. Variable
+sequence lengths and changing query populations can induce a distance slope even
+under uniform attention; read the protocol before comparing exponents.
+
+🔬 [Entropy measurement](docs/entropy-correction.md) ·
+📂 [Import attention reports](docs/attention-report-import.md) ·
+🧭 [Model examples and coverage](docs/model-review.md).
+
+## 💾 Work with a private case
+
+**Solve my problem** supports previewing local inputs, running a check, attaching
+declared follow-up, and explicitly saving/reopening a private case. Private files
+may contain your full inputs and are unencrypted. Reduced reports omit those raw
+inputs and cannot reconstruct the original case.
+
+- 🧩 [Resolver workflow](docs/resolver.md)
+- 🧠 [Memory measurements and Before/After comparisons](docs/memory-measurement.md)
+- 🖥️ [NVIDIA device memory collector](docs/device-memory-probe.md)
+- 🦙 [llama.cpp buffer logs](docs/llama-memory-log.md)
+- 📝 [JSON, code and prompt files](docs/resolver-text-import.md)
+- 🔧 [Adapter configuration files](docs/adapter-config-import.md)
+- ⚖️ [Heuristic evidence scores](docs/evidence-score.md)
+
+## 📚 Documentation and updates
+
+- 🆕 [November 2026 corrections](docs/RELEASE_NOTES_2026-11.md)
+- 🗓️ [October 2026 update history](docs/RELEASE_NOTES_2026-10.md)
+- 🎬 [Historical v0.11 demo release](docs/RELEASE_NOTES_v0.11.md)
+- 🔗 [Guide integration](docs/guide-integration.md)
+- 🧪 [Dated demo validation](docs/demo-validation-2026-10-25.md)
+- 🛠️ [Contributing](CONTRIBUTING.md)
+
+Historical release notes describe their dated versions. The November corrections
+and current formula contract take precedence for the reviewed calculations.
+Formal identities, family calculations, imported observations and task benchmarks
+provide different kinds of evidence. New QL measurements, causal training tests
+and in-context KV quality evaluations remain research work.
+
+## ✅ Checks
+
+```bash
+npm test
+python -m pytest tests/test_taf_formulas.py tests/test_measurement_protocol.py tests/test_attention_entropy.py -q
+```
+
+The correction was checked against independent high-precision vectors, the real
+guide widget, both guide builds and browser flows. The expanded Python group has
+95 passing tests; real Pyodide profile and model-review flows were checked locally.
+GitHub Actions records the complete remote suite for each commit.
