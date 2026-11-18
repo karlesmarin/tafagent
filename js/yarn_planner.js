@@ -1,20 +1,12 @@
-// YaRN / RoPE Context-Extension Planner (v0.9.0 anti-bullshit pack)
-//
-// Answers the most-asked HF question: "how do I set rope_scaling to extend
-// context to L, and will quality actually hold?" The VRAM calculators only
-// say "fits in GPU"; this says "fits AND works (or not)" using TAF's γ_Padé /
-// d_horizon machinery — all browser-only, no backend.
-//
-// Pure logic: returns structured codes + numbers. main.js does the i18n render.
-
+// Context-scaling configuration draft. Quality requires task evaluation.
 import { gammaPade } from "./gamma_check.js";
 
 const SQRT2 = Math.SQRT2;
 
-// §26.2 — d_horizon = θ(1-γ)√2/(1+γ). null if γ outside (0,1).
+// §26.2 — d_horizon = θ(1-γ)√2/(1+γ). null if γ outside (-1,1).
 export function dHorizon(theta, gamma) {
   if (!Number.isFinite(theta) || theta <= 0) return null;
-  if (!Number.isFinite(gamma) || gamma <= 0 || gamma >= 1) return null;
+  if (!Number.isFinite(gamma) || gamma <= -1 || gamma >= 1) return null;
   return theta * (1 - gamma) * SQRT2 / (1 + gamma);
 }
 
@@ -25,14 +17,11 @@ export function thetaDesign(gammaTarget, T) {
   return T * SQRT2 * (1 + gammaTarget) / (2 * (1 - gammaTarget));
 }
 
-// Effective base after RoPE extension. NTK/YaRN raise the base frequency;
-// the canonical NTK-aware bound is θ' = θ·f^(d/(d-2)) ≈ θ·f for typical head
-// dims (d≈128 → exponent 1.016). We use the first-order θ·f and flag it as an
-// estimate. Linear PI does NOT change the base — it compresses positions, so
-// its effect is modelled on the context axis (T/f) instead (see planExtension).
-export function thetaEffNTK(theta, factor) {
-  if (!Number.isFinite(theta) || !Number.isFinite(factor) || factor <= 0) return NaN;
-  return theta * factor;
+// Static NTK base formula using actual rotary dimension; not a YaRN schedule.
+export function thetaEffNTK(theta, factor, rotaryDim) {
+  if (!Number.isFinite(theta)||theta<=0||!Number.isFinite(factor)||factor<=0||
+      !Number.isInteger(rotaryDim)||rotaryDim<=2||rotaryDim%2!==0) return NaN;
+  return theta*Math.pow(factor,rotaryDim/(rotaryDim-2));
 }
 
 // Default method pick: linear PI is fine for small stretches; YaRN is the
@@ -75,7 +64,7 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
     thetaEff: null,
     gammaNaive: null,   // γ_Padé(θ, L) — NO extension: shows the problem
     gammaEff: null,     // γ_Padé after the chosen extension method
-    thetaNeeded: null,  // θ to keep γ healthy (0.5) at L — reference target
+    thetaNeeded: null,  // algebraic base for candidate gamma 0.5 at L — reference target
     verdict: "unknown",
     warnings: [],
   };
@@ -98,7 +87,7 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
 
   // Baseline (no extension) — this is what naive use at L gives.
   out.gammaNaive = gammaPade(theta, targetCtx);
-  // θ that would keep γ at a healthy 0.5 at L — a reference design target.
+  // Algebraic base for candidate gamma 0.5 at L — a reference design target.
   out.thetaNeeded = thetaDesign(0.5, targetCtx);
 
   if (targetCtx <= originalCtx) {
@@ -113,40 +102,13 @@ export function planExtension({ originalCtx, theta, targetCtx, ropeType }) {
   out.ropeType = type;
   out.config = buildRopeScaling(type, factor, originalCtx);
 
-  if (type === "linear" || type === "dynamic") {
-    // Linear PI / dynamic-NTK compress positions by `factor`. Modelled on the
-    // context axis: the attention pattern at L behaves like context L/factor.
-    out.thetaEff = theta;
-    out.gammaEff = gammaPade(theta, targetCtx / factor);
-  } else {
-    // YaRN / NTK / llama3: raise the effective base ≈ θ·factor.
-    out.thetaEff = thetaEffNTK(theta, factor);
-    out.gammaEff = gammaPade(out.thetaEff, targetCtx);
-    out.warnings.push({ code: "theta_eff_estimate", params: { thetaEff: out.thetaEff, factor: out.factor } });
-  }
-
-  if (factor > 4) {
-    out.warnings.push({ code: "aggressive_factor", params: { factor: out.factor } });
-  }
-  // Verdict is driven by γ_eff = γ_Padé(θ_eff, L): the attention sharpness the
-  // extension actually buys at the target length. We do NOT run a separate
-  // d_horizon "reach" test — dHorizon(θ_eff, γ_Padé(θ_eff, L)) ≡ L by
-  // construction (the exact Padé inverse), so it always "reaches" and carries
-  // no signal beyond L itself. γ_eff is the honest, θ_eff-sensitive axis.
-  const collapsed = !Number.isFinite(out.gammaEff) || out.gammaEff <= 0.2;
-  if (collapsed) {
-    out.verdict = "degrades";
-    out.warnings.push({ code: "gamma_collapse", params: { gammaEff: out.gammaEff, target: targetCtx } });
-  } else if (factor > 4) {
-    out.verdict = "needs_finetune";
-  } else if (out.gammaEff >= 0.6) {
-    out.verdict = "healthy";
-  } else {
-    out.verdict = "usable_with_care";
-  }
-
-  // Honesty caveat that always applies to closed-form extension planning.
-  out.warnings.push({ code: "finetune_note", params: { factor: out.factor, aggressive: factor > 4 } });
+  // YaRN and dynamic NTK are frequency schedules, not a single theta*factor.
+  // No post-intervention exponent or quality is identified from configuration.
+  out.thetaEff = null;
+  out.gammaEff = null;
+  out.thetaNeeded = null;
+  out.verdict = "needs_evaluation";
+  out.warnings.push({code:"evaluation_required",params:{}});
   out.ok = true;
   return out;
 }

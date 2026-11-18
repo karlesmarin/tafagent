@@ -1,75 +1,47 @@
-// γ predicted-vs-observed diagnostic — Padé closed-form + regime classifier.
-// Pure functions ported from tools/taf/diagnose/gamma_check.py.
-// All math is browser-only (no backend, no Python).
-
-const SQRT2 = Math.SQRT2;
-
+// Descriptive candidate comparison. No architecture, fraud or capacity inference.
 export function gammaPade(theta, T) {
   if (!Number.isFinite(theta) || theta <= 0 || !Number.isFinite(T) || T < 0) return NaN;
-  const z = (T * SQRT2) / theta;
-  return (2 - z) / (2 + z);
+  const z = T * Math.SQRT2 / theta;
+  return Number.isFinite(z) ? (2-z)/(2+z) : -1;
 }
-
 export function thetaEffPade(theta, T) {
-  if (!Number.isFinite(theta) || !Number.isFinite(T)) return NaN;
-  return theta + T / SQRT2;
+  return Number.isFinite(theta) && theta > 0 && Number.isFinite(T) && T >= 0 ? theta + T/Math.SQRT2 : NaN;
 }
-
-export function thetaEffObserved(gObs, T) {
-  if (!Number.isFinite(gObs) || !Number.isFinite(T) || T < 0) return NaN;
-  if (Math.abs(1 - gObs) < 1e-12) return Infinity;
-  return (T * SQRT2) / (1 - gObs);
+export function thetaLinearInverse(gObs, T) {
+  return Number.isFinite(gObs) && gObs < 1 && Number.isFinite(T) && T > 0 ? T*Math.SQRT2/(1-gObs) : NaN;
 }
-
-export function efficiency(thEffObs, thEffPade) {
-  if (!Number.isFinite(thEffObs) || !Number.isFinite(thEffPade) || thEffPade === 0) return NaN;
-  return thEffObs / thEffPade;
+export function thetaInverse(gObs, T) {
+  return Number.isFinite(gObs) && gObs > -1 && gObs < 1 && Number.isFinite(T) && T > 0
+    ? T*Math.SQRT2*(1+gObs)/(2*(1-gObs)) : NaN;
 }
-
-export function deltaHCardy(thEffObs, thetaNominal) {
-  if (!Number.isFinite(thEffObs) || thEffObs <= 0) return NaN;
-  if (!Number.isFinite(thetaNominal) || thetaNominal <= 0) return NaN;
-  return Math.log(thEffObs / thetaNominal);
+// Compatibility name: schema v2 explicitly reports the Padé inverse.
+export const thetaEffObserved = thetaInverse;
+export function efficiency(a, b) {
+  return Number.isFinite(a) && a > 0 && Number.isFinite(b) && b > 0 ? a/b : NaN;
 }
-
-export function classifyRegime(eff, gObs, isRandom) {
+export function deltaHCardy(a, b) {
+  const ratio = efficiency(a,b);
+  return Number.isFinite(ratio) ? Math.log(ratio) : NaN; // log ratio, no entropy claim
+}
+export function classifyRegime(_ratio, gObs, _isRandom) {
   if (!Number.isFinite(gObs)) return "unknown";
-  // Phase B (γ ≥ 1): recency-locked / local attention — a legitimate regime.
-  // The efficiency diagnostic below assumes Phase A: thetaEffObserved =
-  // T√2/(1−γ) goes NEGATIVE for γ > 1, which must NOT be misread as "fraud"
-  // (efficiency < 0.01). A random/SWA-corpus signature lands here too.
-  if (gObs >= 1) return isRandom ? "swa" : "phase_b";
-  if (!Number.isFinite(eff)) return "unknown";
-  if (eff < 0.01) return "fraud";
-  if (eff < 0.50) return "compressed";
-  if (eff > 1.50) return "overpade";
-  if (eff >= 0.85 && eff <= 1.15) return "normal";
-  return "unknown";
+  return gObs <= -1 || gObs >= 1 ? "outside_inverse" : "descriptive";
 }
-
-export function gammaCheckAll({ theta, T, gObs, isRandom }) {
-  const gPade = gammaPade(theta, T);
-  const thEffPade = thetaEffPade(theta, T);
-  const thEffObs = thetaEffObserved(gObs, T);
-  const eff = efficiency(thEffObs, thEffPade);
-  const dH = deltaHCardy(thEffObs, theta);
-  const regime = classifyRegime(eff, gObs, !!isRandom);
+export function gammaCheckAll({theta, T, gObs, isRandom}) {
+  const candidate=gammaPade(theta,T), inverse=thetaInverse(gObs,T);
   return {
-    gammaPade: gPade,
-    thetaEffPade: thEffPade,
-    thetaEffObs: thEffObs,
-    efficiency: eff,
-    deltaHCardy: dH,
-    regime,
+    schemaVersion:2, gammaPade:candidate, gammaObserved:Number.isFinite(gObs)?gObs:null,
+    residual:Number.isFinite(gObs) ? gObs-candidate : NaN,
+    thetaInverse:inverse, thetaLinearInverse:thetaLinearInverse(gObs,T),
+    thetaShifted:thetaEffPade(theta,T), thetaNominal:theta,
+    thetaEffPade:thetaEffPade(theta,T), thetaEffObs:inverse,
+    efficiency:efficiency(inverse,theta), deltaHCardy:deltaHCardy(inverse,theta),
+    regime:classifyRegime(null,gObs,isRandom),
+    interpretation:"algebraic_coordinates_not_capacity_or_architecture",
+    corpus:isRandom?"random":"unspecified_text",
   };
 }
-
-export const REGIME_META = {
-  normal:     { emoji: "✅", cls: "v-yes" },
-  fraud:      { emoji: "🚨", cls: "v-no"  },
-  compressed: { emoji: "📉", cls: "v-deg" },
-  overpade:   { emoji: "📈", cls: "v-deg" },
-  phase_b:    { emoji: "🔒", cls: "v-deg" },
-  swa:        { emoji: "🪟", cls: "v-deg" },
-  unknown:    { emoji: "❓", cls: "v-deg" },
+export const REGIME_META={
+  descriptive:{emoji:"ℹ️",cls:"v-deg"}, outside_inverse:{emoji:"ℹ️",cls:"v-deg"},
+  unknown:{emoji:"❓",cls:"v-deg"},
 };

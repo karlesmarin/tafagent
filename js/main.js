@@ -1977,162 +1977,21 @@ async function niahFetchConfig() {
   }
 }
 
-function renderNIAHCard(result, modelId, calib = null) {
-  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
-    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
-  const color = NIAH_VERDICT_COLOR[result.verdict] || "#8b949e";
-  const verdictLabel = t(`niah.verdict.${result.verdict}`) || result.verdict;
-  const reco = t(`niah.reco.${result.verdict}`) || "";
-  const safeText = result.safe_context
-    ? tFmt("niah.safe_context", { ctx: result.safe_context })
-    : (t("niah.safe_context_none") || "No safe context found below your target — model fails reasoning even at small contexts.");
-
-  // RULER calibration block — appears only when KB lookup hits.
-  // Shows measured RULER aggregate, derived NIAH/reasoning, and the
-  // delta vs the heuristic so users see when the predictor was off.
-  let calibBlock = "";
-  if (calib) {
-    const fmtPct = (v) => `${(v * 100).toFixed(0)}%`;
-    const fmtDelta = (d) => {
-      if (d == null) return "—";
-      const pp = Math.round(d * 100);
-      const sign = pp > 0 ? "+" : "";
-      const col = Math.abs(pp) >= 10 ? "#f0883e" : Math.abs(pp) >= 5 ? "#d29922" : "#8b949e";
-      return `<span style="color:${col};">${sign}${pp} pp</span>`;
-    };
-    const extrapNote = calib.extrapolated
-      ? `<span class="subtle" style="color:#d29922;font-size:0.85em;"> ⚠ ${t("niah.calib.extrapolated") || "extrapolated outside RULER's measured range"}</span>`
-      : "";
-    calibBlock = `
-      <details class="unmask-panel" open style="border-left:3px solid #3fb950;">
-        <summary class="unmask-panel-title">📊 ${t("niah.calib.heading") || "RULER-calibrated (NVIDIA published data)"}</summary>
-        <p>${tFmt("niah.calib.matched", {
-          alias: escapeHtml(calib.matched_alias),
-          canonical: escapeHtml(calib.canonical_id),
-        }) || `Matched <code>${escapeHtml(calib.matched_alias)}</code> → KB row <code>${escapeHtml(calib.canonical_id)}</code>.`}</p>
-        <p>
-          <strong>${t("niah.calib.aggregate") || "RULER aggregate"} @ ${fmtN(result.T_eval)}:</strong>
-          <code>${calib.ruler_avg_pct}%</code>
-          <span class="subtle">(${t("niah.calib.interp") || "interpolated between"} ${calib.interp_anchor})</span>${extrapNote}
-        </p>
-        <table class="arena-table" style="margin-top:0.5em;">
-          <thead><tr>
-            <th></th>
-            <th>${t("niah.calib.col.heuristic") || "Heuristic"}</th>
-            <th>${t("niah.calib.col.calibrated") || "RULER-calibrated"}</th>
-            <th>${t("niah.calib.col.delta") || "Δ"}</th>
-          </tr></thead>
-          <tbody>
-            <tr>
-              <td><strong>NIAH</strong></td>
-              <td>${fmtPct(result.niah_rate)}</td>
-              <td><strong>${fmtPct(calib.niah_calibrated)}</strong></td>
-              <td>${fmtDelta(calib.delta_niah)}</td>
-            </tr>
-            <tr>
-              <td><strong>${t("niah.label.reasoning") || "Reasoning"}</strong></td>
-              <td>${fmtPct(result.reasoning_rate)}</td>
-              <td><strong>${fmtPct(calib.reasoning_calibrated)}</strong></td>
-              <td>${fmtDelta(calib.delta_reasoning)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="recipe-desc subtle" style="font-size:0.82em;">
-          ${t("niah.calib.factors") || "Per-task factors from RULER paper Appendix Tables 13-16:"}
-          retrieval = ${calib.retrieval_factor}× aggregate,
-          reasoning = ${calib.reasoning_factor}× aggregate
-          (${t("niah.calib.factors_caveat") || "honest range: retrieval 0.95-1.10×, reasoning 0.60-0.85×"}).
-        </p>
-        <p class="recipe-desc subtle" style="font-size:0.82em;">
-          ${t("niah.calib.claimed_vs_effective") || "Paper-reported"}:
-          ${t("niah.calib.claimed") || "claimed"} ${fmtN(calib.claimed_context)} /
-          ${t("niah.calib.effective") || "effective"} ${fmtN(calib.effective_context)}.
-          ${t("niah.calib.source") || "Source"}:
-          <a href="${calib.source_url}" target="_blank" rel="noopener noreferrer">RULER paper (Hsieh et al., COLM 2024)</a>
-        </p>
-      </details>
-    `;
-  } else if (modelId) {
-    // KB miss — explicitly state we're heuristic-only.
-    calibBlock = `
-      <p class="recipe-desc subtle" style="font-size:0.85em;margin-top:0.5em;">
-        💡 ${t("niah.calib.miss") || "RULER calibration unavailable for this model — using architectural heuristic only. Add to data/ruler_kb.json if you have measured numbers."}
-      </p>
-    `;
-  }
-
-  return `
-    <div class="unmask-result">
-      <div class="unmask-hero" style="border-color: ${color};">
-        <div class="unmask-verdict" style="color: ${color};">${verdictLabel}</div>
-        <div class="unmask-model"><code>${escapeHtml(modelId)}</code> @ <code>${fmtN(result.T_eval)}</code> tokens</div>
-        <div class="unmask-numbers">
-          <div><span class="unmask-num-label">${t("niah.label.niah") || "NIAH pass rate"}</span><span class="unmask-num-val">${(result.niah_rate * 100).toFixed(0)}%</span></div>
-          <div><span class="unmask-num-label">${t("niah.label.reasoning") || "Reasoning pass rate"}</span><span class="unmask-num-val">${(result.reasoning_rate * 100).toFixed(0)}%</span></div>
-          <div><span class="unmask-num-label">${t("niah.label.gap") || "Gap"}</span><span class="unmask-num-val">${(result.gap * 100).toFixed(0)} pts</span></div>
-        </div>
-      </div>
-      <div class="unmask-details">
-        ${calibBlock}
-        <details class="unmask-panel" open>
-          <summary class="unmask-panel-title">${t("niah.section.breakdown") || "Architecture breakdown"}</summary>
-          <ul>
-            <li><strong>γ_Padé @ T_eval:</strong> ${result.gamma_pade}</li>
-            <li><strong>${t("niah.field.extrap") || "Extrapolation (T_eval / T_train)"}:</strong> ${result.extrapolation_ratio}×</li>
-            <li><strong>${t("niah.field.arch_pressure") || "Arch pressure (small d_head + GQA + SWA)"}:</strong> ×${result.arch_pressure}</li>
-            <li><strong>${t("niah.field.theta") || "RoPE θ"}:</strong> ${fmtN(result.theta)}</li>
-            <li><strong>${t("niah.field.t_train") || "T_train (claimed)"}:</strong> ${fmtN(result.T_train)}</li>
-          </ul>
-        </details>
-        <details class="unmask-panel" open>
-          <summary class="unmask-panel-title">${t("niah.section.reco") || "Recommendation"}</summary>
-          <p class="unmask-reco">${reco}</p>
-          <p class="unmask-reco"><strong>${t("niah.label.safe_ctx") || "Safe reasoning context"}:</strong> ${safeText}</p>
-        </details>
-      </div>
-    </div>
-  `;
+function renderNIAHCard(result, modelId, calib=null) {
+  const value=x=>x===null||x===undefined?"—":escapeHtml(String(x));
+  return `<div class="unmask-result"><h3>${t("alignment.context.title")}</h3>
+    <p><code>${escapeHtml(modelId || "")}</code> · T_eval=${value(result.T_eval)}</p>
+    <p>${t("alignment.context.scope")}</p>
+    <p>${t("alignment.context.configured")}: ${value(result.configured_context)} ·
+       ${t("alignment.context.trained")}: ${value(result.T_train)}</p>
+    ${calib ? `<p>RULER @ ${value(result.T_eval)}: <strong>${value(calib.ruler_avg_pct)}%</strong>
+      · ${t("alignment.context.aggregate")} · <code>${escapeHtml(calib.canonical_id)}</code> <a href="${escapeHtml(/^https:\/\//.test(calib.source_url)?calib.source_url:"#")}" target="_blank" rel="noopener">RULER</a></p>`
+      : `<p>${t("alignment.context.no_record")}</p>`}
+    <p>${t("alignment.x2.next")}</p></div>`;
 }
 
 function renderNIAHSweep(rows, modelId) {
-  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c =>
-    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const fmtN = (x) => x === null || x === undefined ? "—" : Number(x).toLocaleString();
-  let body = "";
-  for (const r of rows) {
-    const color = NIAH_VERDICT_COLOR[r.verdict] || "#8b949e";
-    const label = t(`niah.verdict.${r.verdict}`) || r.verdict;
-    body += `<tr>
-      <td><strong>${fmtN(r.T_eval)}</strong></td>
-      <td class="arena-elo">${(r.niah_rate * 100).toFixed(0)}%</td>
-      <td class="arena-elo">${(r.reasoning_rate * 100).toFixed(0)}%</td>
-      <td class="arena-spread">${(r.gap * 100).toFixed(0)} pts</td>
-      <td style="color: ${color};"><strong>${label}</strong></td>
-    </tr>`;
-  }
-  return `
-    <div class="arena-result">
-      <div class="unmask-hero" style="border-color: #58a6ff;">
-        <div class="unmask-verdict" style="color: #58a6ff;">${tFmt("niah.summary.sweep", { modelId })}</div>
-      </div>
-      <div class="unmask-details">
-        <details class="unmask-panel" open>
-          <summary class="unmask-panel-title">${t("niah.section.sweep") || "Pass rate sweep across context lengths"}</summary>
-          <table class="arena-table">
-            <thead><tr>
-              <th>${t("niah.col.context") || "T_eval"}</th>
-              <th>${t("niah.col.niah") || "NIAH"}</th>
-              <th>${t("niah.col.reasoning") || "Reasoning"}</th>
-              <th>${t("niah.col.gap") || "Gap"}</th>
-              <th>${t("niah.col.verdict") || "Verdict"}</th>
-            </tr></thead>
-            <tbody>${body}</tbody>
-          </table>
-        </details>
-      </div>
-    </div>
-  `;
+  return rows.map(r=>renderNIAHCard(r,modelId,calibrateNIAH(modelId,r.T_eval,r))).join("");
 }
 
 async function runNIAHPredict() {
@@ -2149,11 +2008,7 @@ async function runNIAHPredict() {
   // Calibrate against published RULER measurements if available.
   const calib = calibrateNIAH(__niahLastModelId, T_eval, result);
   $("niah-output").innerHTML = renderNIAHCard(result, __niahLastModelId, calib);
-  $("niah-status").textContent = tFmt("niah.status.done", {
-    verdict: t(`niah.verdict.${result.verdict}`) || result.verdict,
-    niah: (result.niah_rate * 100).toFixed(0),
-    reasoning: (result.reasoning_rate * 100).toFixed(0),
-  });
+  $("niah-status").textContent = t("alignment.context.title");
 }
 
 async function runNIAHSweep() {
@@ -2585,7 +2440,7 @@ function renderWhatIfSlider(profile, params, targetEl) {
     <h3 data-i18n="whatif.title">🎚 What-if: drag T_eval to see γ change live</h3>
     <p class="subtle" data-i18n="whatif.desc">Pure JS recompute (no Pyodide call). Shows the geometric γ_Padé and d_horizon as you slide. The full chain re-runs on click.</p>
     <input type="range" id="whatif-slider" class="whatif-slider"
-      min="${minL}" max="${maxL}" step="${Math.round(maxL/200)}" value="${initialL}" />
+      min="${minL}" max="${maxL}" step="1" value="${initialL}" />
     <div class="whatif-row"><span data-i18n="whatif.T_eval"><strong>T_eval</strong></span><span id="whatif-T_eval">${initialL.toLocaleString()}</span></div>
     <div class="whatif-row"><span data-i18n="whatif.gamma_pade"><strong>γ_Padé</strong></span><span id="whatif-gamma">—</span></div>
     <div class="whatif-row"><span data-i18n="whatif.d_horizon"><strong>d_horizon</strong></span><span id="whatif-dh">—</span></div>
@@ -2600,20 +2455,9 @@ function renderWhatIfSlider(profile, params, targetEl) {
     const T = parseInt($("whatif-slider").value);
     const sqrt2 = Math.SQRT2;
     const g_pade = (2 * params.theta - T * sqrt2) / (2 * params.theta + T * sqrt2);
-    // Apply same decomposition as Python (taf_browser.py gamma_decompose):
-    // SWA and exploratory post-IH are disabled by default, as in Python.
-    const g_corr = g_pade
-      + (params.n_kv_heads < params.n_attention_heads ? 0.11 : 0);
-    let dh = null, niah = null, verdict, vClass;
-    if (g_corr > 0 && g_corr < 1) {
-      dh = params.theta * (1 - g_corr) * sqrt2 / (1 + g_corr);
-      niah = 2 * dh;
-      if (T < dh) { verdict = `✅ YES (margin ${((1 - T / dh) * 100).toFixed(0)}%)`; vClass = "yes"; }
-      else if (T < niah) { verdict = `⚠ DEGRADED`; vClass = "deg"; }
-      else { verdict = `❌ NO (past NIAH ceiling)`; vClass = "no"; }
-    } else {
-      verdict = `❌ NO (Phase B)`; vClass = "no";
-    }
+    const g_corr = g_pade;
+    const dh = g_corr > -1 && g_corr < 1 ? params.theta*(1-g_corr)*sqrt2/(1+g_corr) : null;
+    const niah = null, verdict = t("alignment.context.title"), vClass = "deg";
     $("whatif-T_eval").textContent = T.toLocaleString();
     $("whatif-gamma").textContent = g_pade.toFixed(4) + (g_corr !== g_pade ? ` → ${g_corr.toFixed(4)}` : "");
     $("whatif-dh").textContent = dh !== null ? Math.round(dh).toLocaleString() : "n/a (Phase B)";
@@ -2636,29 +2480,29 @@ function renderWhatIfSlider(profile, params, targetEl) {
 // FALSIFICATION dashboard inline
 // ════════════════════════════════════════════════════════════════════
 const FALSIFICATION_STATUS = [
-  { id: "F1",  claim: "γ_Padé MAE < 5% on non-anomalous Phase A models",                status: "confirmed", evidence: "n=9, paper Tab. 4" },
+  {"id": "F1", "claim": "Candidate error below 5% as a general predictive claim", "status": "refuted", "evidence": "Matched 13-row MAE: candidate 0.167766; constant median 0.172106. Selected subsets do not establish general accuracy."},
   { id: "F2",  claim: "d_horizon independently predicts NIAH collapse (claimed) — REFUTED as circular: it is the Padé inverse (≡ trained ctx, see F23)", status: "refuted", evidence: "dHorizon(θ,γ_Padé(θ,T))≡T by construction; the 'match' is Padé-fit precision, not an independent NIAH measurement" },
-  { id: "F3",  claim: "Fisher info predicts forward-hook recovery within 0.2%",            status: "confirmed", evidence: "12.5% predicted vs 12.3% observed" },
+  {"id": "F3", "claim": "Fisher predicts task recovery", "status": "untested", "evidence": "Finite-family curvature is not task sensitivity; a reported numerical agreement is not calibrated prediction."},
   { id: "F4",  claim: "Layer asymmetry early/late ratio ≈ 13.5× (pythia-70m)",             status: "confirmed", evidence: "F2 thermostat experiment" },
   { id: "F5",  claim: "Area law S_γ = O(log N) for all γ > 0",                              status: "confirmed", evidence: "n=56, r=-0.954" },
-  { id: "F6",  claim: "KV truncation at D_f gives ΔPPL ≤ 0 in γ ∈ [0.65, 0.85]",            status: "confirmed", evidence: "pythia-2.8b ΔPPL=-0.51" },
+  {"id": "F6", "claim": "A family mass quantile guarantees lossless KV truncation", "status": "untested", "evidence": "Task quality requires paired policy evaluation; the 4096-token Pythia experiment exceeds its 2048-token training context."},
   { id: "F7",  claim: "Linear pruning cost: ΔPPL ≈ 0.18 × %Q/K_pruned",                    status: "confirmed", evidence: "pythia-1b 0.17, 2.8b 0.18" },
   { id: "F8",  claim: "Padé saturates at [1,1] in LLM regime z<<1",                        status: "confirmed", evidence: "sage round 4" },
-  { id: "F9",  claim: "RoPE attention is Euclidean fractional (d_eff=1/γ), not hyperbolic", status: "confirmed", evidence: "EXP-METRIC-RoPE sage" },
-  { id: "F10", claim: "Δγ < -0.1 in models ≥ 400M ⇒ GQA / induction-head dominance",       status: "confirmed", evidence: "n=20+ models" },
-  { id: "F11", claim: "Δγ > +0.3 ⇒ alternating SWA (Gemma family signature)",              status: "confirmed", evidence: "Gemma-2-9b Δγ=+0.51" },
+  {"id": "F9", "claim": "A fitted exponent identifies a fractional attention operator", "status": "untested", "evidence": "Kernel exponent matching requires 1<gamma<3 plus operator and scaling assumptions."},
+  {"id": "F10", "claim": "A random/text slope difference identifies induction heads", "status": "untested", "evidence": "Descriptive difference with matched protocols; causal circuit tests required."},
+  {"id": "F11", "claim": "A slope difference identifies alternating SWA", "status": "untested", "evidence": "SWA must be read from architecture or tested; not identified by a scalar difference."},
   { id: "F12", claim: "Mamba L_crit = 45, α = 0.703",                                       status: "confirmed", evidence: "3 seeds" },
-  { id: "F13", claim: "Phase boundary at γ = 1 (Hagedorn)",                                 status: "confirmed", evidence: "χ → ∞" },
+  {"id": "F13", "claim": "Singular transition at gamma=1 for finite attention support", "status": "refuted", "evidence": "Finite sums and their moments remain finite at gamma=1."},
   { id: "F14", claim: "RLHF Δγ shift ≤ 0.072 (recipe-specific)",                            status: "partial",   evidence: "n=8 recipe-locked" },
   { id: "F15", claim: "R_c boundary at R_c★ ≈ 1.68",                                        status: "refuted",   evidence: "overlap zone [0.92, 3.08] n=9" },
   { id: "F16", claim: "Holographic pruning: alive bands in ℓ > L_crit ΔPPL ≈ 0",             status: "refuted",   evidence: "linear cost law instead" },
-  { id: "F17", claim: "Soft d_horizon decay beats hard in regime d_h ≳ T_train/2",          status: "partial",   evidence: "n=2/3 (pythia-1b refuted)" },
+  {"id": "F17", "claim": "Universal soft-decay boundary at half training context", "status": "untested", "evidence": "Three historical Pythia trials at 4096 tokens; extrapolation and policy effects are not separated."},
   { id: "F18", claim: "Mittag-Leffler prefactor 1/Γ(1-γ) governs A_0",                       status: "refuted",   evidence: "n=39, ratio 0.23" },
-  { id: "F19", claim: "γ_Padé predicts γ_obs across-model variance",                          status: "partial",   evidence: "centroid OK, ~0.1% var explained, see §sec:gamma_decomposition" },
+  {"id": "F19", "claim": "Candidate predicts across-model exponents", "status": "partial", "evidence": "13-row MAE 0.167766 versus constant-median 0.172106; no out-of-sample calibration."},
   { id: "F20", claim: "β-flow exactly equivalent to logistic ODE",                            status: "confirmed", evidence: "sage symbolic check" },
   { id: "F21", claim: "tanh trajectory γ(t)~tanh(log step) on pythia-1b checkpoints",        status: "refuted",   evidence: "R²=0.15 on 4 checkpoints" },
   { id: "F22", claim: "χ(z*) = (5+√17)/4 closed form at Cayley fixed point",                 status: "confirmed", evidence: "sage symbolic, minimal poly 2y²-5y+1" },
-  { id: "F23", claim: "T ↔ d_horizon involution: θ_design ∘ γ_Padé = id",                    status: "confirmed", evidence: "sage symbolic" },
+  {"id": "F23", "claim": "Context inverse composed with candidate returns input context", "status": "confirmed", "evidence": "Algebraic identity d_inv(theta,gamma_P(theta,T))=T; not independent retrieval evidence."},
 ];
 
 function renderFalsificationDashboard() {
@@ -2898,10 +2742,10 @@ function renderProfile(p, params) {
   const numbersHtml = `
     <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ. Paper §sec:gamma_decomposition.")}</span><span class="num-value">${formatN(kn.gamma_pade)}</span></div>
     <div class="num-row"><span class="num-label">γ_decomposed ${ttip("tooltip.gamma_decomposed", "Padé baseline plus empirical GQA shift. SWA and post-IH disabled by default.")}</span><span class="num-value">${formatN(kn.gamma_decomposed)}</span></div>
-    <div class="num-row"><span class="num-label">d_horizon ${ttip("tooltip.d_horizon", "Effective attention horizon at T_eval. Beyond this, attention scores fall below the noise floor (paper §26).")}</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
+    <div class="num-row"><span class="num-label">d_inv ${ttip("tooltip.d_horizon", "Effective attention horizon at T_eval. Beyond this, attention scores fall below the noise floor (paper §26).")}</span><span class="num-value">${formatN(kn.d_horizon)}</span></div>
     <div class="num-row"><span class="num-label">L_NIAH ceiling ${ttip("tooltip.L_NIAH", "Predicted ceiling for needle-in-a-haystack retrieval reliability at the current d_horizon.")}</span><span class="num-value">${formatN(kn.L_NIAH_ceiling)}</span></div>
     <div class="num-row"><span class="num-label">χ susceptibility ${ttip("tooltip.chi", "Susceptibility exponent χ = 1/(1−γ). Diverges at the Hagedorn line γ=1.")}</span><span class="num-value">${formatN(kn.chi_susceptibility)}</span></div>
-    <div class="num-row"><span class="num-label">KV memory @ T_eval (BF16) ${ttip("tooltip.kv_memory", "Per-request KV cache memory at T_eval in BF16 = 2 · n_layers · n_kv_heads · d_head · T_eval bytes.")}</span><span class="num-value">${formatN(kn.kv_memory_per_request_GB)} GB</span></div>
+    <div class="num-row"><span class="num-label">KV memory @ T_eval (BF16) ${ttip("tooltip.kv_memory", "Per-request KV cache memory at T_eval in BF16 = 4 · n_layers · n_kv_heads · d_head · T_eval bytes (K and V, 2 bytes each).")}</span><span class="num-value">${formatN(kn.kv_memory_per_request_GB)} GB</span></div>
   `;
 
   const falsHtml = (p.falsification_status || []).map(f =>
@@ -2924,7 +2768,7 @@ function renderProfile(p, params) {
   const recipeCount = Object.keys(p.recipes).length;
 
   // v0.8.9: pre-compute γ Validity Gate state so we can auto-expand Diagnostics when banner fires.
-  const _initGObs = kn.gamma_decomposed ?? kn.gamma_pade;
+  const _initGObs = p.gamma_observed;
   const _initGCheck = (typeof _initGObs === "number" && Number.isFinite(_initGObs))
     ? gammaCheckAll({ theta: params.theta, T: params.T_eval, gObs: _initGObs, isRandom: false })
     : null;
@@ -2950,7 +2794,7 @@ function renderProfile(p, params) {
           ${gammaForPill !== null && gammaForPill !== undefined
             ? `<span class="hero-pill">γ = ${formatN(gammaForPill)} ${ttip("tooltip.gamma_pill", "γ_decomposed (full architectural decomposition) or γ_Padé as fallback. Range (0,1) = Phase A (anti-Ising). γ ≥ 1 = Hagedorn / Phase B.")}</span>`
             : ''}
-          ${gammaForPill > 0 && gammaForPill < 1
+          ${false /* Retired physical classification */
             ? `<span class="hero-pill" style="background:rgba(110,80,200,0.15); border-color:rgba(110,80,200,0.45);"><span data-i18n="v05.antiising.badge">🧲 Anti-Ising (β=γ−1&lt;0, machine-verified)</span> ${ttip("tooltip.anti_ising", "Phase A class: β = γ−1 &lt; 0 (anti-Ising). Machine-verified by Sage Groebner basis + Lean Mathlib4. See §35 v0.5.")} ${badgesForUiBinding("anti_ising_pill")}</span>`
             : ''}
         </div>
@@ -2977,14 +2821,14 @@ function renderProfile(p, params) {
 
           <h4 style="margin-top:1.2em;" data-i18n="gamma_check.title">🔍 γ predicted vs observed</h4>
           <div class="recipe-desc" data-i18n="gamma_check.desc">
-            Enter your empirically measured γ. Tool detects regime: fraud (θ inflated) / compressed / over-Padé / SWA-random / normal.
+            Enter your empirically measured γ. Coordinates are descriptive; they do not identify fraud, architecture or capacity.
           </div>
           <div class="form-grid" style="margin:0.5em 0 0.6em;">
             <div class="form-field">
               <label><span data-i18n="gamma_check.gobs_label">γ_observed</span>
                 <span class="info"><span class="tooltip" data-i18n="gamma_check.gobs_tip">Empirically measured γ from your model's attention scores. Use the Diagnose CLI to obtain this from real weights.</span></span>
               </label>
-              <input type="number" id="gc-gobs" step="0.0001" value="${(() => { const v = kn.gamma_decomposed ?? kn.gamma_pade; return (typeof v === "number" && Number.isFinite(v)) ? v.toFixed(4) : ""; })()}" />
+              <input type="number" id="gc-gobs" step="0.0001" value="" />
             </div>
             <div class="form-field">
               <label><span data-i18n="gamma_check.random_label">Random corpus?</span>
@@ -3116,7 +2960,7 @@ function renderProfile(p, params) {
       : (!Number.isFinite(x) ? "∞" : Number(x).toLocaleString(undefined, { maximumFractionDigits: d }));
     const validityRegimes = new Set(["fraud", "compressed", "overpade", "swa", "unknown"]);
     const effOutOfBand = Number.isFinite(r.efficiency) && (r.efficiency < 0.85 || r.efficiency > 1.15);
-    const showValidity = validityRegimes.has(r.regime) || effOutOfBand;
+    const showValidity = false; // No calibrated validity detector.
     const validityBanner = showValidity ? `
       <div class="gc-validity-warning" style="margin-top:0.6em; padding:0.7em 0.9em; border-left:3px solid #d29922; background:rgba(210,153,34,0.08); border-radius:4px;">
         <div style="font-weight:600; margin-bottom:0.3em;" data-i18n="gamma_check.validity.title">⚠ Closed-form γ may not apply to this model</div>
@@ -3126,11 +2970,12 @@ function renderProfile(p, params) {
     ` : "";
     $("gamma-check-results").innerHTML = `
       <div class="taf-key-numbers">
+        <div class="num-row"><span class="num-label">γ_observed − γ_Padé</span><span class="num-value">${fmt(r.residual)}</span></div>
         <div class="num-row"><span class="num-label">γ_Padé(T_eval) ${ttip("tooltip.gamma_pade", "Closed-form prediction (2−z)/(2+z), z = T√2/θ.")}</span><span class="num-value">${fmt(r.gammaPade)}</span></div>
-        <div class="num-row"><span class="num-label">θ_eff (observed) ${ttip("tooltip.theta_eff_obs", "Effective θ implied by your γ_observed: T√2 / (1 − γ_obs).")}</span><span class="num-value">${fmt(r.thetaEffObs, 1)}</span></div>
-        <div class="num-row"><span class="num-label">θ_eff (Padé) ${ttip("tooltip.theta_eff_pade", "Effective θ predicted by closed-form: θ + T/√2.")}</span><span class="num-value">${fmt(r.thetaEffPade, 1)}</span></div>
-        <div class="num-row"><span class="num-label">η = θ_eff_obs / θ_eff_Padé ${ttip("tooltip.efficiency", "Efficiency ratio. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.")}</span><span class="num-value">${fmt(r.efficiency)}</span></div>
-        <div class="num-row"><span class="num-label">ΔH_Cardy = log(θ_eff_obs / θ_nominal) ${ttip("tooltip.delta_h_cardy", "Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.")}</span><span class="num-value">${fmt(r.deltaHCardy)}</span></div>
+        <div class="num-row"><span class="num-label">θ_inv (Padé inverse) ${ttip("tooltip.theta_eff_obs", "Padé inverse base: T√2(1 + γ_obs) / (2(1 − γ_obs)); −1 < γ_obs < 1.")}</span><span class="num-value">${fmt(r.thetaEffObs, 1)}</span></div>
+        <div class="num-row"><span class="num-label">θ_shifted (linear coordinate) ${ttip("tooltip.theta_eff_pade", "Effective θ predicted by closed-form: θ + T/√2.")}</span><span class="num-value">${fmt(r.thetaEffPade, 1)}</span></div>
+        <div class="num-row"><span class="num-label">θ_inv / θ_nominal ${ttip("tooltip.efficiency", "Efficiency ratio. ≈1 = normal · &lt;0.01 = fraud · &lt;0.5 = compressed · &gt;1.5 = over-Padé.")}</span><span class="num-value">${fmt(r.efficiency)}</span></div>
+        <div class="num-row"><span class="num-label">log(θ_inv / θ_nominal) ${ttip("tooltip.delta_h_cardy", "Cardy entropy shift. Negative = compression entropy. ~0 = nominal match.")}</span><span class="num-value">${fmt(r.deltaHCardy)}</span></div>
       </div>
       ${validityBanner}
       <div class="taf-recipe-tile ${meta.cls}" style="margin-top:0.6em;">
@@ -5256,6 +5101,7 @@ function _yarnFmtG(g) {
 }
 function _yarnWarnText(w) {
   switch (w.code) {
+    case "evaluation_required": return t("alignment.context.scope");
     case "theta_eff_estimate": return t("yarn.warn.theta_eff_estimate");
     case "aggressive_factor":  return `${t("yarn.warn.aggressive")} (${w.params.factor}×)`;
     case "gamma_collapse":     return `${t("yarn.warn.gamma_collapse")} (γ_eff ${_yarnFmtG(w.params.gammaEff)} @ L ${_yarnFmtK(w.params.target)})`;
@@ -5302,7 +5148,7 @@ function renderYarnPlan(p) {
     <table style="border-collapse:collapse;font-size:0.95em;margin:0.5em 0;">
       <tr><td style="${td}">${t("yarn.r.factor")}</td><td><strong>${p.factor}×</strong> (${_yarnFmtK(p.originalCtx)} → ${_yarnFmtK(p.targetCtx)})</td></tr>
       <tr><td style="${td}">${t("yarn.r.method")}</td><td><code>${p.ropeType}</code></td></tr>
-      <tr><td style="${td}">γ ${t("yarn.r.naive")}</td><td>${_yarnFmtG(p.gammaNaive)}${p.gammaNaive <= 0 ? ` 🚨 ${t("yarn.r.collapsed")}` : ""}</td></tr>
+      <tr><td style="${td}">γ ${t("yarn.r.naive")}</td><td>${_yarnFmtG(p.gammaNaive)}</td></tr>
       <tr><td style="${td}">γ ${t("yarn.r.eff")}</td><td><strong>${_yarnFmtG(p.gammaEff)}</strong></td></tr>
       <tr><td style="${td}">θ_eff</td><td>${_thetaFmt(p.thetaEff)}${p.thetaEff > p.theta ? ` (↑ ${t("yarn.r.from")} ${_thetaFmt(p.theta)})` : ""}</td></tr>
     </table>

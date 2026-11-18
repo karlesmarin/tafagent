@@ -22,31 +22,25 @@ function check(name, fn) {
 }
 
 console.log("\n[gamma_check] regime classification");
-check("γ=1.02 → phase_b (not fraud)", () => assert.equal(gammaCheckAll({ theta: 10000, T: 2048, gObs: 1.02, isRandom: false }).regime, "phase_b"));
-check("γ=1.0 → phase_b", () => assert.equal(classifyRegime(NaN, 1.0, false), "phase_b"));
+check("γ=1.02 outside inverse domain", () => assert.equal(gammaCheckAll({ theta: 10000, T: 2048, gObs: 1.02, isRandom: false }).regime, "outside_inverse"));
+check("γ=1 outside inverse domain", () => assert.equal(classifyRegime(NaN, 1.0, false), "outside_inverse"));
 check("γ=0.75 → not fraud", () => assert.notEqual(gammaCheckAll({ theta: 10000, T: 2048, gObs: 0.75 }).regime, "fraud"));
-check("γ>1 random → swa", () => assert.equal(classifyRegime(NaN, 1.1, true), "swa"));
+check("random corpus cannot identify SWA", () => assert.equal(classifyRegime(NaN, 1.1, true), "outside_inverse"));
 check("NaN γ → unknown", () => assert.equal(classifyRegime(1, NaN, false), "unknown"));
 
-console.log("\n[niah_reasoning] extrapolation axis (no d_horizon tautology)");
-check("no d_horizon, has extrapolation_ratio, niah∈[0,1]", () => {
-  const r = predictNIAHReasoning({ rope_theta: 10000, max_position_embeddings: 8192, num_attention_heads: 32, hidden_size: 4096, num_key_value_heads: 8 }, 32768);
-  assert.ok(!("d_horizon" in r), "d_horizon should be gone");
-  assert.ok("extrapolation_ratio" in r);
-  assert.ok(Number.isFinite(r.niah_rate) && r.niah_rate >= 0 && r.niah_rate <= 1);
-  assert.ok(Number.isFinite(r.reasoning_rate));
+console.log("\n[niah_reasoning] no invented task outcomes");
+check("unknown context and outcomes remain absent",()=>{
+  const r=predictNIAHReasoning({rope_theta:10000,max_position_embeddings:8192},4096);
+  assert.equal(r.niah_rate,null);assert.equal(r.reasoning_rate,null);
+  assert.equal(r.safe_context,null);assert.equal(r.T_train,null);
+  assert.equal(r.configured_context,8192);
 });
-check("config WITHOUT rope_scaling does not throw", () => {
-  const r = predictNIAHReasoning({ rope_theta: 10000, max_position_embeddings: 8192 }, 4096);
-  assert.ok(Number.isFinite(r.niah_rate));
+check("YaRN is not scalar base multiplication",()=>{
+  const r=predictNIAHReasoning({rope_theta:10000,max_position_embeddings:8192,rope_scaling:{rope_type:"yarn",factor:4}},32768);
+  assert.equal(r.theta,10000);assert.equal(r.verdict,"needs_evaluation");
 });
-check("within context → high niah", () => assert.ok(predictNIAHReasoning({ rope_theta: 10000, max_position_embeddings: 32768 }, 4096).niah_rate > 0.8));
-check("YaRN boosts θ (40000)", () => assert.equal(predictNIAHReasoning({ rope_theta: 10000, max_position_embeddings: 8192, rope_scaling: { rope_type: "yarn", factor: 4 } }, 32768).theta, 40000));
-check("linear extends T_train, keeps θ", () => {
-  const r = predictNIAHReasoning({ rope_theta: 10000, max_position_embeddings: 8192, rope_scaling: { rope_type: "linear", factor: 4 } }, 32768);
-  assert.equal(r.theta, 10000); assert.equal(r.T_train, 32768);
-});
-check("sweep returns rows", () => assert.ok(sweepContextLengths({ rope_theta: 10000, max_position_embeddings: 8192 }).length > 0));
+check("explicit training metadata is separate",()=>assert.equal(predictNIAHReasoning({training_context_length:2048,max_position_embeddings:8192},4096).extrapolation_ratio,2));
+check("sweep preserves missing outcomes",()=>assert.ok(sweepContextLengths({max_position_embeddings:8192}).every(r=>r.niah_rate===null)));
 
 console.log("\n[arena_ci] bradley-terry + two-sided ties");
 check("sample CSV → ratings + ties arrays", () => {
@@ -97,11 +91,11 @@ check("same config → noise + false", () => {
 });
 
 console.log("\n[yarn_planner] d_horizon removed from verdict");
-check("no dHorizon fields, gammaEff finite, valid verdict", () => {
+check("no horizon, no invented post-scaling gamma, evaluation required", () => {
   const r = planExtension({ originalCtx: 8192, theta: 10000, targetCtx: 32768, ropeType: "yarn" });
   assert.ok(!("dHorizonEff" in r) && !("dHorizonNaive" in r));
-  assert.ok(Number.isFinite(r.gammaEff));
-  assert.ok(["healthy", "usable_with_care", "needs_finetune", "degrades"].includes(r.verdict));
+  assert.equal(r.gammaEff,null);
+  assert.equal(r.verdict, "needs_evaluation");
 });
 check("within context → no_extension_needed", () => assert.equal(planExtension({ originalCtx: 32768, theta: 10000, targetCtx: 8192 }).verdict, "no_extension_needed"));
 

@@ -1,3 +1,4 @@
+import { ALIGNMENT_TRANSLATIONS } from "./alignment_i18n.js";
 // TAF Agent i18n — minimal translation system.
 // Add languages by extending TRANSLATIONS. Set data-i18n="key" on any element.
 // Persist user choice in localStorage.
@@ -6622,6 +6623,7 @@ for (const [language, entries] of Object.entries(RESEARCH_TRANSLATIONS)) {
 for (const [language, entries] of Object.entries(MODEL_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 
 for (const [language, entries] of Object.entries(RESOLVER_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
+for (const [language, entries] of Object.entries(ALIGNMENT_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 let currentLang = "en";
 
 export function getLang() {

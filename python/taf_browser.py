@@ -11,9 +11,53 @@ from __future__ import annotations
 import math
 import json
 
+# Finite-family core (kept identical to cli/diagnose_model.py).
+def finite_family(gamma, N):
+    if isinstance(N, bool) or not isinstance(N, int) or N < 1:
+        raise ValueError("N must be a positive integer")
+    if isinstance(gamma, bool) or not isinstance(gamma, (int, float)) or not math.isfinite(gamma):
+        raise ValueError("gamma must be a finite real number")
+    logs = [math.log(d) for d in range(1, N + 1)]
+    shift = -gamma * logs[-1] if gamma < 0 else 0.0
+    if not math.isfinite(shift):
+        raise ValueError("gamma*log(N) exceeds floating-point range")
+    # Center before multiplication, avoiding overflow and cancellation for gamma<0.
+    log_weights = [-gamma * (x - logs[-1] if gamma < 0 else x) for x in logs]
+    weights = [math.exp(x) for x in log_weights]
+    total = math.fsum(weights)
+    p = [w / total for w in weights]
+    logZ = shift + math.log(total)
+    U = math.fsum(w * x for w, x in zip(p, logs))
+    I = math.fsum(w * (x-U)**2 for w, x in zip(p, logs))
+    S = -math.fsum(w * math.log(w) for w in p if w > 0)
+    try:
+        Z = math.exp(logZ)
+    except OverflowError:
+        Z = float('inf')
+    return dict(Z=Z, logZ=logZ, U=U, I=I, Cv=(gamma*math.sqrt(I))**2,
+                S=S, F=None if gamma == 0 else -logZ/gamma,
+                probabilities=p, weights=weights, total=total)
+
+
+def finite_quantile(gamma, N, f=0.90):
+    if isinstance(f, bool) or not isinstance(f, (int, float)) or not math.isfinite(f) or not 0 < f < 1:
+        raise ValueError("f must lie strictly between zero and one")
+    family = finite_family(gamma, N)
+    target = f * family['total']
+    cumulative, correction = 0.0, 0.0
+    for d, w in enumerate(family['weights'], 1):
+        y = w-correction
+        updated = cumulative+y
+        correction = (updated-cumulative)-y
+        cumulative = updated
+        if cumulative >= target:
+            return d
+    return N
+
+
 
 # ════════════════════════════════════════════════════════════════════════════
-# §26 — γ-Thermodynamics (OUR contribution)
+# Finite-family mathematics (standard identities)
 # ════════════════════════════════════════════════════════════════════════════
 def gamma_pade(theta: float, T_eval: int) -> float:
     """§26.1 — γ = (2θ - T√2)/(2θ + T√2)"""
@@ -37,7 +81,7 @@ def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0,
     """
     if not isinstance(apply_exploratory, bool):
         raise TypeError("apply_exploratory must be an explicit boolean")
-    delta_GQA = +0.11 if has_GQA else 0.0
+    delta_GQA = +0.11 if has_GQA and apply_exploratory else 0.0
     # SWA: demoted — original constant rested on n=1.
     delta_SWA = 0.0
     delta_SWA_status = "exploratory_n1_disabled" if has_SWA else "not_applicable"
@@ -56,20 +100,20 @@ def gamma_decompose(gamma_pade_val, has_GQA=False, has_SWA=False, n_params=0.0,
             "post_IH": {"candidate": post_candidate, "applied": bool(apply_exploratory and post_candidate),
                         "applied_value": delta_post_IH, "status": "exploratory_no_replication",
                         "eligibility": "parameter_count_proxy_only"},
-            "GQA": {"candidate": delta_GQA, "applied": bool(delta_GQA),
-                    "applied_value": delta_GQA, "status": "empirical_panel_correction"},
+            "GQA": {"candidate": 0.11 if has_GQA else 0.0, "applied": bool(delta_GQA),
+                    "applied_value": delta_GQA, "status": "historical_hypothesis_no_universal_calibration"},
         },
         "experimental_corrections_requested": bool(apply_exploratory),
         "gamma_corrected":       gamma_pade_val + delta_GQA + delta_SWA + delta_post_IH,
         "calibration_warning":  ("SWA correction disabled (originally fit on n=1). "
                                  "post_IH is exploratory and requires explicit opt-in (group-mean ≈ 0). "
-                                 "GQA remains an empirical panel correction, not universal calibration."),
+                                 "GQA is also disabled by default; explicit opt-in reproduces a historical hypothesis."),
     }
 
 
 def d_horizon(theta: float, gamma: float):
-    """§26.2 — d_h = θ(1-γ)√2/(1+γ). None if γ outside (0,1)."""
-    if gamma <= 0 or gamma >= 1:
+    """Inverse context coordinate on -1<gamma<1; not a retrieval horizon."""
+    if not math.isfinite(theta) or theta <= 0 or not math.isfinite(gamma) or not -1 < gamma < 1:
         return None
     return theta * (1 - gamma) * math.sqrt(2) / (1 + gamma)
 
@@ -109,40 +153,13 @@ def alpha_opt(gamma_target: float, T_eval: int, theta_nominal: float) -> float:
 
 
 def df_window(gamma: float, N: int, f: float = 0.90):
-    """§26.7 — KV compression window via DISCRETE cumulative sum.
-
-    Returns None outside calibrated zone γ ∈ [0.65, 0.85]. Inside, computes
-    the smallest D such that ∑_{d=1}^D d^{-γ} / ∑_{d=1}^N d^{-γ} ≥ f.
-
-    This is exact for the discrete attention distribution and avoids the
-    continuum-approximation error that the paper's closed form has at γ→1.
-    """
-    if not (0.65 <= gamma <= 0.85):
-        return None
-    if N <= 0:
-        return 1
-    weights = [d ** (-gamma) for d in range(1, N + 1)]
-    total = sum(weights)
-    target = f * total
-    cum = 0.0
-    for d, w in enumerate(weights, start=1):
-        cum += w
-        if cum >= target:
-            return d
-    return N
+    """Smallest prefix with family mass >=f; not an evaluated cache policy."""
+    return finite_quantile(gamma, N, f)
 
 
 def kv_soft_decay_regime(theta: float, gamma: float, T_train: int) -> str:
-    """§26.8 — Soft decay régimen-bound. d_h ≳ T_train/2 ⇒ applies."""
-    dh = d_horizon(theta, gamma)
-    if dh is None:
-        return "use-hard-cutoff"
-    ratio = dh / max(1, T_train / 2)
-    if ratio >= 1.2:
-        return "applies"
-    if ratio >= 0.8:
-        return "borderline"
-    return "use-hard-cutoff"
+    """The historical three-model boundary has no validated operating regime."""
+    return "requires_paired_evaluation"
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -219,29 +236,16 @@ def compute_invariant_K(gamma: float, n_params_M: float,
     }
 
 
-def ih_phase_check(gamma_text: float, gamma_random: float,
-                   n_params_M: float = None) -> dict:
-    """§30 — IH-formation phase discriminator.
-
-    sign(γ_text − γ_random) > 0 ⟺ post-IH (text concentrates more than random).
-    Pre-IH (P<400M, n=7): ⟨Δγ⟩ = -0.19 ± 0.26
-    Post-IH (P≥400M, n=15): ⟨Δγ⟩ = +0.03 ± 0.26
-    """
-    delta = gamma_text - gamma_random
-    phase_observed = "post-IH" if delta > 0 else ("pre-IH" if delta < 0 else "ambiguous")
-    phase_expected = None
-    if n_params_M is not None:
-        phase_expected = "post-IH" if n_params_M * 1e6 >= 4e8 else "pre-IH"
-    consistent = (phase_expected is None) or (phase_observed == phase_expected)
-    return {
-        "delta_gamma":       delta,
-        "phase_observed":    phase_observed,
-        "phase_expected_by_size": phase_expected,
-        "consistent":        consistent,
-        "panel_pre_IH_mean": -0.19,
-        "panel_post_IH_mean": +0.03,
-        "panel_std":         0.26,
-    }
+def ih_phase_check(gamma_text, gamma_random, n_params_M=None):
+    """Descriptive paired contrast. Legacy sign is preserved explicitly."""
+    if not all(math.isfinite(g) for g in (gamma_text, gamma_random)):
+        raise ValueError("Both measurements must be finite")
+    return {"delta_gamma": gamma_text-gamma_random,
+            "delta_convention": "legacy_text_minus_random",
+            "gamma_random_minus_text": gamma_random-gamma_text,
+            "canonical_convention": "random_minus_text",
+            "phase_observed": None, "phase_expected_by_size": None,
+            "consistent": None, "status": "circuit_not_identified"}
 
 
 def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
@@ -259,12 +263,12 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
            + ε
 
     Calibration audit 2026-05-02:
-      δ_GQA solid; δ_SWA demoted (n=1); δ_post_IH exploratory; δ_instruct exploratory (n=3).
+      δ_GQA exploratory and disabled by default; δ_SWA demoted (n=1); δ_post_IH exploratory; δ_instruct exploratory (n=3).
     """
     imprint_candidate = NU_IMPRINT * math.log10(max(n_params_M, 1e-3) / P_0_IMPRINT_M) \
                     if corpus == "random" else 0.0
     delta_imprint = 0.0  # Not identified; do not reactivate through the exploratory flag.
-    delta_GQA = +0.11 if has_GQA else 0.0
+    delta_GQA = +0.11 if has_GQA and apply_exploratory else 0.0
     # SWA disabled: originally fit on n=1.
     delta_SWA = 0.0
     base = gamma_decompose(gamma_pade_val, has_GQA, has_SWA, n_params_M * 1e6,
@@ -294,7 +298,7 @@ def gamma_decompose_v2(gamma_pade_val: float, n_params_M: float,
         "corpus":              corpus,
         "axes":                ["pade", "imprint", "GQA", "SWA", "IH", "instruct"],
         "calibration_warning":  ("SWA and unidentified imprint disabled. post_IH/instruct require explicit opt-in. "
-                                 "GQA remains an empirical panel correction, not universal calibration."),
+                                 "GQA is also disabled by default; explicit opt-in reproduces a historical hypothesis."),
     }
 
 
@@ -503,162 +507,28 @@ def break_even_volume(training_cost: float, self_inference_per_Mtok: float,
 def run_recipe_x2(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
                   d_head, n_layers, n_params, has_SWA=False,
                   bytes_per_element=2.0, gamma_obs=None, **_unused):
-    """X-2: will model M serve length L doing NIAH retrieval?
-
-    Honesty note (v0.9.x audit): the closed-form horizon is TAUTOLOGICAL —
-    d_horizon(γ_Padé(θ, T_eval)) ≡ T_eval by construction (identity D-NEW-1,
-    see padé_deviation_index §33.2). Without a measured γ_obs the no-inference
-    verdict is driven only by the empirical γ-corrections (δ), several of which
-    are disabled/exploratory — NOT by RoPE geometry. Pass `gamma_obs` (from the
-    Diagnose CLI) for a non-tautological, PDI-based verdict.
-    """
-    chain = []
+    """Report configuration and resources; retrieval needs a matched task test."""
     g_pade = gamma_pade(theta, T_eval)
-    chain.append(_step(1, "§26.1", "γ_Padé", "γ = (2θ - T√2)/(2θ + T√2)",
-                       {"theta": theta, "T_eval": T_eval}, g_pade,
-                       _phase_label(g_pade),
-                       interp_code=_phase_code(g_pade)))
-
-    has_GQA = (n_kv_heads < n_attention_heads)
-    decomp = gamma_decompose(g_pade, has_GQA=has_GQA, has_SWA=has_SWA, n_params=n_params)
-    g_corr = decomp["gamma_corrected"]
-    chain.append(_step(2, "§26.10", "γ-decomposition", "γ + δ_GQA + δ_SWA + δ_post_IH",
-                       {"has_GQA": has_GQA, "has_SWA": has_SWA, "n_params": n_params},
-                       g_corr, breakdown=decomp))
-
-    # Honesty: d_horizon(γ_Padé(θ,T_eval)) ≡ T_eval identically (D-NEW-1; see PDI §33.2),
-    # so the closed-form horizon is tautological — only the δ-corrections move it off T_eval.
-    # The genuinely geometric reference is the NATIVE horizon at the training length T_train.
-    dh = d_horizon(theta, g_corr)
-    dh_native = d_horizon(theta, gamma_pade(theta, T_train))  # ≡ T_train by construction
-    caveats = ["x2_closed_form_tautology"]
-    if has_SWA:
-        caveats.append("x2_delta_swa_disabled")
-    if decomp["corrections"]["post_IH"]["candidate"] != 0.0:
-        caveats.append("x2_delta_postih_disabled")
-    chain.append(_step(3, "§26.2", "d_horizon", "d_h = θ(1-γ)√2/(1+γ)",
-                       {"theta": theta, "gamma": g_corr, "T_train": T_train}, dh,
-                       "n/a — γ outside (0,1)" if dh is None else
-                       (f"closed-form d_h≈{dh:.0f}; but d_horizon(γ_Padé(θ,T_eval))≡T_eval={T_eval} "
-                        f"by construction (D-NEW-1) → this verdict is δ-driven, not RoPE geometry. "
-                        f"Native horizon at T_train={T_train}: d_h≈{dh_native:.0f}."),
-                       interp_code=("x2.i.dh_na" if dh is None else "x2.i.dh"),
-                       interp_params=(None if dh is None else
-                                      {"dh": f"{dh:.0f}", "T_eval": T_eval,
-                                       "T_train": T_train, "dh_native": f"{dh_native:.0f}"})))
-
-    l_niah = l_niah_c(dh)
-    chain.append(_step(4, "§26.5", "L_NIAH^c", "L_NIAH^c = 2·d_horizon",
-                       {"d_horizon": dh}, l_niah,
-                       "n/a" if l_niah is None else f"NIAH 50% at L={l_niah:.0f}",
-                       interp_code=("x2.i.na" if l_niah is None else "x2.i.lniah"),
-                       interp_params=(None if l_niah is None else {"L": f"{l_niah:.0f}"})))
-
-    p_hallu = p_hallucinate(T_eval, theta, g_corr)
-    chain.append(_step(5, "§26.9", "P_hallucinate", "max(0,1-(d_h/L)^(1-γ))·√χ/(1+√χ)",
-                       {"L": T_eval, "theta": theta, "gamma": g_corr}, p_hallu,
-                       "n/a (Phase B)" if p_hallu is None else f"{p_hallu*100:.1f}% predicted",
-                       interp_code=("x2.i.phallu_na" if p_hallu is None else "x2.i.phallu"),
-                       interp_params=(None if p_hallu is None else {"pct": f"{p_hallu*100:.1f}"})))
-
+    if gamma_obs is not None and not math.isfinite(gamma_obs):
+        raise ValueError("gamma_obs must be finite or absent")
     kv = kv_cache_memory(n_layers, n_kv_heads, d_head, T_eval, bytes_per_element)
-    chain.append(_step(6, "§19.1", "KV cache memory", "2·L·n_kv·d_h·seq·B",
-                       {"n_layers": n_layers, "n_kv_heads": n_kv_heads, "d_head": d_head,
-                        "seq_len": T_eval, "bytes_per_element": bytes_per_element},
-                       kv, f"{kv['GB']:.2f} GB per request",
-                       interp_code="x2.i.kv", interp_params={"gb": f"{kv['GB']:.2f}"}))
-
+    chain = [_step(1, "§5", "gamma_P candidate", "(2theta-T*sqrt(2))/(2theta+T*sqrt(2))",
+                  {"theta": theta, "T_eval": T_eval}, g_pade,
+                  "Configuration function; not an observation."),
+             _step(2, "§19.1", "KV memory", "2*bytes*layers*KV_heads*d_head*T",
+                  {"bytes_per_element": bytes_per_element, "T_eval": T_eval}, kv,
+                  "Allocation estimate per request; runtime overhead is additional.")]
     if gamma_obs is not None:
-        # Non-tautological path: verdict from MEASURED γ_obs (Diagnose CLI).
-        horizon_source = "measured"
-        caveats.append("x2_measured_horizon")
-        pdi_info = padé_deviation_index(theta, gamma_obs, T_eval)
-        pdi = pdi_info["PDI"]
-        dh_obs = d_horizon(theta, gamma_obs)
-        chain.append(_step(7, "§33.2", "PDI (measured γ_obs)",
-                           "PDI = d_h^obs/T_eval = θ(1−γ_obs)√2/((1+γ_obs)·T_eval)",
-                           {"theta": theta, "gamma_obs": gamma_obs, "T_eval": T_eval}, pdi,
-                           pdi_info.get("traffic_light", "")))
-        if gamma_obs >= 1 or dh_obs is None:
-            verdict, reason = "NO", (f"Measured γ_obs={gamma_obs:.3f} ≥ 1 (Phase B): long-context "
-                                     f"retrieval fails without NTK extension.")
-            _alpha = alpha_opt(0.85, T_eval, theta)
-            mit = f"Apply NTK extension. α_opt = {_alpha:.2f}."
-            _rc, _rp = "x2.r.phaseb_measured", {"gamma_obs": f"{gamma_obs:.3f}"}
-            _mc, _mp = "x2.m.ntk_alpha", {"alpha": f"{_alpha:.2f}"}
-        elif T_eval < dh_obs:
-            margin = (1 - T_eval / dh_obs) * 100
-            verdict, reason = "YES", (f"Measured horizon d_h^obs={dh_obs:.0f} > L={T_eval} "
-                                      f"({margin:.0f}% margin, PDI={pdi:.2f}).")
-            mit = "None required."
-            _rc, _rp = "x2.r.yes_measured", {"dh": f"{dh_obs:.0f}", "L": T_eval,
-                                             "margin": f"{margin:.0f}", "pdi": f"{pdi:.2f}"}
-            _mc, _mp = "x2.m.none", {}
-        elif T_eval < 2 * dh_obs:
-            verdict, reason = "DEGRADED", (f"L={T_eval} between measured horizon {dh_obs:.0f} and "
-                                           f"NIAH ceiling {2*dh_obs:.0f} (PDI={pdi:.2f}).")
-            mit = "Consider context contraction OR NTK extension."
-            _rc, _rp = "x2.r.degraded_measured", {"L": T_eval, "dh": f"{dh_obs:.0f}",
-                                                  "ceil": f"{2*dh_obs:.0f}", "pdi": f"{pdi:.2f}"}
-            _mc, _mp = "x2.m.contract_or_ntk", {}
-        else:
-            verdict, reason = "NO", (f"L={T_eval} exceeds measured NIAH ceiling {2*dh_obs:.0f} "
-                                     f"(PDI={pdi:.2f}).")
-            _theta_need = theta_design(0.85, T_eval)
-            mit = f"Apply NTK extension; need θ ≈ {_theta_need:,.0f} for γ=0.85."
-            _rc, _rp = "x2.r.no_measured", {"L": T_eval, "ceil": f"{2*dh_obs:.0f}", "pdi": f"{pdi:.2f}"}
-            _mc, _mp = "x2.m.ntk_theta", {"theta": f"{_theta_need:,.0f}"}
-    else:
-        # Closed-form path: verdict is δ-driven (tautological horizon). Flag it.
-        horizon_source = "closed_form_tautological"
-        caveats.append("x2_use_measured_gamma")
-        if g_corr <= 0 or g_corr >= 1:
-            verdict, reason = "NO", "Phase B / geometric collapse (γ_corrected outside (0,1))"
-            _theta_need = theta_design(0.85, T_eval)
-            _alpha = alpha_opt(0.85, T_eval, theta)
-            mit = (f"Apply NTK-aware extension. Required θ for γ=0.85: "
-                   f"{_theta_need:,.0f}. α_opt = {_alpha:.2f} "
-                   f"({'fine-tuning required' if _alpha > 8 else 'zero-shot may work'}).")
-            _rc, _rp = "x2.r.phaseb_closed", {}
-            _mc, _mp = ("x2.m.ntk_full_ft" if _alpha > 8 else "x2.m.ntk_full_zs"), \
-                       {"theta": f"{_theta_need:,.0f}", "alpha": f"{_alpha:.2f}"}
-        elif dh is not None and T_eval < dh:
-            margin = (1 - T_eval / dh) * 100
-            verdict, reason = "YES", f"L={T_eval} inside d_horizon={dh:.0f} ({margin:.0f}% margin)."
-            mit = "None required."
-            _rc, _rp = "x2.r.yes_closed", {"L": T_eval, "dh": f"{dh:.0f}", "margin": f"{margin:.0f}"}
-            _mc, _mp = "x2.m.none", {}
-        elif dh is not None and T_eval < l_niah:
-            verdict, reason = "DEGRADED", f"L between d_horizon ({dh:.0f}) and L_NIAH^c ({l_niah:.0f})."
-            mit = "Consider context contraction OR NTK extension."
-            _rc, _rp = "x2.r.degraded_closed", {"dh": f"{dh:.0f}", "ceil": f"{l_niah:.0f}"}
-            _mc, _mp = "x2.m.contract_or_ntk", {}
-        else:
-            verdict, reason = "NO", f"L={T_eval} exceeds NIAH ceiling {l_niah:.0f}."
-            _theta_need = theta_design(0.85, T_eval)
-            mit = f"Apply NTK extension; need θ ≈ {_theta_need:,.0f} for γ=0.85."
-            _rc, _rp = "x2.r.no_closed", {"L": T_eval, "ceil": f"{l_niah:.0f}"}
-            _mc, _mp = "x2.m.ntk_theta", {"theta": f"{_theta_need:,.0f}"}
-
-    out = _wrap("X-2", "Long Context Viability", locals(), chain, verdict, reason, mit,
-                reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
-    out["caveats"] = caveats
-    out["horizon_source"] = horizon_source
-    if gamma_obs is not None:
-        out["pdi"] = pdi
-
-    # Heuristic evidence checklist; no accuracy/quality calibration. Legacy key retained.
-    conf_factors = []
-    if horizon_source == "measured":
-        conf_factors.append(("gamma_measured", "ok"))
-        conf_factors.append(("benchmark_yes", "ok"))
-    else:
-        conf_factors.append(("gamma_closed", "warn"))
-        conf_factors.append(("benchmark_no", "warn"))
-    conf_factors.append(("validity_ok", "ok") if 0 < g_corr < 1 else ("validity_out", "miss"))
-    _exploratory = any(c in caveats for c in ("x2_delta_postih_exploratory", "x2_delta_postih_disabled", "x2_delta_swa_disabled"))
-    conf_factors.append(("calib_exploratory", "warn") if _exploratory else ("calib_reliable", "ok"))
-    out["confidence"] = _confidence(conf_factors)
+        chain.append(_step(3, "§9", "Observed slope", "provided gamma_obs",
+                           {"gamma_obs": gamma_obs}, gamma_obs,
+                           "Protocol-specific descriptor; not a retrieval score."))
+    out = _wrap("X-2", "Long-context evaluation", locals(), chain, "NEEDS EVALUATION",
+                "Configuration and a fitted slope do not determine retrieval success.",
+                "Run a matched retrieval benchmark at the requested length and retain its protocol.",
+                reason_code="alignment.x2.reason", mit_code="alignment.x2.next")
+    out.update({"horizon_source": "not_identified", "gamma_observed": gamma_obs,
+                "retrieval_prediction": None, "caveats": ["task_evaluation_required"],
+                "confidence": _confidence([("benchmark_no", "warn")])})
     return out
 
 
@@ -935,89 +805,24 @@ def run_recipe_x5(N_params, T_eval=4096, n_layers=32, n_kv_heads=8, d_head=128,
 # X-19 — KV compression decision (ours vs literature)
 # ─────────────────────────────────────────────────────────────────────
 def run_recipe_x19(theta, T_train, T_eval, n_attention_heads, n_kv_heads,
-                   d_head, n_layers, n_params, has_SWA=False, **_unused):
-    """X-19: should I use γ-soft KV decay, hard D_f, or literature methods?"""
-    chain = []
-
-    # Step 1: γ_Padé
-    g_pade = gamma_pade(theta, T_eval)
-    chain.append(_step(1, "§26.1", "γ_Padé", "(2θ-T√2)/(2θ+T√2)",
-                       {"theta": theta, "T_eval": T_eval}, g_pade, _phase_label(g_pade),
-                       interp_code=_phase_code(g_pade)))
-
-    # Step 2: γ-decomposition
-    has_GQA = n_kv_heads < n_attention_heads
-    decomp = gamma_decompose(g_pade, has_GQA, has_SWA, n_params)
-    g_corr = decomp["gamma_corrected"]
-    chain.append(_step(2, "§26.10", "γ-decomposition", "5-axis adjustment",
-                       {"has_GQA": has_GQA, "has_SWA": has_SWA, "n_params": n_params},
-                       g_corr))
-
-    # Step 3: §26.7 D_f window applicability
-    df = df_window(g_corr, T_eval, f=0.90)
-    df_zone_ok = df is not None
-    chain.append(_step(3, "§26.7", "D_f window (γ in [0.65, 0.85])",
-                       "[(1-f)+fN^(1-γ)]^(1/(1-γ))",
-                       {"gamma": g_corr, "N": T_eval, "f": 0.9}, df,
-                       f"D_f = {df}" if df_zone_ok
-                       else f"NOT applicable (γ={g_corr:.3f} outside [0.65, 0.85])",
-                       interp_code=("x19.i.df" if df_zone_ok else "x19.i.df_na"),
-                       interp_params=({"df": df} if df_zone_ok
-                                      else {"gamma": f"{g_corr:.3f}"})))
-
-    # Step 4: §26.8 soft decay régimen
-    regime = kv_soft_decay_regime(theta, g_corr, T_train)
-    dh = d_horizon(theta, g_corr)
-    dh_str = f"{dh:.0f}" if dh is not None else "n/a"
-    _regime_ic = {"applies": "x19.i.regime_applies",
-                  "borderline": "x19.i.regime_borderline"}.get(regime, "x19.i.regime_hard")
-    chain.append(_step(4, "§26.8", "Soft decay régimen", "d_h ≳ T_train/2",
-                       {"theta": theta, "gamma": g_corr, "T_train": T_train}, regime,
-                       f"d_horizon={dh_str}; regime: {regime}",
-                       interp_code=_regime_ic, interp_params={"dh": dh_str}))
-
-    # Step 5: KV cache memory baseline
+                   d_head, n_layers, n_params, has_SWA=False, gamma_obs=None, **_unused):
+    """Family mass calculator and evaluation plan, without a quality guarantee."""
+    g = gamma_pade(theta, T_eval) if gamma_obs is None else gamma_obs
+    df = df_window(g, T_eval, 0.90)
     kv = kv_cache_memory(n_layers, n_kv_heads, d_head, T_eval)
-    chain.append(_step(5, "§19.1", "Baseline KV memory", "2·L·n_kv·d_h·seq·B",
-                       {"L": n_layers, "n_kv": n_kv_heads, "d_h": d_head, "seq": T_eval},
-                       kv, f"{kv['GB']:.2f} GB without compression",
-                       interp_code="x19.i.kv", interp_params={"gb": f"{kv['GB']:.2f}"}))
-
-    # Verdict
-    if regime == "applies" and df_zone_ok:
-        verdict = "USE SOFT DECAY"
-        reason = (f"d_horizon ≳ T_train/2 AND γ in compression zone. "
-                  f"Soft decay (1-d/d_h)^γ best (-21% PPL vs hard cutoff per F17).")
-        mit = "Implement as 4D attention_mask additive bias with eager attention."
-        _rc, _rp = "x19.r.soft", {}
-        _mc, _mp = "x19.m.soft", {}
-    elif df_zone_ok:
-        verdict = "USE D_f HARD CUTOFF"
-        reason = f"γ in [0.65, 0.85] zone but d_h < T_train/2. Hard truncation at D_f={df} works."
-        mit = "Set cache_max_len = D_f."
-        _rc, _rp = "x19.r.df", {"df": df}
-        _mc, _mp = "x19.m.df", {}
-    elif regime == "applies":
-        verdict = "USE SOFT DECAY (caveat)"
-        reason = "Régimen applies but γ outside D_f validity zone. Soft decay only."
-        mit = "Soft decay; do not use D_f window."
-        _rc, _rp = "x19.r.soft_caveat", {}
-        _mc, _mp = "x19.m.soft_only", {}
-    elif g_corr >= 1 or g_corr <= 0:
-        verdict = "USE LITERATURE METHODS"
-        reason = f"γ={g_corr:.3f} outside Phase A. Our formulas don't apply."
-        mit = "Use SnapKV / PyramidKV / FastGen (literature heuristics)."
-        _rc, _rp = "x19.r.lit", {"gamma": f"{g_corr:.3f}"}
-        _mc, _mp = "x19.m.lit", {}
-    else:
-        verdict = "USE HARD T_train CUTOFF"
-        reason = "Régimen not met AND γ outside zone. Cap context at T_train."
-        mit = f"Set seq_len ≤ {T_train}, no extension."
-        _rc, _rp = "x19.r.hard", {}
-        _mc, _mp = "x19.m.hard", {"T_train": T_train}
-
-    return _wrap("X-19", "KV compression decision", locals(), chain, verdict, reason, mit,
-                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
+    chain = [_step(1, "§11", "Derived family D_90", "min D: sum(d^-gamma,d<=D)/Z_N >= 0.9",
+                   {"gamma": g, "N": T_eval, "f": .9}, df,
+                   "Finite family on 1..N; not measured retained attention mass."),
+             _step(2, "§19.1", "Baseline KV memory", "2*bytes*layers*KV_heads*d_head*T",
+                   {"T_eval": T_eval}, kv, "Allocation estimate, not measured savings.")]
+    out = _wrap("X-19", "KV policy evaluation", locals(), chain, "NEEDS EVALUATION",
+                "The finite-family quantile is calculable; a cache policy needs paired quality and resource measurements.",
+                "Compare full attention, hard cutoff and soft weights inside training context; measure actual eviction, memory and latency.",
+                reason_code="alignment.x19.reason", mit_code="alignment.x19.next")
+    out.update({"D90_kind": "derived_power_law", "gamma_source": "candidate" if gamma_obs is None else "provided_measurement",
+                "policy_recommendation": None, "soft_weight_implementation": "add log(w) to scores; w=0 is a mask",
+                "historical_soft_decay_scope": "4096-token extrapolation beyond Pythia training context 2048"})
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -1183,70 +988,28 @@ def run_recipe_x22(theta, T_train, n_params, gamma_obs, D_tokens=None,
         _rp = {"K": f"{inv['K']:.2f}", "z": f"{abs(inv['z_score']):.2f}"}
         _mc, _mp = "x22.m.outlier", {}
 
-    return _wrap("X-22", "Compute-Context Invariant", locals(), chain,
-                 verdict, reason, mit,
-                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
+    return _wrap("X-22", "Historical compute coordinate", locals(), chain,
+                 "UNVALIDATED", "The panel coordinate is not a model-capacity invariant.",
+                 "Use measured compute, task quality and context; no invariant-based recommendation.",
+                 reason_code="alignment.x22.reason", mit_code="alignment.x22.next")
 
 
-# ─────────────────────────────────────────────────────────────────────
-# X-23 — IH-Phase Detector (sesión 29 — F4 Δγ probe)
-# ─────────────────────────────────────────────────────────────────────
 def run_recipe_x23(n_params, gamma_text=None, gamma_random=None, **_unused):
-    """X-23: is this checkpoint pre- or post-induction-head formation?
-
-    Discriminator: sign(γ_text − γ_random) > 0 ⟺ post-IH.
-    Cheaper than ICL benchmark for monitoring training trajectories.
-    """
+    """Two measured slopes do not identify induction-head formation."""
     chain = []
-    n_params_M = n_params / 1e6
-
-    # Step 1: size-based prediction
-    expected = "post-IH" if n_params >= 4e8 else "pre-IH"
-    chain.append(_step(1, "§30", "Size-based phase prediction",
-                       "P ≥ 400M ⇒ post-IH",
-                       {"n_params_M": n_params_M, "threshold_M": 400}, expected))
-
-    # Step 2: γ-based discrimination if both gammas given
+    contrast = None
     if gamma_text is not None and gamma_random is not None:
-        check = ih_phase_check(gamma_text, gamma_random, n_params_M)
-        _obs_ic = {"post-IH": "x23.i.obs_post",
-                   "pre-IH": "x23.i.obs_pre"}.get(check["phase_observed"], "x23.i.obs_amb")
-        chain.append(_step(2, "§30", "Δγ discriminator", "sign(γ_text − γ_random)",
+        contrast = ih_phase_check(gamma_text, gamma_random)
+        chain.append(_step(1, "§9", "Canonical contrast", "gamma_random-gamma_text",
                            {"gamma_text": gamma_text, "gamma_random": gamma_random},
-                           check["delta_gamma"],
-                           f"observed phase: {check['phase_observed']}",
-                           interp_code=_obs_ic))
-
-        if check["consistent"]:
-            verdict = f"CONFIRMED {check['phase_observed'].upper()}"
-            reason = (f"Δγ = {check['delta_gamma']:+.3f} sign matches size-prediction "
-                      f"({expected}).")
-            mit = "Phase confirmed. Use this checkpoint for downstream tasks accordingly."
-            _rc = "x23.r.confirmed"
-            _rp = {"delta": f"{check['delta_gamma']:+.3f}", "expected": expected}
-            _mc, _mp = "x23.m.confirmed", {}
-        else:
-            verdict = "ANOMALY"
-            reason = (f"Δγ = {check['delta_gamma']:+.3f} suggests {check['phase_observed']}, "
-                      f"but size predicts {expected}. Investigate.")
-            mit = ("Possible causes: incomplete training, anomalous fine-tuning, "
-                   "format conversion, tokenizer corruption (cf. F5 OLMo Δγ=0.30).")
-            _rc = "x23.r.anomaly"
-            _rp = {"delta": f"{check['delta_gamma']:+.3f}",
-                   "obs": check["phase_observed"], "expected": expected}
-            _mc, _mp = "x23.m.anomaly", {}
-    else:
-        verdict = f"PREDICTED {expected.upper()}"
-        reason = (f"Only size given: P = {n_params_M:.0f}M. "
-                  f"Provide gamma_text + gamma_random to verify via Δγ probe.")
-        mit = ("Run E4 protocol with corpus=mongo and corpus=random; "
-               "compare γ values.")
-        _rc, _rp = "x23.r.pred_only", {"P": f"{n_params_M:.0f}"}
-        _mc, _mp = "x23.m.pred_only", {}
-
-    return _wrap("X-23", "IH-Phase Detector", locals(), chain,
-                 verdict, reason, mit,
-                 reason_code=_rc, reason_params=_rp, mit_code=_mc, mit_params=_mp)
+                           contrast["gamma_random_minus_text"],
+                           "Compare only matched supports and protocols; circuit attribution needs functional tests."))
+    out = _wrap("X-23", "Corpus contrast", locals(), chain, "NEEDS EVALUATION",
+                "Neither parameter count nor the contrast sign identifies an induction circuit.",
+                "Measure prefix matching/copying and interventions under a fixed protocol.",
+                reason_code="alignment.x23.reason", mit_code="alignment.x23.next")
+    out["contrast"] = contrast
+    return out
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1912,17 +1675,8 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
     dh = d_horizon(theta, g_corr)
     chi = chi_susceptibility(g_corr) if 0 < g_corr < 2 else None
 
-    # Architecture classification (paper species map)
-    if has_SWA:
-        arch_class = "SWA-alternating (gemma/phi family signature)"
-    elif has_GQA and n_params >= 4e8:
-        arch_class = "RoPE-GQA post-IH (Llama-3 / Mistral / Qwen-style)"
-    elif has_GQA:
-        arch_class = "RoPE-GQA pre-IH (small GQA model)"
-    elif n_params >= 4e8:
-        arch_class = "RoPE-MHA post-IH (classical Llama-2 / pythia-large)"
-    else:
-        arch_class = "RoPE-MHA pre-IH (small MHA model)"
+    # Factual configuration labels only; no size-derived circuit labels.
+    arch_class = ("GQA" if has_GQA else "MHA") + (" + configured SWA" if has_SWA else "")
 
     common_params = {
         "theta": theta, "T_train": T_train, "T_eval": T_eval,
@@ -1965,28 +1719,11 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
     except Exception as e:
         results["X-5"] = {"error": str(e)}
 
-    # Falsification status (from FALSIFICATION.md F1-F23)
-    falsifications = []
-    if 0 < g_corr < 1:
-        falsifications.append({"id": "F1", "claim": "γ_Padé median MAE < 5%", "status": "✅ in scope"})
-    if dh is not None:
-        falsifications.append({"id": "F2", "claim": "d_horizon predicts NIAH ±1%", "status": "✅ applicable"})
-        falsifications.append({"id": "F17", "claim": "Soft KV decay regime",
-                               "status": "✅ applies" if dh >= T_train / 2 else "⚠ refuted regime"})
-    if has_GQA:
-        falsifications.append({"id": "F10", "claim": "GQA Δγ < -0.1 ⇒ post-IH",
-                               "status": "✅ in scope"})
-    if has_SWA:
-        falsifications.append({"id": "F11", "claim": "SWA Δγ > +0.3 (gemma signature)",
-                               "status": "✅ in scope"})
-
-    # Sesión 29 / paper 2 visual diagnostics
-    safety = hagedorn_safety_alert(g_corr)
-    phase_cls = bimodal_phase_class(g_corr)
-    constants = nearest_famous_constant(g_corr, max_results=2, tolerance=0.02)
-    n_params_M = n_params / 1e6
-    gamma_random_pred = gamma_random_predict(theta, T_eval, n_params_M)
-    K_inv = compute_invariant_K(g_corr, n_params_M)
+    falsifications = [
+        {"id": "F1", "claim": "Padé accuracy below 5%", "status": "withdrawn: unreconstructed selection"},
+        {"id": "F2", "claim": "Inverse-coordinate NIAH ceiling", "status": "withdrawn: no validated capacity mapping"},
+        {"id": "F17", "claim": "Universal soft-decay boundary", "status": "unvalidated: three extrapolation cases"},
+    ]
 
     return {
         "model_summary": {
@@ -2003,21 +1740,17 @@ def profile_model(theta, T_train, n_attention_heads, n_kv_heads, d_head,
             "gamma_decomposed": g_corr,
             "decomposition_breakdown": decomp,
             "d_horizon": dh,
-            "L_NIAH_ceiling": l_niah_c(dh),
-            "chi_susceptibility": chi,
+            "L_NIAH_ceiling": None,
+            "chi_susceptibility": None,
             "kv_memory_per_request_GB": kv_cache_memory(n_layers, n_kv_heads,
                                                         d_head, T_eval)["GB"],
-            "gamma_random_predicted": gamma_random_pred,
-            "compute_invariant_K": K_inv["K"],
-            "K_in_distribution": K_inv["in_distribution"],
+            "gamma_random_predicted": None,
+            "compute_invariant_K": None,
+            "K_in_distribution": None,
         },
-        "v04_diagnostics": {
-            "hagedorn_safety": safety,
-            "bimodal_phase_class": phase_cls,
-            "nearest_famous_constants": constants,
-            "imprint_predicted_shift": gamma_random_pred - g_pade,
-            "compute_invariant": K_inv,
-        },
+        "v04_diagnostics": {},
+        "formula_contract": "finite-family-v2-20261118",
+        "gamma_observed": None,
         "recipes": {
             rid: {
                 "verdict": r.get("verdict", "ERROR"),

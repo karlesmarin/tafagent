@@ -78,79 +78,65 @@ OUTPUT_DIR = Path("./diagnose_results")
 EULER_GAMMA = 0.5772156649015329
 
 
-def partition_Z(gamma: float, N: int) -> float:
-    """Z(γ, N) = sum_{d=1}^N d^{-γ}.
-
-    γ=1: H_N ~ log N + γ_E + 1/(2N) − ...   [Euler-Mascheroni asymptotic]
-    γ≠1: integral approximation + d=1 boundary.
-    """
-    if abs(gamma - 1.0) < 1e-5:
-        return math.log(N) + EULER_GAMMA  # was math.log(N+0.5), missing γ_E
-    return (N ** (1 - gamma) - 1) / (1 - gamma) + 1
-
-
-def mean_log_d(gamma: float, N: int) -> float:
-    Z = partition_Z(gamma, N)
-    if Z <= 0:
-        return 0.0
-    if abs(gamma - 1.0) < 1e-5:
-        integral = math.log(N) ** 2 / 2
-    else:
-        g1 = 1.0 - gamma
-        integral = N ** g1 * (math.log(N) / g1 - 1 / g1 ** 2) + 1 / g1 ** 2
-    return integral / Z
-
-
-def entropy_S(gamma: float, N: int) -> float:
-    return math.log(partition_Z(gamma, N)) + gamma * mean_log_d(gamma, N)
-
-
-def free_energy_F(gamma: float, N: int) -> float:
-    """Helmholtz free energy: F = -T·log(Z) = -log(Z)/γ  (T_attn = 1/γ).
-
-    Was: -log(Z)  [β·F = log-partition convention; ambiguous when reported as F].
-    Now: -log(Z)/γ  [physical F, consistent with U = -∂(log Z)/∂γ and S = (U − F)/T].
-    """
-    Z = max(partition_Z(gamma, N), 1e-30)
-    return -math.log(Z) / max(gamma, 1e-9)
+def finite_family(gamma, N):
+    if isinstance(N, bool) or not isinstance(N, int) or N < 1:
+        raise ValueError("N must be a positive integer")
+    if isinstance(gamma, bool) or not isinstance(gamma, (int, float)) or not math.isfinite(gamma):
+        raise ValueError("gamma must be a finite real number")
+    logs = [math.log(d) for d in range(1, N + 1)]
+    shift = -gamma * logs[-1] if gamma < 0 else 0.0
+    if not math.isfinite(shift):
+        raise ValueError("gamma*log(N) exceeds floating-point range")
+    # Center before multiplication, avoiding overflow and cancellation for gamma<0.
+    log_weights = [-gamma * (x - logs[-1] if gamma < 0 else x) for x in logs]
+    weights = [math.exp(x) for x in log_weights]
+    total = math.fsum(weights)
+    p = [w / total for w in weights]
+    logZ = shift + math.log(total)
+    U = math.fsum(w * x for w, x in zip(p, logs))
+    I = math.fsum(w * (x-U)**2 for w, x in zip(p, logs))
+    S = -math.fsum(w * math.log(w) for w in p if w > 0)
+    try:
+        Z = math.exp(logZ)
+    except OverflowError:
+        Z = float('inf')
+    return dict(Z=Z, logZ=logZ, U=U, I=I, Cv=(gamma*math.sqrt(I))**2,
+                S=S, F=None if gamma == 0 else -logZ/gamma,
+                probabilities=p, weights=weights, total=total)
 
 
-def heat_capacity_Cv(gamma: float, N: int, delta: float = 1e-4) -> float:
-    if gamma <= delta or gamma >= 20:
-        return float("nan")
-    dU = (mean_log_d(gamma + delta, N) - mean_log_d(gamma - delta, N)) / (2 * delta)
-    return -gamma ** 2 * dU
-
-
-def D_f_closed(gamma: float, f: float, N: int) -> int:
-    """KV compression window — DISCRETE truth (exact for the sum).
-
-    Smallest D such that ∑_{d=1}^D d^{-γ} / ∑_{d=1}^N d^{-γ}  ≥  f.
-
-    The paper's "exact continuous formula"
-    D_f = [(1−f) + f·N^(1−γ)]^{1/(1−γ)}   (and the γ=1 limit N^f)
-    is a CONTINUUM INTEGRAL APPROXIMATION that diverges from the discrete
-    sum by 5–50% in Phase B (γ>1), where the agent serves users.
-    Since N is bounded by context window (≤ ~10⁶), direct summation is
-    O(N) and fast (<10 ms). We use it for accuracy.
-    """
-    if N <= 0:
-        return 1
-    if not (0.0 < gamma):
-        return N  # ill-defined; safe upper bound
-    # Direct discrete cumulative
-    weights = [d ** (-gamma) for d in range(1, N + 1)]
-    total = sum(weights)
-    if total <= 0 or not math.isfinite(total):
-        # Fall back to continuum closed form (rare numerical edge case)
-        return _D_f_closed_continuum(gamma, f, N)
-    target = f * total
-    cum = 0.0
-    for d, w in enumerate(weights, start=1):
-        cum += w
-        if cum >= target:
+def finite_quantile(gamma, N, f=0.90):
+    if isinstance(f, bool) or not isinstance(f, (int, float)) or not math.isfinite(f) or not 0 < f < 1:
+        raise ValueError("f must lie strictly between zero and one")
+    family = finite_family(gamma, N)
+    target = f * family['total']
+    cumulative, correction = 0.0, 0.0
+    for d, w in enumerate(family['weights'], 1):
+        y = w-correction
+        updated = cumulative+y
+        correction = (updated-cumulative)-y
+        cumulative = updated
+        if cumulative >= target:
             return d
     return N
+
+def partition_Z(gamma, N):
+    return finite_family(gamma, N)["Z"]
+
+def mean_log_d(gamma, N):
+    return finite_family(gamma, N)["U"]
+
+def entropy_S(gamma, N):
+    return finite_family(gamma, N)["S"]
+
+def free_energy_F(gamma, N):
+    return finite_family(gamma, N)["F"]
+
+def heat_capacity_Cv(gamma, N, delta=None):
+    return finite_family(gamma, N)["Cv"]
+
+def D_f_closed(gamma, f, N):
+    return finite_quantile(gamma, N, f)
 
 
 def _D_f_closed_continuum(gamma: float, f: float, N: int) -> int:
@@ -180,11 +166,7 @@ def theta_eff_pade(theta: float, T: float) -> float:
 
 
 def phase_label(gamma: float) -> str:
-    if gamma < 0.95:
-        return "A — deconfined (RoPE/long)"
-    if gamma > 1.05:
-        return "B — confined (AbsPE/short)"
-    return "Hagedorn (crossover γ≈1)"
+    return "finite-family parameter; no architecture or task classification"
 
 
 def kl_divergence(p: np.ndarray, q: np.ndarray) -> float:
@@ -418,9 +400,8 @@ def run_diagnostic(args) -> dict:
     S = entropy_S(gamma, N)
     F = free_energy_F(gamma, N)
     Cv = heat_capacity_Cv(gamma, N)
-    chi = 1.0 / abs(gamma - 1.0) if abs(gamma - 1.0) > 1e-4 else 1e6
-    xi = 1.0 / abs(math.log(gamma)) if abs(math.log(gamma)) > 1e-10 else 1e6
-    T_attn = 1.0 / gamma
+    chi = xi = None  # Retired physical interpretations; keep legacy schema keys.
+    T_attn = None if gamma == 0 else 1.0 / gamma
 
     D90 = D_f_closed(gamma, 0.90, N)
     dH90 = delta_H(theta_nom, D90, N)
@@ -445,21 +426,17 @@ def run_diagnostic(args) -> dict:
     print("  γ_Padé         : not compared (no single evaluation length)")
     print("  R² describes the log-fit; it is not a validation/confidence score.")
     print(f"  Phase          : {phase}")
-    print(f"  T_attn = 1/γ   = {T_attn:.4f}")
+    print(f"  T_attn = 1/γ   = {T_attn if T_attn is not None else 'undefined at gamma=0'}")
     print()
-    print(f"  Thermodynamics (N={N}):")
+    print(f"  Derived finite-family coordinates (N={N}; not measured row moments):")
     print(f"    Z (partition) = {Z:.4f}")
     print(f"    U = E[log d]  = {U:.4f}")
     print(f"    S (entropy)   = {S:.4f}")
-    print(f"    F (free ener) = {F:.4f}")
+    print(f"    F (free ener) = {F if F is not None else 'undefined at gamma=0'}")
     cv_str = f"{Cv:.4f}" if math.isfinite(Cv) else "N/A"
     print(f"    C_V (heat cap)= {cv_str}")
-    chi_str = f"{chi:.2f}" if chi < 1e5 else "∞ (near Hagedorn)"
-    print(f"    χ (suscept.)  = {chi_str}")
-    xi_str = f"{xi:.2f}" if xi < 1e5 else "∞"
-    print(f"    ξ (corr. len) = {xi_str}")
     print()
-    print(f"  KV Compression (f=0.90):")
+    print(f"  Derived family mass quantile (f=0.90; not a cache recommendation):")
     print(f"    D_90           = {D90} tokens ({D90/N*100:.1f}% of N={N})")
     print(f"    dH_90          = {dH90:.4f} nats")
     print()
@@ -469,24 +446,9 @@ def run_diagnostic(args) -> dict:
     print()
     print(f"  Attention Grammar:")
     print(f"    KL(obs||prior) = {kl_ag:.4f}  ", end="")
-    if kl_ag > 0.05:
-        print("[HIGH — non-power-law circuits present]")
-    elif kl_ag > 0.01:
-        print("[MODERATE — some circuit deviation]")
-    else:
-        print("[LOW — pure positional attention]")
-
-    print(f"\n  γ interpretation:")
-    if gamma < 0.7:
-        print(f"    Very long-range attention (large θ, LLaMA-3/Qwen2.5 class)")
-    elif gamma < 0.95:
-        print(f"    Long-range attention (standard RoPE, Phase A)")
-    elif gamma < 1.05:
-        print(f"    Hagedorn crossover — attention at phase boundary")
-    elif gamma < 1.3:
-        print(f"    Short-range attention (AbsPE or short context training)")
-    else:
-        print(f"    Highly local attention (possible SWA or very short context)")
+    print("[descriptive divergence on sampled support; no circuit diagnosis]")
+    print("The variable-length fit is not a normalized attention row.")
+    print("Task quality, actual cache eviction and latency require separate paired tests.")
 
     # ── Save ─────────────────────────────────────────────────────────────
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -521,6 +483,9 @@ def run_diagnostic(args) -> dict:
         "chi": chi, "xi": xi,
         "D90": D90,
         "D90_kind": "derived_power_law",
+        "family_support": {"min": 1, "max": N, "measure": "counting"},
+        "family_moments_kind": "derived_from_fit_not_measured_rows",
+        "formula_contract": "finite-family-v2-20261118",
         "D90_frac": D90 / N,
         "delta_H_90": dH90,
         "theta_eff_pade": theta_eff,
