@@ -15,6 +15,8 @@ export const LANGUAGES = [
   { code: "zh", flag: "🇨🇳", label: "中文" },
 ];
 
+import { applyPaperIHelpUpdates } from "./paper_i_help_updates.js";
+
 export const TRANSLATIONS = {
   en: {
     "caveat.title": "Honesty notes",
@@ -6625,6 +6627,8 @@ for (const [language, entries] of Object.entries(MODEL_TRANSLATIONS)) Object.ass
 for (const [language, entries] of Object.entries(RESOLVER_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 for (const [language, entries] of Object.entries(ALIGNMENT_TRANSLATIONS)) Object.assign(TRANSLATIONS[language], entries);
 let currentLang = "en";
+
+applyPaperIHelpUpdates(TRANSLATIONS);
 
 export function getLang() {
   return currentLang;

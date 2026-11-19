@@ -59,6 +59,7 @@ language:
 ## 🔗 19 November 2026 · Paper I / guía / guide
 
 📄 [Revised Paper I EN (129 pp)](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_EN.pdf) · [ES (140 pp)](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_ES.pdf) · [Guide EN](https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html) · [Guía ES](https://karlesmarin.github.io/transformers-guide/es/chapters/R5-tafagent.html).
+🗺️ [Blueprint público de esta edición](https://karlesmarin.github.io/blueprints/transformers-attend-I-full/) — mapa, pruebas, figuras, laboratorios y PDF EN/ES; vista preliminar hasta asignar el DOI de Zenodo.
 The paper revision is a GitHub candidate awaiting a new Zenodo deposit; the older Zenodo record names the historical edition. The paper defines the quantities and proof scope, the guide explains protocols, and TAF calculates or imports values with provenance. A calculated value is not an independent trained-model measurement.
 
 ## 🆕 18 November 2026 · Fórmulas y evidencia / Formulas and evidence

@@ -6323,7 +6323,7 @@ function __demoExplainPanel(mode, info) {
   p.style.cssText = "margin:1rem 0;padding:1rem 1.2rem;border-radius:.7rem;border:1px solid #1d3a52;" +
     "background:linear-gradient(180deg,#0e1c28,#0a141d);color:#dbe7f0;box-shadow:0 4px 16px rgba(0,0,0,.2);";
   p.innerHTML = `<div style="font:700 16px Georgia,'Times New Roman',serif;color:#34b3e0;margin-bottom:.5rem">${info.title}</div>` +
-    info.lines.map((l) => `<div style="margin:.28rem 0;line-height:1.5;font-family:Georgia,'Times New Roman',serif">${l}</div>`).join("");
+    [...info.lines, dt("paper.scope")].map((l) => `<div style="margin:.28rem 0;line-height:1.5;font-family:Georgia,'Times New Roman',serif">${l}</div>`).join("");
   if(info.content instanceof HTMLElement)p.appendChild(info.content);
   sec.appendChild(p);
   p.scrollIntoView({ block: "center", behavior: "smooth" });

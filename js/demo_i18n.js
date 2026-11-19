@@ -1,4 +1,5 @@
 // Localized strings for the guided in-app demos (one block per language).
+import { applyPaperIDemoUpdates } from "./paper_i_demo_updates.js";
 // Kept separate from the giant i18n.js so adding a mode = adding keys here.
 // dt(key) returns the string for the current UI language (localStorage), en fallback.
 export const DEMO_STRINGS = {
@@ -1134,3 +1135,5 @@ for(const [i,lang] of ['en','es','fr','zh'].entries()){
 }
 
 for(const [i,lang] of ['en','es','fr','zh'].entries())DEMO_STRINGS[lang]['resolver.s3']=["Load the saved example: 24 GiB, BF16, 131,072 tokens. The phase is unknown; real comparisons distinguish loading, prefill and decode.", "Carga el ejemplo: 24 GiB, BF16, 131.072 tokens. La fase es desconocida; una comparación real distingue carga, prefill y decodificación.", "Chargez l’exemple : 24 Gio, BF16, 131 072 tokens. Phase inconnue ; une comparaison réelle distingue chargement, prefill et décodage.", "加载示例：24 GiB、BF16、131,072 个 token。阶段未知；实际比较需区分加载、prefill 和 decode。"][i];
+
+applyPaperIDemoUpdates(DEMO_STRINGS);
