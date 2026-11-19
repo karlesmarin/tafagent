@@ -1,5 +1,10 @@
 # TAF ↔ guía: acompañar la interpretación
 
+## 🔗 Parte I revisada — 19 November 2026
+
+[Paper EN, 129 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_EN.pdf) · [Paper ES, 140 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_ES.pdf) · [Guide R4 ES](https://karlesmarin.github.io/transformers-guide/es/chapters/R4-medir-gamma.html) · [Guide R4 EN](https://karlesmarin.github.io/transformers-guide/en/chapters/R4-medir-gamma.html). The paper sets definitions and formal proof scope; R4/R5 explain the measurement protocol and the app routes; TAF computes family quantities or imports observations. The revised PDFs are not yet a Zenodo deposit.
+
+
 > 🆕 **18 November 2026:** [Current corrections](RELEASE_NOTES_2026-11.md) · [Formula contract](finite-family-contract.md). Earlier dated release entries are historical.
 
 ## llama.cpp memory logs — 25 October 2026

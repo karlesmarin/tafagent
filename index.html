@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TAF Agent — Test ANY Transformer LLM in Your Browser</title>
-  <meta name="description" content="Free, auditable diagnostic for transformer LLMs. Predict viability (long-context, KV compression, training budget, hardware) from config alone. Runs entirely in your browser. No server, no auth, no cost." />
+  <title>TAF Agent — Inspect Transformer Models and Evidence</title>
+  <meta name="description" content="Inspect transformer configuration, estimate resources, and compare declared evidence. Configuration calculations do not predict task success; optional model search uses Hugging Face requests." />
   <meta name="keywords" content="transformer, LLM, diagnostic, RoPE, NIAH, KV cache, viability, free, browser, GPU, NeurIPS, TAF" />
   <meta name="author" content="Carles Marin" />
 
   <!-- OpenGraph for social sharing (Twitter, LinkedIn, WhatsApp, Discord, etc.) -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://karlesmarin.github.io/tafagent/" />
-  <meta property="og:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
+  <meta property="og:title" content="TAF Agent — Inspect Transformer Models and Evidence" />
   <meta property="og:description" content="31 auditable LLM diagnostic modes, contextual field-guide explanations and optional demos. EN/ES/FR/ZH. Runs in your browser." />
   <meta property="og:site_name" content="TAF Agent" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="TAF Agent — Test ANY Transformer LLM in Your Browser" />
+  <meta name="twitter:title" content="TAF Agent — Inspect Transformer Models and Evidence" />
   <meta name="twitter:description" content="31 auditable LLM diagnostic modes, contextual field-guide explanations and optional demos. EN/ES/FR/ZH. Runs in your browser." />
 
   <!-- Theme color for browser UI -->
@@ -41,10 +41,10 @@
 
     <h1 data-i18n="hero.title">🔬 TAF Agent</h1>
     <p class="tagline" data-i18n="hero.tagline">
-      Diagnose any transformer LLM in 30 seconds. Free. No GPU. No signup.
+      Inspect model configuration and evidence. No GPU or signup for browser calculations.
     </p>
     <p class="subtle" data-i18n="hero.subtitle">
-      Predicts whether a model will work for your use case <em>before</em> you spend money or time. Everything runs in your browser &mdash; your inputs never leave this tab.
+      Configuration calculations are candidates, not measured task outcomes. Optional model search sends requests to Hugging Face; check the protocol before comparing observations.
     </p>
     <p class="subtle" style="margin-top:0.25rem; font-size:0.85rem;" data-i18n="hero.about">
       Built by an independent researcher. Open source. Not affiliated with any model vendor.
@@ -57,6 +57,9 @@
       <button id="guide-btn" type="button" data-i18n="hero.guide">📖 Guide</button>
       <button type="button" data-mode-link="research" data-i18n="modes.research">📚 Research</button>
     </p>
+    <nav class="subtle" aria-label="Paper and guide / Paper y guía" style="margin:0.6rem auto; text-align:center; font-size:0.9rem">
+      📄 <a href="https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_EN.pdf" target="_blank" rel="noopener">Paper I EN (129 pp)</a> · <a href="https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_ES.pdf" target="_blank" rel="noopener">Paper I ES (140 pp)</a> · <a href="https://karlesmarin.github.io/transformers-guide/en/chapters/R5-tafagent.html" target="_blank" rel="noopener">Guide EN</a> · <a href="https://karlesmarin.github.io/transformers-guide/es/chapters/R5-tafagent.html" target="_blank" rel="noopener">Guía ES</a>
+    </nav>
   </header>
 
   <!-- Help modal -->
