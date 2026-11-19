@@ -2,9 +2,9 @@
 
 ## 🔗 Parte I revisada — 19 November 2026
 
-[Paper EN, 129 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_EN.pdf) · [Paper ES, 140 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_ES.pdf) · [Guide R4 ES](https://karlesmarin.github.io/transformers-guide/es/chapters/R4-medir-gamma.html) · [Guide R4 EN](https://karlesmarin.github.io/transformers-guide/en/chapters/R4-medir-gamma.html). The paper sets definitions and formal proof scope; R4/R5 explain the measurement protocol and the app routes; TAF computes family quantities or imports observations. The revised PDFs are not yet a Zenodo deposit.
+[Paper EN, 129 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_EN.pdf) · [Paper ES, 140 pp](https://github.com/karlesmarin/predicting-how-transformers-attend/blob/session-2026-05-27-gamma-emergence/output/pdf/part1_formal_20261119/How_Transformers_Attend_Part_I_formal_ES.pdf) · [Guide R4 ES](https://karlesmarin.github.io/transformers-guide/es/chapters/R4-medir-gamma.html) · [Guide R4 EN](https://karlesmarin.github.io/transformers-guide/en/chapters/R4-medir-gamma.html). The paper sets definitions and formal proof scope; R4/R5 explain the measurement protocol and the app routes; TAF computes family quantities or imports observations. This edition has [version DOI 10.5281/zenodo.24379538](https://doi.org/10.5281/zenodo.24379538).
 
-🗺️ [Blueprint of the revised paper](https://karlesmarin.github.io/blueprints/transformers-attend-I-full/) maps its statements, proofs and four interactive labs. It is a public preview pending this edition's Zenodo DOI.
+🗺️ [Blueprint of the revised paper](https://karlesmarin.github.io/blueprints/transformers-attend-I-full/) maps its statements, proofs and four interactive labs.
 
 🎬 Every guided demo now ends with a four-language scope note. The Profile, Diagnose,
 PVR, YaRN, Inspector and Recipe tours distinguish configuration candidates,
