@@ -27,5 +27,9 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+      # The deploy step used to query the artifact a few ms after the upload and found none ("Fetching artifact
+      # metadata failed"); a short pause lets the artifact API catch up.
+      - name: Wait for the artifact to be visible
+        run: sleep 30
       - id: deployment
         uses: actions/deploy-pages@v4
